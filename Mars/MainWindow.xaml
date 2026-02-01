@@ -1,0 +1,1030 @@
+﻿<RibbonWindow  
+    Name="marsMainWindow"
+    x:Class="Mars.MarsMainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:RibbonWin="clr-namespace:System.Windows.Controls;assembly=System.Windows.Controls.Ribbon"
+    xmlns:local ="clr-namespace:Mars.ViewModel"
+    xmlns:views ="clr-namespace:Mars.Views"
+    xmlns:ad="http://schemas.xceed.com/wpf/xaml/avalondock"
+    Icon="Images\ico1.png"
+    VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
+    xmlns:Helper="clr-namespace:Mars.Helpers"
+    Title="MARS - Marquis Automation Reusable System v2.0"
+    ScrollViewer.VerticalScrollBarVisibility="Auto"
+
+    Closing="Window_Closing"
+    ScrollViewer.HorizontalScrollBarVisibility="Auto"  
+    Loaded="RibbonWindow_Loaded"    
+    
+    views:StoryboardEditControl.TapEdit="HandleChildEditSignal"
+        
+    SizeChanged="MarsMainWindow_SizeChanged"
+    views:DashboardControl.ShowStoryboard="ShowStoryboard"
+    views:StoryboardAddControl.RefreshTree="RefreshTree" Closed="marsMainWindow_Closed" FontFamily="Arial" FontSize="11" 
+    
+    >
+
+    <Window.Resources>
+        <ControlTemplate x:Key="RibbonButtonLarger" TargetType="RibbonButton">
+            <Border CornerRadius="4" Name="RibbonButtonBorder">
+
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="RibbonButtonBorder" Property="BorderThickness" Value="1"></Setter>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <Style x:Key="GridSplitterPreviewStyle" >
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Fill="#80000000"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="GridSplitterVer" TargetType="{x:Type GridSplitter}">
+            <Setter Property="Background"
+                Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+            <Setter Property="PreviewStyle" Value="{StaticResource GridSplitterPreviewStyle}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type GridSplitter}">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Background="{TemplateBinding Background}" >
+                            <Canvas RenderOptions.EdgeMode="Aliased" UseLayoutRounding="True"
+                                Height="16" VerticalAlignment="Center"
+                                Width="7" HorizontalAlignment="Center">
+                                <Line X1="0" X2="0" Y1="0" Y2="50"
+                                  Stroke="White" StrokeThickness="1"/>
+                                <Line X1="1" X2="1" Y1="0" Y2="50"
+                                  Stroke="#A0A0A0" StrokeThickness="1"/>
+                                <Line X1="4" X2="4" Y1="0" Y2="50"
+                                  Stroke="White" StrokeThickness="1"/>
+                                <Line X1="5" X2="5" Y1="0" Y2="50"
+                                  Stroke="#A0A0A0" StrokeThickness="1"/>
+                            </Canvas>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+
+    </Window.Resources>
+    <!--
+    
+    views:StoryboardEditControl.Tap="HandleChildSignal"
+   views:StoryboardAddControl.RefreshTree="RefreshTree"
+    -->
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="138" />
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="35"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="7" />
+            <ColumnDefinition Width="8*"/>
+        </Grid.ColumnDefinitions>
+
+
+        <Ribbon x:Name="MarsRibbon"  SelectedIndex="0" Grid.Row="0" Grid.ColumnSpan="3" 
+                HorizontalAlignment="Stretch" VerticalAlignment="Top" SelectionChanged="MarsRibbon_SelectionChanged" 
+                FontSize="14">
+            <!-- Help Pane, located at the right-hand side -->
+            <Ribbon.HelpPaneContent>
+                <RibbonButton SmallImageSource="Images\help-512.png" />
+            </Ribbon.HelpPaneContent>
+            <!-- Application Menu not needed hence disabling-->
+            <Ribbon.ApplicationMenu>
+                <RibbonApplicationMenu KeyTip="F" Visibility="Collapsed" />
+            </Ribbon.ApplicationMenu>
+
+            <!-- Ribbon Tab #1: Project -->
+            <RibbonTab Header="Project" KeyTip="P" ToolTip="Project" FontWeight="Normal" FontStyle="Italic" FontSize="12">
+
+                <!-- Project  group-->
+                <RibbonGroup x:Name="ProjectGroup" Header="Project">
+
+                    <RibbonButton LargeImageSource="Images\add_file-512.png" Label="New" KeyTip="N" ToolTipTitle="New Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\opened_folder-512.png" Label="Open" KeyTip="O" ToolTipTitle="Open Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick" />
+                    <!--<RibbonButton LargeImageSource="Images\save-512.png" Label="Save" KeyTip="S" ToolTipTitle="Save Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    
+                    <RibbonButton LargeImageSource="Images\edit-512.png" Label="Edit" KeyTip="E" ToolTipTitle="Amend Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    -->
+                    <RibbonButton SmallImageSource="Images\save_as-512.png" Label="SaveAs..." KeyTip="A" ToolTipTitle="SaveAs Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\delete-512.png"  Label="Delete..." KeyTip="D" ToolTipTitle="Delete Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"></RibbonButton>
+
+                    <RibbonButton SmallImageSource="Images\edit_property-512.png" Label="Properties" KeyTip="P" ToolTipTitle="Project Properties" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\export-64.png" Label="Export..." KeyTip="E" ToolTipTitle="Export Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\import-64.png" Label="Import..." KeyTip="I" ToolTipTitle="Import Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                </RibbonGroup>
+                <RibbonGroup x:Name="ProjectTestGroup" Header="Test" LargeImageSource="Images/run.png" SmallImageSource="Images/run.png">
+                    <RibbonButton x:Name="ribbonBtnTestCurrentStoryboard"  Label=" Run Current StoryBoard" 
+                                  ToolTipTitle="Run Current StoryBoard" LargeImageSource="Images/run.png" 
+                                  Command="{Binding RunCurrentTestStoryBoard}"
+                                  />
+                    <!--
+                    <RibbonButton x:Name="ribbonBtnTestCurrentTC"  Label=" Run Current Test Case" ToolTipTitle="Run Current Test Case" LargeImageSource="Images/TestTestCase64.png" />
+                    -->
+                    <TextBlock DockPanel.Dock="Top" Margin="5" x:Name="lblHint">Test On Application:</TextBlock>
+                    <RibbonComboBox x:Name="ComboxTargetApplication" Label="    " SelectionBoxWidth="70" >
+                        <RibbonGallery SelectedItem="{Binding SelectecTestTargetApplication, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" >
+                            <RibbonGalleryCategory ItemsSource="{Binding TestTargetApplications,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="MValue"/>
+                        </RibbonGallery>
+                    </RibbonComboBox>
+                    
+                    <!--
+                    <RibbonButton x:Name="ExportBaseDataButton" Label="Export BaselineData"></RibbonButton>
+                    -->
+
+                    <!-- -->
+                    <TextBlock DockPanel.Dock="Top" Margin="5" x:Name="lblExecMode">Test Execution Mode:</TextBlock>
+                    <RibbonComboBox x:Name="ComboxExecutionMode" Label="    " SelectionBoxWidth="70" >
+                        
+                        <RibbonGallery SelectedValue=""
+                                       SelectionChanged="ComboxExecutionMode_SelectionChanged"
+                          SelectedValuePath="Content"
+                          MaxColumnCount="1">
+                            <RibbonGalleryCategory>
+                                <RibbonGalleryItem Content="Baseline" />
+                                <RibbonGalleryItem Content="Compare" />
+                            </RibbonGalleryCategory>
+                        </RibbonGallery>
+                    </RibbonComboBox>               
+                    
+                    <!-- -->
+
+                    <!--
+                    <RibbonCheckBox x:Name="chckbxTestMode" IsChecked="{Binding isBaseLineTest}" Label="Is Base Line ?"  Margin="5,0,0,0"/>
+                    -->
+                    
+                    <RibbonCheckBox x:Name="continueLatestTest" IsChecked="{Binding IsContinueLatestTest}" Label="Continue to Test" Margin="5,0,0,0" />
+                    <RibbonCheckBox x:Name="chckbxIgnoreTestCaseError" IsChecked="{Binding IsIgnoreTestCaseError}" Label="Ignore Runtime Error?" Margin="5,0,0,0" />
+                    <RibbonCheckBox IsChecked="{Binding IsAutoFixDepends}" Label="Depends Check" Margin="5,0,0,0" />
+                    <!--<RibbonButton x:Name="ribbonBtnRestartFramework"  Label="Restart Framework" 
+                                  ToolTipTitle="Restart Framework" LargeImageSource="Images/refresh-32.png" 
+                                  Command="{Binding RestartFrameWork}"
+                                  />-->
+                    <!--<RibbonButton Label="Load Batch Management" ToolTipTitle="Load Batch Management"
+                                  LargeImageSource="Images/documents_folder-512.png"
+                                  SmallImageSource="Images/documents_folder-512.png"
+                                  Click="RibbonButton_Click"
+                                  ></RibbonButton>-->
+                </RibbonGroup>
+                <RibbonGroup x:Name="RibbonGroupTestDataManagement"  Header="Test Result Data Management" SmallImageSource="Images\Remove.png"  >
+                    <RibbonButton SmallImageSource="Images\Remove.png" Label=" Delete Report Data" Click="DeleteHisTestData"></RibbonButton>
+                    <RibbonCheckBox Label="Clear Baseline Data" x:Name="checkDelBaseline"></RibbonCheckBox>
+                    <RibbonCheckBox Label="Clear Non-Baseline Data" x:Name="checkDelNonBaseLine"></RibbonCheckBox>
+                </RibbonGroup>
+
+                <RibbonGroup x:Name="RibbonGroupReportManagement"  Header="Report Management" SmallImageSource="Images\compare.ico"  >
+                    <!--<RibbonButton x:Name="compareData"  Label=" Compare Result Data" 
+                                  ToolTipTitle="Compare Result Data" LargeImageSource="Images/compare.ico" Click="compareData_Click"  />-->
+                    <RibbonButton x:Name="genPdfRpt" Label="Detailed Report" ToolTipTitle="Generat Detailed PDF Report" LargeImageSource="Images/lamp_genie-64.png"
+                                  Click="GenPdfForCurrentTestStoryBoard"
+                                  ></RibbonButton>
+                    <RibbonButton x:Name="genMgmtPdfRpt" Label="Summary Report" ToolTipTitle="Genenrate Summary PDF Report" LargeImageSource="Images/lamp_genie-64.png"
+                                  Click="GenPdfMgmtRpt"
+                                  ></RibbonButton>
+                </RibbonGroup>
+                <RibbonGroup Header="Close Application">
+                    <RibbonButton Label="Close MARS" 
+                                  ToolTipTitle="Close MARS" LargeImageSource="Images/close_window-32.png" Click="RibbonButton_Click"  />
+                </RibbonGroup>
+            </RibbonTab>
+
+            <!-- Ribbon Tab #2: Test Suite -->
+            <RibbonTab Header="Test Suite" KeyTip="T" ToolTip="Test Suite" FontWeight="Normal" FontStyle="Italic" FontSize="12">
+                <!-- Project  group-->
+                <RibbonGroup x:Name="TestSuiteGroup" Header="TestSuite">
+                    <RibbonButton LargeImageSource="Images\add_file-512.png" Label="New" KeyTip="N" ToolTipTitle="New Test Suite" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton LargeImageSource="Images\opened_folder-512.png" Label="Open" KeyTip="O" ToolTipTitle="Open Test Suite" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <!--<RibbonButton LargeImageSource="Images\save-512.png" Label="Save" KeyTip="S" ToolTipTitle="Save Test Suite" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>-->
+                    <RibbonButton LargeImageSource="Images\edit-512.png" Label="Edit" KeyTip="E" ToolTipTitle="Amend Test Suite" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\save_as-512.png" Label="SaveAs" KeyTip="A" ToolTipTitle="SaveAs Test Suite" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\delete-512.png" Label="Delete" KeyTip="D" ToolTipTitle="Delete Test Suite" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <!--
+                    <RibbonButton SmallImageSource="Images\edit_property-512.png" Label="Properties" KeyTip="P" ToolTipTitle="Test Suite Properties" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    -->
+                </RibbonGroup>
+
+            </RibbonTab>
+
+            <RibbonTab Header="Test Case" KeyTip="C"  ToolTip="Test Case" FontWeight="Normal" FontStyle="Italic" FontSize="12">
+                <!-- Project  group-->
+                <RibbonGroup x:Name="TestCaseGroup" Header="TestCase" HorizontalAlignment="Left" >
+
+                    <RibbonButton LargeImageSource="Images\add_file-512.png" Label="New" KeyTip="N" ToolTipTitle="New Test Case" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <!-- To Hidden for FRB
+                    <RibbonButton LargeImageSource="Images\opened_folder-512.png" Label="Open" KeyTip="O" ToolTipTitle="Open Test Case" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    -->
+                    <!--<RibbonButton LargeImageSource="Images\save-512.png" Label="Save" KeyTip="S" ToolTipTitle="Save Test Case" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>-->
+                    <!-- To Hidden for FRB
+                    <RibbonButton LargeImageSource="Images\edit-512.png" Label="Edit" KeyTip="E" ToolTipTitle="Amend Test Case" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    -->
+                    <RibbonButton SmallImageSource="Images\save_as-512.png" Label="SaveAs" KeyTip="A" ToolTipTitle="SaveAs Test Case" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\delete-512.png" Label="Delete" KeyTip="D" ToolTipTitle="Delete Test Case" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\edit_property-512.png" Label="Properties" KeyTip="P" ToolTipTitle="Test Case Properties" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+
+                    <RibbonButton SmallImageSource="Images\run.png" Label="Run Selected Rows" KeyTip="R" ToolTipTitle="Run Selected Rows" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\link-512.png" Label="Copy to the Empty Row(s)" KeyTip="C" ToolTipTitle="Copy to the Empty Row(s)" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+
+                    <RibbonButton SmallImageSource="Images\clean.png" Label="Clean Duplicated Datasets" KeyTip="D" ToolTipTitle="Clean Duplicated Datasets" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                </RibbonGroup>
+		
+                <RibbonGroup x:Name="ImportGroup" Header="Test Case Imports">
+                    <!---
+                    <RibbonButton LargeImageSource="Images\import-icon.png" Label="Import Test Cases" ToolTipTitle="Import Test Case Data from Excel" KeyTip="O" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    -->
+                    <RibbonButton LargeImageSource="Images\export-64.png" Label="Export Test Cases To XML" ToolTipTitle="Export Test Cases To XML" KeyTip="E" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton LargeImageSource="Images\import-64.png" Label="Import Test Cases From XML" ToolTipTitle="Import Test Cases From XML" KeyTip="I" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                </RibbonGroup>
+                <!--
+                <RibbonGroup Header="Record/Replay">
+                    <RibbonButton Label="Auto Generate" LargeImageSource="Images\target.png" Click="RibbonButton_ReplayRecordClick"></RibbonButton>
+                    <ListBox Width="auto"  >
+                        <ListBoxItem>
+                            <CheckBox Content="Gen Capture for Tables" />
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <CheckBox Content="Navigate all Tabs"/>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <CheckBox Content="Capture Label with *Status"/>
+                        </ListBoxItem>
+                    </ListBox>
+                </RibbonGroup> -->
+
+                <RibbonGroup x:Name="TestDataGroup" Header="Data" BorderThickness="5" BorderBrush="Gainsboro"  >
+                    <!--
+                    <RibbonButton LargeImageSource="Images\add_file-512.png" Label="New" KeyTip="N" ToolTipTitle="New Data" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    
+                    <RibbonButton LargeImageSource="Images\opened_folder-512.png" Label="Open" KeyTip="O" ToolTipTitle="Open Data" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton LargeImageSource="Images\edit-512.png" Label="Edit" KeyTip="E" ToolTipTitle="Amend Data" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    -->
+
+                    <!--
+                    <RibbonButton SmallImageSource="Images\save-512.png" Label="Save" KeyTip="B" ToolTipTitle="Save Data" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\save_as-512.png" Label="SaveAs" KeyTip="A" ToolTipTitle="SaveAs Data" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    -->
+
+
+                    <RibbonButton LargeImageSource="Images\save_as-512.png" Label="SaveAs" KeyTip="Z" ToolTipTitle="SaveAs New DataSet" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton LargeImageSource="Images\delete-512.png"  Label="Delete" KeyTip="D" ToolTipTitle="Delete DataSet" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+
+                    <!--
+                    <RibbonButton LargeImageSource="Images\edit_property-512.png" Label="Properties" KeyTip="P" ToolTipTitle="Test Case Properties" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    -->
+                    <!--
+                    <RibbonButton LargeImageSource="Images\link-512.png" Label="Link" KeyTip="L" ToolTipTitle="Link Data Sheet" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    -->
+                    <Label Content="   Linked Data Sets" HorizontalAlignment="Right" HorizontalContentAlignment="Right"></Label>
+                    
+                    <ComboBox x:Name="DataSheetComboBox" Grid.Row="1" 
+                      Grid.Column="1" 
+                      IsEditable="True"  
+                      IsReadOnly="True"
+                      ItemsSource="{Binding DataSheetColl}" 
+                      SelectedItem="{Binding SelectedDataSheet, Mode=TwoWay}" 
+                      DisplayMemberPath="DataItemName" 
+                      Margin="5"  BorderThickness="0">
+                        <ComboBox.Background>
+                            <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+                                <GradientStop Color="#FFF0F0F0" Offset="0"/>
+                                <GradientStop Color="#FFF9F3F3" Offset="1"/>
+                            </LinearGradientBrush>
+                        </ComboBox.Background>
+                    </ComboBox>
+                     
+                    <RibbonButton LargeImageSource="Images\copy-512.png" Label="Dataset copy" KeyTip="L" ToolTipTitle="Copy data from selected rows to all linked DataSets" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                   
+                </RibbonGroup>
+
+            </RibbonTab>
+
+            <RibbonTab Header="Application" KeyTip="A" ToolTip="New Application" FontWeight="Normal" FontStyle="Italic" FontSize="12">
+                <!-- Project  group-->
+                <RibbonGroup x:Name="ApplicationGroup" Header="Application">
+                    <RibbonButton LargeImageSource="Images\add_file-512.png" Label="New" KeyTip="N" ToolTipTitle="New Application" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton LargeImageSource="Images\edit-512.png" Label="Amend" KeyTip="A" ToolTipTitle="Amend Application" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <!--
+                    <RibbonButton LargeImageSource="Images\edit_property-512.png" Label="Properties" KeyTip="P" ToolTipTitle="Application Properties" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    -->
+                </RibbonGroup>
+
+            </RibbonTab>
+            <!--
+            <RibbonTab Header="Storyboard" KeyTip="D" ToolTip="Storyboard" FontWeight="Normal" FontStyle="Italic" FontSize="12">
+                <RibbonGroup x:Name="StoryboardGroup" Header="Storyboard">
+                    <RibbonButton LargeImageSource="Images\add_file-512.png" Label="New" KeyTip="N" ToolTipTitle="New Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton LargeImageSource="Images\opened_folder-512.png" Label="Open" KeyTip="O" ToolTipTitle="Open Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick" />
+                    < !- - <RibbonButton LargeImageSource="Images\save-512.png" Label="Save" KeyTip="S" ToolTipTitle="Save Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>- - >
+
+                    <RibbonButton LargeImageSource="Images\edit-512.png" Label="Edit" KeyTip="E" ToolTipTitle="Amend Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\save_as-512.png" Label="SaveAs..." KeyTip="A" ToolTipTitle="SaveAs Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\delete-512.png"  Label="Delete..." KeyTip="D" ToolTipTitle="Delete Project" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                </RibbonGroup>
+            </RibbonTab>
+            -->
+            <RibbonTab Header="Objects" ToolTip="Objects Management" >
+                <RibbonGroup Header="Object Database Management">
+                    <RibbonButton LargeImageSource="Images\opened_folder-512.png" Label="Load" ToolTipTitle="Load Object Data from Excel" KeyTip="O" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\add_file-512.png" Label="New" ToolTipTitle="Object New" KeyTip="N" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\opened_folder-512.png" Label="Open" ToolTipTitle="Object Open" KeyTip="O" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\edit_property-512.png" Label="Properties" ToolTipTitle="Object Properties" KeyTip="P" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton  
+                        SmallImageSource="Images\CrosshairsCursor.png"
+                        Label="Object Spy" ToolTipTitle="Object Spy" KeyTip="MARS Object Spy"                        
+                        Click="RibbonButton_SpyClick_1"
+                        SnapsToDevicePixels="False" >
+
+                    </RibbonButton>
+                    <RibbonButton SmallImageSource="Images\clean.png" Label="Clean" ToolTipTitle="Clean Duplicated Object" KeyTip="P" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton LargeImageSource="Images\compare.ico" SmallImageSource="Images\compare.ico" Label="Opics Converter" ToolTipTitle="Convert Opics Template to Mars"
+                                  Click="RibbonButton_Click" />
+                    <!--
+                    <RibbonButton LargeImageSource="Images\settings-64.png" Label="DataSource setting" ToolTipTitle="Object DataSource Setting" KeyTip="S" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    -->                    
+                </RibbonGroup>
+                
+            </RibbonTab>
+            <RibbonTab Header="Tools" ToolTip="Tools For Loading objects, etc" FontWeight="Normal" FontStyle="Italic" FontSize="12">
+                <RibbonGroup x:Name="ObjectDatabaseGroup" Header="Object Database Management">
+                    <RibbonButton LargeImageSource="Images\opened_folder-512.png" Label="Load" ToolTipTitle="Load Object Data from Excel" KeyTip="O" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\add_file-512.png" Label="New" ToolTipTitle="Object New" KeyTip="N" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\opened_folder-512.png" Label="Open" ToolTipTitle="Object Open" KeyTip="O" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton SmallImageSource="Images\edit_property-512.png" Label="Properties" ToolTipTitle="Object Properties" KeyTip="P" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <!--
+                    <RibbonButton LargeImageSource="Images\settings-64.png" Label="DataSource setting" ToolTipTitle="Object DataSource Setting" KeyTip="S" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    -->
+                    <RibbonButton  
+                        SmallImageSource="Images\CrosshairsCursor.png"
+                        Label="Object Spy" ToolTipTitle="Object Spy" KeyTip="MARS Object Spy"                        
+                        Click="RibbonButton_SpyClick_1"
+                        SnapsToDevicePixels="False" >
+                        
+                    </RibbonButton>
+                </RibbonGroup>
+
+                <RibbonGroup x:Name="KeywordMgr" Header="Static Data" ToolTip="Static Data Management">
+                    <RibbonButton LargeImageSource="Images\key_blue.png" Label="Keyword Management" ToolTipTitle="Keyword Library" KeyTip="k" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton LargeImageSource="Images\ticket-64.png" Label="Enumerate" ToolTipTitle="Enumerate Management" KeyTip="k" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+
+                </RibbonGroup>
+
+                <RibbonGroup Header="Data" x:Name="DataCompareRbbGrp" >
+                    <RibbonButton x:Name="buttonDataCompson"
+                        LargeImageSource="Images\tree_structure-64.png" Label="Data Comparison" ToolTipTitle="Start Data Comparison" Click="RibbonButton_Click" MouseDoubleClick="RibbonButton_MouseDoubleClick"/>
+                    <RibbonButton LargeImageSource="Images\invoice-128.png" Label="Base line data" ToolTipTitle="Base Line Data Setting" Click="RibbonButton_Click" />
+                </RibbonGroup>
+                <RibbonGroup Header="System Settings/Tools">
+                    <RibbonButton LargeImageSource="Images\settings-64.png" Label="Test Application Setting" ToolTipTitle="Setting Applications" Click="RibbonButton_Click"></RibbonButton>
+                    <RibbonButton SmallImageSource="Images\Yoga-64.png" Label="Tester Account Setting" ToolTipTitle="Tester Account Setting" Click="RibbonButton_Click"></RibbonButton>
+                    <RibbonButton SmallImageSource="Images\automatic-512.png" Label="NETWORK/DB Test" ToolTipTitle="NETWORK/DB Test" Click="RibbonButton_Click"></RibbonButton>
+                    <RibbonButton SmallImageSource="Images\multiple_input-32.png" Label="MARS Services setting" ToolTipTitle="MARS Services setting" Click="RibbonButton_Click"></RibbonButton>
+                    <RibbonButton LargeImageSource="Images\cancel.png" Label="Kill UFT/QTP" ToolTipTitle="Kill UFT" Click="RibbonButton_Click"></RibbonButton>
+                </RibbonGroup>
+                <RibbonGroup Header="Variables">
+                    <RibbonButton LargeImageSource="Images\Variable.png" Label="Edit Variables" ToolTipTitle="Edit Variables" Click="RibbonButton_Click"></RibbonButton>
+                </RibbonGroup>
+                <RibbonGroup Header="Mars Tree">
+                    <RibbonButton LargeImageSource="Images\Refresh-512.png" Label="Refresh Tree" ToolTipTitle="Refresh Tree" Click="RibbonButton_Click"></RibbonButton>
+                </RibbonGroup>
+            </RibbonTab>
+        </Ribbon>
+
+        <DockPanel Name="TreePanel"  Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                   ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+            <TreeView Name="tvMars" 
+                      DockPanel.Dock="Left" 
+                      HorizontalAlignment="Stretch" 
+                      VerticalAlignment="Stretch" 
+                      PreviewMouseRightButtonDown="tvMars_PreviewMouseRightButtonDown"
+                      PreviewMouseDoubleClick="tvMars_PreviewMouseRightButtonDown"
+                      SelectedItemChanged="tvMars_SelectedItemChanged" 
+                        
+                      SourceUpdated="tvMars_SourceUpdated"
+                      Background="White"
+                      FontWeight="Normal" FontSize="12" DragEnter="tvMars_DragEnter" PreviewMouseLeftButtonDown="tvMars_PreviewMouseLeftButtonDown" PreviewMouseUp="tvMars_PreviewMouseUp">
+                      
+                <TreeView.Resources>
+                    
+                    <HierarchicalDataTemplate DataType="{x:Type local:MarsProjectTreeView}" ItemsSource="{Binding Path=TEST_FOLDER}"                                               
+                                              >
+                        <!--<HierarchicalDataTemplate.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}">
+                                <Setter Property="IsExpanded" Value="{Binding IsExpandNO}"/>
+                                --><!--<Setter Property="Background" Value="Blue"/>--><!--
+                            </Style>
+                        </HierarchicalDataTemplate.ItemContainerStyle>-->
+
+                        <Grid Height="14" Width="Auto" VerticalAlignment="Center">
+                            <Image Margin="0,2,0,0" Height="14" Width="12" Source="Images\documents_folder-512.png" HorizontalAlignment="Left" VerticalAlignment="Center"></Image>
+                            <TextBlock Margin="14,0,0,0" 
+                                     
+                                       Width="Auto" 
+                                       Text="{Binding Path=ProjectName}" 
+                                       ToolTip="{Binding Path=ToolTip}" 
+                                       FontSize ="14"
+                                       FontFamily="Arial"
+                                       Foreground="Black"
+                                       VerticalAlignment="Center"
+                                       ></TextBlock>
+
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Rename Project"
+                                              Click="TreeContextMenuItem_Click">
+                                        <MenuItem.Icon>
+                                            <Image Width="16" Height="16">
+                                                <Image.Style>
+                                                    <Style TargetType="{x:Type Image}">
+                                                        <Setter Property="Source" Value="Images/rename-512.png"/>
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Source" Value="Images/rename-512.png"></Setter>
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Image.Style>
+                                            </Image>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem Header="Delete Project"
+                                              Click="TreeContextMenuItem_Click">
+                                        <MenuItem.Icon>
+                                            <Image Source="Images/delete-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+
+                                    </MenuItem>
+
+                                    <MenuItem Header="SaveAs Project"
+                                              Click="TreeContextMenuItem_Click">
+
+                                        <MenuItem.Icon>
+                                            <Image Source="Images/save_as-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem Header="Export Project..."
+                                              Click="TreeContextMenuItem_Click">
+
+                                        <MenuItem.Icon>
+                                            <Image Source="Images/tree_structure-64.png" Width="16" Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem Header="Assgin Applications To Test Cases..." Click="TreeContextMenuItem_Click">
+                                        <MenuItem.Icon>
+                                            <Image Source="Image/link-512.png" Width="16" Height="16"></Image>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+                        </Grid>
+                    </HierarchicalDataTemplate>
+
+                    <!-- NEW FOLDER TEMPLATE-->
+
+                    <HierarchicalDataTemplate DataType="{x:Type local:MarsFolderTreeView}" ItemsSource="{Binding Path=TREE_ITEM}">
+                        <Grid Height="14" Width="Auto" VerticalAlignment="Center">
+                            <Image Margin="0,2,0,0" Height="14" Width="12" Source="Images\documents_folder-512.png" HorizontalAlignment="Left" VerticalAlignment="Center"></Image>
+                            <TextBlock Margin="14,0,0,0" Width="Auto" 
+                                       
+                                       Text="{Binding Path=FolderName}" 
+                                       FontSize ="14"
+                                       FontFamily="Arial"
+                                       Foreground="Black"
+                                       VerticalAlignment="Center"></TextBlock>
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Add Storyboard"
+                                              Click="TreeContextMenuItem_Click">
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/add_file-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+                        </Grid>
+                    </HierarchicalDataTemplate>
+
+                    <HierarchicalDataTemplate DataType="{x:Type local:MarsTestSuiteTreeView}" ItemsSource="{Binding Path=TEST_CASE}">
+                        <Grid Height="14" Width="Auto" VerticalAlignment="Center">
+                            <Image Margin="0,2,0,0" Height="14" Width="12" Source="Images\external-512.png" HorizontalAlignment="Left" VerticalAlignment="Center"></Image>
+                            <TextBlock Margin="14,0,0,0"  Width="Auto" 
+                                       Text="{Binding Path=TestSuiteName}" 
+                                       FontSize ="14"
+                                       FontFamily="Arial"
+                                       Foreground="Black"
+                                       VerticalAlignment="Center"></TextBlock>
+
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Rename Test Suite"
+                                              Click="TreeContextMenuItem_Click">
+
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/rename-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem Header="Delete Test Suite"
+                                              Click="TreeContextMenuItem_Click">
+
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/delete-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem Header="SaveAs Test Suite"
+                                              Click="TreeContextMenuItem_Click">
+
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/save_as-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+
+                        </Grid>
+                    </HierarchicalDataTemplate>
+
+                    <HierarchicalDataTemplate  DataType="{x:Type local:MarsTestCaseTreeView}" ItemsSource="{Binding Path=DATA_SHEET}" >
+                        <Grid Height="14" Width="Auto" VerticalAlignment="Center">
+                            <Image Margin="0,2,0,0" Height="14" Width="12" Source="Images\test_tube-512.png" HorizontalAlignment="Left" VerticalAlignment="Center"></Image>
+                            <TextBlock Margin="14,0,0,0"  Width="Auto"  
+                                       Text="{Binding Path=TestCaseName}" 
+                                       FontSize ="14"
+                                       FontFamily="Arial"
+                                       Foreground="Black"
+                                       VerticalAlignment="Center"></TextBlock>
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Refresh Data"
+                                              Click="TreeContextMenuItem_Click">
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/Refresh-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem Header="Rename Test Case"
+                                              Click="TreeContextMenuItem_Click">
+
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/rename-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Delete Test Case"
+                                              Click="TreeContextMenuItem_Click">
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/delete-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="SaveAs Test Case"
+                                              Click="TreeContextMenuItem_Click">
+
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/save_as-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+                        </Grid>
+                    </HierarchicalDataTemplate >
+
+                    <DataTemplate  DataType="{x:Type local:MarsDataSheetTreeView}">
+                        <Grid Height="14" Width="Auto" VerticalAlignment="Center">
+                            <Image Margin="0,2,0,0" Height="14" Width="12" Source="Images\document-512.png" HorizontalAlignment="Left" VerticalAlignment="Center"></Image>
+                            <TextBlock Margin="14,0,0,0"  Width="Auto"  
+                                       Text="{Binding Path=DataSheetName}" 
+                                       ToolTip="{Binding Path=ToolTip}" 
+                                        FontSize ="14"
+                                       FontFamily="Arial"
+                                       Foreground="Black"
+                                       VerticalAlignment="Center"></TextBlock>
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+
+                                    <MenuItem Header="Delete DataSet" Click="TreeContextMenuItem_Click">
+                                        <MenuItem.Icon>
+                                            <Image Source="Images\Remove.png" Width="16" Height="16" />
+                                        </MenuItem.Icon>
+                                        <MenuItem.Style>
+                                            <Style>
+                                                <Style.Triggers>
+                                                    <Trigger Property="MenuItem.IsMouseOver" Value="True">
+                                                        <Setter Property="MenuItem.Background" Value="Green" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </MenuItem.Style>
+                                    </MenuItem>
+
+                                    <MenuItem Header="Rename DataSet" Click="TreeContextMenuItem_Click">
+
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/rename-512.png" Width="16" Height="16" />
+                                        </MenuItem.Icon>
+                                        <MenuItem.Style>
+                                            <Style>
+                                                <Style.Triggers>
+                                                    <Trigger Property="MenuItem.IsMouseOver" Value="True">
+                                                        <Setter Property="MenuItem.Background" Value="Green" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </MenuItem.Style>
+                                    </MenuItem>
+                                    <MenuItem Header="SaveAs DataSet"
+                                              Click="TreeContextMenuItem_Click">
+
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/save_as-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                        <MenuItem.Style>
+                                            <Style>
+                                                <Style.Triggers>
+                                                    <Trigger Property="MenuItem.IsMouseOver" Value="True">
+                                                        <Setter Property="MenuItem.Background" Value="Green" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </MenuItem.Style>
+                                    </MenuItem>
+
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+
+                        </Grid>
+                    </DataTemplate >
+
+                    <DataTemplate  DataType="{x:Type local:MarsStoryboardTreeView}">
+                        <Grid Height="14" Width="Auto" VerticalAlignment="Center">
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="SaveAs Storyboard"
+                                              Click="TreeContextMenuItem_Click">
+
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/save_as-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem Header="Rename Storyboard"
+                                              Click="TreeContextMenuItem_Click">
+
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/rename-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem Header="Compare Storyboard"
+                                              Click="TreeContextMenuItem_Click">
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/compare.ico"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem Header="Delete Storyboard"
+                                              Click="TreeContextMenuItem_Click">
+                                        <MenuItem.Icon>
+                                            <Image Source="/Images/delete-512.png"
+                                       Width="16"
+                                       Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+                            <!--
+                            <ContextMenu >
+                                <MenuItem Header="Rename" />
+                                <MenuItem Header="Delete" />
+                            </ContextMenu>
+                            -->
+                            <Image Margin="0,2,0,0" Height="14" Width="12" Source="Images\document-512.png" HorizontalAlignment="Left" VerticalAlignment="Center"></Image>
+                            <TextBlock Margin="14,0,0,0" 
+                                       Height="20" Width="Auto"  
+                                       Text="{Binding Path=StoryboardName}" 
+                                       ToolTip="{Binding Path=ToolTip}" 
+                                       FontSize ="14"
+                                       FontFamily="Arial"
+                                       Foreground="Black" 
+                                       VerticalAlignment="Center"></TextBlock>
+
+
+                        </Grid>
+                    </DataTemplate >
+
+                    <!-- the context menu for the tree -->
+                    <ContextMenu x:Key="CategoryMenu">
+                        <MenuItem Header="Add Subcategory"
+                                  Command="New">
+                            <MenuItem.Icon>
+                                <Image Source="/Images/add_file-512.png"
+                                       Width="16"
+                                       Height="16" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+
+                        <MenuItem Header="Remove Category"
+                                  Command="Delete">
+                            <MenuItem.Icon>
+                                <Image Source="/Images/delete-512.png"
+                                       Width="16"
+                                       Height="16" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+
+                    </ContextMenu>
+
+                </TreeView.Resources>
+            </TreeView>
+        </DockPanel>
+        <GridSplitter   ResizeDirection="Columns"  Grid.Row="1" Grid.Column="1"
+                  ResizeBehavior="PreviousAndNext" Width="7" 
+                  BorderBrush="LightGray" BorderThickness="1"    
+                  Style="{DynamicResource GridSplitterVer}"
+        />
+
+        <ad:DockingManager Grid.Row="1" Grid.Column="2" x:Name="dockManager" AllowMixedOrientation="True" Margin="1,2,1,0">
+            <!--<ad:DockingManager.Theme>
+                <ad:MetroTheme/>
+            </ad:DockingManager.Theme>-->
+            <ad:DockingManager.DocumentHeaderTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="Images/copy-32.png" Margin="0,0,4,0" Height="16"/>
+                        <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ad:DockingManager.DocumentHeaderTemplate>
+            <ad:LayoutRoot  >
+                <ad:LayoutPanel Orientation="Horizontal">
+                    <ad:LayoutDocumentPaneGroup x:Name="HostGroup">
+                        <ad:LayoutDocumentPane x:Name="HostOfUserControl"/>
+                    </ad:LayoutDocumentPaneGroup>
+                </ad:LayoutPanel>
+            </ad:LayoutRoot>
+        </ad:DockingManager>
+
+        <!--<DockPanel Name="FormPanelHost" Grid.Row="1" Grid.Column="2" LastChildFill="True" >
+            
+            -->
+        <!-- Load Forms here 
+            <ad:ResizingPanel HorizontalAlignment="Stretch">                
+                <ad:DockingManager Name="dockingManager" Margin="0,0,0,0" ActiveContentChanged="dockingManager_ActiveContentChanged" >
+                    <ad:DockablePane x:Name="dockPanelHost" Background="White" ShowHeader="True">
+                    </ad:DockablePane>                    
+                </ad:DockingManager>                
+            </ad:ResizingPanel>
+            -->
+        <!--
+            
+            
+        </DockPanel>-->
+
+        <StatusBar Grid.Row="2" Grid.ColumnSpan="3" Grid.Column="0"
+                   HorizontalAlignment="Stretch" 
+                   VerticalAlignment="Bottom" 
+                   >
+            <TextBlock Name="Status" HorizontalAlignment="Stretch" 
+                       VerticalAlignment="Stretch" FontWeight="Bold"  Width="750"></TextBlock>
+        </StatusBar>
+
+        <Popup Name="popupTestSuite" IsOpen="False" Placement="Mouse" 
+               Margin="124,122,107,65" PopupAnimation="Slide" Height="Auto" Width="600" >
+            <Border BorderBrush="Black" BorderThickness="1">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Orientation="Horizontal" Background="#FFFDF9F9">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
+                                <Label Content="Test Suite Open" FontSize="20" ></Label>
+                            </StackPanel>
+                            <!--First Column Content-->
+                            <Label Content="Application" Grid.Column="0" Grid.Row="1" Margin="5" ></Label>
+                            <Label Content="Test Suite" Grid.Column="0" Grid.Row="2" Margin="5" ></Label>
+
+                            <!--Second Column Content-->
+                            <ListView Name="listViewClients" Grid.Column="2" Grid.Row="1" Margin="0,5,10,10" 
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                              ItemsSource="{Binding Application}"                  
+                              ScrollViewer.VerticalScrollBarVisibility="Auto" MaxHeight="300"                              
+                              Helper:GridViewSort.AutoSort="True"
+                              SelectedItem="{Binding SelectedApplication}">
+                                <ListView.Resources>
+                                    <Style TargetType="{x:Type GridViewColumnHeader}">
+                                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                    </Style>
+                                </ListView.Resources>
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Select" Width="50" Helper:GridViewSort.PropertyName="IsSelected">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox IsChecked="{Binding IsSelected,Mode=TwoWay}"/>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Header="Application" Width="300" DisplayMemberBinding="{Binding ApplicationName}"
+                                    Helper:GridViewSort.PropertyName="ApplicationName"/>
+                                        <GridViewColumn Header="Version" Width="100" DisplayMemberBinding="{Binding ApplicationVersion}" 
+                                    Helper:GridViewSort.PropertyName="ApplicationVersion"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <!---->
+                            <ListView Name="listTestSuite" Grid.Column="2" Grid.Row="2" Margin="0,5,10,10"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                                  ItemsSource="{Binding TestSuite}"
+                                  Helper:GridViewSort.AutoSort="True"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto" 
+                                  MaxHeight="500" SelectionMode="Single">
+                            <ListView.Resources>
+                                <Style TargetType="{x:Type GridViewColumnHeader}">
+                                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                </Style>
+                            </ListView.Resources>
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Select" Width="50">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox IsChecked="{Binding IsSelected,Mode=TwoWay}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Test Suite" Width="150" DisplayMemberBinding="{Binding TestSuiteName}" />                                    
+                                    <GridViewColumn Header="Application" Width="150" DisplayMemberBinding="{Binding ApplicationName}" />                                    
+                                    <GridViewColumn Header="Application Version" Width="150" DisplayMemberBinding="{Binding ApplicationVersion}" />                                    
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                        <WrapPanel Grid.Column="3" Grid.Row="8" >
+                            <Button Content="Open" Width="70" Height="24" Margin="5" Click="PopUp_OK_Click"></Button>
+                            <Button Content="Close" Width="70" Height="24" Margin="5" Click="PopUp_Close_Click"></Button>
+                        </WrapPanel>
+                    </Grid>
+                </StackPanel>
+              </ScrollViewer>
+            </Border>
+        </Popup>
+        
+        <Popup Name="popupTestCase" IsOpen="False" Placement="Mouse" 
+               Margin="5" PopupAnimation="Slide" Height="Auto" Width="600" >
+            <Border BorderBrush="Black" BorderThickness="1">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Orientation="Horizontal" Background="#FFFDF9F9">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
+                            <Label Content="Test Case Open" FontSize="20" ></Label>
+                        </StackPanel>
+                        <!--First Column Content-->
+                            <Label Content="Application" Grid.Column="0" Grid.Row="1" Margin="5" ></Label>
+                            <Label Content="Test Case" Grid.Column="0" Grid.Row="2" Margin="5" ></Label>
+
+                            <!--Second Column Content-->
+                            <ListView Grid.Column="2" Grid.Row="1" Margin="0,5,10,10" 
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                              ItemsSource="{Binding Application}"                  
+                              ScrollViewer.VerticalScrollBarVisibility="Auto" MaxHeight="300"                              
+                              Helper:GridViewSort.AutoSort="True"
+                              SelectedItem="{Binding SelectedApplication}">
+                                <ListView.Resources>
+                                    <Style TargetType="{x:Type GridViewColumnHeader}">
+                                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                    </Style>
+                                </ListView.Resources>
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Select" Width="50" Helper:GridViewSort.PropertyName="IsSelected">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox IsChecked="{Binding IsSelected,Mode=TwoWay}"/>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Header="Application" Width="300" DisplayMemberBinding="{Binding ApplicationName}"
+                                    Helper:GridViewSort.PropertyName="ApplicationName"/>
+                                        <GridViewColumn Header="Version" Width="100" DisplayMemberBinding="{Binding ApplicationVersion}" 
+                                    Helper:GridViewSort.PropertyName="ApplicationVersion"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <!---->
+                            <ListView x:Name="listTestCase" Grid.Column="2" Grid.Row="2" Margin="0,5,-28,10" 
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                                  ItemsSource="{Binding TestCase}"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto" MaxHeight="500" SelectionMode="Single">
+                            <ListView.Resources>
+                                <Style TargetType="{x:Type GridViewColumnHeader}">
+                                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                </Style>
+                            </ListView.Resources>
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Select" Width="50">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox IsChecked="{Binding IsSelected,Mode=TwoWay}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Test Case" Width="150" DisplayMemberBinding="{Binding TestCaseName}" />                                    
+                                    <GridViewColumn Header="Application" Width="150" DisplayMemberBinding="{Binding ApplicationName}" />                                    
+                                    <GridViewColumn Header="Application Version" Width="150" DisplayMemberBinding="{Binding ApplicationVersion}" />                                    
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                        <WrapPanel Grid.Column="3" Grid.Row="8" >
+                            <Button Content="Open" Width="70" Height="24" Margin="5" Click="PopUpTestCase_OK_Click"></Button>
+                            <Button Content="Close" Width="70" Height="24" Margin="5" Click="PopUpTestCase_Close_Click"></Button>
+                        </WrapPanel>
+                    </Grid>
+                </StackPanel>
+              </ScrollViewer>
+            </Border>
+        </Popup>
+        <Rectangle Width="259" Height="70" HorizontalAlignment="Right" Margin="0,32,0,0" RenderTransformOrigin="0.5,0.5" x:Name="rectLogo" Grid.Column="3">
+           <Rectangle.RenderTransform>
+               <TransformGroup>
+                   <ScaleTransform ScaleX="0.95"/>
+                   <SkewTransform/>
+                   <RotateTransform/>
+                   <TranslateTransform/>
+               </TransformGroup>
+           </Rectangle.RenderTransform>
+           <Rectangle.Fill>
+               <ImageBrush ImageSource="Images\MARS3.png" Stretch="Fill" AlignmentX="Left" AlignmentY="Top" />
+           </Rectangle.Fill>
+       </Rectangle>
+    </Grid>
+</RibbonWindow >

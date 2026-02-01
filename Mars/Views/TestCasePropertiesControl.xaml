@@ -1,0 +1,153 @@
+﻿<mars:MarsBaseViewControl x:Class="Mars.Views.TestCasePropertiesControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vab="clr-namespace:Microsoft.Practices.EnterpriseLibrary.Validation.Integration.WPF;assembly=Microsoft.Practices.EnterpriseLibrary.Validation.Integration.WPF"
+             xmlns:local="clr-namespace:Mars.ViewModel"
+             xmlns:con="clr-namespace:Mars.Converter"
+             xmlns:mars="clr-namespace:Mars.Views.baseView" 
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <con:WidthConverter x:Key="widthConverter"></con:WidthConverter>
+    </UserControl.Resources>
+    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            <!--Defined Column-->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel 
+            Grid.Row="0"
+            Grid.Column="0"
+            Grid.ColumnSpan="3">
+                <Label Content="Test Case Properties" x:Name="lblHeader"
+                   FontSize="20" >
+                </Label>
+            </StackPanel>
+            <!--First Column Content-->
+            <Label Content="Name of the Test Case"
+               Grid.Column="0"
+               Grid.Row="1"
+               Margin="5">
+            </Label>
+            <Label Content="Description"
+               Grid.Column="0"
+               Grid.Row="2"
+               Margin="5">
+            </Label>
+            <Label Content="Application's under test"
+               Grid.Column="0"
+               Grid.Row="3"
+               Margin="5">
+            </Label>
+            <Label Content="Created At"
+               Grid.Column="0"
+               Grid.Row="4"
+               Margin="5">
+            </Label>
+
+            <Label Content="Updated At"
+               Grid.Column="0"
+               Grid.Row="5"
+               Margin="5">
+            </Label>
+            <!--Second Column Content-->
+            <TextBox Name="txtTestCaseName"
+                 Grid.Column="2"
+                 Grid.Row="1"
+                 DataContext="{Binding SelectedTestCase}"
+                 IsEnabled="False"
+                 Text="{Binding TEST_CASE_NAME}"
+                 Margin="4,5,-29,5">
+            </TextBox>
+
+            <TextBox Name="txtTestCaseDescription"
+                 Grid.Column="2"
+                 Grid.Row="2"
+                 DataContext="{Binding SelectedTestCase}"
+                 IsEnabled="{Binding isEditMode}"
+                 Text="{Binding TEST_STEP_DESCRIPTION}"
+                 Margin="4,5,-29,5">
+            </TextBox>
+
+            <ListView Name="listViewApplications" Grid.Column="2" Grid.Row="3" Margin="0,5,-28,10" 
+                  MinWidth="300" Width="auto"
+                  ItemsSource="{Binding Path=RegisterdApplication}"                  
+                  ScrollViewer.VerticalScrollBarVisibility="Auto" MaxHeight="400" IsEnabled="{Binding isEditMode}">
+                <ListView.Resources>
+                    <Style TargetType="{x:Type GridViewColumnHeader}">
+                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                    </Style>
+                </ListView.Resources>
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Select" Width="50">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Application" Width="300" DisplayMemberBinding="{Binding APP_SHORT_NAME}" />
+                        <GridViewColumn Header="Version" Width="100" DisplayMemberBinding="{Binding VERSION}" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+
+            <TextBox Name="txtTestCaseCreatedAt"
+                 Grid.Column="2"
+                 Grid.Row="4"
+                 DataContext="{Binding SelectedTestCase}"
+                 IsEnabled="{Binding isEditMode}"
+                 Text="{Binding TEST_STEP_CREATE_TIME}"
+                 Margin="4,5,-29,5">
+            </TextBox>
+            <TextBox Name="txtTestCaseUpdatedAt"
+                 Grid.Column="2"
+                 Grid.Row="5"
+                 DataContext="{Binding SelectedTestCase}"
+                 IsEnabled="{Binding isEditMode}"
+                 Text="{Binding TEST_STEP_CREATE_TIME}"
+                 Margin="4,5,-29,5">
+            </TextBox>
+
+            <WrapPanel Grid.Column="2"
+                   Grid.Row="6" Margin="4,35,-4,-35">
+
+                <Button Content="{Binding editModeButtonCaption}"
+                    Width="70"
+                    Height="24"
+                    Margin="5"
+                    Command="{Binding EditCommand}">
+                </Button>
+                <Button Content="Save"
+                    Width="70"
+                    Height="24"
+                    Margin="5"
+                    Command="{Binding SaveCommand}">
+                </Button>
+            </WrapPanel>
+
+
+            <!--Third Column Content-->
+            <Image Grid.Column="2"
+               Grid.Row="1"
+               Grid.RowSpan="5"
+               Margin="21,10"
+               Width="100" />
+        </Grid>
+    </ScrollViewer>
+</mars:MarsBaseViewControl>

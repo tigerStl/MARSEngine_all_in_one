@@ -1,0 +1,45 @@
+﻿<Window x:Class="Mars.Dialog.FillTableWizardDialogOld"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Input" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen"
+        ContentRendered="Window_ContentRendered" Height="300" Width="500">
+    <Grid Margin="15">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="80" />
+            <ColumnDefinition Width="170" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+        </Grid.RowDefinitions>
+<!--
+        <Image Source="/WpfTutorialSamples;component/Images/question32.png" Width="32" Height="32" Grid.RowSpan="2" Margin="20,0" />
+-->
+        <Label Name="lblQuestion" Grid.Column="1" Grid.Row="3" Margin="10">Result:</Label>
+        <TextBox Name="txtAnswer" Grid.Column="1" Grid.Row="4" Grid.ColumnSpan="2" Width="150" Margin="10"  Text="{Binding ResultValue, Mode=TwoWay}" />
+
+        <Label Grid.Row ="0" Grid.Column="1" Margin="10"  >Row</Label>
+        <ComboBox Name="cmbRow" Grid.Row ="0" Grid.Column ="2"  Width="150" Margin="10" 
+                  ItemsSource="{Binding RowList}" SelectedItem="{Binding SelectedRow}" />
+
+
+
+        <Label Grid.Row ="1" Grid.Column="1" Margin="10"  >Column</Label>
+        <ComboBox Name="cmbCol" Grid.Row ="1" Grid.Column ="2" Width="150" Margin="10"
+                  ItemsSource="{Binding ColumnList}" SelectedItem="{Binding SelectedColumn}" />
+
+        <Label Grid.Row ="2" Grid.Column="1" Margin="10"  >Type</Label>
+        <ComboBox Name="lstType" Grid.Row ="2" Grid.Column ="2" Width="150" Margin="10" 
+                  ItemsSource="{Binding TypeList}" SelectedItem="{Binding SelectedType}"  />
+
+        <WrapPanel Grid.Row="6" Grid.ColumnSpan="2" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button IsDefault="True" Name="btnDialogOk" Click="btnDialogOk_Click" MinWidth="60" Margin="0,0,10,0">Ok</Button>
+            <Button IsCancel="True" MinWidth="60">Cancel</Button>
+        </WrapPanel>
+    </Grid>
+</Window>

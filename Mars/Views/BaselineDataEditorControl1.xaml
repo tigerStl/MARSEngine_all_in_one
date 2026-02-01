@@ -1,0 +1,135 @@
+﻿<mars:MarsBaseViewControl x:Class="Mars.Views.BaselineDataEditorControl1"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Mars.Views"
+             xmlns:subv="clr-namespace:Mars.Views.subViews"
+             xmlns:mars="clr-namespace:Mars.Views.baseView"             
+             mc:Ignorable="d" 
+             d:DesignHeight="550" d:DesignWidth="550">
+    <!--Title="Baseline Datasetting"-->
+    <Border CornerRadius="5" Margin="5,10,5,10" DockPanel.Dock="Top" BorderBrush="LightGray" BorderThickness="1">
+        <Grid x:Name="_hostGrid"   MinWidth="500">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <DockPanel Grid.Row="0" Grid.Column="0" >
+                <!--#region basic data set information-->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <!--title for Data set summary-->
+                        <RowDefinition Height="50" x:Name="topTitle" ></RowDefinition>
+                        <RowDefinition Height="*" MaxHeight="80" x:Name="_TopCon"></RowDefinition>
+                        <RowDefinition Height="16" x:Name="dataSection"></RowDefinition>
+                        <RowDefinition Height="*" MinHeight="300" x:Name="_BottomCon"></RowDefinition>
+                        <RowDefinition Height="31" x:Name="actionSection"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <!--#region basic Data set information-->
+                    <DockPanel Grid.Row="0" Margin="5,5,5,0">
+                        <Label x:Name="lblTitle" Content="Tool -> Baseline Datasetting" DockPanel.Dock="Top" FontSize="18.667" FontWeight="Bold" VerticalAlignment="Top"></Label>
+                        <Label Content="Basic Base line Dataset Information:" DockPanel.Dock="Left" FontSize="14.667"></Label>
+                        <Image DockPanel.Dock="Right" Source="/Mars;component/Images/add_list-26.png" HorizontalAlignment="Right"></Image>
+                    </DockPanel>
+                    <DockPanel Grid.Row="1" Margin="5,0,5,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="20"></RowDefinition>
+                                <RowDefinition></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="80"></ColumnDefinition>
+                                <ColumnDefinition></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Dataset Name: " Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right"></Label>
+                            <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Path=oSearchKey}" Margin="0,0,72,0" Height="20" VerticalAlignment="Top"></TextBox>
+                            <Button Content="Get..." Width="70" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" Command="{Binding Path=OnSearchButtonClick}"></Button>
+                            <Label Content="Information: " Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" Margin="0,5,0,0" VerticalAlignment="Top"></Label>
+                            <TextBox Grid.Column="1" Grid.Row="1" Margin="0,5,0,3" Text="{Binding DataSetDescription}" AcceptsReturn="True"></TextBox>
+                            <Border Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" BorderBrush="LightGray"  BorderThickness="1" Height="1" VerticalAlignment="Bottom" />
+                        </Grid>
+                    </DockPanel>
+                    <!--#endregion-->
+                    <!--#region Data input-->
+                    <DockPanel Grid.Row="2" Margin="5,0,0,0">
+                        <Label Content="Data Details:" FontSize="14.667" ></Label>
+                    </DockPanel>
+                    <DockPanel Grid.Row="3" Margin="5,0,5,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="18"></RowDefinition>
+                                <RowDefinition></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition></ColumnDefinition>
+                                <ColumnDefinition></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Defined Objects:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Bottom"></Label>
+                            <ListBox Grid.Row="1" Grid.Column="0" Background="LightGray" ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto" MinWidth="200"
+                                     ItemsSource="{Binding definedObjects}"
+                                     SelectedItem="{Binding currentObject}"
+                                     >
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding ObjectHappyName}"></TextBlock>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <Label Content=" To Define An Object:" Grid.Row="0" Grid.Column="1" VerticalAlignment="Bottom"></Label>
+                            <DockPanel Margin="5,3,0,0" Grid.Row="1" Grid.Column="1">
+
+                                <Grid DockPanel.Dock="Top">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="18"></RowDefinition>
+                                        <RowDefinition Height="24"></RowDefinition>
+                                        <RowDefinition Height="29"></RowDefinition>
+                                        <RowDefinition Height="16"></RowDefinition>
+                                        <RowDefinition></RowDefinition>
+                                    </Grid.RowDefinitions>
+
+                                    <Label Content="Object Name:" Grid.Row="0" VerticalAlignment="Bottom"></Label>
+                                    <Border BorderBrush="LightGray" Grid.Row="0" BorderThickness="1" Height="1" VerticalAlignment="Top" />
+                                    <TextBox Grid.Row="1" Margin="5,0,0,0" Text="{Binding currentObjectHappyName}"></TextBox>
+                                    <Label Content="Datasets Number:" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
+                                    <TextBox x:Name="loopCount" Grid.Row="2" Margin="110,3,69,0" Text="{Binding LoopCount}"/>
+                                    <Button Content="Set" Grid.Row="2" Width="50" HorizontalAlignment="Right" Margin="0,0,5,0" Command="{Binding OnDataSetNumberChange}" Height="26" VerticalAlignment="Bottom"></Button>
+                                    <Label Content="Object Value:" Grid.Row="3"></Label>
+                                    <TabControl Grid.Row="4" Margin="5,0,0,0" ItemsSource="{Binding _DataSetLoops}" SelectedIndex="{Binding activedTabIdx}" >
+                                        <TabControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Margin="1" Text="{Binding Header}"></TextBlock>
+                                            </DataTemplate>
+                                        </TabControl.ItemTemplate>
+                                        <TabControl.ContentTemplate >
+                                            <DataTemplate>
+                                                <subv:MarsTabItemWithTextBoxControl></subv:MarsTabItemWithTextBoxControl>
+                                            </DataTemplate>
+                                        </TabControl.ContentTemplate>
+                                    </TabControl>
+
+                                    <!--<TextBox Grid.Row="4" Margin="5,0,0,0"></TextBox>-->
+                                </Grid>
+
+                            </DockPanel>
+                        </Grid>
+                    </DockPanel>
+                    <!--#endregion-->
+                    <!--#region Action-->
+                    <DockPanel Grid.Row="4" Margin="0,3,0,3">
+                        <Button DockPanel.Dock="Right" Width="130" Content="Save/Update Object" HorizontalAlignment="Right" Margin="0,0,5,0" Command="{Binding SaveUpdateObject}"></Button>
+                        <Button DockPanel.Dock="Right" Width="130" Content="Delete Object" HorizontalAlignment="Right" Margin="0,0,5,0" Command="{Binding DeleteObject}"></Button>
+                        <Button DockPanel.Dock="Right" Width="130" Content="Create Object" HorizontalAlignment="Right" Margin="0,0,5,0" Command="{Binding CreateObject}"></Button>
+                    </DockPanel>
+                    <!--#endregion -->
+                </Grid>
+                <!--#endregion-->
+            </DockPanel>
+
+
+        </Grid>
+    </Border>
+</mars:MarsBaseViewControl>

@@ -1,0 +1,1223 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A6855F0F-EB3A-4706-B48E-8C912E4BA671}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Mars</RootNamespace>
+    <AssemblyName>Mars</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_TIGER_TEST_1;_START_QTP_FROM_APP;_Datafrom_Database;_pdfreport;v_16AndUp;v_useNameId;;PERFORMANCE_TRACKING_1;Login_defined;tiger_dock;Managed_Driver;_TestStepUnit;OneDataSet;_NOQTP;gdienable;MESSAGESVC_FROM_GUI;remoteDebugger_1</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;_TIGER_TEST_1;_START_QTP_FROM_APP;_Datafrom_Database;_pdfreport;v_16AndUp;v_useNameId;;PERFORMANCE_TRACKING_1;Login_defined;tiger_dock;Managed_Driver;_TestStepUnit;OneDataSet;_NOQTP;gdienable;MESSAGESVC_FROM_GUI;_NET4</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>favicon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NoWin32Manifest>true</NoWin32Manifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'debug with qtp|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\..\automationTest\Automation Workbooks\binWithQtp\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_TIGER_TEST_1;_START_QTP_FROM_APP;_Datafrom_Database;_pdfreport;v_16AndUp;v_useNameId;;PERFORMANCE_TRACKING_1;Login_defined;tiger_dock;Managed_Driver;_TestStepUnit;OneDataSet;_NOQTP_1;gdienable</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'release with qtp|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\release with qtp\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_TIGER_TEST_1;_START_QTP_FROM_APP;_Datafrom_Database;_pdfreport;v_16AndUp;v_useNameId;;PERFORMANCE_TRACKING_1;Login_defined;tiger_dock;Managed_Driver;_TestStepUnit;OneDataSet;_NOQTP_1;gdienable</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_TIGER_TEST_1;_START_QTP_FROM_APP;_Datafrom_Database;_pdfreport;v_16AndUp;v_useNameId;;PERFORMANCE_TRACKING_1;Login_defined;tiger_dock;Managed_Driver;_TestStepUnit;OneDataSet;_NOQTP;gdienable;MESSAGESVC_FROM_GUI;remoteDebugger_1</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE;_TIGER_TEST_1;_START_QTP_FROM_APP;_Datafrom_Database;_pdfreport;v_16AndUp;v_useNameId;;PERFORMANCE_TRACKING_1;Login_defined;tiger_dock;Managed_Driver;_TestStepUnit;OneDataSet;_NOQTP;gdienable;MESSAGESVC_FROM_GUI</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'debug with qtp|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\debug with qtp\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_TIGER_TEST_1;_START_QTP_FROM_APP;_Datafrom_Database;_pdfreport;v_16AndUp;v_useNameId;;PERFORMANCE_TRACKING_1;Login_defined;tiger_dock;Managed_Driver;_TestStepUnit;OneDataSet;_NOQTP_1;gdienable</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'release with qtp|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\release with qtp\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_TIGER_TEST_1;_START_QTP_FROM_APP;_Datafrom_Database;_pdfreport;v_16AndUp;v_useNameId;;PERFORMANCE_TRACKING_1;Login_defined;tiger_dock;Managed_Driver;_TestStepUnit;OneDataSet;_NOQTP_1;gdienable</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'debug x86|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\debug x86\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_TIGER_TEST_1;_START_QTP_FROM_APP;_Datafrom_Database;_pdfreport;v_16AndUp;v_useNameId;;PERFORMANCE_TRACKING_1;Login_defined;tiger_dock;Managed_Driver;_TestStepUnit;OneDataSet;_NOQTP;gdienable;MESSAGESVC_FROM_GUI;</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'debug x86|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\debug x86\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_TIGER_TEST_1;_START_QTP_FROM_APP;_Datafrom_Database;_pdfreport;v_16AndUp;v_useNameId;;PERFORMANCE_TRACKING_1;Login_defined;tiger_dock;Managed_Driver;_TestStepUnit;OneDataSet;_NOQTP;gdienable;MESSAGESVC_FROM_GUI;</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Webversion|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release For Webversion\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_TIGER_TEST_1;_START_QTP_FROM_APP;_Datafrom_Database;_pdfreport;v_16AndUp;v_useNameId;;PERFORMANCE_TRACKING_1;Login_defined;tiger_dock;Managed_Driver;_TestStepUnit;OneDataSet;_NOQTP;gdienable;MESSAGESVC_FROM_GUI;</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Webversion|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Release For Webversion\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_TIGER_TEST_1;_START_QTP_FROM_APP;_Datafrom_Database;_pdfreport;v_16AndUp;v_useNameId;;PERFORMANCE_TRACKING_1;Login_defined;tiger_dock;Managed_Driver;_TestStepUnit;OneDataSet;_NOQTP;gdienable;MESSAGESVC_FROM_GUI;</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AxInterop.WMPLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\WMPLib.1.0.0\lib\AxInterop.WMPLib.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.WMPLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\WMPLib.1.0.0\lib\Interop.WMPLib.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\..\MarsTestingFrame\MarsTestingFrame\packages\Microsoft.Office.Interop.Excel.15.0.4795.1000\lib\net20\Microsoft.Office.Interop.Excel.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Common, Version=5.0.505.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\EnterpriseLibrary.Common.5.0.505.0\lib\NET35\Microsoft.Practices.EnterpriseLibrary.Common.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Logging, Version=5.0.505.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\EnterpriseLibrary.Logging.5.0.505.1\lib\NET35\Microsoft.Practices.EnterpriseLibrary.Logging.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Validation, Version=5.0.505.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\EnterpriseLibrary.Validation.5.0.505.0\lib\NET35\Microsoft.Practices.EnterpriseLibrary.Validation.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Validation.Integration.WPF, Version=5.0.505.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\EnterpriseLibrary.Validation.Integration.WPF.5.0.505.0\lib\NET35\Microsoft.Practices.EnterpriseLibrary.Validation.Integration.WPF.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Microsoft.Practices.ObjectBuilder, Version=1.0.51206.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Microsoft.Practices.ObjectBuilder.dll.3.1.0\lib\2.0\Microsoft.Practices.ObjectBuilder.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Microsoft.Practices.Unity, Version=2.1.505.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Unity.2.1.505.0\lib\NET35\Microsoft.Practices.Unity.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Microsoft.Practices.Unity.Configuration, Version=2.1.505.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Unity.2.1.505.0\lib\NET35\Microsoft.Practices.Unity.Configuration.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Microsoft.Practices.Unity.Interception, Version=2.1.505.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Unity.Interception.2.1.505.0\lib\NET35\Microsoft.Practices.Unity.Interception.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Microsoft.Practices.Unity.Interception.Configuration, Version=2.1.505.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Unity.Interception.2.1.505.0\lib\NET35\Microsoft.Practices.Unity.Interception.Configuration.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Microsoft.WindowsAPICodePack.Core.1.1.0\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.Shell, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Microsoft.WindowsAPICodePack.Shell.1.1.0\lib\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Oracle.ManagedDataAccess, Version=4.122.1.0, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Oracle.ManagedDataAccess.12.2.1100\lib\net40\Oracle.ManagedDataAccess.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Prism, Version=7.2.0.1422, Culture=neutral, PublicKeyToken=40ee6c3a2184dc59, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Prism.Core.7.2.0.1422\lib\net45\Prism.dll</HintPath>
+    </Reference>
+    <Reference Include="Prism.Wpf, Version=7.2.0.1422, Culture=neutral, PublicKeyToken=40ee6c3a2184dc59, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Prism.Wpf.7.2.0.1422\lib\net45\Prism.Wpf.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Composition.AttributedModel, Version=1.0.31.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\System.Composition.AttributedModel.1.0.31\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Composition.Convention, Version=1.0.31.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\System.Composition.Convention.1.0.31\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Composition.Hosting, Version=1.0.31.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\System.Composition.Hosting.1.0.31\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Composition.Runtime, Version=1.0.31.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\System.Composition.Runtime.1.0.31\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Composition.TypedParts, Version=1.0.31.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\System.Composition.TypedParts.1.0.31\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.DirectoryServices.Protocols" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Messaging" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\MarsTestingFrame\MarsTestingFrame\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows" />
+    <Reference Include="system.windows.controls.ribbon" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Prism.Wpf.7.2.0.1422\lib\net45\System.Windows.Interactivity.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="UIAutomationProvider" />
+    <Reference Include="UIAutomationTypes" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="Xamarin.Forms.Core, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Xamarin.Forms.2.3.3.193\lib\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+Xamarin.iOS10+xamarinmac20\Xamarin.Forms.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Xamarin.Forms.Platform, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Xamarin.Forms.2.3.3.193\lib\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+Xamarin.iOS10+xamarinmac20\Xamarin.Forms.Platform.dll</HintPath>
+    </Reference>
+    <Reference Include="Xamarin.Forms.Xaml, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Xamarin.Forms.2.3.3.193\lib\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+Xamarin.iOS10+xamarinmac20\Xamarin.Forms.Xaml.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="..\..\Mars2.0\MarsInterMessage\Mars.Inter.MQCenter\interProcess\MARSMessages.cs">
+      <Link>MessageAndMsMQ\MARSMessages.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Mars2.0\MarsInterMessage\Mars.Inter.MQCenter\interProcess\MARSMessageSvc.cs">
+      <Link>MessageAndMsMQ\MARSMessageSvc.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Mars2.0\MarsInterMessage\Mars.Inter.MQCenter\message\MarsMessageConst.cs">
+      <Link>MessageAndMsMQ\MarsMessageConst.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsTestingFrame\Mars.AutoTestingDriver\ErrorMessage\MarsErrorStacks.cs">
+      <Link>MessageAndMsMQ\MarsErrorStacks.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsTestingFrame\Mars.AutoTestingDriver\injector\InjectorMessageAgent.cs">
+      <Link>MessageAndMsMQ\InjectorMessageAgent.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsTestingFrame\Mars.AutoTestingDriver\SystemUtil\MarsWindowsAPIs.cs">
+      <Link>Utility\MarsWindowsAPIs.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsTestingFrame\QtpStarter\com.Mars.QTP\QTPManagement.cs">
+      <Link>Utility\QTPManagement.cs</Link>
+    </Compile>
+    <Compile Include="basicDataStructure\StoryboardDetailForMadel.cs" />
+    <Compile Include="Converter\BaseCompConverter.cs" />
+    <Compile Include="Converter\EnumMatchToBooleanConverter .cs" />
+    <Compile Include="Converter\MarsBoolReverseConvert.cs" />
+    <Compile Include="Converter\MarsPwdConvert.cs" />
+    <Compile Include="Converter\StringConverter.cs" />
+    <Compile Include="Converter\TimeUtil.cs" />
+    <Compile Include="Converter\WidthConverter.cs" />
+    <Compile Include="DataLoader\TestCaseDataLoader.cs" />
+    <Compile Include="DataTolerance\TigerMarsDataTolerance.cs" />
+    <Compile Include="Delegate\DelegateForMainWindows.cs" />
+    <Compile Include="Dialog\AssignApplicationToTestCaseModel.cs" />
+    <Compile Include="Dialog\AssignApplicationToTestCases.xaml.cs">
+      <DependentUpon>AssignApplicationToTestCases.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\autoLoadData\AutoLoadDataParameterSetting.xaml.cs">
+      <DependentUpon>AutoLoadDataParameterSetting.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\autoLoadData\AutoLoadDataParameterSettingModal.cs" />
+    <Compile Include="Dialog\DBTestDiaglose.xaml.cs">
+      <DependentUpon>DBTestDiaglose.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\ExcelToTCDialog.xaml.cs">
+      <DependentUpon>ExcelToTCDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\FillEditWizardDialog1.xaml.cs">
+      <DependentUpon>FillEditWizardDialog1.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\FillTableWizardDialog.xaml.cs">
+      <DependentUpon>FillTableWizardDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\FilterControl.cs" />
+    <Compile Include="Dialog\FilterDialogControl.xaml.cs">
+      <DependentUpon>FilterDialogControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\FilteredListDialog.xaml.cs">
+      <DependentUpon>FilteredListDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\MarsCommonFinder.xaml.cs">
+      <DependentUpon>MarsCommonFinder.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\MarsDialogHelper.cs" />
+    <Compile Include="Dialog\SaveAsDialog.xaml.cs">
+      <DependentUpon>SaveAsDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\SaveAsWithDescriptionDialog.xaml.cs">
+      <DependentUpon>SaveAsWithDescriptionDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\TextSearchFilter.cs" />
+    <Compile Include="Helpers\ClipboardHelper.cs" />
+    <Compile Include="Helpers\DataGridCellTemplateSelector.cs" />
+    <Compile Include="Helpers\DeleteTestCaseHelper.cs" />
+    <Compile Include="Helpers\GridViewSort.cs" />
+    <Compile Include="Helpers\ListViewToCSV.cs" />
+    <Compile Include="Helpers\StringRangeValidatorRule.cs" />
+    <Compile Include="Helpers\TreeViewHelper.cs" />
+    <Compile Include="InjectorAgent\MarsGuiInjectorAgent.cs" />
+    <Compile Include="INotifyPrope\rtyChanged.cs" />
+    <Compile Include="network\MarsTelnet.cs" />
+    <Compile Include="Report\TestReportData.cs" />
+    <Compile Include="thirdPartAppSupport\opics\OpicsObjectConvertor.cs" />
+    <Compile Include="Utility\clipboardManagement\ClipboardMgrForStoryboard.cs" />
+    <Compile Include="Utility\CommanDataStructures.cs" />
+    <Compile Include="Utility\CustomRoutedEventArgs.cs" />
+    <Compile Include="Utility\DataTableUtil.cs" />
+    <Compile Include="Utility\ExcelUtil.cs" />
+    <Compile Include="Utility\MarsBaseUserControl.cs" />
+    <Compile Include="Utility\MarsConstants.cs" />
+    <Compile Include="Utility\Mousecapture.cs" />
+    <Compile Include="Utility\SystemCommonUtil.cs" />
+    <Compile Include="Utility\visualObjects\MarsObjectsAndChildrenHelper.cs" />
+    <Compile Include="Utility\visualObjects\objectSpyer\HighlightWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Utility\visualObjects\objectSpyer\MarsObjectSpy.xaml.cs">
+      <DependentUpon>MarsObjectSpy.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Utility\visualObjects\objectSpyer\ObjectSpyManage.cs" />
+    <Compile Include="Validate\MarsUIValidate.cs" />
+    <Compile Include="ViewModel\BaseData\MarsDataSettingTabsBase.cs" />
+    <Compile Include="ViewModel\BaselineDataEditorViewModel.cs" />
+    <Compile Include="ViewModel\BaselineDataEditorViewModelSub\BaselineDataSupport.cs" />
+    <Compile Include="ViewModel\BaselineDataEditorViewModelSub\KeyCollection.cs" />
+    <Compile Include="ViewModel\DashboardViewModel.cs" />
+    <Compile Include="ViewModel\objectManagement\ObjectDataSourceViewModel.cs" />
+    <Compile Include="ViewModel\ExcelToTCViewModel.cs" />
+    <Compile Include="ViewModel\IDataSheetLinkViewModel.cs" />
+    <Compile Include="ViewModel\login\MarsLoginMainModel.cs" />
+    <Compile Include="ViewModel\MarsViewModelFactory.cs" />
+    <Compile Include="ViewModel\StoryboardEditViewModel.cs" />
+    <Compile Include="ViewModel\InputBindingBehavior.cs" />
+    <Compile Include="ViewModel\InteractionRequest.cs" />
+    <Compile Include="ViewModel\ITestCaseViewModel.cs" />
+    <Compile Include="ViewModel\KeywordLibraryViewModel.cs" />
+    <Compile Include="ViewModel\ObjectDatabaseViewModel.cs" />
+    <Compile Include="ViewModel\OpenViewModel.cs" />
+    <Compile Include="ViewModel\SaveAsViewModel.cs" />
+    <Compile Include="ViewModel\StoryboardViewModel.cs" />
+    <Compile Include="ViewModel\storyboard\batch\StoryboardBatchModel.cs" />
+    <Compile Include="ViewModel\SystemTools\MultipleUserServiceSettingModel.cs" />
+    <Compile Include="ViewModel\SystemTools\SQLServerConnectionSettingModel.cs" />
+    <Compile Include="ViewModel\TestApplicationRegistrationViewModel.cs" />
+    <Compile Include="ViewModel\TestCaseEditViewModel.cs" />
+    <Compile Include="ViewModel\TestCaseViewModel.cs" />
+    <Compile Include="ViewModel\DataSheetLinkViewModel.cs" />
+    <Compile Include="ViewModel\TestResultsViewModel.cs" />
+    <Compile Include="ViewModel\TestResultTabViewModel.cs" />
+    <Compile Include="ViewModel\TestSuiteEditViewModel.cs" />
+    <Compile Include="ViewModel\TestVarDatabaseViewModel.cs" />
+    <Compile Include="ViewModel\TreeViewModelBase.cs" />
+    <Compile Include="ViewModel\user.management\UserAndCompanyManagementModel.cs" />
+    <Compile Include="ViewModel\xml\XmlIimportPreviewModel.cs" />
+    <Compile Include="ViewModel\xml\XmlProjImportDataModel.cs" />
+    <Compile Include="Views\BaselineDataEditorControl1.xaml.cs">
+      <DependentUpon>BaselineDataEditorControl1.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\baseView\MarsBaseView.cs" />
+    <Compile Include="Views\baseView\MarsProjectBaseControlView.cs" />
+    <Compile Include="Views\DashboardControl.xaml.cs">
+      <DependentUpon>DashboardControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DataSheetLink.xaml.cs">
+      <DependentUpon>DataSheetLink.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\gridBase\MarsTigerGridBase.cs" />
+    <Compile Include="Views\login\MARSFlash.xaml.cs">
+      <DependentUpon>MARSFlash.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\login\MarsLoginMain.xaml.cs">
+      <DependentUpon>MarsLoginMain.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\MarsControl\MarsPasswordForCellControl.xaml.cs">
+      <DependentUpon>MarsPasswordForCellControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\objectManagement\DataPopup4ObjDefinition.xaml.cs">
+      <DependentUpon>DataPopup4ObjDefinition.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\objectManagement\DataPopup4ObjDefinitionDataModal.cs" />
+    <Compile Include="Views\objectManagement\ObjectDataSourceDefinition.xaml.cs">
+      <DependentUpon>ObjectDataSourceDefinition.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\storyboard\batch\StoryboardBatchView.xaml.cs">
+      <DependentUpon>StoryboardBatchView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\storyboard\StoryboardResultDetailControl.xaml.cs">
+      <DependentUpon>StoryboardResultDetailControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\subViews\MarsPasswordHelper.cs" />
+    <Compile Include="Views\systemTools\MarsNetWorkTool.xaml.cs">
+      <DependentUpon>MarsNetWorkTool.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ObjectLoadFromExcelControl.xaml.cs">
+      <DependentUpon>ObjectLoadFromExcelControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ObjectsEditControl.xaml.cs">
+      <DependentUpon>ObjectsEditControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SharedDataSetViewModel.cs" />
+    <Compile Include="Views\StoryboardCombinedControl.xaml.cs">
+      <DependentUpon>StoryboardCombinedControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\StoryboardCompareControl.xaml.cs">
+      <DependentUpon>StoryboardCompareControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\StoryboardEditControl.xaml.cs">
+      <DependentUpon>StoryboardEditControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\KeywordLibrary.xaml.cs">
+      <DependentUpon>KeywordLibrary.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ObjectDatabaseAddControl.xaml.cs">
+      <DependentUpon>ObjectDatabaseAddControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ObjectDatabaseAmendControl.xaml.cs">
+      <DependentUpon>ObjectDatabaseAmendControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ObjectDatabaseOpenControl.xaml.cs">
+      <DependentUpon>ObjectDatabaseOpenControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ProjectTabControl.xaml.cs">
+      <DependentUpon>ProjectTabControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SaveAsControl.xaml.cs">
+      <DependentUpon>SaveAsControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\StoryboardAddControl.xaml.cs">
+      <DependentUpon>StoryboardAddControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\subViews\MarsTabItemWithTextBoxControl.xaml.cs">
+      <DependentUpon>MarsTabItemWithTextBoxControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\systemTools\MarsSystemSetting.xaml.cs">
+      <DependentUpon>MarsSystemSetting.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\systemTools\MultipleUserServiceSettingView.xaml.cs">
+      <DependentUpon>MultipleUserServiceSettingView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\systemTools\OracleConnectionSettings.xaml.cs">
+      <DependentUpon>OracleConnectionSettings.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\systemTools\SQLServerConnectionSetting.xaml.cs">
+      <DependentUpon>SQLServerConnectionSetting.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestApplicationRegistration.xaml.cs">
+      <DependentUpon>TestApplicationRegistration.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestCaseEdit.xaml.cs">
+      <DependentUpon>TestCaseEdit.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestCaseImportControl.xaml.cs">
+      <DependentUpon>TestCaseImportControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestCasePropertiesControl.xaml.cs">
+      <DependentUpon>TestCasePropertiesControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestCaseTabControl.xaml.cs">
+      <DependentUpon>TestCaseTabControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestResultsViewControl.xaml.cs">
+      <DependentUpon>TestResultsViewControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestResultTabView.xaml.cs">
+      <DependentUpon>TestResultTabView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestSuiteEditControl.xaml.cs">
+      <DependentUpon>TestSuiteEditControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModel\MarsTreeView.cs" />
+    <Compile Include="Helpers\ValidatedObject.cs" />
+    <Compile Include="Helpers\DelegateCommand.cs" />
+    <Compile Include="ViewModel\ApplicationViewModel.cs" />
+    <Compile Include="ViewModel\IProjectViewModel.cs" />
+    <Compile Include="ViewModel\ITestSuiteViewModel.cs" />
+    <Compile Include="ViewModel\ProjectEditViewModel.cs" />
+    <Compile Include="ViewModel\ProjectViewModel.cs" />
+    <Compile Include="ViewModel\TestSuiteViewModel.cs" />
+    <Compile Include="ViewModel\ViewModelBase.cs" />
+    <Compile Include="Views\ApplicationAmendControl.xaml.cs">
+      <DependentUpon>ApplicationAmendControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModel\IApplicationViewModel.cs" />
+    <Compile Include="Views\ApplicationPropertyControl.xaml.cs">
+      <DependentUpon>ApplicationPropertyControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ProjectAddControl.xaml.cs">
+      <DependentUpon>ProjectAddControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ProjectEditControl.xaml.cs">
+      <DependentUpon>ProjectEditControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestCaseAddControl.xaml.cs">
+      <DependentUpon>TestCaseAddControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestSuiteAddControl.xaml.cs">
+      <DependentUpon>TestSuiteAddControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestVarDatabaseControl.xaml.cs">
+      <DependentUpon>TestVarDatabaseControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestVarEditControl.xaml.cs">
+      <DependentUpon>TestVarEditControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\user.management\UserAndCompanyManagement.xaml.cs">
+      <DependentUpon>UserAndCompanyManagement.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\xml\XmlImportPreviewControl.xaml.cs">
+      <DependentUpon>XmlImportPreviewControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\xml\XmlProjImportControl.xaml.cs">
+      <DependentUpon>XmlProjImportControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="xml.importExport\TestCaseWithObjectsExp.cs" />
+    <Compile Include="xml.importExport\XmlBaseLineExportMgr.cs" />
+    <Compile Include="xml.importExport\xmlnodes\TestCaseExportXmlNodes.cs" />
+    <Compile Include="xml.importExport\xmlnodes\TestProjectsExp.cs" />
+    <Page Include="Dialog\AssignApplicationToTestCases.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialog\autoLoadData\AutoLoadDataParameterSetting.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialog\DBTestDiaglose.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialog\ExcelToTCDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\FillEditWizardDialog1.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\FillTableWizardDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\FilterDialogControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\FilteredListDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\MarsCommonFinder.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialog\SaveAsDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\SaveAsWithDescriptionDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="Utility\visualObjects\objectSpyer\MarsObjectSpy.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BaselineDataEditorControl1.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\DashboardControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\DataSheetLink.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\login\MARSFlash.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\login\MarsLoginMain.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\MarsControl\MarsPasswordForCellControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\objectManagement\DataPopup4ObjDefinition.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\objectManagement\ObjectDataSourceDefinition.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\storyboard\batch\StoryboardBatchView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\storyboard\StoryboardResultDetailControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\systemTools\MarsNetWorkTool.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ObjectLoadFromExcelControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ObjectsEditControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\StoryboardCombinedControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\StoryboardCompareControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\StoryboardEditControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\KeywordLibrary.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ObjectDatabaseAddControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ObjectDatabaseAmendControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ObjectDatabaseOpenControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ProjectTabControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SaveAsControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\StoryboardAddControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\subViews\MarsTabItemWithTextBoxControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\systemTools\MarsSystemSetting.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\systemTools\MultipleUserServiceSettingView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\systemTools\OracleConnectionSettings.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\systemTools\SQLServerConnectionSetting.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestApplicationRegistration.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestCaseEdit.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestCaseImportControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\TestCasePropertiesControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestCaseTabControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestResultsViewControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestResultTabView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestSuiteEditControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Themes\BureauBlue.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ApplicationAmendControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ApplicationPropertyControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ProjectAddControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ProjectEditControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestCaseAddControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestSuiteAddControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestVarDatabaseControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestVarEditControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\user.management\UserAndCompanyManagement.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\xml\XmlImportPreviewControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\xml\XmlProjImportControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\save_as-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\add_file-512.png" />
+    <Resource Include="Images\opened_folder-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\save-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\link2-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\delete-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\help-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\edit_property-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\mobAppDwn.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\mobAppDwn.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\ico1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Mars.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\03 Third Part\01 GUI\Xceed.Wpf.AvalonDock.Themes.Metro\Xceed.Wpf.AvalonDock.Themes.Metro.csproj">
+      <Project>{89286eb4-b4a1-418c-839a-067b00f442d8}</Project>
+      <Name>Xceed.Wpf.AvalonDock.Themes.Metro</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\03 Third Part\01 GUI\Xceed.Wpf.AvalonDock\Xceed.Wpf.AvalonDock.csproj">
+      <Project>{db81988f-e0f2-45a0-a1fd-8c37f3d35244}</Project>
+      <Name>Xceed.Wpf.AvalonDock</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\03 Third Part\03 ApplicationExtensions\MARS.OpicsObjects.Extension\MARS.OpicsObjects.Extension.csproj">
+      <Project>{1959c158-797f-4043-b07b-d1fd505d5816}</Project>
+      <Name>MARS.OpicsObjects.Extension</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Controls\MultiSelectComboBox\MultiSelectComboBox.csproj">
+      <Project>{ce17a54e-0661-429f-afdc-272e8668b14e}</Project>
+      <Name>MultiSelectComboBox</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mars.autoTest.report.Word\Mars.autoTest.report.Word.csproj">
+      <Project>{7ecf5768-37b7-46b4-9121-0a23635bbb14}</Project>
+      <Name>Mars.autoTest.report.Word</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MARS.CompareGUI\MARSCompareGUI\MARS.CompareGUI.csproj">
+      <Project>{3a7a5728-e237-49f7-9901-f69f94d9dc4d}</Project>
+      <Name>MARS.CompareGUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mars.DB\Mars.DB.csproj">
+      <Project>{8688283a-0923-442c-b176-de1e426d6db0}</Project>
+      <Name>Mars.DB</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MARSCompareGUI\XmlCompareLib\XmlCompareLib.csproj">
+      <Project>{908f9767-985b-4c86-a88f-6c3e845ca38d}</Project>
+      <Name>XmlCompareLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MarsTestingFrame\Mars.auto.LoadDataFromDB\Mars.auto.LoadDataFromDB.csproj">
+      <Project>{d498a2a9-b47e-4722-9d05-fb6fb53c0005}</Project>
+      <Name>Mars.auto.LoadDataFromDB</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MarsTestingFrame\Mars.autoTest.report.pdf\Mars.autoTest.report.pdf.csproj">
+      <Project>{19af5390-d7dd-44b3-a004-1f4b46adc03f}</Project>
+      <Name>Mars.autoTest.report.pdf</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MarsTestingFrame\MarsTestingFrame\Mars.LogCommon\Mars.LogCommon.csproj">
+      <Project>{f19edda6-3624-4ba6-a91e-dbcb2da7fe38}</Project>
+      <Name>Mars.LogCommon</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MarsTestingFrame\MarsTestingFrame\MarsTestFrame.csproj">
+      <Project>{06bd4fe8-9c1a-4f4c-9836-4b6d2ee6a45a}</Project>
+      <Name>MarsTestFrame</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utilities\Mars.Securities\Mars.Securities.csproj">
+      <Project>{e1cdbddf-7ff8-4d57-879c-e1bf0bf98287}</Project>
+      <Name>Mars.Securities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Video\MarsVideoPlayer.csproj">
+      <Project>{5384ad79-9ebc-4bc4-918e-0d8fd816d04d}</Project>
+      <Name>MarsVideoPlayer</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\copy-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\cllipboard-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\documents_folder-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\test_tube-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\external-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\edit_property-512 - Copy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\edit-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\link-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\document-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\automatic-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\TestTestCase64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Add.png" />
+    <Resource Include="Images\ball_point_pen-512.png" />
+    <Resource Include="Images\cancel.png" />
+    <Resource Include="Images\cancel_small.png" />
+    <Resource Include="Images\refresh-512.png" />
+    <Resource Include="Images\Remove.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\rename-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\target.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\MARS3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\video_file-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Checkmark.png" />
+    <Resource Include="Images\compare.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Editing-Paste-Special-icon.png" />
+    <Resource Include="Images\import-icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\key_blue.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\ticket-64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\tree_structure-64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\settings-64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="favicon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\add_list-26.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\invoice-26.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\invoice-128.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\lamp_genie-64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Variable.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\run.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\save_as-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\copy-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\cllipboard-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\save-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\refresh-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\video_file-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SplashPicture.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\yoga-64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\edit_property-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Editing-Paste-Special-icon-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\LoginPage-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\MARS_small_.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\excel-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\export-64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\import-64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\close_window-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="dockableHost\" />
+    <Folder Include="Helpers\DataTempSelector\" />
+    <Folder Include="Views\baseView\projectBase\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\ProgressImage.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\crib-26.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="mscoree">
+      <Guid>{5477469E-83B1-11D2-8B49-00A0C9B7C9C4}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>4</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\multiple_input-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\delete_database-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\eyepreview3232.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\CrosshairsCursor.cur" />
+    <Resource Include="Images\CrosshairsCursor.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\clean.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\search-48.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\next-48.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\previous-48.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\MarsTestingFrame\MarsTestingFrame\packages\Xamarin.Forms.2.3.3.193\build\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+Xamarin.iOS10+xamarinmac20\Xamarin.Forms.targets" Condition="Exists('..\MarsTestingFrame\MarsTestingFrame\packages\Xamarin.Forms.2.3.3.193\build\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+Xamarin.iOS10+xamarinmac20\Xamarin.Forms.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\MarsTestingFrame\MarsTestingFrame\packages\Xamarin.Forms.2.3.3.193\build\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+Xamarin.iOS10+xamarinmac20\Xamarin.Forms.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\MarsTestingFrame\MarsTestingFrame\packages\Xamarin.Forms.2.3.3.193\build\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+Xamarin.iOS10+xamarinmac20\Xamarin.Forms.targets'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="326698758ada4b1ba15d6e6b39da49da" Name="Diagram1">
+        <EntityTypeShape EntityType="MarsModel.REL_TEST_CASE_TEST_STEPS" Width="1.5" PointX="3" PointY="4.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.REL_TEST_SUIT_PROJECT" Width="1.5" PointX="10" PointY="6.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.SYSTEM_LOOKUP" Width="1.5" PointX="2.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.T_DATA_SOURCE" Width="1.5" PointX="7.75" PointY="13.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.T_DIC_RELATION_KEYWORD" Width="1.5" PointX="6" PointY="16.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.T_GUI_COMPONENT_TYPE_DIC" Width="1.5" PointX="1.5" PointY="15.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.T_KEYWORD" Width="1.5" PointX="3.75" PointY="12.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.T_PROJECT_DATA_SOURCE" Width="1.5" PointX="10" PointY="9.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.T_REGISTED_OBJECT" Width="1.5" PointX="3.75" PointY="16.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.T_REGISTERED_APPS" Width="1.5" PointX="1.5" PointY="18" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.T_TEST_CASE_SUMMARY" Width="1.5" PointX="0.75" PointY="4.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.T_TEST_PROJECT" Width="1.5" PointX="7.75" PointY="9.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.T_TEST_REPORT" Width="1.5" PointX="3" PointY="7.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.T_TEST_REPORT_STEPS" Width="1.5" PointX="5.25" PointY="7.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.T_TEST_STEPS" Width="1.5" PointX="6" PointY="2.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.T_TEST_SUITE" Width="1.5" PointX="0.75" PointY="1.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsModel.TEST_DATA_SETTING" Width="1.5" PointX="8.25" PointY="3.125" IsExpanded="true" />
+        <AssociationConnector Association="MarsModel.FK_REL_TEST_REFERENCE_T_TEST_2" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_REL_TEST_REFERENCE_T_TEST_C" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_REL_TEST_REFERENCE_T_TEST_P" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_REL_TEST_REFERENCE_T_TEST_S" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_T_PROJEC_REFERENCE_T_DATA_S" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_T_DIC_RE_REFERENCE_T_GUI_CO" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_T_DIC_RE_REFERENCE_T_KEYWOR" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_T_REGIST_REFERENCE_T_GUI_CO" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_T_TEST_S_REFERENCE_T_KEYWOR" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_T_PROJEC_REFERENCE_T_TEST_P" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_T_REGIST_REFERENCE_T_REGIST" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_T_TEST_S_REFERENCE_T_REGIST" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_T_TEST_R_REFERENCE_T_TEST_C" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_T_TEST_S_REFERENCE_T_TEST_C" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_T_TEST_R_REFERENCE_T_TEST_R" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_T_TEST_R_REFERENCE_T_TEST_S" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsModel.FK_TEST_DAT_REFERENCE_T_TEST_S" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

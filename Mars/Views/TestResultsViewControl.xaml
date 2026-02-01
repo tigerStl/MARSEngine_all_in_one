@@ -1,0 +1,71 @@
+﻿<mars:MarsBaseViewControl x:Class="Mars.Views.TestResultsViewControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mars="clr-namespace:Mars.Views.baseView"
+             xmlns:local="clr-namespace:Mars.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="600" PreviewKeyDown="UserControl_PreviewKeyDown">
+    <UserControl.Resources>
+        <Style TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="SeparatorBrush" Value="LightGray" />
+            <Setter Property="FontWeight" Value="Black" />
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+
+        <Border CornerRadius="5" BorderBrush="DarkGray" BorderThickness="1" Padding="5">
+            <DockPanel Background="LightGray" LastChildFill="True">
+                <StackPanel DockPanel.Dock="Top" Margin="2" Background="SkyBlue">
+                    <Label DockPanel.Dock="Left" Content="Test Report View -> Base/Comparison Navigation" x:Name="lblHeader"></Label>
+                </StackPanel>
+
+                <DataGrid BorderThickness="1" BorderBrush="LightGray" GridLinesVisibility="All" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray"
+                          ItemsSource="{Binding LoopCompareReuslt}" AutoGenerateColumns="False" CanUserAddRows="False" FrozenColumnCount="1" 
+                          IsReadOnly="True" EnableColumnVirtualization="True" 
+                              >
+                    
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ObjectHappyName}" Value="NO Data">
+                                    <Setter Property="Background" Value="LightPink"></Setter>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CompareResult}" Value="FALSE">
+                                    <Setter Property="Background" Value="LightPink"></Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Object Name" Width="200" Binding="{Binding ObjectHappyName}"  >
+                            
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Background" Value="LightGray"></Setter>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="BaseLine Value" Width="100"  Binding="{Binding BaseLineData}" >
+                            
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Comparison Value" Width="120" Binding="{Binding NoneBaseLineData}">
+                            
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Result" Width="80" Binding="{Binding CompareResult}">
+                            
+                            
+                        </DataGridTextColumn>
+
+                    </DataGrid.Columns>
+
+                </DataGrid>
+
+            </DockPanel>
+
+        </Border>
+    </Grid>
+</mars:MarsBaseViewControl>

@@ -1,0 +1,35 @@
+﻿<mars:MarsBaseViewControl x:Class="Mars.Views.systemTools.MarsSystemSetting"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Mars.Views.systemTools"
+             xmlns:mars="clr-namespace:Mars.Views.baseView"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            
+        </Grid.ColumnDefinitions>
+        <Label Grid.Row="0" Content="System Setting:" Grid.Column="0" Grid.ColumnSpan="2" FontWeight="Bold" FontSize="14"></Label>
+        <Label Grid.Row="1" Grid.Column="0" Content="Testing Settings:" Margin="5"></Label>
+        <Border BorderThickness="0,0,0,1" BorderBrush="LightGray" Grid.Row="1" Margin="3" Grid.ColumnSpan="2"></Border>
+        <!--
+        #region Testing settings
+        -->
+        <DockPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="5">
+            
+        </DockPanel>
+        <!--
+        #endregion //Testing settings
+        -->
+    </Grid>
+</mars:MarsBaseViewControl>

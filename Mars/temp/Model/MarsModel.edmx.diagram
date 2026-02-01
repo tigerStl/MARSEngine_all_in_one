@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="2a93b63fa5d74fb49ed96a6256e3d122" Name="Diagram1" ZoomLevel="82" ShowGrid="true">
+        <EntityTypeShape EntityType="MarsModel.TEST_CASE_VIEW" Width="1.5" PointX="14.75" PointY="14.75" />
+        <EntityTypeShape EntityType="MarsModel.TEST_CASE_VIEW2" Width="1.5" PointX="15.75" PointY="0.75" />
+        <EntityTypeShape EntityType="MarsModel.TEST_OBJECT_VIEW1" Width="1.5" PointX="0.75" PointY="15.75" />
+        <EntityTypeShape EntityType="MarsModel.TEST_PROJECT_VIEW" Width="1.5" PointX="2.75" PointY="15.75" />
+        <EntityTypeShape EntityType="MarsModel.REL_APP_PROJ1" Width="1.5" PointX="15.375" PointY="10.75" />
+        <EntityTypeShape EntityType="MarsModel.REL_APP_PROJ" Width="1.5" PointX="12" PointY="10.75" />
+        <EntityTypeShape EntityType="MarsModel.REL_APP_TESTCASE" Width="1.5" PointX="7.75" PointY="2.125" />
+        <EntityTypeShape EntityType="MarsModel.REL_APP_TESTSUITE" Width="1.5" PointX="11.75" PointY="14.125" />
+        <EntityTypeShape EntityType="MarsModel.REL_TEST_CASE_TEST_SUITE" Width="1.5" PointX="6" PointY="6.75" />
+        <EntityTypeShape EntityType="MarsModel.REL_TEST_SUIT_PROJECT" Width="1.5" PointX="12" PointY="3.125" />
+        <EntityTypeShape EntityType="MarsModel.SYSTEM_LOOKUP" Width="1.5" PointX="13.75" PointY="14.125" />
+        <EntityTypeShape EntityType="MarsModel.T_DATA_SOURCE" Width="1.5" PointX="9.75" PointY="8.875" />
+        <EntityTypeShape EntityType="MarsModel.T_DIC_RELATION_KEYWORD" Width="1.5" PointX="5.75" PointY="14" />
+        <EntityTypeShape EntityType="MarsModel.T_GUI_COMPONENT_TYPE_DIC" Width="1.5" PointX="1.5" PointY="17.25" />
+        <EntityTypeShape EntityType="MarsModel.T_KEYWORD" Width="1.5" PointX="0.75" PointY="2.75" />
+        <EntityTypeShape EntityType="MarsModel.T_PROJECT_DATA_SOURCE" Width="2.125" PointX="12" PointY="6.125" />
+        <EntityTypeShape EntityType="MarsModel.T_REGISTED_OBJECT" Width="1.5" PointX="0.75" PointY="10.875" />
+        <EntityTypeShape EntityType="MarsModel.T_REGISTERED_APPS" Width="1.5" PointX="14.75" PointY="5.125" />
+        <EntityTypeShape EntityType="MarsModel.T_TEST_CASE_SUMMARY" Width="1.5" PointX="0.75" PointY="6.375" />
+        <EntityTypeShape EntityType="MarsModel.T_TEST_ENUM" Width="1.5" PointX="14.75" PointY="10.125" />
+        <EntityTypeShape EntityType="MarsModel.T_TEST_PROJECT" Width="2.5" PointX="8.75" PointY="4.75" />
+        <EntityTypeShape EntityType="MarsModel.T_TEST_REPORT" Width="1.5" PointX="3" PointY="13.5" />
+        <EntityTypeShape EntityType="MarsModel.T_TEST_REPORT_STEPS" Width="1.5" PointX="5.25" PointY="9.625" />
+        <EntityTypeShape EntityType="MarsModel.T_TEST_STEPS" Width="1.5" PointX="3" PointY="5.875" />
+        <EntityTypeShape EntityType="MarsModel.T_TEST_SUITE" Width="1.5" PointX="3.75" PointY="0.75" />
+        <EntityTypeShape EntityType="MarsModel.TEST_DATA_SETTING" Width="1.5" PointX="5.25" PointY="3.5" />
+        <AssociationConnector Association="MarsModel.FK_REL_APP__REFERENCE_T_TEST_P" />
+        <AssociationConnector Association="MarsModel.FK_REL_TEST_REFERENCE_T_TEST_2" />
+        <AssociationConnector Association="MarsModel.FK_REL_TEST_REFERENCE_T_TEST_C" />
+        <AssociationConnector Association="MarsModel.FK_REL_TEST_REFERENCE_T_TEST_P" />
+        <AssociationConnector Association="MarsModel.FK_REL_TEST_REFERENCE_T_TEST_S" />
+        <AssociationConnector Association="MarsModel.FK_T_PROJEC_REFERENCE_T_DATA_S" />
+        <AssociationConnector Association="MarsModel.FK_T_DIC_RE_REFERENCE_T_GUI_CO" />
+        <AssociationConnector Association="MarsModel.FK_T_DIC_RE_REFERENCE_T_KEYWOR" />
+        <AssociationConnector Association="MarsModel.FK_T_REGIST_REFERENCE_T_GUI_CO" />
+        <AssociationConnector Association="MarsModel.FK_T_TEST_S_REFERENCE_T_KEYWOR" />
+        <AssociationConnector Association="MarsModel.FK_T_PROJEC_REFERENCE_T_TEST_P" />
+        <AssociationConnector Association="MarsModel.FK_T_TEST_S_REFERENCE_T_REGIST" />
+        <AssociationConnector Association="MarsModel.FK_T_TEST_R_REFERENCE_T_TEST_C" />
+        <AssociationConnector Association="MarsModel.FK_T_TEST_S_REFERENCE_T_TEST_C" />
+        <AssociationConnector Association="MarsModel.FK_T_TEST_R_REFERENCE_T_TEST_R" />
+        <AssociationConnector Association="MarsModel.FK_T_TEST_R_REFERENCE_T_TEST_S" />
+        <AssociationConnector Association="MarsModel.FK_TEST_DAT_REFERENCE_T_TEST_S" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

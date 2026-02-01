@@ -1,0 +1,66 @@
+﻿<Window x:Class="Mars.Dialog.FilteredListDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    Title="Search!" Width="309.205" Height="500" 
+    FontSize="13" WindowStartupLocation="CenterScreen" Closing="Window_Closing"
+    >
+    <Window.Resources>
+        <x:Array x:Key="WordList" Type="sys:String">
+            <sys:String>Abraham2</sys:String>   
+            <sys:String>Banker</sys:String>
+            <sys:String>Cartman</sys:String>
+            <sys:String>Doctor</sys:String>
+            <sys:String>Edwin</sys:String>
+            <sys:String>Furniture</sys:String>
+            <sys:String>Gopher</sys:String>
+            <sys:String>Hyman</sys:String>
+            <sys:String>Isabella</sys:String>
+            <sys:String>Jerkinheimer</sys:String>
+            <sys:String>Karma</sys:String>
+            <sys:String>Llamamama</sys:String>
+            <sys:String>Martini</sys:String>
+            <sys:String>Nachowinkeltoes</sys:String>
+            <sys:String>Oreos</sys:String>
+            <sys:String>Pillowfighter</sys:String>
+            <sys:String>Quintessence</sys:String>
+            <sys:String>Razzamatazz</sys:String>
+            <sys:String>Shovel</sys:String>
+            <sys:String>Towel</sys:String>
+            <sys:String>Ultraviolet</sys:String>
+            <sys:String>Viagraholic</sys:String>
+            <sys:String>Whappolongolicitis</sys:String>
+            <sys:String>Xylophonic</sys:String>
+            <sys:String>Yistlelotusmoustahoppenfield</sys:String>
+            <sys:String>Zoraxboraxjajaja</sys:String>
+        </x:Array>
+    </Window.Resources>
+
+    <Grid
+    FocusManager.FocusedElement="{Binding ElementName=txtSearch}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" Margin="2">
+            <TextBlock 
+        Margin="0,0,4,0" 
+        Text="Search for:" 
+        VerticalAlignment="Center"
+        />
+            <TextBox x:Name="txtSearch" />
+        </DockPanel>
+
+        <ListBox x:Name="lstBox"
+      Grid.Row="1" MouseDoubleClick="lstBox_MouseDoubleClick" 
+     
+     
+      />
+        
+        <!--
+        DataContext="{StaticResource WordList}" 
+      ItemsSource="{Binding}" 
+        -->
+    </Grid>
+</Window>

@@ -1,0 +1,412 @@
+﻿<mars:MarsBaseViewControl x:Class="Mars.Views.StoryboardEditControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mars="clr-namespace:Mars.Views.baseView"
+             xmlns:detail="clr-namespace:Mars.Views.storyboard"
+             mc:Ignorable="d" 
+             xmlns:local ="clr-namespace:Mars.ViewModel"             
+              xmlns:l="clr-namespace:Mars.Converter"
+             IsTabStop="True"
+             Focusable="True"
+             d:DesignHeight="400"  d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <!--Title="Storyboard Editor"-->
+        <l:MarsTestReportResultConvert x:Key="MarsTestReportResultConvert"/>
+        <Style TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="SeparatorBrush" Value="LightGray" />
+            <Setter Property="FontWeight" Value="Black" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Margin" Value="-1,-1,0,0" />
+        </Style>
+
+
+        <x:Array x:Key="Actions" Type="sys:String"
+                xmlns:sys="clr-namespace:System;assembly=mscorlib">
+            <sys:String>EXECUTE</sys:String>
+            <sys:String>RUN</sys:String>
+            <sys:String>SKIP</sys:String>
+            <sys:String>DONE</sys:String>
+        </x:Array>
+
+        <DataTemplate x:Key="StoryboardResultDetailDataTemplate">
+            
+        </DataTemplate>
+
+        <!--<RoutedUICommand x:Key="Copy" Text="Copy"></RoutedUICommand>-->
+        
+    </UserControl.Resources>
+    <!--<UserControl.InputBindings>
+        <KeyBinding Key="C" Modifiers="Ctrl" Command="{StaticResource Copy}"/>        
+    </UserControl.InputBindings>
+    <UserControl.CommandBindings>
+        <CommandBinding Command="{StaticResource Copy}" Executed="CopyCommand" />
+    </UserControl.CommandBindings>-->
+    
+    <Grid >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="32" x:Name="contolPanelColumn"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Height="24" Margin="0,2,0,0" Orientation="Horizontal">
+            <Label x:Name="lblHeader" 
+                   FontSize="18" FontWeight="Bold"
+                   Content="{Binding Title}" 
+                   Margin="5,0,0,0" 
+                   Height="30"  />
+            <CheckBox Margin="15,0,0,0" IsChecked="{Binding IsSelectAllRows}" Content="{Binding RowsSelectCheckBoxContext,Mode=TwoWay}"                      
+                      VerticalAlignment="Center" Checked="CheckBox_Checked" Unchecked="CheckBox_Checked"
+                      ></CheckBox>
+            <CheckBox Margin="15,0,0,0" x:Name="copyMode" Content="Copy As CSV"
+                      VerticalAlignment="Center" 
+                      ></CheckBox>
+        </StackPanel>
+        <!--PreviewKeyDown="storyboardGrid_PreviewKeyDown" 
+        KeyUp="storyboardGrid_KeyUp"-->
+        <DockPanel x:Name="gridPanel" Grid.Row="1" Grid.Column="0">
+            <local:StoryboardDataGrid 
+                DockPanel.Dock="Top" RowHeaderWidth="0"  Margin="0,2,0,0"  RowDetailsVisibilityMode="Collapsed" 
+                                       ItemsSource="{Binding StoryboardRows,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" 
+                                       SelectedItemsList="{Binding SelectedStoryboardRows,Mode=TwoWay}"
+                                       AutoGenerateColumns="False"  
+                                       SelectionMode="Extended" 
+                                       ClipboardCopyMode="ExcludeHeader"                                                                              
+                                       CanUserDeleteRows="False"  
+                                       CanUserAddRows="False"  x:Name="storyboardGrid" 
+                                       HorizontalScrollBarVisibility="Visible"                 
+                                       
+                                       IsTabStop="True"
+                                       Focusable="True"
+                                       SelectionUnit="FullRow" 
+                                       CanUserSortColumns="False" 
+                                       MouseDoubleClick="storyboardGrid_MouseDoubleClick" Loaded="storyboardGrid_Loaded"
+                                       EnableColumnVirtualization="True"
+                                       Width="{Binding Path=ActualWidth-16, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window,AncestorLevel=1}}"
+                                       BorderBrush="LightGray" GridLinesVisibility="All" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray"
+                                       VerticalScrollBarVisibility="Visible" SelectedCellsChanged="storyboardGrid_SelectedCellsChanged" MouseRightButtonUp="storyboardGrid_MouseRightButtonUp_1" 
+                                       
+                                  >
+
+                
+                <!--
+                 MouseRightButtonUp="storyboardGrid_MouseRightButtonUp"
+                                                        PreviewKeyDown="storyboardGrid_PreviewKeyDown"
+
+                -->
+                
+                <local:StoryboardDataGrid.Columns>
+                    <DataGridTemplateColumn Header="Run Order">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Label x:Name="txAction" 
+                                            Content="{Binding RunOrder}">
+                                    </Label>
+                                    <Image x:Name="image"  Margin="5,0,0,0" Height="15" Width="15"  />
+                                </StackPanel>
+
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                                        <Setter TargetName="image" Property="Source" Value="/Images/Checkmark.png" />
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="Action">
+                        <!--<DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <ComboBox x:Name="cbAction" 
+                                      SelectedItem="{Binding DisplayName}" 
+                                      ItemsSource="{StaticResource Actions}" SelectedIndex="1" 
+                                      
+                                      >
+                                </ComboBox>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>-->
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ComboBox x:Name="cbAction" 
+                                      SelectedItem="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                      ItemsSource="{StaticResource Actions}"  
+                                      Text="{Binding DisplayName,Mode=OneWay}"
+                                      >
+                                </ComboBox>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn Header="Step Name" 
+                                    Binding="{Binding AliasName, 
+                                                      UpdateSourceTrigger=PropertyChanged,
+                                                      Mode=TwoWay}" 
+                                    IsReadOnly="False" >
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="ToolTip" Value="{Binding ToolTipString}" />
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn>
+                    <DataGridTemplateColumn Header="Test Suite Name" >
+                        <DataGridTemplateColumn.CellTemplate >
+                            <DataTemplate>
+                                <TextBlock Text="{Binding SelectedTestSuite.DataItemName,Mode=OneWay}"></TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <ComboBox x:Name="cbTestSuite" 
+                                      SelectedItem="{Binding SelectedTestSuite,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                                      ItemsSource="{Binding TestSuites}" 
+                                      DisplayMemberPath="DataItemName" 
+                                      SelectedValuePath="Id" 
+                                      IsEditable="true"
+                                          IsTextSearchEnabled="True"
+                                          Text="{Binding SelectedTestSuite.DataItemName}"
+                                          TextSearch.TextPath="DataItemName"
+                                          IsTextSearchCaseSensitive="False"
+                                      TabIndex="2" SelectionChanged="cbTestSuite_SelectionChanged"  />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                    </DataGridTemplateColumn>
+                    
+                    <DataGridTemplateColumn Header="Test Case Name" >
+                        <DataGridTemplateColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="ToolTip" Value="{Binding TestCaseDescription}" />
+                            </Style>
+                        </DataGridTemplateColumn.CellStyle>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <ComboBox x:Name="cbTestCase" SelectedItem="{Binding SelectedTestCase,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                                      ItemsSource="{Binding TestCases}" 
+                                      DisplayMemberPath="DataItemName" 
+                                      SelectedValuePath="Id" 
+                                          Text="{Binding SelectedTestCase.DataItemName}"
+                                          TextSearch.TextPath="DataItemName"
+                                          IsTextSearchCaseSensitive="False"
+                                      TabIndex="2"  
+                                          />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding SelectedTestCase.DataItemName, Mode=OneWay}"></TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    
+                    <DataGridTemplateColumn Header="Data Set Name" >
+                        <DataGridTemplateColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="ToolTip" Value="{Binding DataSetDescription}" />
+                            </Style>
+                        </DataGridTemplateColumn.CellStyle>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <ComboBox x:Name="cbDataSetName" SelectedItem="{Binding SelectedDataSetName}"
+                                      ItemsSource="{Binding DataSetNames}" 
+                                      DisplayMemberPath="DataItemName" 
+                                      SelectedValuePath="Id" 
+                                      TabIndex="2"                                           
+                                          IsTextSearchCaseSensitive="False"
+                                          TextSearch.TextPath="DataItemName"
+                                      SelectionChanged="cbDataSetName_SelectionChanged"  />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding SelectedDataSetName.DataItemName, Mode=OneWay}"></TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Result" 
+                                        MaxWidth="600"
+                                        Binding="{Binding HistResult,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay,Converter={StaticResource MarsTestReportResultConvert}}" IsReadOnly="True" >
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="TextBlock.TextWrapping" Value="Wrap"></Setter>
+                                <Setter Property="TextBlock.TextAlignment" Value="Left"></Setter>
+                                <Setter Property="ToolTip" Value="{Binding HistTestResultInText, UpdateSourceTrigger=PropertyChanged}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HistResult}" Value="1">
+                                        <Setter Property="Background" Value="LightGreen"></Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding HistResult}" Value="2">
+                                        <Setter Property="Background" Value="Red"></Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding HistResult}" Value="3">
+                                        <Setter Property="Background" Value="Yellow"></Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                                
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Error Cause" 
+                                        Binding="{Binding HistTestResultInText, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" 
+                                        IsReadOnly="True" 
+                                        MaxWidth="600"
+                                        >
+                        <DataGridTextColumn.ElementStyle>
+                            <Style>
+                                <Setter Property="TextBlock.TextWrapping" Value="Wrap"></Setter>
+                                <Setter Property="TextBlock.TextAlignment" Value="Left"></Setter>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Script Start" Binding="{Binding TestCaseBeginTime, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" IsReadOnly="True" />
+                    <DataGridTextColumn Header="Script End" Binding="{Binding TestCaseEndTime, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" IsReadOnly="True" />
+                    <DataGridTemplateColumn Header="Dependency" >
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ComboBox x:Name="cbDependOnStep" SelectedItem="{Binding SelectedDependOnStep, 
+                                                                                    UpdateSourceTrigger=PropertyChanged,
+                                                                                    Mode=TwoWay}"
+                                      ItemsSource="{Binding DependOnSteps,
+                                                            Mode=TwoWay}" 
+                                      DisplayMemberPath="DataItemName" 
+                                      SelectedValuePath="Id" 
+                                      TabIndex="2" 
+                                       />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+
+                    <DataGridTextColumn Header="Description" 
+                                        Binding="{Binding TestCaseDescription, 
+                        
+                                        UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" 
+                                        IsReadOnly="True"
+                                        MaxWidth="400"
+                                        
+                                        >
+                        <DataGridTextColumn.ElementStyle>
+                            <Style>
+                                <Setter Property="TextBlock.TextWrapping" Value="Wrap"></Setter>
+                                <Setter Property="TextBlock.TextAlignment" Value="Left"></Setter>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                </local:StoryboardDataGrid.Columns>
+                <local:StoryboardDataGrid.RowDetailsTemplate>
+                    <DataTemplate >                        
+                            <detail:StoryboardResultDetailControl Margin="30,3,3,3" 
+                                DataContext="{Binding ReportDetail}"></detail:StoryboardResultDetailControl>
+                    </DataTemplate>
+                    
+                </local:StoryboardDataGrid.RowDetailsTemplate>
+                <local:StoryboardDataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Edit Test Case" Click="MenuItem_PreviewKeyUp" >                             
+                        </MenuItem>
+                        <MenuItem Header="Show Test Result" Click="ShowTestResultAsDetail"></MenuItem>
+                    </ContextMenu>
+                </local:StoryboardDataGrid.ContextMenu>
+
+                <local:StoryboardDataGrid.CommandBindings>
+                    <CommandBinding Command="ApplicationCommands.Copy" CanExecute="CanCopyExecute" Executed="CopyCommand"></CommandBinding>
+                    <CommandBinding Command="ApplicationCommands.Paste" CanExecute="CanPasteExecute" Executed="PasteCommand"></CommandBinding>
+                    <!--<KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopySelectedRowsCommand}" />-->
+                    <!--<KeyBinding Key="C" Modifiers="Ctrl" Command="CopyCommand" />-->
+                </local:StoryboardDataGrid.CommandBindings>
+                
+            </local:StoryboardDataGrid>
+
+        </DockPanel>
+
+        <StackPanel x:Name="controlPanel" Grid.Row="1" Grid.Column="1" Margin="2" Orientation="Vertical" Width="auto" >
+            <Button Content="+" FontFamily="Times New Roman"  FontWeight="Black" FontSize="20" Command="{Binding AddNewRowCommand}" ToolTip="Add Row (Ctrl+I)" Width="auto" ></Button>
+            <Button Content="-" FontFamily="Times New Roman"  FontWeight="Black" FontSize="20"  Command="{Binding DeleteSelectedRowsCommand}" ToolTip="Remove Row (Ctrl+Del)" Width="auto"></Button>
+            <Button Content="5" FontFamily="Marlett" FontWeight="Black" FontSize="20" Command="{Binding MoveUpSelectedRowsCommand}" ToolTip="Move Row Up (Ctrl+U)" Width="auto"></Button>
+            <Button Content="6" FontFamily="Marlett"  FontWeight="Black" FontSize="20" Command="{Binding MoveDownSelectedRowsCommand}"  ToolTip="Move Row Down (Ctrl+D)" Width="auto"></Button>
+            <!--<Button  FontFamily="Times New Roman" 
+                         FontWeight="Black" FontSize="20" 
+                         local:InputBindingBehavior.PropagateInputBindingsToWindow="True"
+                         Command="{Binding CopySelectedRowsCommand}" 
+                     Width="28"
+                     >
+                --><!--<Button.InputBindings>
+                    <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopySelectedRowsCommand}" />-->
+                <!--</Button.InputBindings>-->
+                <!--<Button.CommandBindings>
+                    <CommandBinding Command="ApplicationCommands.Copy" CanExecute="CanCopyExecute" Executed="CopyCommand"></CommandBinding>
+                </Button.CommandBindings>--><!--
+                <StackPanel>
+                    <Image Source="/Images/copy-32.png" Stretch="Uniform" ToolTip="Copy (Ctrl+C)" />
+                </StackPanel>
+            </Button>-->
+            
+            <!--<Button FontFamily="Times New Roman" FontWeight="Black" FontSize="20" 
+                    local:InputBindingBehavior.PropagateInputBindingsToWindow="True"
+                    Command="{Binding PasteSelectedRowsCommand}" Width="auto">
+                <Button.InputBindings>
+                    <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteSelectedRowsCommand}" ></KeyBinding>
+                </Button.InputBindings>
+                <StackPanel>
+                    <Image Source="/Images/cllipboard-32.png" ToolTip="Paste (Ctrl+V)"/>
+                </StackPanel>
+            </Button>-->
+            <Button FontFamily="Times New Roman" FontWeight="Black" FontSize="20" Command="{Binding SaveCommand}" Width="auto">
+                <Image Source="/Images/save-32.png"  ToolTip="Save (Ctrl+S)" Stretch="Fill"/>
+            </Button>
+            <Button FontFamily="Times New Roman" FontWeight="Black" 
+                    ContextMenuService.IsEnabled="False"
+                    Click="popupImportExportMenu"
+                    FontSize="20"  Width="auto">                
+                <Button.Content>
+                    <!--Command="{Binding ExportBaseLineDataCommand}"-->
+                        <Image Source="/Images/export-64.png"  ToolTip="Export Base Line Data" Stretch="Fill"/>                    
+                </Button.Content>
+                <Button.ContextMenu>
+                    <ContextMenu >
+                        <MenuItem Header="Export Baseline Data" Command="{Binding ExportBaseLineDataCommand}">
+                            <MenuItem.Icon >
+                                <Image Source="/Images/export-64.png" ></Image>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Import Baseline Data" Command="{Binding ImportBaseLineDataCommand}">
+                            <MenuItem.Icon >
+                                <Image Source="/Images/import-64.png" ></Image>
+                            </MenuItem.Icon>
+                        </MenuItem>
+
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+            
+            <Button FontFamily="Times New Roman" FontWeight="Black" FontSize="20" Command="{Binding SaveAsCommand}" Width="auto" Background="Transparent">                
+                    <Image Source="/Mars;component/Images/save_as-32.png"  ToolTip="Save As (Ctrl+J)" HorizontalAlignment="Center"  VerticalAlignment="Center" Stretch="Uniform" />                
+            </Button>
+
+            <Button FontFamily="Times New Roman" FontWeight="Black" FontSize="20"                    
+                    Command="{Binding RefreshCommand}" Name="refreshStoryBoard_Btn" HorizontalAlignment="Right"  Width="auto">
+                <StackPanel>
+                    <Image Source="/Mars;component/Images/refresh-32.png"  ToolTip="Refresh (Ctrl+R)"/>
+                </StackPanel>
+                
+            </Button>
+
+            <Button FontFamily="Times New Roman" FontWeight="Black" FontSize="20" Name="btnVideo" Click="btnVideo_Click" Width="auto">
+                <StackPanel>
+                    <Image Source="/Mars;component/Images/video_file-32.png"  ToolTip="Video (Ctrl+V)"/>
+                </StackPanel>
+            </Button>
+
+        </StackPanel>
+    </Grid>
+
+</mars:MarsBaseViewControl>

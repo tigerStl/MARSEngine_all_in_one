@@ -1,0 +1,163 @@
+﻿<mars:MarsBaseViewControl x:Class="Mars.Views.storyboard.batch.StoryboardBatch"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mars="clr-namespace:Mars.Views.baseView"
+             mc:Ignorable="d" 
+                          Title="Mars Storyboard Management"
+             d:DesignHeight="300" d:DesignWidth="600">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+            <RowDefinition MaxHeight="40"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="3*"></ColumnDefinition>
+
+        </Grid.ColumnDefinitions>
+        <Border Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" CornerRadius="10" BorderBrush="LightGray" BorderThickness="1">
+            <Grid >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Content="All Storyboard Batches:" Margin="3" FontWeight="DemiBold"></Label>
+                <DataGrid x:Name="BatchMgrGrid"
+                          Background="WhiteSmoke" Grid.Row="1"  Margin="5" ItemsSource="{Binding AllStoryBatches}" 
+                          CanUserAddRows ="False"
+                          HorizontalAlignment="Center" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible"
+                          AutoGenerateColumns="False" 
+                          SelectedItem="{Binding CurrentBatch}" DragEnter="DataGrid_DragEnter"
+                          AllowDrop="true"
+                          >
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Name" Binding="{Binding BAT_NAME}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Description" Binding="{Binding BAT_DESC}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Create Date" Binding="{Binding CREATE_TIME,StringFormat=\{0:MM/dd/yyyy\}}"  ></DataGridTextColumn>                        
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+        <Border Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" CornerRadius="10" BorderBrush="LightGray" BorderThickness="1" Margin="2,0,2,0">
+            <TabControl Margin="5">
+                <TabItem Header="Basic Information" HorizontalContentAlignment="Stretch"
+                         VerticalContentAlignment="Stretch"
+                         HorizontalAlignment="Stretch"
+                         VerticalAlignment="Stretch"
+                         >
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="*"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto">
+                            </ColumnDefinition>
+                            <ColumnDefinition Width="auto" MinWidth="120"></ColumnDefinition>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Batch Name:" FontWeight="SemiBold" Grid.Row="0" Grid.Column="0" Margin="2"></Label>
+                        <Label Content="Description:" FontWeight="SemiBold" Grid.Row="0" Grid.Column="2" Margin="2"></Label>
+                        <TextBox Grid.Row="0" Grid.Column="1" Height="20" Margin="2" VerticalAlignment="Top"
+                                 Text="{Binding CurrentBatch.BAT_NAME}"
+                                 ></TextBox>
+                        <TextBox Grid.Row="0" Grid.Column="3" Height="70" 
+                                 Grid.RowSpan="2"
+                                 Text="{Binding CurrentBatch.BAT_DESC}"
+                                 AcceptsReturn="True" Margin="2" 
+                                 HorizontalScrollBarVisibility="Visible"
+                                 VerticalScrollBarVisibility="Visible"></TextBox>
+                        <DockPanel Grid.Row="1" Grid.ColumnSpan="3" >
+                            <Label Content="Batch Details:" FontWeight="DemiBold" VerticalAlignment="Bottom" Margin="2"></Label>
+                            <Button Content="+" Width="16" Height="16" VerticalAlignment="Bottom" Margin="2,2,0,0" HorizontalAlignment="Left"></Button>
+                            <Button Content="-" Width="16" Height="16" VerticalAlignment="Bottom" Margin="0,2,0,0" HorizontalAlignment="Left"></Button>
+                            <Button Content="-" Width="16" Height="16" VerticalAlignment="Bottom" Margin="0,2,0,0" HorizontalAlignment="Left"></Button>
+                        </DockPanel>
+                        <DataGrid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" AutoGenerateColumns="False" Margin="5"                                  
+                                  ScrollViewer.HorizontalScrollBarVisibility="Visible" 
+                                  ScrollViewer.VerticalScrollBarVisibility="Visible"  
+                                  SelectionUnit="FullRow" 
+                                  CanUserSortColumns="False"                                                              
+                                  HorizontalGridLinesBrush="LightGray"
+                                  VerticalGridLinesBrush="LightGray"             
+                                  CanUserAddRows="False"
+                                  AllowDrop="True"
+                                  DataContextChanged="DataGrid_DataContextChanged"
+                                  ItemsSource="{Binding CurrentBatch.StoryBoardList}" Drop="DataGrid_Drop"   
+                                  MouseLeftButtonUp="DataGrid_MouseLeftButtonUp"
+                                  >
+
+                            <DataGrid.Columns>
+                                <!--<DataGridTextColumn Header="" Width="38" Binding="{Binding CollapseOrExpand}"></DataGridTextColumn>-->
+                                <DataGridTextColumn Header="No." Width="38" Binding="{Binding RUN_ORDER}"></DataGridTextColumn>
+                                <!--<DataGridTextColumn Header="Project Name" 
+                                                    Binding="{Binding PROJECT_NAME}"
+                                                    >
+                                    
+                                </DataGridTextColumn>-->
+                                <DataGridTemplateColumn Header="Project Name">                                    
+                                    <DataGridTemplateColumn.CellEditingTemplate>
+                                        <DataTemplate>
+                                            <ComboBox ItemsSource="{Binding AllProjects}" 
+                                                      DisplayMemberPath="PROJECT_NAME"
+                                                      SelectedItem="{Binding AssignedProject}"
+                                                      ></ComboBox>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellEditingTemplate>
+                                    
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Label Content="{Binding AssignedProject.PROJECT_NAME}"></Label>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Storyboard Name">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Label Content="{Binding SelectedStoryboard.STORYBOARD_NAME}"></Label>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                    <DataGridTemplateColumn.CellEditingTemplate>
+                                        <DataTemplate>
+                                            <ComboBox ItemsSource="{Binding AssignedStoryBoardForProj}"
+                                                        DisplayMemberPath="STORYBOARD_NAME"           
+                                                        SelectedItem="{Binding SelectedStoryboard}"></ComboBox>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellEditingTemplate>
+                                    
+                                </DataGridTemplateColumn>
+
+                                <DataGridTextColumn Header="Description" Binding="{Binding DTL_DESC}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextWrapping" Value="Wrap" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="TextWrapping" Value="Wrap" />
+                                            <Setter Property="AcceptsReturn" Value="true" />
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Run time" ></TabItem>
+            </TabControl>
+        </Border>
+        <DockPanel Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right">
+            <Button Content="Insert" Height="24" Margin="5" Width="70" Command="{Binding InsertCommand}"></Button>
+            <Button Content="Delete" Height="24" Margin="5" Width="70" Command="{Binding DeleteCommand}"></Button>
+            <Button Content="Save" Height="24" Margin="5" Width="70" Command="{Binding SaveCommand}"></Button>
+            <!--<Button Content="Execute" Height="24" Margin="5" Width="70" Command="{Binding ExecuteCommand}"></Button>-->
+            <Button Content="Clean" Height="24" Margin="5" Width="70"  Command="{Binding CleanCommand}"></Button>
+        </DockPanel>
+    </Grid>
+</mars:MarsBaseViewControl>

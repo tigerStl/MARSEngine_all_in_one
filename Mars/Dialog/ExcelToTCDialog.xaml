@@ -1,0 +1,189 @@
+﻿<Window x:Class="Mars.Dialog.ExcelToTCDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Mars.ViewModel"
+        Title="Test Case Import" Height="700" Width="1000" Closing="Window_Closing">
+
+    <Window.Resources>
+        <Style x:Key="GridSplitterPreviewStyle" >
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Fill="#80000000"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="GridSplitterStyle1" TargetType="{x:Type GridSplitter}">
+            <Setter Property="Background"
+                Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+            <Setter Property="PreviewStyle" Value="{StaticResource GridSplitterPreviewStyle}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type GridSplitter}">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="5">
+                            <Canvas RenderOptions.EdgeMode="Aliased" UseLayoutRounding="True"
+                                Height="6" VerticalAlignment="Center"
+                                Width="50" HorizontalAlignment="Center">
+                                <Line X1="0" X2="50" Y1="0" Y2="0"
+                                  Stroke="White" StrokeThickness="1"/>
+                                <Line X1="0" X2="50" Y1="1" Y2="1"
+                                  Stroke="#A0A0A0" StrokeThickness="1"/>
+                                <Line X1="0" X2="50" Y1="4" Y2="4"
+                                  Stroke="White" StrokeThickness="1"/>
+                                <Line X1="0" X2="50" Y1="5" Y2="5"
+                                  Stroke="#A0A0A0" StrokeThickness="1"/>
+                            </Canvas>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="GridSplitterVer" TargetType="{x:Type GridSplitter}">
+            <Setter Property="Background"
+                Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+            <Setter Property="PreviewStyle" Value="{StaticResource GridSplitterPreviewStyle}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type GridSplitter}">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="5" >
+                            <Canvas RenderOptions.EdgeMode="Aliased" UseLayoutRounding="True"
+                                Height="16" VerticalAlignment="Center"
+                                Width="7" HorizontalAlignment="Center">
+                                <Line X1="0" X2="0" Y1="0" Y2="50"
+                                  Stroke="White" StrokeThickness="1"/>
+                                <Line X1="1" X2="1" Y1="0" Y2="50"
+                                  Stroke="#A0A0A0" StrokeThickness="1"/>
+                                <Line X1="4" X2="4" Y1="0" Y2="50"
+                                  Stroke="White" StrokeThickness="1"/>
+                                <Line X1="5" X2="5" Y1="0" Y2="50"
+                                  Stroke="#A0A0A0" StrokeThickness="1"/>
+                            </Canvas>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="45"/>
+            <RowDefinition Height="5*"/>
+
+        </Grid.RowDefinitions>
+
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="216*">
+            </ColumnDefinition>
+            <ColumnDefinition Width="301*"/>
+
+        </Grid.ColumnDefinitions>
+
+        <DockPanel x:Name="fileOpenPanel" Grid.Row="1" Grid.ColumnSpan="2" Height="40" VerticalAlignment="Top" >
+            <Label Content="Test Case File Name" Height="30" Width="120" Margin="10"></Label>
+            <TextBox x:Name="ExcelFileName" HorizontalAlignment="Left" Width="400"   Height="20" Margin="10,0" Text="C:\automationTest\TC\SWAPTC_01.xls"></TextBox>
+            <Button  x:Name ="btnOpenFile" Content="Browse" Margin="5" Width="80" Height="25" HorizontalAlignment="Right" Click="btnBrowse_Click"></Button>
+            <Button  x:Name ="btnLoadFile" Content="Load TC File" Margin="5" Width="86" Height="25" HorizontalAlignment="Right" Click="btnLoadFile_Click" />
+            <Button  x:Name ="btnGenerateTC" Content="Generate TC" Margin="5" Width="90" Height="25" HorizontalAlignment="Left" Click="btnGenerateTC_Click"  />
+        </DockPanel>
+
+        <DockPanel x:Name="dataFileOpenPanel" Grid.Row="2" Grid.ColumnSpan="2" Height="40" VerticalAlignment="Top" >
+            <Label Content="Data File Name        " Height="30" Width="120" Margin="10"></Label>
+            <TextBox x:Name="dataFileName" HorizontalAlignment="Left" Width="400"   Height="20" Margin="10,0" Text="C:\automationTest\data\SWAPTC_01_DATA.xls"></TextBox>
+            <Button  x:Name ="btnOpenDataFile" Content="Browse" Margin="5" Width="80" Height="25" HorizontalAlignment="Right" Click="btnOpenDataFile_Click" ></Button>
+            <Button  x:Name ="btnLoadDataFile" Content="Load Data File" Margin="5" Width="87" Height="25" HorizontalAlignment="Left" Click="btnLoadDataFile_Click" />
+        </DockPanel>
+
+        <DockPanel x:Name="appSelectionPanel" Grid.Row="0" Grid.ColumnSpan="2" Height="40" VerticalAlignment="Top" >
+            <Label Content="Application" Height="30" Width="120" Margin="10"></Label>
+            <ComboBox x:Name="display" Height="25" 
+                      Width="100" 
+                      HorizontalAlignment="Left" 
+                      ItemsSource="{Binding AppDict}"
+                      SelectedValuePath="Value"
+                      DisplayMemberPath="Key"
+                      SelectedValue="{Binding SelectedAppValue, Mode=TwoWay}"
+                      Margin="10,0" />
+        </DockPanel>
+
+        <DockPanel x:Name="MainPanel" Grid.Row="3" Grid.ColumnSpan="2"  VerticalAlignment="Stretch"  Margin="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="2*"/>
+
+                </Grid.RowDefinitions>
+
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="110*"></ColumnDefinition>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="301*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button x:Name="allButton"  Content="All" Width="60" Height="25" Margin="10" HorizontalAlignment="Left" Click="allButton_Click" />
+                <Button x:Name="clearButton" Content="Clear" Width="60" Height="25" Margin="10" HorizontalAlignment="Right" Click="clearButton_Click"/>
+                <DockPanel x:Name="listPanel" Grid.Row="1"  Grid.Column="0" VerticalAlignment="Stretch" Background="Yellow">
+                    <ListView  
+                          x:Name="listView1" 
+                          SelectionMode="Single"
+                          VerticalAlignment="Stretch" 
+                          HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding TCHeaderRows, Mode=TwoWay, NotifyOnSourceUpdated=True}"
+                          SelectedItem="{Binding SelectedTCItem , Mode=TwoWay, NotifyOnSourceUpdated=True}"
+                          IsSynchronizedWithCurrentItem="True" SelectionChanged="listView1_SelectionChanged">
+                        <ListView.View>
+                            <GridView>
+                                <GridView.Columns>
+                                    <GridViewColumn>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox  IsChecked="{Binding ImportRequired }"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+
+                                    <GridViewColumn DisplayMemberBinding="{Binding TCName}" Header="Name" />
+                                </GridView.Columns>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </DockPanel>
+
+                <GridSplitter Grid.Row="0" 
+                          Grid.Column="1" Grid.RowSpan="2"
+                          ResizeDirection="Columns" Width="7"  
+                          HorizontalAlignment="Stretch" 
+                          Style="{DynamicResource GridSplitterVer}"
+                          >
+                </GridSplitter>
+                <DockPanel x:Name="gridPanel" Grid.Row="0"  Grid.Column="2" Grid.RowSpan="2"  Margin="5" VerticalAlignment="Stretch" Background="LightGreen">
+                    <DataGrid x:Name="tcDataGrid" 
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              AutoGenerateColumns="True"
+                              IsReadOnly="True"
+                              SelectionUnit="FullRow"
+                              ScrollViewer.CanContentScroll="True" 
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              LoadingRow="DataGrid_LoadingRow"
+                              ItemsSource="{Binding CurrentDataTable, Mode=TwoWay, NotifyOnSourceUpdated=True}">
+
+                    </DataGrid>
+                </DockPanel>
+            </Grid>
+        </DockPanel>
+
+    </Grid>
+</Window>

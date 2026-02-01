@@ -1,0 +1,77 @@
+﻿<Window x:Class="Mars.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MARS" Height="350" Width="525">
+    <Grid>
+        <TabControl HorizontalAlignment="Stretch" Margin="2,0,0,0" VerticalAlignment="Stretch">
+            <TabItem Header="Project">
+                <Grid Background="#FFE5E5E5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <RibbonControl HorizontalAlignment="Stretch" Height="20"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Test Suite">
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="10*"/>
+                        <ColumnDefinition Width="16*"/>
+                        <ColumnDefinition Width="479*"/>
+                    </Grid.ColumnDefinitions>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Test Case">
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="10*"/>
+                        <ColumnDefinition Width="16*"/>
+                        <ColumnDefinition Width="479*"/>
+                    </Grid.ColumnDefinitions>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Application">
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="10*"/>
+                        <ColumnDefinition Width="16*"/>
+                        <ColumnDefinition Width="479*"/>
+                    </Grid.ColumnDefinitions>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Keyword Library">
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="10*"/>
+                        <ColumnDefinition Width="16*"/>
+                        <ColumnDefinition Width="479*"/>
+                    </Grid.ColumnDefinitions>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Object database">
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="10*"/>
+                        <ColumnDefinition Width="16*"/>
+                        <ColumnDefinition Width="479*"/>
+                    </Grid.ColumnDefinitions>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Import / Export">
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="10*"/>
+                        <ColumnDefinition Width="16*"/>
+                        <ColumnDefinition Width="479*"/>
+                    </Grid.ColumnDefinitions>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

@@ -1,0 +1,593 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="MarsModel.Store" Provider="Oracle.ManagedDataAccess.Client" ProviderManifestToken="11.2" Alias="Self" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        
+        <EntityContainer Name="MarsModelStoreContainer" />
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="MarsModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="REL_APP_PROJ">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="Int64" Nullable="false" />
+          <Property Name="APPLICATION_ID" Type="Int64" />
+          <Property Name="PROJECT_ID" Type="Int64" />
+          <NavigationProperty Name="T_TEST_PROJECT" Relationship="Self.FK_REL_APP__REFERENCE_T_TEST_P" FromRole="REL_APP_PROJ" ToRole="T_TEST_PROJECT" />
+        </EntityType>
+        <EntityType Name="REL_APP_TESTCASE">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="Int64" Nullable="false" />
+          <Property Name="APPLICATION_ID" Type="Int64" />
+          <Property Name="TEST_CASE_ID" Type="Int64" />
+        </EntityType>
+        <EntityType Name="REL_APP_TESTSUITE">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="Int64" Nullable="false" />
+          <Property Name="APPLICATION_ID" Type="Int64" />
+          <Property Name="TEST_SUITE_ID" Type="Int64" />
+        </EntityType>
+        <EntityType Name="REL_TEST_CASE_TEST_SUITE">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_CASE_ID" Type="Int64" />
+          <Property Name="TEST_SUITE_ID" Type="Int64" />
+          <NavigationProperty Name="T_TEST_SUITE" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_2" FromRole="REL_TEST_CASE_TEST_SUITE" ToRole="T_TEST_SUITE" />
+          <NavigationProperty Name="T_TEST_CASE_SUMMARY" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_C" FromRole="REL_TEST_CASE_TEST_SUITE" ToRole="T_TEST_CASE_SUMMARY" />
+        </EntityType>
+        <EntityType Name="REL_TEST_SUIT_PROJECT">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_SUITE_ID" Type="Int64" />
+          <Property Name="PROJECT_ID" Type="Int64" />
+          <NavigationProperty Name="T_TEST_PROJECT" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_P" FromRole="REL_TEST_SUIT_PROJECT" ToRole="T_TEST_PROJECT" />
+          <NavigationProperty Name="T_TEST_SUITE" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_S" FromRole="REL_TEST_SUIT_PROJECT" ToRole="T_TEST_SUITE" />
+        </EntityType>
+        <EntityType Name="SYSTEM_LOOKUP">
+          <Key>
+            <PropertyRef Name="LOOKUP_ID" />
+          </Key>
+          <Property Name="LOOKUP_ID" Type="Int64" Nullable="false" />
+          <Property Name="TABLE_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="FIELD_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="VALUE" Type="Int16" />
+          <Property Name="DISPLAY_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="STATUS" Type="Int16" />
+        </EntityType>
+        <EntityType Name="T_DATA_SOURCE">
+          <Key>
+            <PropertyRef Name="DATA_SOURCE_ID" />
+          </Key>
+          <Property Name="DATA_SOURCE_ID" Type="Int64" Nullable="false" />
+          <Property Name="DATA_SOURCE_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="DATA_SOURCE_TYPE" Type="Int16" />
+          <Property Name="DETAILS" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="DB_CONNECTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="DB_TYPE" Type="Int16" />
+          <Property Name="TEST_CONNECTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_PROJECT_DATA_SOURCE" Relationship="Self.FK_T_PROJEC_REFERENCE_T_DATA_S" FromRole="T_DATA_SOURCE" ToRole="T_PROJECT_DATA_SOURCE" />
+        </EntityType>
+        <EntityType Name="T_DIC_RELATION_KEYWORD">
+          <Key>
+            <PropertyRef Name="RELATION_ID" />
+          </Key>
+          <Property Name="RELATION_ID" Type="Int64" Nullable="false" />
+          <Property Name="TYPE_ID" Type="Int64" />
+          <Property Name="KEY_WORD_ID" Type="Int64" />
+          <NavigationProperty Name="T_GUI_COMPONENT_TYPE_DIC" Relationship="Self.FK_T_DIC_RE_REFERENCE_T_GUI_CO" FromRole="T_DIC_RELATION_KEYWORD" ToRole="T_GUI_COMPONENT_TYPE_DIC" />
+          <NavigationProperty Name="T_KEYWORD" Relationship="Self.FK_T_DIC_RE_REFERENCE_T_KEYWOR" FromRole="T_DIC_RELATION_KEYWORD" ToRole="T_KEYWORD" />
+        </EntityType>
+        <EntityType Name="T_GUI_COMPONENT_TYPE_DIC">
+          <Key>
+            <PropertyRef Name="TYPE_ID" />
+          </Key>
+          <Property Name="TYPE_ID" Type="Int64" Nullable="false" />
+          <Property Name="TYPE_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="APPLICATION_TYPE_ID" Type="Int16" />
+          <Property Name="DESCRIPTION" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_DIC_RELATION_KEYWORD" Relationship="Self.FK_T_DIC_RE_REFERENCE_T_GUI_CO" FromRole="T_GUI_COMPONENT_TYPE_DIC" ToRole="T_DIC_RELATION_KEYWORD" />
+          <NavigationProperty Name="T_REGISTED_OBJECT" Relationship="Self.FK_T_REGIST_REFERENCE_T_GUI_CO" FromRole="T_GUI_COMPONENT_TYPE_DIC" ToRole="T_REGISTED_OBJECT" />
+        </EntityType>
+        <EntityType Name="T_KEYWORD">
+          <Key>
+            <PropertyRef Name="KEY_WORD_ID" />
+          </Key>
+          <Property Name="KEY_WORD_ID" Type="Int64" Nullable="false" />
+          <Property Name="KEY_WORD_NAME" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="DESCRIPTION" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="KEY_WORD_POSITION_ID" Type="Int16" />
+          <Property Name="ENTRY_IN_DATA_FILE" Type="String" MaxLength="8" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_DIC_RELATION_KEYWORD" Relationship="Self.FK_T_DIC_RE_REFERENCE_T_KEYWOR" FromRole="T_KEYWORD" ToRole="T_DIC_RELATION_KEYWORD" />
+          <NavigationProperty Name="T_TEST_STEPS" Relationship="Self.FK_T_TEST_S_REFERENCE_T_KEYWOR" FromRole="T_KEYWORD" ToRole="T_TEST_STEPS" />
+        </EntityType>
+        <EntityType Name="T_PROJECT_DATA_SOURCE">
+          <Key>
+            <PropertyRef Name="PRO_DBS_ID" />
+          </Key>
+          <Property Name="PRO_DBS_ID" Type="Int64" Nullable="false" />
+          <Property Name="PROJECT_ID" Type="Int64" />
+          <Property Name="DATA_SOURCE_ID" Type="Int64" />
+          <NavigationProperty Name="T_DATA_SOURCE" Relationship="Self.FK_T_PROJEC_REFERENCE_T_DATA_S" FromRole="T_PROJECT_DATA_SOURCE" ToRole="T_DATA_SOURCE" />
+          <NavigationProperty Name="T_TEST_PROJECT" Relationship="Self.FK_T_PROJEC_REFERENCE_T_TEST_P" FromRole="T_PROJECT_DATA_SOURCE" ToRole="T_TEST_PROJECT" />
+        </EntityType>
+        <EntityType Name="T_REGISTED_OBJECT">
+          <Key>
+            <PropertyRef Name="OBJECT_ID" />
+          </Key>
+          <Property Name="OBJECT_ID" Type="Int64" Nullable="false" />
+          <Property Name="OBJECT_HAPPY_NAME" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="APPLICATION_ID" Type="Int64" />
+          <Property Name="TYPE_ID" Type="Int64" />
+          <Property Name="QUICK_ACCESS" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="OBJECT_TYPE" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="COMMENT" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="ENUM_TYPE" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_GUI_COMPONENT_TYPE_DIC" Relationship="Self.FK_T_REGIST_REFERENCE_T_GUI_CO" FromRole="T_REGISTED_OBJECT" ToRole="T_GUI_COMPONENT_TYPE_DIC" />
+          <NavigationProperty Name="T_TEST_STEPS" Relationship="Self.FK_T_TEST_S_REFERENCE_T_REGIST" FromRole="T_REGISTED_OBJECT" ToRole="T_TEST_STEPS" />
+        </EntityType>
+        <EntityType Name="T_REGISTERED_APPS">
+          <Key>
+            <PropertyRef Name="APPLICATION_ID" />
+          </Key>
+          <Property Name="APPLICATION_ID" Type="Int64" Nullable="false" />
+          <Property Name="APP_SHORT_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="PROCESS_IDENTIFIER" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="STARTER_PATH" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="STARTER_COMMAND" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="VERSION" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="COMMENT" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="APPLICATION_TYPE_ID" Type="Int16" />
+          <Property Name="RECORD_CREATE_PERSON" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="RECORD_CREATE_DATE" Type="DateTime" />
+          <Property Name="EXTRAREQUIREMENT" Type="String" MaxLength="256" FixedLength="false" Unicode="false" />
+          <Property Name="EXTRAPOPUPMENU" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="T_TEST_CASE_SUMMARY">
+          <Key>
+            <PropertyRef Name="TEST_CASE_ID" />
+          </Key>
+          <Property Name="TEST_CASE_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_CASE_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_STEP_DESCRIPTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_STEP_CREATOR" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_STEP_CREATE_TIME" Type="DateTime" />
+          <Property Name="USAGE_STATUS" Type="Int16" />
+          <NavigationProperty Name="REL_TEST_CASE_TEST_SUITE" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_C" FromRole="T_TEST_CASE_SUMMARY" ToRole="REL_TEST_CASE_TEST_SUITE" />
+          <NavigationProperty Name="T_TEST_REPORT" Relationship="Self.FK_T_TEST_R_REFERENCE_T_TEST_C" FromRole="T_TEST_CASE_SUMMARY" ToRole="T_TEST_REPORT" />
+          <NavigationProperty Name="T_TEST_STEPS" Relationship="Self.FK_T_TEST_S_REFERENCE_T_TEST_C" FromRole="T_TEST_CASE_SUMMARY" ToRole="T_TEST_STEPS" />
+        </EntityType>
+        <EntityType Name="T_TEST_ENUM">
+          <Key>
+            <PropertyRef Name="ENUM_ID" />
+          </Key>
+          <Property Name="ENUM_ID" Type="Int64" Nullable="false" />
+          <Property Name="ENUM_TYPE" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="ENUM_VALUE" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="T_TEST_PROJECT">
+          <Key>
+            <PropertyRef Name="PROJECT_ID" />
+          </Key>
+          <Property Name="PROJECT_ID" Type="Int64" Nullable="false" />
+          <Property Name="PROJECT_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="PROJECT_DESCRIPTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="CREATOR" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="CREATE_DATE" Type="DateTime" />
+          <Property Name="STATUS" Type="Int16" />
+          <NavigationProperty Name="REL_APP_PROJ" Relationship="Self.FK_REL_APP__REFERENCE_T_TEST_P" FromRole="T_TEST_PROJECT" ToRole="REL_APP_PROJ" />
+          <NavigationProperty Name="REL_TEST_SUIT_PROJECT" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_P" FromRole="T_TEST_PROJECT" ToRole="REL_TEST_SUIT_PROJECT" />
+          <NavigationProperty Name="T_PROJECT_DATA_SOURCE" Relationship="Self.FK_T_PROJEC_REFERENCE_T_TEST_P" FromRole="T_TEST_PROJECT" ToRole="T_PROJECT_DATA_SOURCE" />
+        </EntityType>
+        <EntityType Name="T_TEST_REPORT">
+          <Key>
+            <PropertyRef Name="TEST_REPORT_ID" />
+          </Key>
+          <Property Name="TEST_REPORT_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_CASE_ID" Type="Int64" />
+          <Property Name="LOOP_ID" Type="Decimal" Precision="38" Scale="0" />
+          <Property Name="BEGIN_TIME" Type="DateTime" />
+          <Property Name="END_TIME" Type="DateTime" />
+          <Property Name="RUNNING_RESULT" Type="Int16" />
+          <Property Name="RETURN_VALUES" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="RUNNING_RESULT_INFO" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_TEST_CASE_SUMMARY" Relationship="Self.FK_T_TEST_R_REFERENCE_T_TEST_C" FromRole="T_TEST_REPORT" ToRole="T_TEST_CASE_SUMMARY" />
+          <NavigationProperty Name="T_TEST_REPORT_STEPS" Relationship="Self.FK_T_TEST_R_REFERENCE_T_TEST_R" FromRole="T_TEST_REPORT" ToRole="T_TEST_REPORT_STEPS" />
+        </EntityType>
+        <EntityType Name="T_TEST_REPORT_STEPS">
+          <Key>
+            <PropertyRef Name="TEST_REPORT_STEP_ID" />
+          </Key>
+          <Property Name="TEST_REPORT_STEP_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_REPORT_ID" Type="Int64" />
+          <Property Name="STEPS_ID" Type="Int64" />
+          <Property Name="BEGIN_TIME" Type="DateTime" />
+          <Property Name="END_TIME" Type="DateTime" />
+          <Property Name="RUNNING_RESULT" Type="Int16" />
+          <Property Name="RETURN_VALUES" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="RUNNING_RESULT_INFO" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_TEST_REPORT" Relationship="Self.FK_T_TEST_R_REFERENCE_T_TEST_R" FromRole="T_TEST_REPORT_STEPS" ToRole="T_TEST_REPORT" />
+          <NavigationProperty Name="T_TEST_STEPS" Relationship="Self.FK_T_TEST_R_REFERENCE_T_TEST_S" FromRole="T_TEST_REPORT_STEPS" ToRole="T_TEST_STEPS" />
+        </EntityType>
+        <EntityType Name="T_TEST_STEPS">
+          <Key>
+            <PropertyRef Name="STEPS_ID" />
+          </Key>
+          <Property Name="STEPS_ID" Type="Int64" Nullable="false" />
+          <Property Name="RUN_ORDER" Type="Decimal" Precision="38" Scale="0" />
+          <Property Name="KEY_WORD_ID" Type="Int64" />
+          <Property Name="TEST_CASE_ID" Type="Int64" />
+          <Property Name="OBJECT_ID" Type="Int64" />
+          <Property Name="COLUMN_ROW_SETTING" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="VALUE_SETTING" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="COMMENT" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="IS_RUNNABLE" Type="Decimal" Precision="38" Scale="0" />
+          <NavigationProperty Name="T_KEYWORD" Relationship="Self.FK_T_TEST_S_REFERENCE_T_KEYWOR" FromRole="T_TEST_STEPS" ToRole="T_KEYWORD" />
+          <NavigationProperty Name="T_REGISTED_OBJECT" Relationship="Self.FK_T_TEST_S_REFERENCE_T_REGIST" FromRole="T_TEST_STEPS" ToRole="T_REGISTED_OBJECT" />
+          <NavigationProperty Name="T_TEST_CASE_SUMMARY" Relationship="Self.FK_T_TEST_S_REFERENCE_T_TEST_C" FromRole="T_TEST_STEPS" ToRole="T_TEST_CASE_SUMMARY" />
+          <NavigationProperty Name="T_TEST_REPORT_STEPS" Relationship="Self.FK_T_TEST_R_REFERENCE_T_TEST_S" FromRole="T_TEST_STEPS" ToRole="T_TEST_REPORT_STEPS" />
+          <NavigationProperty Name="TEST_DATA_SETTING" Relationship="Self.FK_TEST_DAT_REFERENCE_T_TEST_S" FromRole="T_TEST_STEPS" ToRole="TEST_DATA_SETTING" />
+        </EntityType>
+        <EntityType Name="T_TEST_SUITE">
+          <Key>
+            <PropertyRef Name="TEST_SUITE_ID" />
+          </Key>
+          <Property Name="TEST_SUITE_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_SUITE_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_SUITE_DESCRIPTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="REL_TEST_CASE_TEST_SUITE" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_2" FromRole="T_TEST_SUITE" ToRole="REL_TEST_CASE_TEST_SUITE" />
+          <NavigationProperty Name="REL_TEST_SUIT_PROJECT" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_S" FromRole="T_TEST_SUITE" ToRole="REL_TEST_SUIT_PROJECT" />
+        </EntityType>
+        <EntityType Name="TEST_DATA_SETTING">
+          <Key>
+            <PropertyRef Name="DATA_SETTING_ID" />
+          </Key>
+          <Property Name="DATA_SETTING_ID" Type="Int64" Nullable="false" />
+          <Property Name="STEPS_ID" Type="Int64" Nullable="false" />
+          <Property Name="LOOP_ID" Type="Decimal" Precision="38" Scale="0" />
+          <Property Name="DATA_VALUE" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="VALUE_OR_OBJECT" Type="Int16" />
+          <Property Name="DESCRIPTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_TEST_STEPS" Relationship="Self.FK_TEST_DAT_REFERENCE_T_TEST_S" FromRole="TEST_DATA_SETTING" ToRole="T_TEST_STEPS" />
+        </EntityType>
+        <Association Name="FK_REL_APP__REFERENCE_T_TEST_P">
+          <End Role="T_TEST_PROJECT" Type="Self.T_TEST_PROJECT" Multiplicity="0..1" />
+          <End Role="REL_APP_PROJ" Type="Self.REL_APP_PROJ" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Principal>
+            <Dependent Role="REL_APP_PROJ">
+              <PropertyRef Name="PROJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TEST_REFERENCE_T_TEST_2">
+          <End Role="T_TEST_SUITE" Type="Self.T_TEST_SUITE" Multiplicity="0..1" />
+          <End Role="REL_TEST_CASE_TEST_SUITE" Type="Self.REL_TEST_CASE_TEST_SUITE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_SUITE">
+              <PropertyRef Name="TEST_SUITE_ID" />
+            </Principal>
+            <Dependent Role="REL_TEST_CASE_TEST_SUITE">
+              <PropertyRef Name="TEST_SUITE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TEST_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="REL_TEST_CASE_TEST_SUITE" Type="Self.REL_TEST_CASE_TEST_SUITE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="REL_TEST_CASE_TEST_SUITE">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TEST_REFERENCE_T_TEST_P">
+          <End Role="T_TEST_PROJECT" Type="Self.T_TEST_PROJECT" Multiplicity="0..1" />
+          <End Role="REL_TEST_SUIT_PROJECT" Type="Self.REL_TEST_SUIT_PROJECT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Principal>
+            <Dependent Role="REL_TEST_SUIT_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TEST_REFERENCE_T_TEST_S">
+          <End Role="T_TEST_SUITE" Type="Self.T_TEST_SUITE" Multiplicity="0..1" />
+          <End Role="REL_TEST_SUIT_PROJECT" Type="Self.REL_TEST_SUIT_PROJECT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_SUITE">
+              <PropertyRef Name="TEST_SUITE_ID" />
+            </Principal>
+            <Dependent Role="REL_TEST_SUIT_PROJECT">
+              <PropertyRef Name="TEST_SUITE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_PROJEC_REFERENCE_T_DATA_S">
+          <End Role="T_DATA_SOURCE" Type="Self.T_DATA_SOURCE" Multiplicity="0..1" />
+          <End Role="T_PROJECT_DATA_SOURCE" Type="Self.T_PROJECT_DATA_SOURCE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_DATA_SOURCE">
+              <PropertyRef Name="DATA_SOURCE_ID" />
+            </Principal>
+            <Dependent Role="T_PROJECT_DATA_SOURCE">
+              <PropertyRef Name="DATA_SOURCE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_DIC_RE_REFERENCE_T_GUI_CO">
+          <End Role="T_GUI_COMPONENT_TYPE_DIC" Type="Self.T_GUI_COMPONENT_TYPE_DIC" Multiplicity="0..1" />
+          <End Role="T_DIC_RELATION_KEYWORD" Type="Self.T_DIC_RELATION_KEYWORD" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_GUI_COMPONENT_TYPE_DIC">
+              <PropertyRef Name="TYPE_ID" />
+            </Principal>
+            <Dependent Role="T_DIC_RELATION_KEYWORD">
+              <PropertyRef Name="TYPE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_DIC_RE_REFERENCE_T_KEYWOR">
+          <End Role="T_KEYWORD" Type="Self.T_KEYWORD" Multiplicity="0..1" />
+          <End Role="T_DIC_RELATION_KEYWORD" Type="Self.T_DIC_RELATION_KEYWORD" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_KEYWORD">
+              <PropertyRef Name="KEY_WORD_ID" />
+            </Principal>
+            <Dependent Role="T_DIC_RELATION_KEYWORD">
+              <PropertyRef Name="KEY_WORD_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_REGIST_REFERENCE_T_GUI_CO">
+          <End Role="T_GUI_COMPONENT_TYPE_DIC" Type="Self.T_GUI_COMPONENT_TYPE_DIC" Multiplicity="0..1" />
+          <End Role="T_REGISTED_OBJECT" Type="Self.T_REGISTED_OBJECT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_GUI_COMPONENT_TYPE_DIC">
+              <PropertyRef Name="TYPE_ID" />
+            </Principal>
+            <Dependent Role="T_REGISTED_OBJECT">
+              <PropertyRef Name="TYPE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_S_REFERENCE_T_KEYWOR">
+          <End Role="T_KEYWORD" Type="Self.T_KEYWORD" Multiplicity="0..1" />
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_KEYWORD">
+              <PropertyRef Name="KEY_WORD_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_STEPS">
+              <PropertyRef Name="KEY_WORD_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_PROJEC_REFERENCE_T_TEST_P">
+          <End Role="T_TEST_PROJECT" Type="Self.T_TEST_PROJECT" Multiplicity="0..1" />
+          <End Role="T_PROJECT_DATA_SOURCE" Type="Self.T_PROJECT_DATA_SOURCE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Principal>
+            <Dependent Role="T_PROJECT_DATA_SOURCE">
+              <PropertyRef Name="PROJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_S_REFERENCE_T_REGIST">
+          <End Role="T_REGISTED_OBJECT" Type="Self.T_REGISTED_OBJECT" Multiplicity="0..1" />
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_REGISTED_OBJECT">
+              <PropertyRef Name="OBJECT_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_STEPS">
+              <PropertyRef Name="OBJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_R_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_TEST_REPORT" Type="Self.T_TEST_REPORT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_REPORT">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_S_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_STEPS">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_R_REFERENCE_T_TEST_R">
+          <End Role="T_TEST_REPORT" Type="Self.T_TEST_REPORT" Multiplicity="0..1" />
+          <End Role="T_TEST_REPORT_STEPS" Type="Self.T_TEST_REPORT_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_REPORT">
+              <PropertyRef Name="TEST_REPORT_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_REPORT_STEPS">
+              <PropertyRef Name="TEST_REPORT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_R_REFERENCE_T_TEST_S">
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="0..1" />
+          <End Role="T_TEST_REPORT_STEPS" Type="Self.T_TEST_REPORT_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_STEPS">
+              <PropertyRef Name="STEPS_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_REPORT_STEPS">
+              <PropertyRef Name="STEPS_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TEST_DAT_REFERENCE_T_TEST_S">
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="1" />
+          <End Role="TEST_DATA_SETTING" Type="Self.TEST_DATA_SETTING" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_STEPS">
+              <PropertyRef Name="STEPS_ID" />
+            </Principal>
+            <Dependent Role="TEST_DATA_SETTING">
+              <PropertyRef Name="STEPS_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="MarsEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="REL_APP_PROJ" EntityType="Self.REL_APP_PROJ" />
+          <EntitySet Name="REL_APP_TESTCASE" EntityType="Self.REL_APP_TESTCASE" />
+          <EntitySet Name="REL_APP_TESTSUITE" EntityType="Self.REL_APP_TESTSUITE" />
+          <EntitySet Name="REL_TEST_CASE_TEST_SUITE" EntityType="Self.REL_TEST_CASE_TEST_SUITE" />
+          <EntitySet Name="REL_TEST_SUIT_PROJECT" EntityType="Self.REL_TEST_SUIT_PROJECT" />
+          <EntitySet Name="SYSTEM_LOOKUP" EntityType="Self.SYSTEM_LOOKUP" />
+          <EntitySet Name="T_DATA_SOURCE" EntityType="Self.T_DATA_SOURCE" />
+          <EntitySet Name="T_DIC_RELATION_KEYWORD" EntityType="Self.T_DIC_RELATION_KEYWORD" />
+          <EntitySet Name="T_GUI_COMPONENT_TYPE_DIC" EntityType="Self.T_GUI_COMPONENT_TYPE_DIC" />
+          <EntitySet Name="T_KEYWORD" EntityType="Self.T_KEYWORD" />
+          <EntitySet Name="T_PROJECT_DATA_SOURCE" EntityType="Self.T_PROJECT_DATA_SOURCE" />
+          <EntitySet Name="T_REGISTED_OBJECT" EntityType="Self.T_REGISTED_OBJECT" />
+          <EntitySet Name="T_REGISTERED_APPS" EntityType="Self.T_REGISTERED_APPS" />
+          <EntitySet Name="T_TEST_CASE_SUMMARY" EntityType="Self.T_TEST_CASE_SUMMARY" />
+          <EntitySet Name="T_TEST_ENUM" EntityType="Self.T_TEST_ENUM" />
+          <EntitySet Name="T_TEST_PROJECT" EntityType="Self.T_TEST_PROJECT" />
+          <EntitySet Name="T_TEST_REPORT" EntityType="Self.T_TEST_REPORT" />
+          <EntitySet Name="T_TEST_REPORT_STEPS" EntityType="Self.T_TEST_REPORT_STEPS" />
+          <EntitySet Name="T_TEST_STEPS" EntityType="Self.T_TEST_STEPS" />
+          <EntitySet Name="T_TEST_SUITE" EntityType="Self.T_TEST_SUITE" />
+          <EntitySet Name="TEST_DATA_SETTING" EntityType="Self.TEST_DATA_SETTING" />
+          <AssociationSet Name="FK_REL_APP__REFERENCE_T_TEST_P" Association="Self.FK_REL_APP__REFERENCE_T_TEST_P">
+            <End Role="T_TEST_PROJECT" EntitySet="T_TEST_PROJECT" />
+            <End Role="REL_APP_PROJ" EntitySet="REL_APP_PROJ" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TEST_REFERENCE_T_TEST_2" Association="Self.FK_REL_TEST_REFERENCE_T_TEST_2">
+            <End Role="T_TEST_SUITE" EntitySet="T_TEST_SUITE" />
+            <End Role="REL_TEST_CASE_TEST_SUITE" EntitySet="REL_TEST_CASE_TEST_SUITE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TEST_REFERENCE_T_TEST_C" Association="Self.FK_REL_TEST_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="REL_TEST_CASE_TEST_SUITE" EntitySet="REL_TEST_CASE_TEST_SUITE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TEST_REFERENCE_T_TEST_P" Association="Self.FK_REL_TEST_REFERENCE_T_TEST_P">
+            <End Role="T_TEST_PROJECT" EntitySet="T_TEST_PROJECT" />
+            <End Role="REL_TEST_SUIT_PROJECT" EntitySet="REL_TEST_SUIT_PROJECT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TEST_REFERENCE_T_TEST_S" Association="Self.FK_REL_TEST_REFERENCE_T_TEST_S">
+            <End Role="T_TEST_SUITE" EntitySet="T_TEST_SUITE" />
+            <End Role="REL_TEST_SUIT_PROJECT" EntitySet="REL_TEST_SUIT_PROJECT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_PROJEC_REFERENCE_T_DATA_S" Association="Self.FK_T_PROJEC_REFERENCE_T_DATA_S">
+            <End Role="T_DATA_SOURCE" EntitySet="T_DATA_SOURCE" />
+            <End Role="T_PROJECT_DATA_SOURCE" EntitySet="T_PROJECT_DATA_SOURCE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_DIC_RE_REFERENCE_T_GUI_CO" Association="Self.FK_T_DIC_RE_REFERENCE_T_GUI_CO">
+            <End Role="T_GUI_COMPONENT_TYPE_DIC" EntitySet="T_GUI_COMPONENT_TYPE_DIC" />
+            <End Role="T_DIC_RELATION_KEYWORD" EntitySet="T_DIC_RELATION_KEYWORD" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_DIC_RE_REFERENCE_T_KEYWOR" Association="Self.FK_T_DIC_RE_REFERENCE_T_KEYWOR">
+            <End Role="T_KEYWORD" EntitySet="T_KEYWORD" />
+            <End Role="T_DIC_RELATION_KEYWORD" EntitySet="T_DIC_RELATION_KEYWORD" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_REGIST_REFERENCE_T_GUI_CO" Association="Self.FK_T_REGIST_REFERENCE_T_GUI_CO">
+            <End Role="T_GUI_COMPONENT_TYPE_DIC" EntitySet="T_GUI_COMPONENT_TYPE_DIC" />
+            <End Role="T_REGISTED_OBJECT" EntitySet="T_REGISTED_OBJECT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_S_REFERENCE_T_KEYWOR" Association="Self.FK_T_TEST_S_REFERENCE_T_KEYWOR">
+            <End Role="T_KEYWORD" EntitySet="T_KEYWORD" />
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_PROJEC_REFERENCE_T_TEST_P" Association="Self.FK_T_PROJEC_REFERENCE_T_TEST_P">
+            <End Role="T_TEST_PROJECT" EntitySet="T_TEST_PROJECT" />
+            <End Role="T_PROJECT_DATA_SOURCE" EntitySet="T_PROJECT_DATA_SOURCE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_S_REFERENCE_T_REGIST" Association="Self.FK_T_TEST_S_REFERENCE_T_REGIST">
+            <End Role="T_REGISTED_OBJECT" EntitySet="T_REGISTED_OBJECT" />
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_R_REFERENCE_T_TEST_C" Association="Self.FK_T_TEST_R_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="T_TEST_REPORT" EntitySet="T_TEST_REPORT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_S_REFERENCE_T_TEST_C" Association="Self.FK_T_TEST_S_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_R_REFERENCE_T_TEST_R" Association="Self.FK_T_TEST_R_REFERENCE_T_TEST_R">
+            <End Role="T_TEST_REPORT" EntitySet="T_TEST_REPORT" />
+            <End Role="T_TEST_REPORT_STEPS" EntitySet="T_TEST_REPORT_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_R_REFERENCE_T_TEST_S" Association="Self.FK_T_TEST_R_REFERENCE_T_TEST_S">
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+            <End Role="T_TEST_REPORT_STEPS" EntitySet="T_TEST_REPORT_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TEST_DAT_REFERENCE_T_TEST_S" Association="Self.FK_TEST_DAT_REFERENCE_T_TEST_S">
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+            <End Role="TEST_DATA_SETTING" EntitySet="TEST_DATA_SETTING" />
+          </AssociationSet>
+          <FunctionImport Name="GETNEXT_VAL">
+            <Parameter Name="P_SEQUENCE_NAME" Mode="In" Type="String" />
+            <Parameter Name="V_NEXTVAL" Mode="Out" Type="Decimal" />
+          </FunctionImport>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="MarsModelStoreContainer" CdmEntityContainer="MarsEntities">
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="true" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

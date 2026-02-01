@@ -1,0 +1,829 @@
+﻿<mars:MarsBaseGridViewControl x:Class="Mars.Views.TestCaseEdit"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             xmlns:local ="clr-namespace:Mars.ViewModel"
+             xmlns:l="clr-namespace:Mars.Converter"      
+             xmlns:mars="clr-namespace:Mars.Views.baseView"
+             xmlns:subV="clr-namespace:Mars.Views.subViews"
+             xmlns:Helper="clr-namespace:Mars.Helpers"
+             d:DesignWidth="800" 
+             Loaded="OnControlLoaded"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
+    <UserControl.Resources>
+
+        <!--<ObjectDataProvider x:Key="MarsSkipSettings" ObjectType="{x:Type local:MarsSkipMgr}" MethodName="GetMarsSkipSettins"/>-->
+                          
+        
+        <l:StringConverter x:Key="Convert" />
+        <Style TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="SeparatorBrush" Value="LightGray" />
+            <Setter Property="FontWeight" Value="Black" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Margin" Value="-1,-1,0,0" />
+        </Style>
+        <!--
+        <Style TargetType="{x:Type DataGridCell}">
+            <EventSetter Event="PreviewMouseLeftButtonDown" Handler="DataGridCell_PreviewMouseLeftButtonDown"></EventSetter>
+        </Style>
+        -->
+        <ControlTemplate x:Key="TextBoxErrorTemplate">
+            <DockPanel LastChildFill="True">
+                <TextBlock DockPanel.Dock="Right" 
+        Foreground="Orange"  FontSize="12pt">!</TextBlock>
+
+                <Border BorderBrush="Red" BorderThickness="1">
+                    <AdornedElementPlaceholder />
+                </Border>
+            </DockPanel>
+        </ControlTemplate>
+        <!--CollectionViewSource Source="{Binding Keywords}" x:Key="keyword_source"/ -->
+    </UserControl.Resources>
+    <Grid >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+
+            <ColumnDefinition Width="32" x:Name="contolPanelColumn"/>
+        </Grid.ColumnDefinitions>
+        <DockPanel Grid.Row="0" Grid.Column="0" Height="auto" MinHeight="10" HorizontalAlignment="Left">
+            <Label x:Name="lblHeader" 
+                   FontSize="14" 
+                   Content="{Binding Title}" MinHeight="10"
+                   Margin="2,2,0,2" 
+                   Height="auto" />
+
+            <ComboBox ItemsSource="{Binding Testcase_applications}"
+                      SelectedItem="{Binding CurrentTCApplication}"
+                      DisplayMemberPath="APP_SHORT_NAME"
+                      MaxWidth="300" MinWidth="120"
+                      Margin="5"
+                      ></ComboBox>
+        </DockPanel>
+        <!-- ScrollViewer.ScrollChanged="TcGrid_ScrollChanged"
+        ScrollViewer.CanContentScroll="True" -->
+        <!--DockPanel Grid.Row="1" Grid.Column="0"  LastChildFill="True" x:Name="HostDockPanel" -->
+        <local:TestStepsDataGrid   Grid.Row="1" Grid.Column="0" 
+                RowHeaderWidth="0"  Margin="1"  MaxWidth="2000" MaxHeight="2000" EnableColumnVirtualization ="True" EnableRowVirtualization="True"
+                ItemsSource="{Binding TestCases,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"                                                          
+                                   
+                AutoGenerateColumns="False"
+                SelectionMode="Extended"                
+                SelectedItemsList="{Binding SelectedTestCases,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"                                     
+                CanUserDeleteRows="False" 
+                CanUserAddRows="False"                                        
+                x:Name="keywordGrid" FrozenColumnCount ="4" 
+                
+                ScrollViewer.HorizontalScrollBarVisibility="Visible" 
+                ScrollViewer.VerticalScrollBarVisibility="Visible"  
+                SelectionUnit="FullRow" 
+                CanUserSortColumns="False"                                                              
+                HorizontalGridLinesBrush="LightGray"
+                VerticalGridLinesBrush="LightGray" Background="{x:Null}" KeyUp="keywordGrid_KeyDown" ContextMenuOpening="keywordGrid_ContextMenuOpening" StylusMove="keywordGrid_StylusMove" 
+                >
+            <!--
+                PreviewKeyDown="UserControl_PreviewKeyDown"
+                -->
+
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding AutoGenStatus}" Value="true">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard x:Name="brinkingRow">
+                                    <Storyboard>
+                                        <DoubleAnimation 
+                                        Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.5" 
+                                        AutoReverse="true"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+
+                            </DataTrigger.EnterActions>
+                        </DataTrigger>
+                        
+                    </Style.Triggers>
+                    <Setter Property="Background" Value="{Binding CurrentRowColor}">                        
+                    </Setter>
+
+                </Style>
+            </DataGrid.RowStyle>
+            <local:TestStepsDataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Command= "{Binding ExportToExcelCommand}" 
+                                  CommandParameter="{Binding PlacementTarget.ItemsSource, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  
+                                  Header="Export To Excel" />
+                </ContextMenu>
+            </local:TestStepsDataGrid.ContextMenu>
+            <local:TestStepsDataGrid.Resources>
+                <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="TextWrapping" Value="WrapWithOverflow"/>
+                </Style>
+                <Style TargetType="{x:Type TextBox}">
+                    <Setter Property="TextWrapping" Value="WrapWithOverflow"/>
+                </Style>
+                <DataTemplate x:Key="StringTemplate1">
+                    <DockPanel LastChildFill="True">
+                        <!--
+                            <Button Content="..." ToolTip="Repulicate data to assigned other Datasets" Width="20" DockPanel.Dock="Right" Margin="5,0,0,0" 
+                                    Command="{Binding Path=DataContext.RowDataCopy,RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type DataGrid}}}" 
+                                    CommandParameter="{Binding Path=DataContext.SelectedTestCases,RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type DataGrid}}}"
+                                    ></Button>
+                            -->
+                        <TextBlock Text="{Binding DataSet1,StringFormat='MM/dd/yyy'}" 
+                                       LostFocus="TextBox_LostFocus"   
+                                       TextWrapping="WrapWithOverflow" 
+                                       DockPanel.Dock="Left"
+                                       Background="{Binding currentDataCellColor}"
+                                       />
+
+                    </DockPanel>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate1">
+                    <DockPanel LastChildFill="True">
+                        <TextBox Text="{Binding DataSet1,StringFormat='MM/dd/yyy',Mode=TwoWay}" LostFocus="TextBox_LostFocus" DockPanel.Dock="Left" />
+                        <!--
+                            <Button Content="..." ToolTip="Repulicate data to assigned other Datasets" Width="20" DockPanel.Dock="Right" Margin="5,0,0,0" 
+                                    Command="{Binding Path=DataContext.RowDataCopy,RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type DataGrid}}}" 
+                                    CommandParameter="{Binding Path=DataContext.SelectedTestCases,RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type DataGrid}}}"
+                                    ></Button>
+                            -->
+                    </DockPanel>
+                </DataTemplate>
+
+                <DataTemplate x:Key="PasswordCellTemplate"  >
+
+                    <DockPanel LastChildFill="True">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition></ColumnDefinition>
+                                <ColumnDefinition Width="30"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Name="HostButton" Grid.Column="1" MaxWidth="32" >
+                                <Image Stretch="UniformToFill" Source="/Mars;component/Images/eyepreview3232.png" Name="ViewImage" />
+                                <Button.ToolTip>
+                                    <ToolTip Width="200" Height="40">
+                                        <Grid>
+                                            <Label Content="{Binding DataSet1}"></Label>
+                                        </Grid>
+                                    </ToolTip>
+                                </Button.ToolTip>
+                            </Button>
+                            <!-- < TextBox Visibility="Hidden" HorizontalAlignment="Stretch" TextChanged="TextBox_TextChanged" Name="PasswordTextBox"></TextBox> -->
+
+                            <PasswordBox Grid.Column="0" HorizontalAlignment="Stretch" PasswordChar="*" DataContext="{Binding}"
+                                         subV:PasswordBoxAssistant.BindPassword="true"  subV:PasswordBoxAssistant.BoundPassword="{Binding Path=DataSet1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Name="EncodePasswordEdit">
+
+                            </PasswordBox>
+                        </Grid>
+                    </DockPanel>
+                </DataTemplate>
+                <DataTemplate x:Key="EdittingPasswordCellTemplate">
+                    <DockPanel LastChildFill="True">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition></ColumnDefinition>
+                                <ColumnDefinition Width="30"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Name="HostButton" Grid.Column="1" MaxWidth="32" >
+                                <Image Stretch="UniformToFill" Source="/Mars;component/Images/eyepreview3232.png" Name="ViewImage" />
+                                <Button.ToolTip>
+                                    <ToolTip Width="200" Height="40">
+                                        <Grid>
+                                            <Label Content="{Binding DataSet1}"></Label>
+
+                                        </Grid>
+                                    </ToolTip>
+                                </Button.ToolTip>
+                            </Button>
+                            <!-- < TextBox Visibility="Hidden" HorizontalAlignment="Stretch" TextChanged="TextBox_TextChanged" Name="PasswordTextBox"></TextBox> -->
+
+                            <PasswordBox Grid.Column="0" HorizontalAlignment="Stretch" PasswordChar="*" DataContext="{Binding}"
+                                         subV:PasswordBoxAssistant.BindPassword="true"  subV:PasswordBoxAssistant.BoundPassword="{Binding Path=DataSet1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Name="EncodePasswordEdit">
+
+                            </PasswordBox>
+                        </Grid>
+                    </DockPanel>
+                </DataTemplate>
+
+                <DataTemplate x:Key="EditingDateTemplate1"  >
+                    <DatePicker SelectedDate="{Binding DataSet1,FallbackValue='',StringFormat='MM/dd/yyyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate1">
+                    <ComboBox SelectedItem="{Binding DataSet1}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate2">
+                    <TextBlock Text="{Binding DataSet2,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate2">
+                    <TextBox Text="{Binding DataSet2,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate2">
+                    <DatePicker SelectedDate="{Binding DataSet2,FallbackValue='',StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate2">
+                    <ComboBox SelectedItem="{Binding DataSet2, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate3">
+                    <TextBlock Text="{Binding DataSet3,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate3">
+                    <TextBox Text="{Binding DataSet3,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate3">
+                    <DatePicker SelectedDate="{Binding DataSet3,FallbackValue='',StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate3">
+                    <ComboBox SelectedItem="{Binding DataSet3, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate4">
+                    <TextBlock Text="{Binding DataSet4,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate4">
+                    <TextBox Text="{Binding DataSet4,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate4">
+                    <DatePicker SelectedDate="{Binding DataSet4,FallbackValue='',StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate4">
+                    <ComboBox SelectedItem="{Binding DataSet4, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate5">
+                    <TextBlock Text="{Binding DataSet5,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate5">
+                    <TextBox Text="{Binding DataSet5,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate5">
+                    <DatePicker SelectedDate="{Binding DataSet5,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate5">
+                    <ComboBox SelectedItem="{Binding DataSet5, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate6">
+                    <TextBlock Text="{Binding DataSet6,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate6">
+                    <TextBox Text="{Binding DataSet6,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate6">
+                    <DatePicker SelectedDate="{Binding DataSet6,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate6">
+                    <ComboBox SelectedItem="{Binding DataSet6, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate7">
+                    <TextBlock Text="{Binding DataSet7,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate7">
+                    <TextBox Text="{Binding DataSet7,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate7">
+                    <DatePicker SelectedDate="{Binding DataSet7,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate7">
+                    <ComboBox SelectedItem="{Binding DataSet7, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate8">
+                    <TextBlock Text="{Binding DataSet8,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate8">
+                    <TextBox Text="{Binding DataSet8,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate8">
+                    <DatePicker SelectedDate="{Binding DataSet8,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate8">
+                    <ComboBox SelectedItem="{Binding DataSet8, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate9">
+                    <TextBlock Text="{Binding DataSet9,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate9">
+                    <TextBox Text="{Binding DataSet9,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate9">
+                    <DatePicker SelectedDate="{Binding DataSet9,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate9">
+                    <ComboBox SelectedItem="{Binding DataSet9, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate10">
+                    <TextBlock Text="{Binding DataSet10,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate10">
+                    <TextBox Text="{Binding DataSet10,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate10">
+                    <DatePicker SelectedDate="{Binding DataSet10,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate10">
+                    <ComboBox SelectedItem="{Binding DataSet10, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate11">
+                    <TextBlock Text="{Binding DataSet11,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate11">
+                    <TextBox Text="{Binding DataSet11,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate11">
+                    <DatePicker SelectedDate="{Binding DataSet11,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate11">
+                    <ComboBox SelectedItem="{Binding DataSet11, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate12">
+                    <TextBlock Text="{Binding DataSet12,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate12">
+                    <TextBox Text="{Binding DataSet12,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate12">
+                    <DatePicker SelectedDate="{Binding DataSet12,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate12">
+                    <ComboBox SelectedItem="{Binding DataSet12, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate13">
+                    <TextBlock Text="{Binding DataSet13,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate13">
+                    <TextBox Text="{Binding DataSet13,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate13">
+                    <DatePicker SelectedDate="{Binding DataSet13,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate13">
+                    <ComboBox SelectedItem="{Binding DataSet13, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate14">
+                    <TextBlock Text="{Binding DataSet14,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate14">
+                    <TextBox Text="{Binding DataSet14,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate14">
+                    <DatePicker SelectedDate="{Binding DataSet14,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate14">
+                    <ComboBox SelectedItem="{Binding DataSet14, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate15">
+                    <TextBlock Text="{Binding DataSet15,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate15">
+                    <TextBox Text="{Binding DataSet15,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate15">
+                    <DatePicker SelectedDate="{Binding DataSet15,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate15">
+                    <ComboBox SelectedItem="{Binding DataSet15, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate16">
+                    <TextBlock Text="{Binding DataSet16,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate16">
+                    <TextBox Text="{Binding DataSet16,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate16">
+                    <DatePicker SelectedDate="{Binding DataSet16,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate16">
+                    <ComboBox SelectedItem="{Binding DataSet16, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate17">
+                    <TextBlock Text="{Binding DataSet17,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate17">
+                    <TextBox Text="{Binding DataSet17,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate17">
+                    <DatePicker SelectedDate="{Binding DataSet17,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate17">
+                    <ComboBox SelectedItem="{Binding DataSet17, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate18">
+                    <TextBlock Text="{Binding DataSet18,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate18">
+                    <TextBox Text="{Binding DataSet18,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate18">
+                    <DatePicker SelectedDate="{Binding DataSet18,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate18">
+                    <ComboBox SelectedItem="{Binding DataSet18, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate19">
+                    <TextBlock Text="{Binding DataSet19,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate19">
+                    <TextBox Text="{Binding DataSet19,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate19">
+                    <DatePicker SelectedDate="{Binding DataSet19,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate19">
+                    <ComboBox SelectedItem="{Binding DataSet19, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <DataTemplate x:Key="StringTemplate20">
+                    <TextBlock Text="{Binding DataSet20,StringFormat='MM/dd/yyy'}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="EditingStringTemplate20">
+                    <TextBox Text="{Binding DataSet20,StringFormat='MM/dd/yyy'}" />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingDateTemplate20">
+                    <DatePicker SelectedDate="{Binding DataSet20,StringFormat='MM/dd/yyy'}"  />
+                </DataTemplate>
+                <DataTemplate x:Key="EditingComboBoxTemplate20">
+                    <ComboBox SelectedItem="{Binding DataSet20, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" ItemsSource="{Binding EnumTypeDataSource}"/>
+                </DataTemplate>
+
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector1" StringTemplate="{StaticResource StringTemplate1}" FillPasswordTemplate="{StaticResource PasswordCellTemplate}"  />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector2" StringTemplate="{StaticResource StringTemplate2}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector3" StringTemplate="{StaticResource StringTemplate3}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector4" StringTemplate="{StaticResource StringTemplate4}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector5" StringTemplate="{StaticResource StringTemplate5}"/>
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector6" StringTemplate="{StaticResource StringTemplate6}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector7" StringTemplate="{StaticResource StringTemplate7}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector8" StringTemplate="{StaticResource StringTemplate8}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector9" StringTemplate="{StaticResource StringTemplate9}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector10" StringTemplate="{StaticResource StringTemplate10}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector11" StringTemplate="{StaticResource StringTemplate11}"/>
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector12" StringTemplate="{StaticResource StringTemplate12}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector13" StringTemplate="{StaticResource StringTemplate13}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector14" StringTemplate="{StaticResource StringTemplate14}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector15" StringTemplate="{StaticResource StringTemplate15}"/>
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector16" StringTemplate="{StaticResource StringTemplate16}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector17" StringTemplate="{StaticResource StringTemplate17}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector18" StringTemplate="{StaticResource StringTemplate18}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector19" StringTemplate="{StaticResource StringTemplate19}" />
+                <Helper:DataGridCellTemplateSelector x:Key="TemplateSelector20" StringTemplate="{StaticResource StringTemplate20}" />
+
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector1" EditingDateTemplate1="{StaticResource EditingDateTemplate1}" EditingStringTemplate1="{StaticResource EditingStringTemplate1}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate1}" FillPasswordTemplate="{StaticResource EdittingPasswordCellTemplate}" />
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector2" EditingDateTemplate1="{StaticResource EditingDateTemplate2}" EditingStringTemplate1="{StaticResource EditingStringTemplate2}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate2}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector3" EditingDateTemplate1="{StaticResource EditingDateTemplate3}" EditingStringTemplate1="{StaticResource EditingStringTemplate3}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate3}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector4" EditingDateTemplate1="{StaticResource EditingDateTemplate4}" EditingStringTemplate1="{StaticResource EditingStringTemplate4}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate4}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector5" EditingDateTemplate1="{StaticResource EditingDateTemplate5}" EditingStringTemplate1="{StaticResource EditingStringTemplate5}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate5}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector6" EditingDateTemplate1="{StaticResource EditingDateTemplate6}" EditingStringTemplate1="{StaticResource EditingStringTemplate6}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate6}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector7" EditingDateTemplate1="{StaticResource EditingDateTemplate7}" EditingStringTemplate1="{StaticResource EditingStringTemplate7}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate7}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector8" EditingDateTemplate1="{StaticResource EditingDateTemplate8}" EditingStringTemplate1="{StaticResource EditingStringTemplate8}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate8}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector9" EditingDateTemplate1="{StaticResource EditingDateTemplate9}" EditingStringTemplate1="{StaticResource EditingStringTemplate9}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate9}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector10" EditingDateTemplate1="{StaticResource EditingDateTemplate10}" EditingStringTemplate1="{StaticResource EditingStringTemplate10}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate10}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector11" EditingDateTemplate1="{StaticResource EditingDateTemplate11}" EditingStringTemplate1="{StaticResource EditingStringTemplate11}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate11}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector12" EditingDateTemplate1="{StaticResource EditingDateTemplate12}" EditingStringTemplate1="{StaticResource EditingStringTemplate12}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate12}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector13" EditingDateTemplate1="{StaticResource EditingDateTemplate13}" EditingStringTemplate1="{StaticResource EditingStringTemplate13}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate13}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector14" EditingDateTemplate1="{StaticResource EditingDateTemplate14}" EditingStringTemplate1="{StaticResource EditingStringTemplate14}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate14}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector15" EditingDateTemplate1="{StaticResource EditingDateTemplate15}" EditingStringTemplate1="{StaticResource EditingStringTemplate15}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate15}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector16" EditingDateTemplate1="{StaticResource EditingDateTemplate16}" EditingStringTemplate1="{StaticResource EditingStringTemplate16}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate16}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector17" EditingDateTemplate1="{StaticResource EditingDateTemplate17}" EditingStringTemplate1="{StaticResource EditingStringTemplate17}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate17}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector18" EditingDateTemplate1="{StaticResource EditingDateTemplate18}" EditingStringTemplate1="{StaticResource EditingStringTemplate18}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate18}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector19" EditingDateTemplate1="{StaticResource EditingDateTemplate19}" EditingStringTemplate1="{StaticResource EditingStringTemplate19}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate19}"/>
+                <Helper:DataGridCellEditTemplateSelector x:Key="EditTemplateSelector20" EditingDateTemplate1="{StaticResource EditingDateTemplate20}" EditingStringTemplate1="{StaticResource EditingStringTemplate20}" EditingComboBoxTemplate1 ="{StaticResource EditingComboBoxTemplate20}"/>
+
+
+            </local:TestStepsDataGrid.Resources>
+            <local:TestStepsDataGrid.CommandBindings>
+                <CommandBinding Command="ApplicationCommands.Copy" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed"></CommandBinding>
+            </local:TestStepsDataGrid.CommandBindings>
+            <local:TestStepsDataGrid.Columns>
+                <DataGridTextColumn Header="No." 
+                                        Binding="{Binding RunOrder, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" 
+                                        IsReadOnly="True" Width="30" MaxWidth="120">
+
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="ToolTip" Value="{Binding ToolTipString}" />
+
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
+
+                <DataGridTemplateColumn Header="Func" Width="38">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="1">
+                                <Button Width="18" Command="{Binding Path=DataContext.TrialActionStepsButtonClick,RelativeSource={RelativeSource AncestorType={x:Type local:TestStepsDataGrid}}}" CommandParameter="{Binding RunOrder}">
+                                    <!--<Button.CommandParameter>
+                                            <MultiBinding >
+                                                <Binding ElementName="PwdEdt"></Binding>
+                                                <Binding ElementName="PwdEdt_rept"></Binding>
+                                            </MultiBinding>
+                                        </Button.CommandParameter>-->
+                                    <Image Height="14" Source="/Mars;component/Images/crib-26.png" Stretch="Fill" Width="14" ></Image>
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Keyword" MinWidth="100" Width="160" MaxWidth="320">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <ComboBox x:Name="cbKeyword"                                           
+                                              SelectedItem="{Binding SelectedKeyword, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" 
+                                              Text="{Binding SelectedKeyword.KeywordName}"
+                                              TextSearch.TextPath="KeywordName"
+                                              IsTextSearchCaseSensitive="False"
+                                            ItemsSource="{Binding Keywords}" 
+                                              IsEditable="true"      
+										      IsTextSearchEnabled="True"                                               
+                                              DisplayMemberPath="KeywordName" TabIndex="1"                                           
+                                              SelectionChanged="cbKeyword_SelectionChanged" GotFocus="cbKeyword_GotFocus"    
+                                          
+                                              >
+
+                                </ComboBox>
+                            </Grid>
+                        </DataTemplate>
+
+                    </DataGridTemplateColumn.CellTemplate>
+
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Object" MinWidth="100" Width="160" MaxWidth="320">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Path=SelectedObjectName.ObjName, Mode=OneWay}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate>
+                            <ComboBox x:Name="cbObjectName" 
+                                          SelectedItem="{Binding SelectedObjectName,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" 
+                                          Text="{Binding SelectedObjectName.ObjName}"
+                                          TextSearch.TextPath="ObjName"
+                                          IsTextSearchCaseSensitive="False"
+                                          ItemsSource="{Binding Objects}" 
+                                          IsEditable="true"
+                                          IsTextSearchEnabled="True"
+                                          DisplayMemberPath="ObjName"  TabIndex="2" 
+                                          SelectionChanged="cbObjectName_SelectionChanged" 
+                                          >
+                                <!--
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Label Content="{Binding ObjName}"></Label>
+                                                
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                -->
+                            </ComboBox>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn  Header="Parameters" Binding="{Binding RowColumn, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" MinWidth="100" Width="160" MaxWidth="320">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style>
+                            <Setter Property="TextBlock.TextWrapping" Value="WrapWithOverflow"></Setter>
+                            <Setter Property="TextBlock.TextAlignment" Value="Left"></Setter>
+                            <!--<Setter Property="TextBlock.Background" Value="LightBlue"></Setter>-->
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Comment" Binding="{Binding Comment, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" MinWidth="40" Width="80" MaxWidth="320">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style>
+                            <Setter Property="TextBlock.TextWrapping" Value="WrapWithOverflow"></Setter>
+                            <Setter Property="TextBlock.TextAlignment" Value="Left"></Setter>
+
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <!--<DataGridComboBoxColumn Header="Skip Setting" MinWidth="40"                                          
+                                        DisplayMemberPath="MValue"
+                                        >                    
+                    <DataGridComboBoxColumn.ElementStyle>                       
+                        <Style>
+                            <Setter Property="ComboBox.ItemsSource" Value="{Binding Path=TestStepSkipSettings}" />
+                            <Setter Property="ComboBox.SelectedItem" Value="{Binding Path=MarsSkipSetting}" />                            
+                        </Style>
+                    </DataGridComboBoxColumn.ElementStyle>
+                    <DataGridComboBoxColumn.EditingElementStyle>
+                        <Style>
+                            <Setter Property="ComboBox.ItemsSource" Value="{Binding Path=TestStepSkipSettings}" />
+                            <Setter Property="ComboBox.SelectedItem" Value="{Binding Path=MarsSkipSetting}" />
+                            --><!--<Setter Property="ComboBox.ItemTemplate" Value="{Binding Source={StaticResource SkipItems}}"></Setter>--><!--
+                        </Style>
+                    </DataGridComboBoxColumn.EditingElementStyle>
+                </DataGridComboBoxColumn>-->
+                
+                <DataGridTemplateColumn Header="Skip" MinWidth="40">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                           
+                            <CheckBox  IsChecked="{Binding IsSkipForDataset,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" ></CheckBox>
+                        </DataTemplate>
+
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn  Header="Data"  
+                                         CellTemplateSelector="{StaticResource TemplateSelector1}" 
+                                         CellEditingTemplateSelector="{StaticResource EditTemplateSelector1}" MinWidth="100" Width="160" MaxWidth="320"                                           
+                                         >
+
+
+                </DataGridTemplateColumn>
+
+                <!--
+                    
+                    <DataGridTemplateColumn Header="Data Set 2"  CellTemplateSelector="{StaticResource TemplateSelector2}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector2}" Visibility="Hidden"/>
+                    <DataGridTemplateColumn  Header="Data Set 3"  CellTemplateSelector="{StaticResource TemplateSelector3}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector3}" Visibility="Hidden">
+
+                        <DataGridTemplateColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Background" Value="Beige"/>
+                            </Style>
+                        </DataGridTemplateColumn.CellStyle>
+
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Data Set 4"  CellTemplateSelector="{StaticResource TemplateSelector4}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector4}" Visibility="Hidden"/>
+                    <DataGridTemplateColumn  Header="Data Set 5"  CellTemplateSelector="{StaticResource TemplateSelector5}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector5}" Visibility="Hidden">
+                        <DataGridTemplateColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Background" Value="Beige"/>
+                            </Style>
+                        </DataGridTemplateColumn.CellStyle>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Data Set 6"  CellTemplateSelector="{StaticResource TemplateSelector6}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector6}" Visibility="Hidden"/>
+                    <DataGridTemplateColumn  Header="Data Set 7"  CellTemplateSelector="{StaticResource TemplateSelector7}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector7}" Visibility="Hidden">
+                        <DataGridTemplateColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Background" Value="Beige"/>
+                            </Style>
+                        </DataGridTemplateColumn.CellStyle>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Data Set 8"  CellTemplateSelector="{StaticResource TemplateSelector8}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector8}" Visibility="Hidden"/>
+                    <DataGridTemplateColumn  Header="Data Set 9"  CellTemplateSelector="{StaticResource TemplateSelector9}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector9}" Visibility="Hidden">
+                        <DataGridTemplateColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Background" Value="Beige"/>
+                            </Style>
+                        </DataGridTemplateColumn.CellStyle>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Data Set 10"  CellTemplateSelector="{StaticResource TemplateSelector10}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector10}" Visibility="Hidden"/>
+                    <DataGridTemplateColumn  Header="Data Set 11"  CellTemplateSelector="{StaticResource TemplateSelector11}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector11}" Visibility="Hidden">
+                        <DataGridTemplateColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Background" Value="Beige"/>
+                            </Style>
+                        </DataGridTemplateColumn.CellStyle>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Data Set 12"  CellTemplateSelector="{StaticResource TemplateSelector12}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector12}" Visibility="Hidden"/>
+                    <DataGridTemplateColumn  Header="Data Set 13"  CellTemplateSelector="{StaticResource TemplateSelector13}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector13}" Visibility="Hidden">
+                        <DataGridTemplateColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Background" Value="Beige"/>
+                            </Style>
+                        </DataGridTemplateColumn.CellStyle>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Data Set 14"  CellTemplateSelector="{StaticResource TemplateSelector14}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector14}" Visibility="Hidden"/>
+                    <DataGridTemplateColumn  Header="Data Set 15"  CellTemplateSelector="{StaticResource TemplateSelector15}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector15}" Visibility="Hidden">
+                        <DataGridTemplateColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Background" Value="Beige"/>
+                            </Style>
+                        </DataGridTemplateColumn.CellStyle>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Data Set 16"  CellTemplateSelector="{StaticResource TemplateSelector16}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector16}" Visibility="Hidden"/>
+                    <DataGridTemplateColumn  Header="Data Set 17"  CellTemplateSelector="{StaticResource TemplateSelector17}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector17}" Visibility="Hidden">
+                        <DataGridTemplateColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Background" Value="Beige"/>
+                            </Style>
+                        </DataGridTemplateColumn.CellStyle>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Data Set 18"  CellTemplateSelector="{StaticResource TemplateSelector18}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector18}" Visibility="Hidden"/>
+                    <DataGridTemplateColumn  Header="Data Set 19"  CellTemplateSelector="{StaticResource TemplateSelector19}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector19}" Visibility="Hidden">
+                        <DataGridTemplateColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Background" Value="Beige"/>
+                            </Style>
+                        </DataGridTemplateColumn.CellStyle>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Data Set 20"  CellTemplateSelector="{StaticResource TemplateSelector20}" CellEditingTemplateSelector="{StaticResource EditTemplateSelector20}" Visibility="Hidden"/>
+                    -->
+            </local:TestStepsDataGrid.Columns>
+
+
+        </local:TestStepsDataGrid>
+        <!--/ -->
+        <DockPanel LastChildFill="True" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" HorizontalAlignment="Right" 
+                   x:Name="wndFinder" 
+                   VerticalAlignment="Top">
+
+            <CheckBox Content="Copy as CVS" VerticalAlignment="Center" Margin="0,0,10,0" IsChecked="{Binding isCopyAsCVS}"></CheckBox> 
+            <Label Content="Find:" VerticalAlignment="Center" Margin="0,0,10,0"></Label>
+            <TextBox Text="{Binding SearchText,UpdateSourceTrigger=PropertyChanged}" MinWidth="100" Margin="0,0,10,0" VerticalAlignment="Center"></TextBox>
+            <Button Width="24" Background="Transparent" VerticalAlignment="Center" Command="{Binding LocateSpecialTestStepClickCmd}">
+                <Image Source="/Mars;component/Images/search-48.png" Height="16" />
+            </Button>
+            <Button Width="24" Background="Transparent" VerticalAlignment="Center" Command="{Binding PreviousSpecialTestStepClickCmd}">
+                <Image Source="/Mars;component/Images/previous-48.png" Height="16"></Image>
+            </Button>
+            <Button Width="24" Background="Transparent" VerticalAlignment="Center" Command="{Binding NextSpecialTestStepClickCmd}">
+                <Image Source="/Mars;component/Images/next-48.png" Height="16"></Image>
+            </Button>
+
+        </DockPanel>
+
+        <StackPanel x:Name="controlPanel" Grid.Row="0" Grid.Column="1" Margin="2,0,0,11" Orientation="Vertical" Grid.RowSpan="2">
+            <Button Content="+" FontFamily="Times New Roman"  FontWeight="Black" FontSize="20" Command="{Binding AddNewRowCommand}" ToolTip="Add Row (Ctrl+I)"></Button>
+            <Button Content="-" FontFamily="Times New Roman"  FontWeight="Black" FontSize="20"  Command="{Binding DeleteSelectedRowsCommand}" ToolTip="Remove Row (Ctrl+Del)"></Button>
+            <Button Content="5" FontFamily="Marlett" FontWeight="Black" FontSize="20" Command="{Binding MoveUpSelectedRowsCommand}" ToolTip="Move Row Up (Ctrl+U)"></Button>
+            <Button Content="6" FontFamily="Marlett"  FontWeight="Black" FontSize="20" Command="{Binding MoveDownSelectedRowsCommand}"  ToolTip="Move Row Down (Ctrl+D)"></Button>
+            <!--<Button  FontFamily="Times New Roman" 
+                         FontWeight="Black" FontSize="20" 
+                         local:InputBindingBehavior.PropagateInputBindingsToWindow="True"
+                         Command="{Binding CopySelectedRowsCommand}" >
+
+                <Button.InputBindings>
+                    <KeyBinding Key="C" Modifiers="Control" Command="{Binding CopySelectedRowsCommand}" />
+                </Button.InputBindings>
+                <StackPanel>
+                    <Image Source="/Images/copy-32.png" Stretch="Uniform" ToolTip="Copy (Ctrl+C)" />
+                </StackPanel>
+            </Button>-->
+            <!--<Button FontFamily="Times New Roman" FontWeight="Black" FontSize="20" Command="{Binding PasteSelectedRowsCommand}">
+                <StackPanel>
+                    <Image Source="/Images/cllipboard-32.png" ToolTip="Paste (Ctrl+V)"/>
+                </StackPanel>
+            </Button>-->
+            <!--<Button FontFamily="Times New Roman" FontWeight="Black" FontSize="20" Command="{Binding PasteRowsSpecialCommand}">
+                <StackPanel>
+                    <Image Source="/Images/Editing-Paste-Special-icon-32.png" ToolTip="Paste from Windows Clipboard (Ctrl+U)"/>
+                </StackPanel>
+            </Button>-->
+            <Button FontFamily="Times New Roman" FontWeight="Black" FontSize="20" Command="{Binding SaveCommand}">
+                <StackPanel>
+                    <Image Source="/Images/save-32.png"  ToolTip="Save (Ctrl+S)"/>
+                </StackPanel>
+            </Button>
+            <Button FontFamily="Times New Roman" FontWeight="Black" FontSize="20" Command="{Binding DeleteForLoadDatabaseCommand}">
+                <StackPanel>
+                    <Image Source="/Mars;component/Images/delete_database-32.png"  ToolTip="Clean Data"/>
+                </StackPanel>
+            </Button>
+            <Button FontFamily="Times New Roman" FontWeight="Black" FontSize="20" Command="{Binding LoadDataFromDatabaseCommand}">
+                <StackPanel>
+                    <Image Source="/Mars;component/Images/compare.ico"  ToolTip="Load Data From Database"/>
+                </StackPanel>
+            </Button>
+            <!--
+            <Button FontFamily="Times New Roman" FontWeight="Black" FontSize="20" Command="{Binding SaveAsCommand}" IsEnabled="False">
+                <StackPanel>
+                    <Image Source="/Mars;component/Images/save_as-512.png"  ToolTip="Save As (Ctrl+J)"/>
+                </StackPanel>
+            </Button>
+            -->
+            <Button FontFamily="Times New Roman" FontWeight="Black" FontSize="20" Command="{Binding RefreshCommand}" >
+                <StackPanel>
+                    <Image Source="/Mars;component/Images/refresh-32.png"  ToolTip="Refresh (Ctrl+R)"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</mars:MarsBaseGridViewControl>

@@ -1,0 +1,62 @@
+﻿<UserControl x:Class="Mars.Views.systemTools.SQLServerConnectionSetting"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Mars.Views.systemTools"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="600">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" MaxWidth="200"></ColumnDefinition>
+            <ColumnDefinition Width="auto" ></ColumnDefinition>
+            <ColumnDefinition Width="auto" MaxWidth="200"></ColumnDefinition>
+            <ColumnDefinition ></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" Margin="3"
+               Content="SQL Server Connection Setting For Testing Data Initialization" FontWeight="DemiBold"></Label>
+        <Label Grid.Row="1" Grid.Column="0" Margin="3"
+               Content="Server Name:" HorizontalAlignment="Right"
+               ></Label>
+        <Label Grid.Row="1" Grid.Column="2" Margin="3"
+               Content="Database Instance Name:" HorizontalAlignment="Right"
+               ></Label>
+        <Label Grid.Row="2" Grid.Column="0" Margin="3"
+               Content="Database Name:" HorizontalAlignment="Right"
+               ></Label>
+        <Label Grid.Row="2" Grid.Column="2" Margin="3"
+               Content="Trace Log:" 
+               ></Label>
+        <Label Grid.Row="3" Grid.Column="0" Margin="3"
+               Content="User Name:" HorizontalAlignment="Right"
+               ></Label>
+        <Label Grid.Row="4" Grid.Column="0" Margin="3"
+               Content="Password:" HorizontalAlignment="Right"
+               ></Label>
+
+        <TextBox Grid.Row="1" Grid.Column="1" Margin="3" MinWidth="100" MaxWidth="300" HorizontalAlignment="Left" Text="{Binding DbServerName}"></TextBox>
+        <TextBox Grid.Row="2" Grid.Column="1" Margin="3" MinWidth="100" MaxWidth="300" HorizontalAlignment="Left" Text="{Binding DatabaseName}"></TextBox>
+        <TextBox Grid.Row="3" Grid.Column="1" Margin="3" MinWidth="100" MaxWidth="300" HorizontalAlignment="Left" Text="{Binding DbUserName}" ></TextBox>
+        <TextBox Grid.Row="4" Grid.Column="1" Margin="3" MinWidth="100" MaxWidth="300" HorizontalAlignment="Left" Text="{Binding DbPassword}"></TextBox>
+        <TextBox Grid.Row="1" Grid.Column="3" Margin="3" MinWidth="100" MaxWidth="300" HorizontalAlignment="Left" Text="{Binding DbInstanceName}"></TextBox>
+        <TextBox Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2" Grid.RowSpan="2"  Margin="15,3,3,3" 
+                 MaxHeight="400" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                 TextWrapping="Wrap" AcceptsReturn="True"  Text="{Binding TraceLog}"></TextBox>
+        
+        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="4"  Margin="3" 
+                    HorizontalAlignment="Right" Orientation="Horizontal"
+            >
+            <Button Margin="5,5,0,5" Width="100" Command="{Binding TestConnectionCommand}">Test Connection</Button>
+            <Button Margin="5,5,0,5" Width="100" Command="{Binding SaveCommand}">Save</Button>            
+        </StackPanel>
+    </Grid>
+</UserControl>

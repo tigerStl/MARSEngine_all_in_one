@@ -1,0 +1,13 @@
+﻿<Window x:Class="Mars.Dialog.FilterDialogControl"
+         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctrl="clr-namespace:Mars.Dialog"        
+        Title="MainWindow" Height="350" Width="525">
+    <DockPanel Margin="10">
+        <ctrl:FilterControl Height="25" Header="Type here to filter" DockPanel.Dock="Top"
+                            TargetControl="{Binding ElementName=listBox}"
+                            FilterTextBindingPath="Name"/>
+        <ListBox x:Name="listBox" DisplayMemberPath="Name" Margin="0,10,0,0">
+        </ListBox>
+    </DockPanel>
+</Window>

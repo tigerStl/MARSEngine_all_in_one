@@ -1,0 +1,98 @@
+﻿<mb:MarsBaseViewControl x:Class="Mars.Views.TestCaseAddControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vab="clr-namespace:Microsoft.Practices.EnterpriseLibrary.Validation.Integration.WPF;assembly=Microsoft.Practices.EnterpriseLibrary.Validation.Integration.WPF"
+             xmlns:local="clr-namespace:Mars.ViewModel"
+             xmlns:mb="clr-namespace:Mars.Views.baseView"
+             xmlns:con="clr-namespace:Mars.Converter"
+             xmlns:Helper="clr-namespace:Mars.Helpers"             
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300"  >
+ 
+    <!--<UserControl.Resources> -->
+    <UserControl.Resources>
+        <con:WidthConverter x:Key="widthConverter"></con:WidthConverter>
+    </UserControl.Resources>
+    <!--
+    </UserControl.Resources>
+    -->
+    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            <!--Defined Column-->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
+                <Label x:Name="lblHeader" Content="Test Case Add" FontSize="20" />
+
+            </StackPanel>
+            <!--First Column Content-->
+
+            <Label Content="Name of test case" Grid.Column="0" Grid.Row="1" Margin="5" ></Label>
+            <Label Content="Description" Grid.Column="0" Grid.Row="2" Margin="5" ></Label>
+            <Label Content="Application" Grid.Column="0" Grid.Row="3" Margin="5" ></Label>
+
+            <!--Second Column Content-->
+
+            <TextBox Name="txtTestCaseName" Grid.Column="2" Grid.Row="1" Margin="4" >
+                <TextBox.Text>
+                    <Binding Path="TestCaseName" UpdateSourceTrigger="PropertyChanged" >
+                    </Binding>
+                </TextBox.Text>
+            </TextBox>
+            <TextBox Name="txtTestCaseDescription" Grid.Column="2" Grid.Row="2" Margin="4" AcceptsReturn="True" TextWrapping="WrapWithOverflow" Height="100">
+                <TextBox.Text>
+                    <Binding Path="TestCaseDescription" UpdateSourceTrigger="PropertyChanged" >                        
+                    </Binding>
+                </TextBox.Text>
+            </TextBox>
+
+            <ListView Name="listViewClients" Grid.Column="2" Grid.Row="3" Margin="4" 
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                  ItemsSource="{Binding Path=RegisterdApplication}"                  
+                  ScrollViewer.VerticalScrollBarVisibility="Auto" MaxHeight="300"
+                  IsSynchronizedWithCurrentItem="True"
+                  Helper:GridViewSort.AutoSort="True">
+                <ListView.Resources>
+                    <Style TargetType="{x:Type GridViewColumnHeader}">
+                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                    </Style>
+                </ListView.Resources>
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Select" Width="50">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Application" Width="300" DisplayMemberBinding="{Binding APP_SHORT_NAME}" Helper:GridViewSort.PropertyName="APP_SHORT_NAME"/>
+                        <GridViewColumn Header="Version" Width="100" DisplayMemberBinding="{Binding VERSION}" Helper:GridViewSort.PropertyName="VERSION"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+
+            <WrapPanel Grid.Column="3" Grid.Row="8" >
+                <Button Content="Save" Width="70" Height="24" Margin="5" Command="{Binding SaveCommand}"></Button>
+                <Button x:Name="btnCancel" Content="Cancel" Width="70" Height="24" Margin="5" Command="{Binding ClearCommand}"></Button>
+            </WrapPanel>
+
+            <!--Third Column Content-->
+            <Image Grid.Column="2" Grid.Row="1" Grid.RowSpan="5" Margin="21,10" Width="100" />
+
+        </Grid>
+    </ScrollViewer>
+</mb:MarsBaseViewControl>

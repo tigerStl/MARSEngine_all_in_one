@@ -1,0 +1,158 @@
+﻿<mars:MarsBaseViewControl x:Class="Mars.Views.storyboard.StoryboardResultDetailControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Mars.Views.storyboard"
+                          xmlns:dt="clr-namespace:Mars.basicDataStructure"
+             xmlns:mars="clr-namespace:Mars.Views.baseView"
+             mc:Ignorable="d" 
+             d:DesignHeight="210" d:DesignWidth="500">
+    <Grid MaxHeight="200" Height="auto">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="18"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight" 
+                    Grid.Row="0" Grid.RowSpan="2"
+                    Grid.Column="0"
+                    Visibility="{Binding IsBeforeDataLoading}"
+                    >
+            <Image Source="/Mars;component/Images/ProgressImage.gif" MaxHeight="100" ></Image>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                    Visibility="{Binding IsErrorVisible}">
+            <Label Content="{Binding ErrorMessage}"></Label>
+        </StackPanel>
+        <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" Background="LightGray"
+                BorderThickness="1,0,0,0"
+                >
+            <Label Content="Base Line Data"></Label>
+        </Border>
+        <Border Grid.Row="0" Grid.Column="1" BorderBrush="Gray" Background="LightGray"
+                BorderThickness="0,0,1,0"
+                Height="18">
+            <DockPanel >
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="24"></ColumnDefinition>
+                        <ColumnDefinition Width="20"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="Comparison Data"
+                           Grid.Row="0" Grid.Column="0"                       
+                           Margin="5,0,0,0"></Label>
+                    <Button Grid.Row="0" Grid.Column="1" Margin="2,0,2,0"  Width="18" Click="SaveResultHisRecordClick" Height="18"
+                            ToolTip="Save Dataset information"
+                            VerticalAlignment="Bottom" >
+                        <Image Source="/Mars;component/Images/save-32.png"></Image>
+                    </Button>
+                    <Button Grid.Row="0" Grid.Column="2" Click="CloseButtonClick" Height="18" VerticalAlignment="Bottom">
+                        <Image Source="/Mars;component/Images/cancel_small.png" ></Image>
+                    </Button>
+
+                </Grid>
+            </DockPanel>
+        </Border>
+        <StackPanel Grid.Row="1" Grid.Column="0" Visibility="{Binding IsDataVisible}">
+            <DataGrid 
+                  ItemsSource="{Binding DetailResultDataBaseLine}" 
+                  AutoGenerateColumns="False"
+                  
+                  MaxHeight="120"
+                  HorizontalGridLinesBrush="LightGray"
+                  VerticalGridLinesBrush="Gray"
+                  CanUserAddRows ="False"
+                  Height="auto"
+                  Margin="0,0,0,0"
+                  >
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Data-Version" MaxWidth="100" Binding="{Binding Hist_VersionNumber}" IsReadOnly="False"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Create Time" Binding="{Binding EndDateTime,StringFormat=\{0:MM-dd-yy HH:mm:ss\},Mode=OneWay}"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Alias Name" Binding="{Binding AliasName}" IsReadOnly="False">
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Description" Binding="{Binding ResultDescription}" IsReadOnly="False">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextWrapping" Value="Wrap"></Setter>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                        <DataGridTextColumn.EditingElementStyle>
+                            <Style TargetType="TextBox">
+                                <Setter Property="TextWrapping" Value="Wrap"></Setter>
+                                <Setter Property="AcceptsReturn" Value="true"></Setter>
+                            </Style>
+                        </DataGridTextColumn.EditingElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridComboBoxColumn Header="Test Mode" 
+                                        ItemsSource="{Binding Source={x:Static dt:StoryboardRowDetailDataForMadel.Cnst_arrTestMode}}"
+                                        SelectedItemBinding="{Binding TestModeDisplayName}"
+                                        >
+                        <DataGridComboBoxColumn.ElementStyle>
+                            <Style TargetType="ComboBox">
+                                <Style.Triggers>
+                                    <DataTrigger  Binding="{Binding Text}"  Value="BaseLine" >
+                                        <Setter Property="Background" Value="Green"></Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridComboBoxColumn.ElementStyle>
+                        <DataGridComboBoxColumn.EditingElementStyle>
+                            <Style TargetType="ComboBox">
+                                <Style.Triggers>
+                                    <DataTrigger  Binding="{Binding Text}"  Value="BaseLine" >
+                                        <Setter Property="Background" Value="Red"></Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridComboBoxColumn.EditingElementStyle>
+                    </DataGridComboBoxColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="1" Visibility="{Binding IsDataVisible}">
+            <DataGrid 
+                  ItemsSource="{Binding DetailResultDataNonBase}" 
+                  AutoGenerateColumns="False"
+                  MaxHeight="120"
+                  HorizontalGridLinesBrush="LightGray"
+                  VerticalGridLinesBrush="Gray"
+                  CanUserAddRows ="False"
+                  Margin="5,0,0,0"
+                  Height="auto"
+                  >
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Data-Version" MaxWidth="100" Binding="{Binding Hist_VersionNumber}" IsReadOnly="False"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Create Time" Binding="{Binding EndDateTime,StringFormat=\{0:MM-dd-yy HH:mm:ss\},Mode=OneWay}"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Alias Name" Binding="{Binding AliasName}" IsReadOnly="False">
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Description" Binding="{Binding ResultDescription}" IsReadOnly="False">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextWrapping" Value="Wrap"></Setter>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                        <DataGridTextColumn.EditingElementStyle>
+                            <Style TargetType="TextBox">
+                                <Setter Property="TextWrapping" Value="Wrap"></Setter>
+                                <Setter Property="AcceptsReturn" Value="true"></Setter>
+                            </Style>
+                        </DataGridTextColumn.EditingElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridComboBoxColumn Header="Test Mode" 
+                                        ItemsSource="{Binding Source={x:Static dt:StoryboardRowDetailDataForMadel.Cnst_arrTestMode}}"
+                                        SelectedItemBinding="{Binding TestModeDisplayName}"
+                                        ></DataGridComboBoxColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel>
+    </Grid>
+</mars:MarsBaseViewControl>

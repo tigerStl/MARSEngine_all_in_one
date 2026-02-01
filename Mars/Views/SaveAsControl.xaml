@@ -1,0 +1,79 @@
+﻿<mars:MarsBaseViewControl x:Class="Mars.Views.SaveAsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             xmlns:Helper="clr-namespace:Mars.Helpers"
+             xmlns:local="clr-namespace:Mars.ViewModel"
+             xmlns:mars="clr-namespace:Mars.Views.baseView"
+             xmlns:con="clr-namespace:Mars.Converter"             
+             d:DesignHeight="180" d:DesignWidth="260"
+             Width="260" Height="160" >
+
+    <UserControl.Resources>
+        <con:WidthConverter x:Key="widthConverter"></con:WidthConverter>
+        <DataTemplate x:Key="myTemplate" DataType="ValidationExample.MyData">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Division: "/>
+                <TextBlock Text="{Binding Path=Division}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <ControlTemplate x:Key="errorTemplate">
+            <StackPanel>
+                <TextBlock Foreground="Red">Invalid Value!!!</TextBlock>
+                <AdornedElementPlaceholder/>
+            </StackPanel>
+        </ControlTemplate>
+
+        <ControlTemplate x:Key="TextBoxErrorTemplate">
+            <DockPanel LastChildFill="True">
+                <TextBlock DockPanel.Dock="Right" 
+        Foreground="Orange"  FontSize="12pt">!</TextBlock>
+
+                <Border BorderBrush="Red" BorderThickness="1">
+                    <AdornedElementPlaceholder />
+                </Border>
+            </DockPanel>
+        </ControlTemplate>
+
+    </UserControl.Resources>
+
+    
+        <Grid >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            <!--Defined Column-->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition MinWidth="30"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"  Orientation="Horizontal" >
+                <Label x:Name="lblSaveAsHeader"  Content="Project Add" FontSize="20" Margin="5" ></Label>
+            </StackPanel>
+            <Label x:Name="lblSaveAs" Content="Name of project" Grid.Column="0" Grid.Row="1" Margin="5" ></Label>
+            <TextBox Name="contextName" Validation.ErrorTemplate="{StaticResource TextBoxErrorTemplate}" Validation.Error="ValidationError" Grid.Column="1" Grid.Row="1" Margin="4,5,5,5" MaxWidth="160">
+                <TextBox.Text>
+                    <Binding Path="ContextName" UpdateSourceTrigger="PropertyChanged"  NotifyOnValidationError="True">
+                    </Binding>
+                </TextBox.Text>
+            </TextBox>
+            <Label Grid.Column="0" Grid.Row="2" Visibility="{Binding IsExtendsOptionRequired}" VerticalAlignment="Center" Content="{Binding OptionHint}" Margin="5"></Label>
+            <StackPanel Grid.Column="1" Grid.Row="2" Visibility="{Binding IsExtendsOptionRequired}" VerticalAlignment="Center" >
+                <ComboBox ItemsSource="{Binding AvailableOptions}" SelectedItem="{Binding SelectedOption}" MaxWidth="160" Margin="5"></ComboBox>
+            </StackPanel>
+            <DockPanel Grid.Column="1" Grid.Row="3" >
+                <Button Content="Cancel" Width="70" Height="24" Margin="5" Click="Button_Click" DockPanel.Dock="Right"></Button>
+                <Button Content="Save" Width="70" Height="24" Margin="5" Click="Button_Click" Command="{Binding SaveCommand}" DockPanel.Dock="Right"></Button>
+                
+                <!--Command="{Binding ClearCommand}" -->
+            </DockPanel>
+        </Grid>
+
+</mars:MarsBaseViewControl>

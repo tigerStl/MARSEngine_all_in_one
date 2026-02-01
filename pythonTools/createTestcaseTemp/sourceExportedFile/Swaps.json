@@ -1,0 +1,3229 @@
+{
+  "name": "Swaps",
+  "description": "MARS AI auto generate test case temp",
+  "version": "1",
+  "TestSteps": [
+    {
+      "Keyword": "PegWindow",
+      "Object": "Summit Start",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 1,
+      "MessageWhenGenByAI": "Pegwindow, to Locate the Main window"
+    },
+    {
+      "Keyword": "MaximizeWindow",
+      "Object": "Summit Start",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 2,
+      "MessageWhenGenByAI": "MaximizeWindow,to ensure that the current window fullfill the work area"
+    },
+    {
+      "Keyword": "LaunchApplication",
+      "Object": "ApplicationName",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Swap Trade",
+      "RunOrder": 3,
+      "MessageWhenGenByAI": "A Summit feature, find financial model and active it. "
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "f",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "10",
+      "RunOrder": 4,
+      "MessageWhenGenByAI": "WaitForSeconds, to ensure all GUI thread and data thread are done."
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Trade ID\"|TAG:TRADE_ID",
+      "RunOrder": 5,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Swap Trade Screen\"|IMAGE:TRADE_WINDOW",
+      "RunOrder": 6,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 7,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "MaximizeWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 8,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_PAY_CCY",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "USD",
+      "RunOrder": 9,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_START",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "0D",
+      "RunOrder": 10,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_END",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "20Y",
+      "RunOrder": 11,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "SWAP_TRADE_TYPE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 12,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "AssertValue",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "MemVar:MARKET_TYPE_MEM_VAR;Secondary",
+      "RunOrder": 13,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_PAY_NTL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "1m",
+      "RunOrder": 14,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "TRADE_PAY_NTL_EXP",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 15,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_PAY_INDEX",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "FIXED",
+      "RunOrder": 16,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_PAY_TERM",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 17,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_PAY_RATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "1.15999",
+      "RunOrder": 18,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "TRADE_PAY_BASIS",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "A360",
+      "RunOrder": 19,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_PAY_SPREAD",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 20,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_RECEIVE_NTL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "1m",
+      "RunOrder": 21,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "TRADE_PAY_NTL_EXP",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 22,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_RECEIVE_INDEX",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "LIBOR",
+      "RunOrder": 23,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_RECEIVE_TERM",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "3M",
+      "RunOrder": 24,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_RECEIVE_CCY",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "USD",
+      "RunOrder": 25,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_RECEIVE_RATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 26,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "TRADE_RECEIVE_BASIS",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "A360",
+      "RunOrder": 27,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_RECEIVE_SPREAD",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 28,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "TRADE_PAY_COUNTERPARTY",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "CHASE_NYC",
+      "RunOrder": 29,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SWAP_TRADE_DESK",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "GENERIC1",
+      "RunOrder": 30,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SWAP_TRADE_BOOK",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "GENERIC_BOOK",
+      "RunOrder": 31,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SWAP_TRADE_FOLDER",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 32,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickButton",
+      "Object": "PRODUCT_FORMULA_PAY_ADD_EDIT_PRODUCT_FORMULA",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 33,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "F",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 34,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "PRODUCT_FORMULA",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 35,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickButton",
+      "Object": "PRODUCT_FORMULA_FORMULA_RADIO",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 36,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "FORMULA_EDITOR",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 37,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "MaximizeWindow",
+      "Object": "FORMULA_EDITOR",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 38,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "FORMULA_EDITOR_FORMULA_TEXT_BOX",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 39,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "FORMULA_EDITOR_APPLY_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 40,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickButton",
+      "Object": "FORMULA_EDITOR_APPLY_FORMULA",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 41,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "FORMULA_EDITING_TOOLS_INDEX",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 42,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "FORMULA_EDITOR_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 43,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickButton",
+      "Object": "TRADE_FORMULAS_OK",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "true",
+      "RunOrder": 44,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 45,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickMenuIcon",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Envelope",
+      "RunOrder": 46,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "ENVELOPE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 47,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "STRUCTURE_ID",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 48,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "DETAIL_PRODUCT_GROUP_OGC",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "MARS",
+      "RunOrder": 49,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "DETAIL_RC",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "SWPTT_01",
+      "RunOrder": 50,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "DETAIL_TRADE_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "7/25/2021",
+      "RunOrder": 51,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "DETAIL_FOLDER",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "123SWP_AFS",
+      "RunOrder": 52,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "DETAIL_DEAL_ID_TBO",
+      "Parameters": "",
+      "Comment": "missing in MARS",
+      "IsSkip": "SKIP",
+      "Data": "CCH_AFS",
+      "RunOrder": 53,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ENVELOP_MULTIPLE_PANES_TABS",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "Parent.*",
+      "RunOrder": 54,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ENVELOPE_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "ENVELOPE",
+      "RunOrder": 55,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ENVELOPE_COMMENT_1",
+      "Parameters": "",
+      "Comment": "Comments field 1",
+      "IsSkip": "SKIP",
+      "Data": "8.3YR VS OIS FLAT GSCM",
+      "RunOrder": 56,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Trade Envelope\"|IMAGE:ENVELOPE",
+      "RunOrder": 57,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 58,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "SWAP_TRADE_MULTIPLE_PANES_TABS",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Swap Trade.*",
+      "RunOrder": 59,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 60,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "SCHEDULE_PAY_PAY_FREQ",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "A",
+      "RunOrder": 61,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SCHEDULE_PAY_PAY_DAY",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "25",
+      "RunOrder": 62,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "SCHEDULE_PAY_PAY_ROLL_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "MF",
+      "RunOrder": 63,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SCHEDULE_PAY_PAY_CAL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "NYB",
+      "RunOrder": 64,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "SCHEDULE_PAY_RESET_FREQ",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 65,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SCHEDULE_PAY_RESET_DAY",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 66,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "SCHEDULE_PAY_RESET_ROLL_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 67,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SCHEDULE_PAY_RESET_CAL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 68,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "SCHEDULE_RECEIVE_PAY_FREQ",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "A",
+      "RunOrder": 69,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SCHEDULE_RECEIVE_PAY_DAY",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "25",
+      "RunOrder": 70,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "SCHEDULE_RECEIVE_PAY_ROLL_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "MF",
+      "RunOrder": 71,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SCHEDULE_RECEIVE_PAY_CAL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "NYB",
+      "RunOrder": 72,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "SCHEDULE_RECEIVE_RESET_FREQ",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "D",
+      "RunOrder": 73,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SCHEDULE_RECEIVE_RESET_DAY",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 74,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "SCHEDULE_RECEIVE_RESET_ROLL_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "MF",
+      "RunOrder": 75,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SCHEDULE_RECEIVE_RESET_CAL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "NYB",
+      "RunOrder": 76,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 77,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SWAP_TRADE_CLEARING_HOUSE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "LCHS",
+      "RunOrder": 78,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SWAP_TRADE_CLEARING_MEMBER",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "SGAC",
+      "RunOrder": 79,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "SWAP_TRADE_EXECUTING_BROKER",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "LCHS",
+      "RunOrder": 80,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "SWAP_TRADE_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "SWAP_PAN1",
+      "RunOrder": 81,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Swap Trade\"|IMAGE:SWAP_PAN1",
+      "RunOrder": 82,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickMenuIcon",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Validate",
+      "RunOrder": 83,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickButton",
+      "Object": "TRADE_PAY_ASSET_DETAIL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 84,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "ASSET_DETAIL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 85,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "Schedule",
+      "IsSkip": "",
+      "Data": "Schedule",
+      "RunOrder": 86,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureAndCompare",
+      "Object": "PAYMENTS_GAP_DATE_RULE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 87,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "PAYMENTS_GAP",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "",
+      "Data": "2D",
+      "RunOrder": 88,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "ASSET_DETAIL_PAY_SCHEDULE",
+      "RunOrder": 89,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Asset Detail Schedule\"|IMAGE:ASSET_DETAIL_PAY_SCHEDULE",
+      "RunOrder": 90,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "Interest",
+      "IsSkip": "",
+      "Data": "Interest",
+      "RunOrder": 91,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "AVERAGE_TYPE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 92,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "INTEREST_RULE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "Y",
+      "RunOrder": 93,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "INTEREST_CCY",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "USD",
+      "RunOrder": 94,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "INTEREST_DELIVERABLE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "D",
+      "RunOrder": 95,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "INTEREST_RATE_TYPE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "FIX",
+      "RunOrder": 96,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "INTEREST_INTERIM_ROUND",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 97,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "INTEREST_INTERIM_ROUND_DP",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 98,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "INTEREST_COMPOUND_TYPE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 99,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "INTEREST_COMPOUND_FREQ",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 100,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "INTEREST_ACCRUAL_FACTORS",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 101,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "ACCRUAL_BASIS",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "A360",
+      "RunOrder": 102,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "ACCRUAL_METHOD",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "STANDARD",
+      "RunOrder": 103,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "ACCRUAL_FIRST_LAST",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "LAST",
+      "RunOrder": 104,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ACCRUAL_COUPON_EFFECTIVE",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 105,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "AVERAGE_GAP",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 106,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "AVERAGE_RULE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 107,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "AVERAGE_CUT_OFF_B_C",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 108,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "ASSET_DETAIL_PAY_INTEREST",
+      "RunOrder": 109,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Asset Detail Interest\"|IMAGE:ASSET_DETAIL_PAY_INTEREST",
+      "RunOrder": 110,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "Pricing",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 111,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "PRICING_DISCOUNT",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 112,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "ASSET_DETAIL_PAY_PRICING",
+      "RunOrder": 113,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Asset Detail Fixing\"|IMAGE:ASSET_DETAIL_PAY_PRICING",
+      "RunOrder": 114,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "Fixing",
+      "IsSkip": "",
+      "Data": "Fixing",
+      "RunOrder": 115,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "INDEX_GAP",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 116,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "INDEX_SOURCE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 117,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ALTERNATE_GAP",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 118,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ALTERNATE_CAL",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 119,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ALTERNATE_ORIGIN",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 120,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ALTERNATE_SOURCE",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 121,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ALTERNATE_FREQ",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 122,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ALTERNATE_ANNIVERSARY_DAY",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 123,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "EXCHANGE_GAP",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 124,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "EXCHANGE_CAL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 125,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "EXCHANGE_SOURCE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 126,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 127,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 128,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_CALENDAR",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 129,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_CALENDAR",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 130,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "ASSET_DETAIL_PAY_FIXING",
+      "RunOrder": 131,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Asset Detail Fixing\"|IMAGEASSET_DETAIL_PAY_FIXING",
+      "RunOrder": 132,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "Notional",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 133,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "AMORTIZATION_START_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 134,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "AMORTIZATION_END_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 135,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "AMORTIZATION_AMOUNT",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 136,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "AMORTIZATION_TYPE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 137,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "AMORTIZATION_FREQUENCY",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 138,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "NOTIONAL_NOTIONAL_EXCHANGE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 139,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "ASSET_DETAIL_PAY_NOTIONAL",
+      "RunOrder": 140,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Asset Detail Notional\"|IMAGE:ASSET_DETAIL_PAY_NOTIONAL",
+      "RunOrder": 141,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "Stubs",
+      "IsSkip": "",
+      "Data": "Stubs",
+      "RunOrder": 142,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "7/25/2021",
+      "RunOrder": 143,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_RATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 144,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_CALENDAR",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "NYB",
+      "RunOrder": 145,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_1ST_SOURCE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 146,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_1ST_TERM",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 147,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_2ND_SOURCE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 148,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_2ND_TERM",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 149,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 150,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_RATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 151,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_CALENDAR",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "NYB",
+      "RunOrder": 152,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_1ST_SOURCE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 153,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_1ST_TERM",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 154,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_2ND_SOURCE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 155,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_2ND_TERM",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 156,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 157,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 158,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "DETAILS_TYPE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 159,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "ASSET_DETAIL_PAY_STUB",
+      "RunOrder": 160,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Asset Detail Stub\"|IMAGE:ASSET_DETAIL_PAY_STUB",
+      "RunOrder": 161,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "Summit Start",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 162,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "MAIN_MULTIPLE_TAB",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Swap Trade.*",
+      "RunOrder": 163,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 164,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickButton",
+      "Object": "TRADE_RECEIVE_ASSET_DETAIL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 165,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "ASSET_DETAIL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 166,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "Schedule",
+      "IsSkip": "",
+      "Data": "Schedule",
+      "RunOrder": 167,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureAndCompare",
+      "Object": "PAYMENTS_GAP_DATE_RULE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 168,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "PAYMENTS_GAP",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "2D",
+      "RunOrder": 169,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "RESET_STUB",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 170,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "ASSET_DETAIL_REC_SCHEDULE",
+      "RunOrder": 171,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Asset Detail Schedule\"|IMAGE:ASSET_DETAIL_REC_SCHEDULE",
+      "RunOrder": 172,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "Interest",
+      "IsSkip": "",
+      "Data": "Interest",
+      "RunOrder": 173,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "AVERAGE_TYPE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 174,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "INTEREST_RULE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "Y",
+      "RunOrder": 175,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "INTEREST_CCY",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "USD",
+      "RunOrder": 176,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "INTEREST_DELIVERABLE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "D",
+      "RunOrder": 177,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "INTEREST_RATE_TYPE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "FLT",
+      "RunOrder": 178,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "INTEREST_COMPOUND_FREQ",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "D",
+      "RunOrder": 179,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "INTEREST_COMPOUND_TYPE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "EXC",
+      "RunOrder": 180,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "INTEREST_ACCRUAL_FACTORS",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 181,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "ACCRUAL_BASIS",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "A360",
+      "RunOrder": 182,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "ACCRUAL_METHOD",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 183,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "ACCRUAL_FIRST_LAST",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 184,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ACCRUAL_COUPON_EFFECTIVE",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 185,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "AVERAGE_GAP",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 186,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "AVERAGE_RULE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 187,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "AVERAGE_CUT_OFF_B_C",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 188,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "ASSET_DETAIL_REC_INTEREST",
+      "RunOrder": 189,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Asset Detail Interest\"|IMAGE:ASSET_DETAIL_REC_INTEREST",
+      "RunOrder": 190,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "Pricing",
+      "IsSkip": "",
+      "Data": "Pricing",
+      "RunOrder": 191,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "PRICING_INSTRUMENT_STYLE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "true",
+      "RunOrder": 192,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "PRICING_DISCOUNT",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "FFOIS",
+      "RunOrder": 193,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "ASSET_DETAIL_REC_PRICING",
+      "RunOrder": 194,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Asset Detail Pricing\"|IMAGE:ASSET_DETAIL_REC_PRICING",
+      "RunOrder": 195,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "Fixing",
+      "IsSkip": "",
+      "Data": "Fixing",
+      "RunOrder": 196,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "INDEX_GAP",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "0D",
+      "RunOrder": 197,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "INDEX_SOURCE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "H.15.519",
+      "RunOrder": 198,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ALTERNATE_GAP",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "0D",
+      "RunOrder": 199,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ALTERNATE_CAL",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 200,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ALTERNATE_ORIGIN",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 201,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ALTERNATE_SOURCE",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 202,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ALTERNATE_FREQ",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 203,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "ALTERNATE_ANNIVERSARY_DAY",
+      "Parameters": "",
+      "Comment": "add in MARS",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 204,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "EXCHANGE_GAP",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 205,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "EXCHANGE_CAL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 206,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "EXCHANGE_SOURCE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 207,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "ASSET_DETAIL_REC_FIXING",
+      "RunOrder": 208,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Asset Detail Fixing\"|IMAGE:ASSET_DETAIL_REC_FIXING",
+      "RunOrder": 209,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "Stubs",
+      "RunOrder": 210,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 211,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_CALENDAR",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 212,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_CALENDAR",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 213,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "ASSET_DETAIL_REC_STUBS",
+      "RunOrder": 214,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "TEXT|\"Asset Detail Fixing\"|IMAGE:ASSET_DETAIL_REC_STUBS",
+      "RunOrder": 215,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "Notional",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 216,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "AMORTIZATION_START_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 217,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "AMORTIZATION_END_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 218,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "AMORTIZATION_AMOUNT",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 219,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "AMORTIZATION_TYPE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 220,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "AMORTIZATION_FREQUENCY",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 221,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "NOTIONAL_NOTIONAL_EXCHANGE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 222,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "ASSET_DETAIL_REC_NOTIONAL",
+      "RunOrder": 223,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Asset Detail Fixing\"|IMAGE:ASSET_DETAIL_REC_NOTIONAL",
+      "RunOrder": 224,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "ASSET_DETAIL_TAB",
+      "Parameters": "",
+      "Comment": "Stubs",
+      "IsSkip": "",
+      "Data": "Stubs",
+      "RunOrder": 225,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "7/25/2021",
+      "RunOrder": 226,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_RATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 227,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_CALENDAR",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "NYB",
+      "RunOrder": 228,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_1ST_SOURCE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "H.15.519",
+      "RunOrder": 229,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_1ST_TERM",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "1D",
+      "RunOrder": 230,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_2ND_SOURCE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "H.15.519",
+      "RunOrder": 231,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "START_2ND_TERM",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "1D",
+      "RunOrder": 232,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_DATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 233,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_RATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 234,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_CALENDAR",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "NYB",
+      "RunOrder": 235,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_1ST_SOURCE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 236,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_1ST_TERM",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 237,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_2ND_SOURCE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 238,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "FillEdit",
+      "Object": "END_2ND_TERM",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 239,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "DETAILS_TYPE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 240,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "DETAILS_SPREAD",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 241,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "DETAILS_STYLE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 242,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "DETAILS_IGNORE_HALF_PERIOD_RULE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 243,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "DETAILS_DECOMPOUNDING",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 244,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "DETAILS_FREQ_DECOMPOUNDING_FREQ",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 245,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectDropDown",
+      "Object": "DETAILS_FREQ_DECOMPOUNDING_TYPE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 246,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "ASSET_DETAIL_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "ASSET_DETAIL_REC_STUBS",
+      "RunOrder": 247,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\"Asset Detail Stubs\"|IMAGE:ASSET_DETAIL_REC_STUBS",
+      "RunOrder": 248,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "Summit Start",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 249,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "MAIN_MULTIPLE_TAB",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Swap Trade.*",
+      "RunOrder": 250,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 251,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectMenuItem",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Desktop Menu;Swap Trade;Maintenance;Do Past Reset",
+      "RunOrder": 252,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "F",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "5",
+      "RunOrder": 253,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 254,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickButton",
+      "Object": "TRADE_PAY_FEES",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 255,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "F",
+      "Comment": "5",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 256,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "FEES",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 257,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "MaximizeWindow",
+      "Object": "FEES",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 258,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickButton",
+      "Object": "FEES_OK",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "",
+      "RunOrder": 259,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAPTION_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 260,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 261,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickButton",
+      "Object": "TRADE_RECEIVE_FEES",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 262,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "F",
+      "Comment": "5",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 263,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "FEES",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 264,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "FEES_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "FEES_REC_PANEL",
+      "RunOrder": 265,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Comment",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TEXT|\\\\\\\"Fees Table\\\\\\\"|IMAGE:FEES_REC_PANEL",
+      "RunOrder": 266,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickButton",
+      "Object": "FEES_OK",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 267,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "Summit Start",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 268,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 269,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickButton",
+      "Object": "TRADE_PAY_SCHEDULE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 270,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SCHEDULE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 271,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "MaximizeWindow",
+      "Object": "SCHEDULE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 272,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "F",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "5",
+      "RunOrder": 273,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SearchAndClick",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "MarsAddins;Start;Action:SCROLL",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "8/14/2023",
+      "RunOrder": 274,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SearchAndUpdateTable",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "DYNAMICROW;Start;1",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "8/14/2023;[Rate-1.5]",
+      "RunOrder": 275,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PressKeys",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "Current_pos",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "+{TAB}",
+      "RunOrder": 276,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SearchAndClick",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "MarsAddins;Start;Action:RIGHT_CLICK",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "8/14/2023",
+      "RunOrder": 277,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SearchAndClick",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "MarsAddins;Rate;Action:RIGHT_CLICK",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "1\\.5.*",
+      "RunOrder": 278,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "F",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "2",
+      "RunOrder": 279,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PressKeys",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "CURRENT_POS_NO_CLICK",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "P{ENTER}",
+      "RunOrder": 280,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureAndCompare",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "ALLROWS;Start",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Start",
+      "RunOrder": 281,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureAndCompare",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "ALLROWS;End",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "End",
+      "RunOrder": 282,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureAndCompare",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "ALLROWS;Fixing",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "Fixing",
+      "RunOrder": 283,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureAndCompare",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "ALLROWS;Rate",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Rate",
+      "RunOrder": 284,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureAndCompare",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "ALLROWS;Spread",
+      "Comment": "",
+      "IsSkip": "SKIP",
+      "Data": "Spread",
+      "RunOrder": 285,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureAndCompare",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "ALLROWS;Notional",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Notional",
+      "RunOrder": 286,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureAndCompare",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "ALLROWS;Date",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Date",
+      "RunOrder": 287,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureAndCompare",
+      "Object": "SCHEDULE_TABLE",
+      "Parameters": "ALLROWS;Flows",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Flows",
+      "RunOrder": 288,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickButton",
+      "Object": "SCHEDULE_APPLY",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 289,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "SCHEDULE_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "PAY_SCHEDULE",
+      "RunOrder": 290,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CloseWindow",
+      "Object": "SCHEDULE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 291,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 292,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "5",
+      "RunOrder": 293,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "Summit Start",
+      "Parameters": "",
+      "Comment": "add in mars",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 294,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectTab",
+      "Object": "MAIN_MULTIPLE_TAB",
+      "Parameters": "",
+      "Comment": "add in mars",
+      "IsSkip": "",
+      "Data": "Swap Trade.*",
+      "RunOrder": 295,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "add in mars",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 296,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "f",
+      "Comment": "add in mars",
+      "IsSkip": "",
+      "Data": "5",
+      "RunOrder": 297,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CheckError",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 298,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickMenuIcon",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Validate",
+      "RunOrder": 299,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectMenuItem",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Desktop Menu;Action;Do",
+      "RunOrder": 300,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Dismiss",
+      "Object": "",
+      "Parameters": "5",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 301,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "F",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "5",
+      "RunOrder": 302,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 303,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureValue",
+      "Object": "SWAP_TRADE_ID",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "MODAL_VAR:SWPTT_01_TRADE_ID",
+      "RunOrder": 304,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "IF",
+      "Object": "",
+      "Parameters": "BASELINE",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "MODAL_VAR:TARGET_SYSTEM",
+      "RunOrder": 305,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureValue",
+      "Object": "SWAP_TRADE_ID",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "GLOBAL_VAR:API_TRADE_ID",
+      "RunOrder": 306,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ELSE",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 307,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "f",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "2",
+      "RunOrder": 308,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "IFEND",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 309,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "f",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "5",
+      "RunOrder": 310,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SnapShot",
+      "Object": "SWAP_TRADE_PANEL",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TRADE_WINDOW",
+      "RunOrder": 311,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 312,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureAndCompare",
+      "Object": "SWAP_TRADE_STATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "MODAL_VAR:SWPTT_01_TRADE_STATE",
+      "RunOrder": 313,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "f",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "5",
+      "RunOrder": 314,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "SelectMenuItem",
+      "Object": "",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "Desktop Menu;Action;Save",
+      "RunOrder": 315,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "WaitForSeconds",
+      "Object": "",
+      "Parameters": "f",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "5",
+      "RunOrder": 316,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "SWAP_TRADE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 317,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureAndCompare",
+      "Object": "SWAP_TRADE_STATE",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "MODAL_VAR:SWPTT_01_TRADE_STATE",
+      "RunOrder": 318,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "CaptureValue",
+      "Object": "SWAP_TRADE_ID",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "TRADE_ID",
+      "RunOrder": 319,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "PegWindow",
+      "Object": "Summit Start",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 320,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "ClickButton",
+      "Object": "CLOSE_BUTTON",
+      "Parameters": "",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 321,
+      "MessageWhenGenByAI": ""
+    },
+    {
+      "Keyword": "Dismiss",
+      "Object": "",
+      "Parameters": "3",
+      "Comment": "",
+      "IsSkip": "",
+      "Data": "",
+      "RunOrder": 322,
+      "MessageWhenGenByAI": ""
+    }
+  ],
+  "CreateDate": "2026-01-27 14:31:28",
+  "Creator": "pythonUtility"
+}

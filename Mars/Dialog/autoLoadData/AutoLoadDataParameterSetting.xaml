@@ -1,0 +1,46 @@
+﻿<Window x:Class="Mars.Dialog.autoLoadData.AutoLoadDataParameterSetting"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Mars.Dialog.autoLoadData"
+        mc:Ignorable="d"
+        Title="Parameter Setting Dialog" Height="300" Width="300" WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen">
+    <Grid Margin="5,1,5,1">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"></RowDefinition>  
+            <RowDefinition></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="30"></RowDefinition>
+            <RowDefinition Height="5"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <!--#region  column 0-->
+        <Label Content="Parameters:" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0" Grid.Row="0" Grid.Column="0"></Label>
+        <Label Content="Values:" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,5,0" Grid.Row="1" Grid.Column="0"></Label>
+        <!--#region -->
+
+        <ComboBox Grid.Row="0" Grid.Column="1" Margin="3"
+                  ItemsSource="{Binding ParametersNeedSet}" DisplayMemberPath="DisplayName" SelectedItem="{Binding currentParameterObject}"
+                  >
+            <ComboBox.ItemContainerStyle>
+                <Style TargetType="ComboBoxItem">
+                    <Setter Property="Foreground" Value="{Binding currentBrush}"></Setter>
+                </Style>
+            </ComboBox.ItemContainerStyle>
+            
+        </ComboBox>
+        <TextBox Grid.Row="1" Grid.Column="1" Margin="3" AcceptsReturn="True" Text="{Binding currentParameterObject.ParameterValue}"></TextBox>
+        <!--
+        <Label Grid.Row="2" Content="DataSet Name:" Grid.Column="0" VerticalAlignment="Center" Margin="3" HorizontalAlignment="Right"></Label>
+        <TextBox Grid.Row="2" Grid.Column="1" Margin="3" Text="{Binding DatasetNamePattern}"></TextBox>
+        -->
+        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">        
+            <Button Content="Cancel" Width="80" Margin="3" IsCancel="True"></Button>
+            <Button Content="Ok" Width="80" Margin="3" IsDefault="True" Click="Button_OkClick"></Button>
+        </StackPanel>
+    </Grid>
+</Window>

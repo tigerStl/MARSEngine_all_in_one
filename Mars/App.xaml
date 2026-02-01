@@ -1,0 +1,26 @@
+﻿<Application x:Class="Mars.App"             
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             
+             xmlns:local="clr-namespace:Mars.ViewModel" 
+             ShutdownMode="OnExplicitShutdown"
+             Startup="Application_Startup" LoadCompleted="Application_LoadCompleted">
+    <Application.Resources>
+        <!--StartupUri="MainWindow.xaml"-->
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/BureauBlue.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <Style TargetType="{x:Type ComboBoxItem}">
+                <Setter Property="IsEnabled" Value="{Binding Enabled}"/>
+            </Style>
+            <!--
+            <Style TargetType="{x:Type TreeViewItem }">
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontFamily" Value="Arial" />
+                <Setter Property="Foreground" Value="Gray" />
+            </Style>
+            -->
+        </ResourceDictionary>    
+    </Application.Resources>
+</Application>

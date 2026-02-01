@@ -1,0 +1,75 @@
+﻿<mars:MarsBaseViewControl
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Mars.Views" 
+             xmlns:ViewModel="clr-namespace:Mars.ViewModel" 
+    xmlns:mars="clr-namespace:Mars.Views.baseView"
+             x:Class="Mars.Views.ProjectTabControl" 
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="550">
+
+    <Grid Background="Gray">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Margin="5 5 5 0" HorizontalContentAlignment="Left" SelectionChanged="OnSelectionTabChanged" x:Name="tabHost">
+            <!--
+            <TabItem Header="Project"  HorizontalAlignment="Left" HorizontalContentAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Top">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+
+                    </Grid.RowDefinitions>
+                    <DockPanel Name="procDocPanel" 
+                               LastChildFill="True" 
+                               Grid.Row="0" Grid.Column="0"
+                               Margin="2,2,2,2"
+                               >
+
+                    </DockPanel>
+                    
+                </Grid>
+            </TabItem>
+-->
+            <TabItem Header="Storyboard" IsSelected="True" HorizontalAlignment="Left" HorizontalContentAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Top">
+                <Grid Width="Auto" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        
+                    </Grid.RowDefinitions>
+                    <DockPanel Name="storyboardDocPanel" 
+                               LastChildFill="False" 
+                               Grid.Row="0" Grid.Column="0"
+                               VerticalAlignment="Top" 
+                               Width="Auto"
+                                Margin="10,10,10,10" 
+                               >
+                        
+                    </DockPanel>
+
+                </Grid>
+            </TabItem>
+           
+
+        </TabControl>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="1">
+            
+            <Label Content="Project" Width="100" Margin="5 10"/>
+        </StackPanel>
+        
+    </Grid>
+
+</mars:MarsBaseViewControl>

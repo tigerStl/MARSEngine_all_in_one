@@ -1,0 +1,41 @@
+﻿<Window x:Class="Mars.Utility.visualObjects.objectSpyer.MarsObjectSpy"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Mars.Utility.visualObjects.objectSpyer"
+        mc:Ignorable="d"
+        Title="Mars Object Spy" Height="80" Width="615.482" Closing="Window_Closing" 
+        ResizeMode="NoResize" Activated="Window_Activated">
+    <!--
+    Closing="Window_Closing"
+        ResizeMode="NoResize" Activated="Window_Activated" 
+    -->
+        <Grid>
+        <Grid.ColumnDefinitions>
+
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32"></RowDefinition>
+        </Grid.RowDefinitions>
+        <DockPanel LastChildFill="True">
+            <Label Content="Target Process:" Margin="5"></Label>
+            <TextBox Width="180" Margin="0,5,5,5"></TextBox>
+            <Button Width="32" x:Name="FinderButton"
+                    Margin="0,5,5,5"
+                    PreviewMouseLeftButtonDown="Button_PreviewMouseLeftButtonDown"
+                    >               
+                <Image x:Name="MarsCrosshairsImage" Source="/Mars;component/Images/CrosshairsCursor.png"></Image>
+            </Button>
+            <Button Margin="0,5,5,5" Content=" Fetch all Object "></Button>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Label x:Name="XPos" Content="X" Margin="5"></Label>
+                <Label x:Name="YPos" Content="Y" Margin="5"></Label>
+                <Label x:Name="DragStatus" Content="T/F" Margin="5"></Label>
+                <Label x:Name="currentWndHandleLbl" Content="0" Margin="5"></Label>
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+
+
+</Window>

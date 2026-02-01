@@ -1,0 +1,196 @@
+﻿<mars:MarsBaseViewControl x:Class="Mars.Views.ObjectsEditControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mars="clr-namespace:Mars.Views.baseView"
+             mc:Ignorable="d" 
+             xmlns:local="clr-namespace:Mars.ViewModel"
+             xmlns:con="clr-namespace:Mars.Converter"
+             xmlns:Helper="clr-namespace:Mars.Helpers"
+             xmlns:mv="clr-namespace:Mars.Validate"             
+             d:DesignHeight="500" d:DesignWidth="300" Width="400" DataContextChanged="UserControl_DataContextChanged">
+    <UserControl.Resources>
+        <!--
+        <con:WidthConverter x:Key="widthConverter"></con:WidthConverter>
+        <DataTemplate x:Key="myTemplate" DataType="ValidationExample.MyData">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Division: "/>
+                <TextBlock Text="{Binding Path=Division}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <ControlTemplate x:Key="errorTemplate">
+            <StackPanel>
+                <TextBlock Foreground="Red">Invalid Value!!!</TextBlock>
+                <AdornedElementPlaceholder/>
+            </StackPanel>
+        </ControlTemplate>
+-->
+
+        <ControlTemplate x:Key="TextBoxErrorTemplate">
+            <DockPanel LastChildFill="True">
+                <!--<TextBlock DockPanel.Dock="Top" Foreground="Red"  FontSize="9pt">! Please Check Value</TextBlock>-->
+                <AdornedElementPlaceholder x:Name="_el" />
+                <TextBlock Margin="0,0,6,0"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               Foreground="Red"
+                               Text="{Binding [0].ErrorContent}" />
+            </DockPanel>
+        </ControlTemplate>
+
+    </UserControl.Resources>
+    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"   >
+        <Border CornerRadius="3" BorderBrush="LightGray" BorderThickness="1" Margin="0,0,3,0">
+            <Grid Margin="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="32"></RowDefinition>
+                    <RowDefinition Height="32"></RowDefinition>
+                    <RowDefinition Height="32"></RowDefinition>
+                    <RowDefinition Height="32"></RowDefinition>
+                    <RowDefinition Height="32"></RowDefinition>
+                    <RowDefinition Height="88"></RowDefinition>
+                    <RowDefinition Height="88"></RowDefinition>
+                    <RowDefinition Height="32"></RowDefinition>
+                    <RowDefinition Height="34"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+                <!--Defined Column-->
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="130"></ColumnDefinition>
+                    <ColumnDefinition Width="2" MinWidth="1"></ColumnDefinition>
+                    <ColumnDefinition Width="*" ></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+
+                <DockPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"  Margin="3" Height="auto" >
+                    <Label x:Name="lblHeader" Content="Object Detail Editor" FontSize="20" Margin="3" ></Label>
+                    
+                </DockPanel>
+
+                <Label Content="Object Happy Name:" Grid.Column="0" Grid.Row="1" Margin="5" ></Label>
+                <TextBox Name="txtName" Validation.ErrorTemplate="{StaticResource TextBoxErrorTemplate}"
+                    Grid.Column="2" Grid.Row="1" Margin="3,2,3,4">
+                    <TextBox.Text>
+                        <Binding Path="OBJECT_HAPPY_NAME" UpdateSourceTrigger="LostFocus" Mode="TwoWay" ValidatesOnExceptions="true">
+                            <Binding.ValidationRules>
+                                <mv:IsNullValidateRule ErrorMessage="Object Name is important!"></mv:IsNullValidateRule>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+
+                </TextBox>
+
+                <Label Content="Orignal Happy Name:" Grid.Column="0" Grid.Row="2" Margin="5" ></Label>
+                <Label Content="{Binding OBJECT_HAPPY_NAME}" Grid.Column="2" Grid.Row="2" Margin="3" Background="Gray" ></Label>
+
+                <Label Content="Object Type:" Grid.Column="0" Grid.Row="3" Margin="5" ></Label>
+                <ComboBox x:Name="cbxType" Grid.Column="2" Grid.Row="3"                          
+                          SelectedValue="{Binding TYPE_ID}"                  
+                          DisplayMemberPath="TYPE_NAME"
+                          SelectedValuePath="TYPE_ID" Margin="3">
+                </ComboBox>
+
+                <Label Content="Application:" Grid.Column="0" Grid.Row="4" Margin="5" ></Label>
+                <ComboBox x:Name="cbxApplication"
+                          Grid.Column="2"  Grid.Row="4"
+                          SelectedValue="{Binding APPLICATION_ID}"
+                          SelectedValuePath="APPLICATION_ID" Margin="3">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0} v[{1}]">
+                                        <Binding Path="APP_SHORT_NAME"/>
+                                        <Binding Path="VERSION"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <Label Content="Pegwindow/Parent" Grid.Column="0" Grid.Row="5" Margin="5" ></Label>
+
+                <ComboBox x:Name="cbxPegwindow"
+                          Grid.Column="2" Grid.Row="5"                          
+                          DisplayMemberPath="OBJECT_TYPE"
+                          SelectedValue="{Binding OBJECT_TYPE}"
+                          SelectedValuePath="OBJECT_TYPE"                          
+                          Margin="3" Grid.ColumnSpan="2">
+                </ComboBox>
+
+                <!--SelectedItem="{Binding PegwindowStatus,Mode=OneWayToSource}"-->
+
+                <Label Content="Object Recongnize:" Grid.Column="0" Grid.Row="6" Margin="5" ></Label>
+                <TextBox x:Name="quickAccess" Grid.Column="2" Grid.Row="6" TextWrapping="Wrap"
+                        AcceptsReturn="True" Margin="3" Validation.ErrorTemplate="{StaticResource TextBoxErrorTemplate}"
+                        VerticalScrollBarVisibility="Visible" MaxWidth="395"
+                        HorizontalScrollBarVisibility="Visible">
+                    <TextBox.Text>
+                        <Binding Path="QUICK_ACCESS" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <mv:IsNullValidateRule ErrorMessage="QUICK_ACCESS Can't be Empty"></mv:IsNullValidateRule>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+
+                </TextBox>
+
+                <Label Content="Description" Grid.Column="0" Grid.Row="7" Margin="5" ></Label>
+                <TextBox x:Name="Description" Grid.Column="2" Grid.Row="7" TextWrapping="Wrap"
+                  AcceptsReturn="True" Margin="3"
+                  VerticalScrollBarVisibility="Visible" MaxWidth="395"
+                         HorizontalScrollBarVisibility="Visible">
+                    <TextBox.Text>
+                        <Binding Path="COMMENT" UpdateSourceTrigger="PropertyChanged"  >
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
+
+                <Label Content="Enum Type" Grid.Column="0" Grid.Row="8" Margin="5" ></Label>
+
+                <!--<TextBox Name="txtInternalName" Validation.ErrorTemplate="{StaticResource TextBoxErrorTemplate}" 
+                 >
+                <TextBox.Text>
+                    <Binding Path="InternalName" UpdateSourceTrigger="PropertyChanged"  >                       
+                    </Binding>
+                </TextBox.Text>
+            </TextBox>-->
+
+                <TextBox Name="txtEnumType" Validation.ErrorTemplate="{StaticResource TextBoxErrorTemplate}" 
+                 Grid.Column="2" Grid.Row="8" Margin="3" PreviewKeyDown="txtEnumType_PreviewKeyDown">
+                    <TextBox.Text>
+                        <Binding Path="ENUM_TYPE" UpdateSourceTrigger="PropertyChanged" Mode="TwoWay" >
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
+
+                <!--
+                <ComboBox x:Name="cbxEnumType" Grid.Column="2" Grid.Row="8"                          
+                           SelectedItem="{Binding SimpleStringProperty}" 
+                           IsSynchronizedWithCurrentItem="True" 
+                          Margin="3">
+                </ComboBox>
+-->
+                <CheckBox Grid.Column="0" Grid.Row="9" Grid.ColumnSpan="2" Content="Is Auto CheckError?" Margin="5" IsChecked="{Binding IsAutoCheckErrorValue,Mode=TwoWay}" ></CheckBox>
+                <DockPanel Grid.Column="0" Grid.Row="10" Grid.ColumnSpan="3" Margin="5,0,5,0" LastChildFill="False" >
+                    <Button Content="Update" DockPanel.Dock="Right" Width="100" Height="24" Margin="5" Click="Button_Click" Tag="UPDATE"></Button>
+                    <Button Content="Insert" DockPanel.Dock="Right" Width="70" Height="24" Margin="5" Click="Button_Click" Tag="INSERT"></Button>
+                    <Button Content="Delete" DockPanel.Dock="Right" Width="70" Height="24" Margin="5" Click="Button_Click" Tag="DELETE"></Button>
+                    <Button Content="Insert Peg" DockPanel.Dock="Right" Width="70" Height="24" Margin="5" Click="Button_Click" Tag="INSERT_PEG"></Button>
+                    <!--<Button x:Name="btnCancel" Content="Cancel" Width="70" Height="24" Margin="5" Command="{Binding ClearCommand}"></Button>-->
+                </DockPanel>
+
+                <!--<WrapPanel Grid.Column="3" Grid.Row="10" >
+                    <TextBlock Name="ObjectdatabaseControlStatus" Text="{Binding ObjectdatabaseControlStatus}" FontWeight="Bold" Background="#FFF5E008" />
+                </WrapPanel>-->
+
+                <StackPanel Grid.Column="0" Grid.Row="10" Grid.ColumnSpan="3">
+                    <TextBlock DockPanel.Dock="Top" Foreground="Red"  FontSize="9pt" x:Name="txtError"></TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </ScrollViewer>
+</mars:MarsBaseViewControl>

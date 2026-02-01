@@ -1,0 +1,47 @@
+﻿<Window x:Class="Mars.Dialog.MarsCommonFinder"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Mars.Dialog"
+        mc:Ignorable="d"
+        Margin="3"
+        Title="Mars Finder" Height="480" Width="400" WindowStartupLocation="CenterScreen" ResizeMode="CanResizeWithGrip" WindowStyle="ToolWindow"
+        local:MarsCommonFinder.DialogResult="{Binding dialogResult}">
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="21"></RowDefinition>
+            <RowDefinition Height="21"></RowDefinition>
+            <RowDefinition Height="21"></RowDefinition>
+            <RowDefinition Height="21"></RowDefinition>
+            <RowDefinition Height="*" ></RowDefinition>
+            <RowDefinition Height="21"></RowDefinition>
+
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Label Content="{Binding Hint}" x:Name="lblNameOfHint" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" FontWeight="Bold"></Label>
+        <Label Content="Key words: "  Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left"></Label>
+        <TextBox Grid.Row="2" Grid.Column="0" Margin="5,0,80,0" Grid.ColumnSpan="2" Text="{Binding SearchKey}"></TextBox>
+        <Button Grid.Row="2" Grid.Column="1" Width="70" HorizontalAlignment="Right" Content="Search" Margin="0,0,5,0" Command="{Binding onSearchButtonClick}"></Button>
+        <Label Content="Search Result:"  Grid.Row="3" Grid.Column="0" HorizontalAlignment="Left"></Label>
+        <ListView Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Background="{x:Null}" x:Name="lstRecord" ItemsSource="{Binding listDisplayResult}" 
+                  SelectionMode="Single"
+                  VerticalAlignment="Stretch" 
+                  HorizontalAlignment="Stretch"
+                  SelectedItem="{Binding selectedResultItem , Mode=TwoWay, NotifyOnSourceUpdated=True}"
+                  >
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Name" Width="140" DisplayMemberBinding="{Binding Name}" />
+                    <GridViewColumn Header="Description" Width="220" DisplayMemberBinding="{Binding Description}" />
+                </GridView>
+            </ListView.View>
+            
+        </ListView>
+        <Button Grid.Row="5" Grid.Column="1" Width="70" HorizontalAlignment="Right" Content="Ok" Margin="0,0,5,0" Command="{Binding onOkButtonClick}"></Button>
+        <Button Grid.Row="5" Grid.Column="0" Width="70" HorizontalAlignment="Right" Content="Cancel" Margin="0,0,80,0" Grid.ColumnSpan="2" Click="Cancel_Click"></Button>
+    </Grid>
+</Window>

@@ -1,0 +1,144 @@
+﻿<mars:MarsBaseViewControl x:Class="Mars.Views.KeywordLibrary"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local ="clr-namespace:Mars.ViewModel"
+             xmlns:control="clr-namespace:MultiSelectComboBox;assembly=MultiSelectComboBox"
+             xmlns:l="clr-namespace:Mars.Converter"
+               xmlns:Helper="clr-namespace:Mars.Helpers"
+             xmlns:mars="clr-namespace:Mars.Views.baseView"
+             
+             mc:Ignorable="d" 
+             d:DesignHeight="249" d:DesignWidth="400"
+             >
+    <!--Title="Keyword Library"-->
+    <Control.Resources>
+        <l:StringConverter x:Key="Convert" />
+        <Style TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="SeparatorBrush" Value="LightBlue" />
+            <Setter Property="FontWeight" Value="Black" />
+        </Style>
+
+        <Style TargetType="{x:Type DataGrid}">
+            <Setter Property="AlternatingRowBackground" Value="LightSteelBlue"/>
+        </Style>
+
+        <ControlTemplate x:Key="TextBoxErrorTemplate">
+            <DockPanel LastChildFill="True">
+                <TextBlock DockPanel.Dock="Right" 
+        Foreground="Orange"  FontSize="12pt">!</TextBlock>
+
+                <Border BorderBrush="Red" BorderThickness="1">
+                    <AdornedElementPlaceholder />
+                </Border>
+            </DockPanel>
+        </ControlTemplate>
+
+    </Control.Resources>
+
+    <Grid >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Row="0" Grid.Column="0" Height="22" Margin="0,2,0,0">
+            <Label x:Name="lblHeader" FontSize="15" FontWeight ="Black" Content="Keyword Library"  Margin="5,0,0,0" Height="20"  />
+        </StackPanel>
+        <DataGrid RowHeaderWidth="0"  Margin="0,2,0,0" Grid.Row="1" Grid.Column="0"  ItemsSource="{Binding KeywordList}" AutoGenerateColumns="False"
+        		CanUserDeleteRows="True"  SelectedItem="{Binding SelectedRow}" CanUserSortColumns="True"  IsReadOnly="True"
+                       VirtualizingStackPanel.VirtualizationMode="Recycling"
+                    VirtualizingStackPanel.IsVirtualizing="True" ScrollViewer.VerticalScrollBarVisibility="Visible">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="No." Width="Auto" Binding="{Binding SNo, UpdateSourceTrigger=PropertyChanged}"/>
+                <DataGridTextColumn Header="Keyword" Width="Auto" Binding="{Binding Keyword, UpdateSourceTrigger=PropertyChanged}"/>
+                
+                <DataGridTemplateColumn Header="Control Type" Width="Auto" >
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid MaxHeight="100">
+                                <ListBox ItemsSource="{Binding ControlTypes, UpdateSourceTrigger=PropertyChanged}" MaxHeight="100"></ListBox>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Entry in Data file" Width="Auto" Binding="{Binding EntryInDataFile, UpdateSourceTrigger=PropertyChanged}"/>
+            </DataGrid.Columns>
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Command= "{Binding AddCommand}" Header="Add" />
+                    <MenuItem Command= "{Binding EditCommand}" Header="Edit" />
+                    <MenuItem Command= "{Binding DeleteCommand}" Header="Delete" />
+                    <MenuItem Command= "{Binding ExportToExcelCommand}" 
+                                  CommandParameter="{Binding PlacementTarget.ItemsSource, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  Header="Export To Excel" />
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+        </DataGrid>
+        <Popup Name="popup"  IsOpen="{Binding IsOpen}" Height="200" Width="350" Placement="MousePoint" VerticalOffset="15" HorizontalOffset="0" 
+               Grid.ColumnSpan="2" Margin="304,99,305,135" Grid.Row="1"
+               AllowsTransparency="True">
+            <Border BorderThickness="1" CornerRadius="10" Background="LightGray">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                    <Grid Width="348" >
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition  Width="140"/>
+                            <ColumnDefinition Width="170"/>
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Keyword" Margin=" 5,5,0,0" Grid.Row="0" Grid.Column="0"   Height="30"  FontFamily="Times New Roman" Foreground="Black" FontWeight="Bold" FontSize="12" />
+                        <!--<TextBox  Grid.Row="0" Grid.Column="1"  Height="20"  Name="txtKeyword" Text="{Binding KeywordInput, UpdateSourceTrigger=PropertyChanged}" />-->
+
+                        <TextBox Name="txtKeyword" Grid.Row="0" Grid.Column="1"  Height="25" Validation.ErrorTemplate="{StaticResource TextBoxErrorTemplate}" >
+                            <TextBox.Text>
+                                <Binding Path="KeywordInput" UpdateSourceTrigger="PropertyChanged"  NotifyOnValidationError="True">
+                                </Binding>
+                            </TextBox.Text>
+                        </TextBox>
+
+                        <TextBlock Text="ControlType" Margin=" 5,5,0,0"  Grid.Row="1" Grid.Column="0"  Height="30" FontFamily="Times New Roman" Foreground="Black" FontWeight="Bold" FontSize="12" />
+                        <control:MultiSelectComboBox Grid.Row="1" Grid.Column="1" Height="30" ItemsSource="{Binding Items,Mode=OneWay}" SelectedItems="{Binding SelectedItems,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" x:Name="MC" ToolTip="{Binding Path=Text, RelativeSource={RelativeSource Self}}"/>
+                        <TextBlock Text="Entry in Data File" Margin=" 5,5,0,0"  Grid.Row="2" Grid.Column="0"  Height="30" FontFamily="Times New Roman" Foreground="Black" FontWeight="Bold" FontSize="12" />
+                        <TextBox  Grid.Row="2" Grid.Column="1"  Height="20"   Name="txtEntryInDataFile" Text="{Binding EntryInDataFileInput, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <Button Content="Save" Margin=" 5,15,0,0" Width="100" Command="{Binding SaveCommand}" Grid.Row="5" Grid.Column="1"  FontFamily="Times New Roman" Foreground="Black" FontWeight="Bold" FontSize="12" >
+                            <Button.Background>
+                                <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+                                    <GradientStop Color="#FFF3F3F3" Offset="0"/>
+                                    <GradientStop Color="#FFEBEBEB" Offset="0.5"/>
+                                    <GradientStop Color="#FFDDDDDD" Offset="0.5"/>
+                                    <GradientStop Color="#FFE8C2C2" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Button.Background>
+                        </Button>
+                        <Button Content="X" Command="{Binding ClosePopupCommand}"  Grid.Row="0" Grid.Column="3" Height="20" Width="20" FontFamily="Times New Roman" Foreground="Red" FontWeight="Bold" FontSize="12" />
+
+
+
+
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+    </Grid>
+
+
+</mars:MarsBaseViewControl>

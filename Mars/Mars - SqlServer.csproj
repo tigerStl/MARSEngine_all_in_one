@@ -1,0 +1,736 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A6855F0F-EB3A-4706-B48E-8C912E4BA671}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Mars</RootNamespace>
+    <AssemblyName>Mars</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <NuGetPackageImportStamp>d8d232c2</NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_TIGER_TEST_1;_START_QTP_FROM_APP;PERFORMANCE_TRACKING_1;_Datafrom_Database;_pdfreport;v_16AndUp;v_useNameId;db4SQL</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>favicon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NoWin32Manifest>true</NoWin32Manifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DatabaseLayer\SqlServer\Mars.DB.SqlServer\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DatabaseLayer\SqlServer\Mars.DB.SqlServer\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\dotnetLib\log4net-1.2.13-bin-newkey\log4net-1.2.13\bin\net\4.0\release\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=12.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Common, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EnterpriseLibrary.Common.6.0.1304.0\lib\NET45\Microsoft.Practices.EnterpriseLibrary.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Logging, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EnterpriseLibrary.Logging.6.0.1304.0\lib\NET45\Microsoft.Practices.EnterpriseLibrary.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Validation, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EnterpriseLibrary.Validation.6.0.1304.0\lib\NET45\Microsoft.Practices.EnterpriseLibrary.Validation.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Validation.Integration.WPF, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EnterpriseLibrary.Validation.Integration.WPF.6.0.1304.0\lib\NET45\Microsoft.Practices.EnterpriseLibrary.Validation.Integration.WPF.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.Prism.Composition">
+      <HintPath>..\packages\Prism.Composition.5.0.0\lib\NET45\Microsoft.Practices.Prism.Composition.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.Prism.Interactivity">
+      <HintPath>..\packages\Prism.Interactivity.5.0.0\lib\NET45\Microsoft.Practices.Prism.Interactivity.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.Prism.Mvvm">
+      <HintPath>..\packages\Prism.Mvvm.1.0.0\lib\net45\Microsoft.Practices.Prism.Mvvm.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.Prism.Mvvm.Desktop">
+      <HintPath>..\packages\Prism.Mvvm.1.0.0\lib\net45\Microsoft.Practices.Prism.Mvvm.Desktop.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.Prism.PubSubEvents">
+      <HintPath>..\packages\Prism.PubSubEvents.1.0.0\lib\portable-sl4+wp7+windows8+net40\Microsoft.Practices.Prism.PubSubEvents.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.Prism.SharedInterfaces">
+      <HintPath>..\packages\Prism.Mvvm.1.0.0\lib\net45\Microsoft.Practices.Prism.SharedInterfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\CommonServiceLocator.1.2\lib\portable-windows8+net40+sl5+windowsphone8\Microsoft.Practices.ServiceLocation.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.DirectoryServices.Protocols" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="system.windows.controls.ribbon" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="UIAutomationProvider" />
+    <Reference Include="UIAutomationTypes" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WPFToolkit, Version=3.5.40128.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\WPF Toolkit\v3.5.50211.1\WPFToolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="WPFToolkit.Design, Version=3.5.40128.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\WPF Toolkit\v3.5.50211.1\WPFToolkit.Design.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="Converter\BaseCompConverter.cs" />
+    <Compile Include="Converter\EnumMatchToBooleanConverter .cs" />
+    <Compile Include="Converter\MarsBoolReverseConvert.cs" />
+    <Compile Include="Converter\StringConverter.cs" />
+    <Compile Include="Converter\TimeUtil.cs" />
+    <Compile Include="Converter\WidthConverter.cs" />
+    <Compile Include="DataLoader\TestCaseDataLoader.cs" />
+    <Compile Include="Delegate\DelegateForMainWindows.cs" />
+    <Compile Include="Dialog\ExcelToTCDialog.xaml.cs">
+      <DependentUpon>ExcelToTCDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\FillEditWizardDialog1.xaml.cs">
+      <DependentUpon>FillEditWizardDialog1.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\FillTableWizardDialog.xaml.cs">
+      <DependentUpon>FillTableWizardDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\FilterControl.cs" />
+    <Compile Include="Dialog\FilterDialogControl.xaml.cs">
+      <DependentUpon>FilterDialogControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\FilteredListDialog.xaml.cs">
+      <DependentUpon>FilteredListDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\MarsCommonFinder.xaml.cs">
+      <DependentUpon>MarsCommonFinder.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\MarsDialogHelper.cs" />
+    <Compile Include="Dialog\SaveAsDialog.xaml.cs">
+      <DependentUpon>SaveAsDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\SaveAsWithDescriptionDialog.xaml.cs">
+      <DependentUpon>SaveAsWithDescriptionDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialog\TextSearchFilter.cs" />
+    <Compile Include="Helpers\ClipboardHelper.cs" />
+    <Compile Include="Helpers\DataGridCellTemplateSelector.cs" />
+    <Compile Include="Helpers\DeleteTestCaseHelper.cs" />
+    <Compile Include="Helpers\GridViewSort.cs" />
+    <Compile Include="Helpers\ListViewToCSV.cs" />
+    <Compile Include="Helpers\StringRangeValidatorRule.cs" />
+    <Compile Include="Helpers\TreeViewHelper.cs" />
+    <Compile Include="INotifyPrope\rtyChanged.cs" />
+    <Compile Include="Report\TestReportData.cs" />
+    <Compile Include="Utility\CommanDataStructures.cs" />
+    <Compile Include="Utility\CustomRoutedEventArgs.cs" />
+    <Compile Include="Utility\DataTableUtil.cs" />
+    <Compile Include="Utility\ExcelUtil.cs" />
+    <Compile Include="Utility\MarsBaseUserControl.cs" />
+    <Compile Include="Utility\MarsConstants.cs" />
+    <Compile Include="Validate\MarsUIValidate.cs" />
+    <Compile Include="ViewModel\BaseData\MarsDataSettingTabsBase.cs" />
+    <Compile Include="ViewModel\BaselineDataEditorViewModel.cs" />
+    <Compile Include="ViewModel\BaselineDataEditorViewModelSub\BaselineDataSupport.cs" />
+    <Compile Include="ViewModel\BaselineDataEditorViewModelSub\KeyCollection.cs" />
+    <Compile Include="ViewModel\DashboardViewModel.cs" />
+    <Compile Include="ViewModel\ExcelToTCViewModel.cs" />
+    <Compile Include="ViewModel\IDataSheetLinkViewModel.cs" />
+    <Compile Include="ViewModel\MarsViewModelFactory.cs" />
+    <Compile Include="ViewModel\StoryboardEditViewModel.cs" />
+    <Compile Include="ViewModel\InputBindingBehavior.cs" />
+    <Compile Include="ViewModel\InteractionRequest.cs" />
+    <Compile Include="ViewModel\ITestCaseViewModel.cs" />
+    <Compile Include="ViewModel\KeywordLibraryViewModel.cs" />
+    <Compile Include="ViewModel\ObjectDatabaseViewModel.cs" />
+    <Compile Include="ViewModel\OpenViewModel.cs" />
+    <Compile Include="ViewModel\SaveAsViewModel.cs" />
+    <Compile Include="ViewModel\StoryboardViewModel.cs" />
+    <Compile Include="ViewModel\TestApplicationRegistrationViewModel.cs" />
+    <Compile Include="ViewModel\TestCaseEditViewModel.cs" />
+    <Compile Include="ViewModel\TestCaseViewModel.cs" />
+    <Compile Include="ViewModel\DataSheetLinkViewModel.cs" />
+    <Compile Include="ViewModel\TestResultsViewModel.cs" />
+    <Compile Include="ViewModel\TestResultTabViewModel.cs" />
+    <Compile Include="ViewModel\TestSuiteEditViewModel.cs" />
+    <Compile Include="ViewModel\TestVarDatabaseViewModel.cs" />
+    <Compile Include="ViewModel\TreeViewModelBase.cs" />
+    <Compile Include="Views\BaselineDataEditorControl1.xaml.cs">
+      <DependentUpon>BaselineDataEditorControl1.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DashboardControl.xaml.cs">
+      <DependentUpon>DashboardControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DataSheetLink.xaml.cs">
+      <DependentUpon>DataSheetLink.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ObjectLoadFromExcelControl.xaml.cs">
+      <DependentUpon>ObjectLoadFromExcelControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ObjectsEditControl.xaml.cs">
+      <DependentUpon>ObjectsEditControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SharedDataSetViewModel.cs" />
+    <Compile Include="Views\StoryboardCombinedControl.xaml.cs">
+      <DependentUpon>StoryboardCombinedControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\StoryboardCompareControl.xaml.cs">
+      <DependentUpon>StoryboardCompareControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\StoryboardEditControl.xaml.cs">
+      <DependentUpon>StoryboardEditControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\KeywordLibrary.xaml.cs">
+      <DependentUpon>KeywordLibrary.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ObjectDatabaseAddControl.xaml.cs">
+      <DependentUpon>ObjectDatabaseAddControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ObjectDatabaseAmendControl.xaml.cs">
+      <DependentUpon>ObjectDatabaseAmendControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ObjectDatabaseOpenControl.xaml.cs">
+      <DependentUpon>ObjectDatabaseOpenControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ProjectTabControl.xaml.cs">
+      <DependentUpon>ProjectTabControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SaveAsControl.xaml.cs">
+      <DependentUpon>SaveAsControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\StoryboardAddControl.xaml.cs">
+      <DependentUpon>StoryboardAddControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\subViews\MarsTabItemWithTextBoxControl.xaml.cs">
+      <DependentUpon>MarsTabItemWithTextBoxControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestApplicationRegistration.xaml.cs">
+      <DependentUpon>TestApplicationRegistration.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestCaseEdit.xaml.cs">
+      <DependentUpon>TestCaseEdit.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestCaseImportControl.xaml.cs">
+      <DependentUpon>TestCaseImportControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestCasePropertiesControl.xaml.cs">
+      <DependentUpon>TestCasePropertiesControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestCaseTabControl.xaml.cs">
+      <DependentUpon>TestCaseTabControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestResultsViewControl.xaml.cs">
+      <DependentUpon>TestResultsViewControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestResultTabView.xaml.cs">
+      <DependentUpon>TestResultTabView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestSuiteEditControl.xaml.cs">
+      <DependentUpon>TestSuiteEditControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModel\MarsTreeView.cs" />
+    <Compile Include="Helpers\ValidatedObject.cs" />
+    <Compile Include="Helpers\DelegateCommand.cs" />
+    <Compile Include="ViewModel\ApplicationViewModel.cs" />
+    <Compile Include="ViewModel\IProjectViewModel.cs" />
+    <Compile Include="ViewModel\ITestSuiteViewModel.cs" />
+    <Compile Include="ViewModel\ProjectEditViewModel.cs" />
+    <Compile Include="ViewModel\ProjectViewModel.cs" />
+    <Compile Include="ViewModel\TestSuiteViewModel.cs" />
+    <Compile Include="ViewModel\ViewModelBase.cs" />
+    <Compile Include="Views\ApplicationAmendControl.xaml.cs">
+      <DependentUpon>ApplicationAmendControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModel\IApplicationViewModel.cs" />
+    <Compile Include="Views\ApplicationPropertyControl.xaml.cs">
+      <DependentUpon>ApplicationPropertyControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ProjectAddControl.xaml.cs">
+      <DependentUpon>ProjectAddControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ProjectEditControl.xaml.cs">
+      <DependentUpon>ProjectEditControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestCaseAddControl.xaml.cs">
+      <DependentUpon>TestCaseAddControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestSuiteAddControl.xaml.cs">
+      <DependentUpon>TestSuiteAddControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestVarDatabaseControl.xaml.cs">
+      <DependentUpon>TestVarDatabaseControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestVarEditControl.xaml.cs">
+      <DependentUpon>TestVarEditControl.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Dialog\ExcelToTCDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\FillEditWizardDialog1.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\FillTableWizardDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\FilterDialogControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\FilteredListDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\MarsCommonFinder.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialog\SaveAsDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\SaveAsWithDescriptionDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="Views\BaselineDataEditorControl1.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\DashboardControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\DataSheetLink.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ObjectLoadFromExcelControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ObjectsEditControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\StoryboardCombinedControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\StoryboardCompareControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\StoryboardEditControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\KeywordLibrary.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ObjectDatabaseAddControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ObjectDatabaseAmendControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ObjectDatabaseOpenControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ProjectTabControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SaveAsControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\StoryboardAddControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\subViews\MarsTabItemWithTextBoxControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestApplicationRegistration.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestCaseEdit.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestCaseImportControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\TestCasePropertiesControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestCaseTabControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestResultsViewControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestResultTabView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestSuiteEditControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Themes\BureauBlue.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ApplicationAmendControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ApplicationPropertyControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ProjectAddControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ProjectEditControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestCaseAddControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestSuiteAddControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestVarDatabaseControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TestVarEditControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\save_as-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\add_file-512.png" />
+    <Resource Include="Images\opened_folder-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\save-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\link2-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\delete-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\help-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\edit_property-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\mobAppDwn.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\mobAppDwn.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\ico1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <SplashScreen Include="Images\Mars.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DatabaseLayer\SqlServer\Mars.DB.SqlServer\Mars.DB.SqlServer.csproj">
+      <Project>{7cb6b922-befd-4fd1-afc4-b24e4988020a}</Project>
+      <Name>Mars.DB.SqlServer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MARS.CompareGUI\MARSCompareGUI\MARS.CompareGUI - SqlServer.csproj">
+      <Project>{3a7a5728-e237-49f7-9901-f69f94d9dc4d}</Project>
+      <Name>MARS.CompareGUI - SqlServer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MARSCompareGUI\XmlCompareLib\XmlCompareLib.csproj">
+      <Project>{908f9767-985b-4c86-a88f-6c3e845ca38d}</Project>
+      <Name>XmlCompareLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MarsTestingFrame\Mars.autoTest.report.pdf\Mars.autoTest.report.pdf.csproj">
+      <Project>{19af5390-d7dd-44b3-a004-1f4b46adc03f}</Project>
+      <Name>Mars.autoTest.report.pdf</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Controls\MultiSelectComboBox\MultiSelectComboBox.csproj">
+      <Project>{ce17a54e-0661-429f-afdc-272e8668b14e}</Project>
+      <Name>MultiSelectComboBox</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MarsTestingFrame\MarsTestingFrame\MarsTestFrame - sqlserver.csproj">
+      <Project>{06bd4fe8-9c1a-4f4c-9836-4b6d2ee6a45a}</Project>
+      <Name>MarsTestFrame - sqlserver</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Video\MarsVideoPlayer.csproj">
+      <Project>{5384ad79-9ebc-4bc4-918e-0d8fd816d04d}</Project>
+      <Name>MarsVideoPlayer</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\copy-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\cllipboard-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\documents_folder-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\test_tube-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\external-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\edit_property-512 - Copy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\edit-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\link-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\document-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\automatic-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\TestTestCase64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Add.png" />
+    <Resource Include="Images\ball_point_pen-512.png" />
+    <Resource Include="Images\cancel.png" />
+    <Resource Include="Images\cancel_small.png" />
+    <Resource Include="Images\refresh-512.png" />
+    <Resource Include="Images\Remove.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\rename-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\target.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\MARS3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\video_file-512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Checkmark.png" />
+    <Resource Include="Images\compare.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Editing-Paste-Special-icon.png" />
+    <Resource Include="Images\import-icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\key_blue.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\ticket-64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\tree_structure-64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\settings-64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="favicon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\add_list-26.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\invoice-26.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\invoice-128.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\lamp_genie-64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Variable.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
