@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Java UI Object",
+  "description": "Two-layer structure: parent + object for unique element identification",
+  "type": "object",
+  "required": ["uniqueName"],
+  "properties": {
+    "uniqueName": {
+      "type": "string",
+      "description": "Unique name for this UI element"
+    },
+    "parent": {
+      "$ref": "#/definitions/elementIdentifier",
+      "description": "Parent element identifier (null for root window)"
+    },
+    "identifier": {
+      "$ref": "#/definitions/elementIdentifier",
+      "description": "This element's identifier"
+    },
+    "index": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Index when multiple elements match (top-to-bottom, left-to-right order)"
+    }
+  },
+  "definitions": {
+    "elementIdentifier": {
+      "type": "object",
+      "description": "Identifies element using one or more properties",
+      "properties": {
+        "text": { "type": "string", "description": "Visible text" },
+        "caption": { "type": "string", "description": "Window/component caption" },
+        "name": { "type": "string", "description": "Component name" },
+        "namePath": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Path from parent to this: [parentName, ..., selfName]"
+        },
+        "javaType": { "type": "string", "description": "Java class name (e.g. javax.swing.JTextField)" },
+        "objectTypePath": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Type path from parent: [parentType, ..., selfType]"
+        }
+      }
+    }
+  }
+}

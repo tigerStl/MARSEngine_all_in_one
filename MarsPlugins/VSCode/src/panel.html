@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:;">
+  <title>Java UI Automation</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; font-family: var(--vscode-font-family); font-size: 13px; color: var(--vscode-foreground); }
+    .container { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    .toolbar { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--vscode-panel-border); background: var(--vscode-editor-background); }
+    .toolbar-btn { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--vscode-button-border); background: var(--vscode-button-background); color: var(--vscode-button-foreground); cursor: pointer; border-radius: 4px; }
+    .toolbar-btn:hover { background: var(--vscode-button-hoverBackground); }
+    .toolbar-btn.spy { width: auto; padding: 0 10px; }
+    .toolbar-btn.img-btn { width: auto; min-width: 32px; height: 28px; padding: 0 8px; }
+    .toolbar-btn.img-btn img { width: 16px; height: 16px; margin-right: 4px; vertical-align: middle; }
+    .toolbar-combo { min-width: 200px; padding: 4px 8px; font-size: 12px; border: 1px solid var(--vscode-input-border); background: var(--vscode-input-background); color: var(--vscode-input-foreground); border-radius: 4px; }
+    .main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+    .left-panel { width: 280px; min-width: 200px; display: flex; flex-direction: column; border-right: 1px solid var(--vscode-panel-border); overflow: hidden; flex-shrink: 0; }
+    #splitter { width: 6px; cursor: col-resize; background: linear-gradient(90deg, transparent, rgba(128,128,128,0.12), transparent); flex-shrink: 0; }
+    .object-list-label { padding: 6px 8px; font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--vscode-panel-border); flex-shrink: 0; }
+    .ui-tree { flex: 1; overflow-y: auto; padding: 4px; font-size: 12px; min-height: 0; }
+    .tree-node { padding: 2px 0 2px 16px; cursor: pointer; }
+    .tree-node:hover { background: var(--vscode-list-hoverBackground); }
+    .tree-node.selected { background: var(--vscode-list-activeSelectionBackground); }
+    .tree-node.object-hidden { color: var(--vscode-errorForeground); }
+    .center-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 200px; }
+    .log-section { flex-shrink: 0; border-bottom: 1px solid var(--vscode-panel-border); }
+    .log-section h3 { margin: 0; padding: 6px 12px; font-size: 12px; background: var(--vscode-editor-inactiveSelectionBackground); }
+    .log-textarea { width: 100%; height: 100px; min-height: 100px; padding: 8px; font-size: 11px; font-family: monospace; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); border: none; resize: vertical; display: block; box-sizing: border-box; }
+    .center-row { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+    .object-info-wrap { width: 33.33%; min-width: 180px; display: flex; flex-direction: column; border-right: 1px solid var(--vscode-panel-border); overflow: hidden; }
+    .object-info-wrap h3 { margin: 0; padding: 6px 12px; font-size: 12px; background: var(--vscode-editor-inactiveSelectionBackground); flex-shrink: 0; }
+    .object-info { padding: 12px; font-size: 12px; overflow: auto; min-height: 0; flex: 1; }
+    .object-info table { width: 100%; border-collapse: collapse; }
+    .object-info td { padding: 4px 8px 4px 0; vertical-align: top; }
+    .object-info td:first-child { color: var(--vscode-descriptionForeground); width: 100px; }
+    .steps-panel { flex: 1; min-width: 200px; display: flex; flex-direction: column; overflow: hidden; }
+    .steps-panel h3 { margin: 0; padding: 6px 12px; font-size: 12px; background: var(--vscode-editor-inactiveSelectionBackground); flex-shrink: 0; }
+    .steps-panel-inner { overflow: auto; flex: 1; min-height: 0; padding: 8px; }
+    .steps-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .steps-table th, .steps-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--vscode-panel-border); }
+    .steps-table th { background: var(--vscode-editor-inactiveSelectionBackground); font-weight: 600; }
+    .steps-table tr:hover { background: var(--vscode-list-hoverBackground); }
+    .action-btn { padding: 2px 6px; margin: 0 2px; font-size: 11px; cursor: pointer; border-radius: 3px; border: 1px solid; }
+    .action-btn.delete { background: var(--vscode-errorForeground); color: white; border-color: var(--vscode-errorForeground); }
+    .action-btn.skip { background: var(--vscode-editorWarning-foreground); color: white; }
+    tr.skipped { opacity: 0.6; text-decoration: line-through; }
+    .empty-msg { color: var(--vscode-descriptionForeground); padding: 12px; font-style: italic; }
+    .icon { font-size: 14px; }
+    .tree-root { padding-left: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="toolbar">
+      <button class="toolbar-btn" id="btnSettings" title="Settings">&#9881;</button>
+      <button class="toolbar-btn spy" id="btnSpy" title="Refresh Java applications">Java Applications</button>
+      <select id="processCombo" class="toolbar-combo" title="Java applications">
+        <option value="">-- Select --</option>
+      </select>
+      <button class="toolbar-btn img-btn" id="btnGenerateSteps" title="Generate Test Steps"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='16' y1='13' x2='8' y2='13'/%3E%3Cline x1='16' y1='17' x2='8' y2='17'/%3E%3Cpolyline points='10 9 9 9 8 9'/%3E%3C/svg%3E" alt="">Generate</button>
+      <button class="toolbar-btn img-btn" id="btnExecute" title="Execute"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpolygon points='5 3 19 12 5 21 5 3'/%3E%3C/svg%3E" alt="">Execute</button>
+    </div>
+    <div class="main">
+      <div class="left-panel" id="leftPanel">
+        <div class="object-list-label">---&gt;Object List</div>
+        <div class="ui-tree" id="uiTree">
+          <div class="empty-msg">Select an application from dropdown to scan UI objects</div>
+        </div>
+      </div>
+      <div id="splitter" title="Drag to resize panels"></div>
+      <div class="center-panel">
+        <div class="log-section">
+          <h3>Log (plugin actions)</h3>
+          <textarea class="log-textarea" id="logTextarea" readonly placeholder="Click Window Spy to start..."></textarea>
+        </div>
+        <div class="center-row">
+          <div class="object-info-wrap">
+            <h3>Object Info</h3>
+            <div class="object-info" id="objectInfo">
+              <div class="empty-msg">Select an object to view details</div>
+            </div>
+          </div>
+          <div class="steps-panel">
+            <h3>Test Steps</h3>
+            <div class="steps-panel-inner">
+          <table class="steps-table" id="stepsTable">
+            <thead>
+              <tr>
+                <th style="width:40px">#</th>
+                <th>Keyword</th>
+                <th>Parent</th>
+                <th>Object</th>
+                <th>Para</th>
+                <th>Data</th>
+                <th>Expected</th>
+                <th style="width:100px">Action</th>
+              </tr>
+            </thead>
+            <tbody id="stepsBody">
+            </tbody>
+          </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const vscode = acquireVsCodeApi();
+    let processes = [];
+    let objects = [];
+    let objectTree = [];
+    let steps = [];
+    let selectedProcess = null;
+
+    console.log('[panel.html] Initializing event handlers...');
+    document.getElementById('btnSettings').onclick = () => {
+      console.log('[btnSettings] Settings button clicked');
+      vscode.postMessage({ type: 'settings' });
+    };
+    document.getElementById('btnSpy').onclick = () => {
+      appendLog('[client] Java Applications clicked, clearing and requesting processes...\r\n');
+      const combo = document.getElementById('processCombo');
+      if (combo) { combo.innerHTML = '<option value="">-- Select --</option>'; combo.value = ''; }
+      processes = [];
+      objects = [];
+      objectTree = [];
+      renderUITree();
+      vscode.postMessage({ type: 'getProcesses' });
+    };
+
+    document.getElementById('btnGenerateSteps').onclick = () => {
+      vscode.postMessage({ type: 'generateSteps' });
+    };
+    document.getElementById('btnExecute').onclick = () => {
+      vscode.postMessage({ type: 'execute' });
+    };
+
+    document.getElementById('processCombo').onchange = () => {
+      const combo = document.getElementById('processCombo');
+      const val = combo ? combo.value : '';
+      const pid = val ? parseInt(val, 10) : null;
+      selectedProcess = pid;
+      if (pid) vscode.postMessage({ type: 'scanProcess', pid });
+    };
+
+    window.addEventListener('message', (e) => {
+      const msg = e.data;
+      console.log('[panel] message received:', msg?.type, msg);
+      switch (msg.type) {
+        case 'pong':
+          break;
+        case 'processes':
+          processes = Array.isArray(msg.data) ? msg.data : [];
+          const combo = document.getElementById('processCombo');
+          if (combo) {
+            combo.innerHTML = '<option value="">-- Select --</option>' + processes.map(p => {
+              const label = (p.displayName || p.mainClass || 'java').substring(0, 50) + ' | ' + p.pid;
+              return '<option value="' + p.pid + '">' + label + '</option>';
+            }).join('');
+          }
+          break;
+        case 'objects':
+          objects = msg.data || [];
+          objectTree = [];
+          renderUITree();
+          break;
+        case 'objectTree':
+          objectTree = Array.isArray(msg.data) ? msg.data : [];
+          renderUITree();
+          break;
+        case 'objectSelected':
+          renderObjectInfo(msg.data);
+          break;
+        case 'steps':
+          steps = msg.data || [];
+          renderSteps();
+          break;
+        case 'error':
+          appendLog('[error] ' + msg.message + '\r\n');
+          console.error(msg.message);
+          break;
+        case 'log':
+          appendLog(msg.data || '');
+          break;
+        case 'logAnalyzing':
+          appendAnalyzingLine(msg.pid, msg.name);
+          break;
+        case 'logFound':
+          replaceLastWithFound(msg.pid, msg.display);
+          break;
+        case 'logSkip':
+          removeLastLine();
+          break;
+        case 'restoreState':
+          if (msg.state) {
+            processes = Array.isArray(msg.state.processes) ? msg.state.processes : [];
+            objects = Array.isArray(msg.state.objects) ? msg.state.objects : [];
+            objectTree = [];
+            steps = Array.isArray(msg.state.steps) ? msg.state.steps : [];
+            const logText = typeof msg.state.logText === 'string' ? msg.state.logText : '';
+            const ta = document.getElementById('logTextarea');
+            if (ta) ta.value = logText;
+            if (processes.length > 0) {
+              const c = document.getElementById('processCombo');
+              if (c) {
+                c.innerHTML = '<option value="">-- Select --</option>' + processes.map(p => {
+                  const label = (p.displayName || p.mainClass || 'java').substring(0, 50) + ' | ' + p.pid;
+                  return '<option value="' + p.pid + '">' + label + '</option>';
+                }).join('');
+              }
+            }
+            renderUITree();
+            renderSteps();
+          }
+          break;
+      }
+    });
+
+    let lastAnalyzingStart = -1;
+
+    function appendLog(text) {
+      const ta = document.getElementById('logTextarea');
+      if (ta) {
+        ta.value += text;
+        ta.scrollTop = ta.scrollHeight;
+      }
+      lastAnalyzingStart = -1;
+    }
+
+    function appendAnalyzingLine(pid, name) {
+      const ta = document.getElementById('logTextarea');
+      if (!ta) return;
+      lastAnalyzingStart = ta.value.length;
+      ta.value += 'Analyzing PID ' + pid + ': ' + name + '...\r\n';
+      ta.scrollTop = ta.scrollHeight;
+    }
+
+    function replaceLastWithFound(pid, display) {
+      const ta = document.getElementById('logTextarea');
+      if (!ta || lastAnalyzingStart < 0) return;
+      ta.value = ta.value.substring(0, lastAnalyzingStart) + 'Found Java: PID ' + pid + ': ' + (display || '').substring(0, 60) + '\r\n';
+      ta.scrollTop = ta.scrollHeight;
+      lastAnalyzingStart = -1;
+    }
+
+    function removeLastLine() {
+      const ta = document.getElementById('logTextarea');
+      if (!ta || lastAnalyzingStart < 0) return;
+      ta.value = ta.value.substring(0, lastAnalyzingStart);
+      lastAnalyzingStart = -1;
+    }
+
+    function flattenTreeToList(nodes) {
+      const out = [];
+      function walk(ns) {
+        if (!ns) return;
+        for (let i = 0; i < ns.length; i++) {
+          out.push(ns[i]);
+          if (ns[i].children && ns[i].children.length) walk(ns[i].children);
+        }
+      }
+      walk(nodes);
+      return out;
+    }
+
+    function renderUITree() {
+      const tree = document.getElementById('uiTree');
+      if (!tree) return;
+
+      if (objectTree.length > 0) {
+        let flatList = [];
+        function renderNode(node, depth) {
+          const i = flatList.length;
+          flatList.push(node);
+          const name = node.uniqueName || node.identifier?.javaType || '?';
+          const hidden = node.identifier && node.identifier.visible === false;
+          const cls = 'tree-node' + (depth === 0 ? ' tree-root' : '') + (hidden ? ' object-hidden' : '');
+          const pad = depth * 14;
+          let html = '<div class="' + cls + '" data-idx="' + i + '" style="padding-left:' + pad + 'px">' + name + '</div>';
+          if (node.children && node.children.length)
+            for (let k = 0; k < node.children.length; k++) html += renderNode(node.children[k], depth + 1);
+          return html;
+        }
+        let html = '<div class="empty-msg">Select object to view info; double-click to highlight</div>';
+        for (let r = 0; r < objectTree.length; r++) html += renderNode(objectTree[r], 0);
+        tree.innerHTML = html;
+        const listForClick = flatList;
+        tree.querySelectorAll('.tree-node').forEach(el => {
+          el.onclick = () => {
+            tree.querySelectorAll('.tree-node').forEach(x => x.classList.remove('selected'));
+            el.classList.add('selected');
+            const idx = parseInt(el.dataset.idx);
+            if (!isNaN(idx) && listForClick[idx]) vscode.postMessage({ type: 'selectObject', object: listForClick[idx] });
+          };
+          el.ondblclick = () => {
+            const idx = parseInt(el.dataset.idx);
+            if (!isNaN(idx) && listForClick[idx] && selectedProcess != null) {
+              vscode.postMessage({ type: 'highlight', pid: selectedProcess, object: listForClick[idx] });
+            }
+          };
+        });
+        return;
+      }
+
+      if (objects.length === 0) {
+        tree.innerHTML = '<div class="empty-msg">Select an application from dropdown to scan UI objects</div>';
+        return;
+      }
+      function mkNode(obj, idx) {
+        const name = obj.uniqueName || obj.identifier?.javaType || '?';
+        const hidden = obj.identifier && obj.identifier.visible === false;
+        const cls = 'tree-node tree-root' + (hidden ? ' object-hidden' : '');
+        return '<div class="' + cls + '" data-idx="' + idx + '">' + name + '</div>';
+      }
+      tree.innerHTML = '<div class="empty-msg">Select object to view info; double-click to highlight</div>' + objects.map((o, i) => mkNode(o, i)).join('');
+      tree.querySelectorAll('.tree-node').forEach(el => {
+        el.onclick = () => {
+          tree.querySelectorAll('.tree-node').forEach(x => x.classList.remove('selected'));
+          el.classList.add('selected');
+          const idx = parseInt(el.dataset.idx);
+          if (!isNaN(idx) && objects[idx]) vscode.postMessage({ type: 'selectObject', object: objects[idx] });
+        };
+        el.ondblclick = () => {
+          const idx = parseInt(el.dataset.idx);
+          if (!isNaN(idx) && objects[idx] && selectedProcess != null) {
+            vscode.postMessage({ type: 'highlight', pid: selectedProcess, object: objects[idx] });
+          }
+        };
+      });
+    }
+
+    function renderObjectInfo(obj) {
+      if (!obj) return;
+      const div = document.getElementById('objectInfo');
+      const id = obj.identifier || {};
+      const b = id.bounds || {};
+      const xyw = (b.x != null ? b.x : '-') + ', ' + (b.y != null ? b.y : '-') + ', ' + (b.width != null ? b.width : '-') + ', ' + (b.height != null ? b.height : '-');
+      const vis = id.visible !== undefined ? (id.visible ? 'true' : 'false') : '-';
+      div.innerHTML = '<table><tr><td>Name</td><td>' + (obj.uniqueName || '-') + '</td></tr><tr><td>Type</td><td>' + (id.javaType || '-') + '</td></tr><tr><td>Text</td><td>' + (id.text || '-') + '</td></tr><tr><td>Name</td><td>' + (id.name || '-') + '</td></tr><tr><td>Caption</td><td>' + (id.caption || '-') + '</td></tr><tr><td>x, y, w, h</td><td>' + xyw + '</td></tr><tr><td>Visible</td><td>' + vis + '</td></tr><tr><td>Index</td><td>' + (obj.index ?? '-') + '</td></tr></table>';
+    }
+
+    function renderSteps() {
+      const tbody = document.getElementById('stepsBody');
+      tbody.innerHTML = steps.map((s, i) => {
+        const p = s.parentIdentifier || {};
+        const o = s.objectIdentifier || {};
+        const rowClass = s.skipped ? 'skipped' : '';
+        const skipLabel = s.skipped ? 'Unskip' : 'Skip';
+        return '<tr class="' + rowClass + '"><td>' + (i + 1) + '</td><td>' + (s.keyword || '') + '</td><td>' + (p.javaType || p.name || '-') + '</td><td>' + (o.javaType || o.name || '-') + '</td><td>' + (s.parameter || '-') + '</td><td>' + (s.data || '-') + '</td><td>' + (s.assertValue || '-') + '</td><td><button class="action-btn delete" data-i="' + i + '">Delete</button><button class="action-btn skip" data-i="' + i + '">' + skipLabel + '</button></td></tr>';
+      }).join('');
+      tbody.querySelectorAll('.action-btn.delete').forEach(btn => {
+        btn.onclick = () => vscode.postMessage({ type: 'deleteStep', index: parseInt(btn.dataset.i) });
+      });
+      tbody.querySelectorAll('.action-btn.skip').forEach(btn => {
+        btn.onclick = () => vscode.postMessage({ type: 'skipStep', index: parseInt(btn.dataset.i) });
+      });
+    }
+
+    console.log('[panel.html] Sending ping and loading data...');
+    appendLog('Java UI Automation panel ready. Click Java Applications to scan processes.\r\n');
+    // verify messaging works: send a ping to the extension and expect a 'pong' reply
+    try { vscode.postMessage({ type: 'ping' }); } catch (e) { /* ignore */ }
+    vscode.postMessage({ type: 'loadObjects' });
+    vscode.postMessage({ type: 'loadSteps' });
+  </script>
+  <script>
+    // Splitter logic between leftPanel and center panel
+    (function() {
+      const splitter = document.getElementById('splitter');
+      const left = document.getElementById('leftPanel');
+      if (!splitter || !left) return;
+      let dragging = false;
+      let startX = 0;
+      let startWidth = 0;
+      splitter.addEventListener('mousedown', (e) => {
+        dragging = true;
+        startX = e.clientX;
+        startWidth = left.getBoundingClientRect().width;
+        document.body.style.cursor = 'col-resize';
+        e.preventDefault();
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        const dx = e.clientX - startX;
+        const newWidth = Math.max(160, startWidth + dx);
+        left.style.width = newWidth + 'px';
+      });
+      window.addEventListener('mouseup', () => {
+        if (!dragging) return;
+        dragging = false;
+        document.body.style.cursor = '';
+      });
+    })();
+  </script>
+</body>
+</html>

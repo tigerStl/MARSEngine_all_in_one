@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Constants",
+  "description": "All constant strings - no hardcoded literals in system",
+  "type": "object",
+  "required": ["constants"],
+  "properties": {
+    "constants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "value"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$",
+            "description": "Unique constant ID (CONST_ prefix recommended)"
+          },
+          "value": {
+            "type": "string",
+            "description": "The actual string value"
+          },
+          "category": {
+            "type": "string",
+            "description": "Optional grouping (e.g. INPUT_DATA, ASSERTION)"
+          }
+        }
+      }
+    }
+  }
+}

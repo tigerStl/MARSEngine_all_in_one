@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Java UI Test Script",
+  "description": "Test script structure - keyword, parent, object, parameter, data, assert",
+  "type": "object",
+  "required": ["keyword", "parentIdentifier", "objectIdentifier"],
+  "properties": {
+    "keyword": {
+      "type": "string",
+      "enum": ["FillEdit", "SelectDropDown", "Click", "SelectMenuItem", "Check", "Uncheck"],
+      "description": "Action keyword: FillEdit for Edit/TextArea, SelectDropDown for ComboBox"
+    },
+    "parentIdentifier": {
+      "type": "object",
+      "description": "Parent element identifiers"
+    },
+    "objectIdentifier": {
+      "type": "object",
+      "description": "Target element identifiers"
+    },
+    "parameter": {
+      "type": "string",
+      "description": "Constant reference for parameter (e.g. CONST_USERNAME_INPUT)"
+    },
+    "data": {
+      "type": "string",
+      "description": "Constant reference for data to fill (e.g. CONST_TEST_USER)"
+    },
+    "assertValue": {
+      "type": "string",
+      "description": "Constant reference for assertion value"
+    }
+  }
+}

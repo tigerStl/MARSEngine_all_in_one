@@ -1,0 +1,13 @@
+node_modules/
+out/
+*.vsix
+.vscode-test/
+java/*/target/
+ProcessInfo/bin/
+ProcessInfo/obj/
+*.user
+*.suo
+scanedfiles/
+HighlightOverlay/bin/
+HighlightOverlay/obj/
+javaagentLog/
