@@ -1,0 +1,6 @@
+﻿namespace TestFlowClient
+{
+    class DuplexClientBase
+    {
+    }
+}

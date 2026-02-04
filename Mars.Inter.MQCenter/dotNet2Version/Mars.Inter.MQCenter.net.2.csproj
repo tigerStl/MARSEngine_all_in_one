@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{63E4D971-5524-42F3-A923-7CB143FE0E8A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Mars.Inter.MQCenter</RootNamespace>
+    <AssemblyName>MarsInterMQCenter2.0</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;RUNNING_ON_4;_marsRef;gdienable;dotNet2</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <PlatformTarget>x64</PlatformTarget>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;RUNNING_ON_4;_marsRef;gdienable;dotNet2</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugQT|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DebugQT\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;RUNNING_ON_4;_marsRef;gdienable;dotNet2</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DEBUG FOR WEBVERSION|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\..\..\..\automationTest\Automation Workbooks\WebBin\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;RUNNING_ON_4;_marsRef;gdienable;dotNet2</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For WEB|AnyCPU'">
+    <OutputPath>bin\Release For WEB\</OutputPath>
+    <DefineConstants>TRACE;RUNNING_ON_4;_marsRef;gdienable;dotNet2</DefineConstants>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Webversion|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release For Webversion\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;RUNNING_ON_4;_marsRef;gdienable;dotNet2</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseQT|AnyCPU'">
+    <OutputPath>bin\ReleaseQT\</OutputPath>
+    <DefineConstants>TRACE;RUNNING_ON_4;_marsRef;gdienable;dotNet2</DefineConstants>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Messaging" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase">
+      <HintPath>..\..\..\..\..\..\..\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\WindowsBase.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\..\Mars1.6\MarsTestingFrame\Mars.AutoTestingDriver\SystemUtil\MarsWindowsAPIs.cs">
+      <Link>referenceCodes\MarsWindowsAPIs.cs</Link>
+    </Compile>
+    <Compile Include="..\cfg\ConfigReading.cs">
+      <Link>cfg\ConfigReading.cs</Link>
+    </Compile>
+    <Compile Include="..\DataStructure\MarsKeyValuePair.cs">
+      <Link>referenceCodes\MarsKeyValuePair.cs</Link>
+    </Compile>
+    <Compile Include="..\interProcess\MarsMessageClientSvc.cs">
+      <Link>interProcess\MarsMessageClientSvc.cs</Link>
+    </Compile>
+    <Compile Include="..\interProcess\MARSMessages.cs">
+      <Link>interProcess\MARSMessages.cs</Link>
+    </Compile>
+    <Compile Include="..\interProcess\MARSMessageSvc.cs">
+      <Link>interProcess\MARSMessageSvc.cs</Link>
+    </Compile>
+    <Compile Include="..\keywordOperation\CaptureValue.cs">
+      <Link>keywordOperation\CaptureValue.cs</Link>
+    </Compile>
+    <Compile Include="..\keywordOperation\ClickPopupMenuItem.cs">
+      <Link>keywordOperation\ClickPopupMenuItem.cs</Link>
+    </Compile>
+    <Compile Include="..\keywordOperation\SelectTab.cs">
+      <Link>keywordOperation\SelectTab.cs</Link>
+    </Compile>
+    <Compile Include="..\standardControl\MarsListBoxOperation.cs">
+      <Link>standardControl\MarsListBoxOperation.cs</Link>
+    </Compile>
+    <Compile Include="..\keywordOperation\ClickRadioButton.cs">
+      <Link>keywordOperation\ClickRadioButton.cs</Link>
+    </Compile>
+    <Compile Include="..\keywordOperation\CloseWindow.cs">
+      <Link>keywordOperation\CloseWindow.cs</Link>
+    </Compile>
+    <Compile Include="..\keywordOperation\Dismiss.cs">
+      <Link>keywordOperation\Dismiss.cs</Link>
+    </Compile>
+    <Compile Include="..\keywordOperation\SearchAndClick.cs">
+      <Link>keywordOperation\SearchAndClick.cs</Link>
+    </Compile>
+    <Compile Include="..\keywordOperation\SearchAndUpdateForInfragisticsGrid.cs">
+      <Link>keywordOperation\SearchAndUpdateForInfragisticsGrid.cs</Link>
+    </Compile>
+    <Compile Include="..\keywordOperation\Snapshot.cs">
+      <Link>keywordOperation\Snapshot.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsObjectIdentifier\MarsformIndentifier.cs">
+      <Link>MarsObjectIdentifier\MarsformIndentifier.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsReflection\LinqBridgeForDotNet2.cs">
+      <Link>MarsReflection\LinqBridgeForDotNet2.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsReflection\ReflectorForCSharp.cs">
+      <Link>MarsReflection\ReflectorForCSharp.cs</Link>
+    </Compile>
+    <Compile Include="..\message\MarsMessageConst.cs">
+      <Link>message\MarsMessageConst.cs</Link>
+    </Compile>
+    <Compile Include="..\objectTypeMapping\MarsObjectSupportTypesMgr.cs">
+      <Link>objectTypeMapping\MarsObjectSupportTypesMgr.cs</Link>
+    </Compile>
+    <Compile Include="..\objectTypeMapping\MarsObjectTypeMapping.cs">
+      <Link>objectTypeMapping\MarsObjectTypeMapping.cs</Link>
+    </Compile>
+    <Compile Include="..\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\simpleLog\MarsLoggerSimple.cs">
+      <Link>simpleLog\MarsLoggerSimple.cs</Link>
+    </Compile>
+    <Compile Include="..\ThirdPartComponent\Infragistics\MarsComboboxOperation.cs">
+      <Link>ThirdPartComponent\Infragistics\MarsComboboxOperation.cs</Link>
+    </Compile>
+    <Compile Include="..\ThirdPartComponent\Infragistics\MarsTableOperation.cs">
+      <Link>keywordOperation\Infragistics\MarsTableOperation.cs</Link>
+    </Compile>
+    <Compile Include="..\ThirdPartComponent\Infragistics\MarsTabOperations.cs">
+      <Link>keywordOperation\Infragistics\MarsTabOperations.cs</Link>
+    </Compile>
+    <Compile Include="..\ThirdPartComponent\Infragistics\MarsToolBarOperation.cs">
+      <Link>ThirdPartComponent\Infragistics\MarsToolBarOperation.cs</Link>
+    </Compile>
+    <Compile Include="..\ThirdPartComponent\Infragistics\MarsTreeViewOperation.cs">
+      <Link>ThirdPartComponent\Infragistics\MarsTreeViewOperation.cs</Link>
+    </Compile>
+    <Compile Include="..\ThirdPartComponent\ThirdPartControlOpBase.cs">
+      <Link>ThirdPartComponent\ThirdPartControlOpBase.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" msdata:Ordinal="5" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Form -->
+  <data name="FormTitle" xml:space="preserve">
+    <value>MARS License Manager</value>
+  </data>
+  
+  <!-- Basic Info Group -->
+  <data name="GroupBasicInfo" xml:space="preserve">
+    <value>Basic Information</value>
+  </data>
+  <data name="LabelLicenseCount" xml:space="preserve">
+    <value>License Count:</value>
+  </data>
+  <data name="LabelValidityDays" xml:space="preserve">
+    <value>Validity (Days):</value>
+  </data>
+  <data name="LabelExpirationDate" xml:space="preserve">
+    <value>Expiration Date:</value>
+  </data>
+  <data name="LabelCustomerName" xml:space="preserve">
+    <value>Customer Name:</value>
+  </data>
+  <data name="LabelNotes" xml:space="preserve">
+    <value>Notes:</value>
+  </data>
+  <data name="LabelLanguage" xml:space="preserve">
+    <value>Language:</value>
+  </data>
+  
+  <!-- MAC Address Group -->
+  <data name="GroupMacAddress" xml:space="preserve">
+    <value>MAC Address Management</value>
+  </data>
+  <data name="PlaceholderMacAddress" xml:space="preserve">
+    <value>Enter MAC address (e.g., 00-11-22-33-44-55)</value>
+  </data>
+  <data name="ButtonAddMac" xml:space="preserve">
+    <value>Add MAC Address</value>
+  </data>
+  <data name="ButtonRemoveMac" xml:space="preserve">
+    <value>Remove Selected MAC</value>
+  </data>
+  
+  <!-- Application Group -->
+  <data name="GroupApplication" xml:space="preserve">
+    <value>Application Restriction</value>
+  </data>
+  <data name="CheckBoxRestrictApp" xml:space="preserve">
+    <value>Enable Application Restriction</value>
+  </data>
+  <data name="ButtonAddApp" xml:space="preserve">
+    <value>Add Application</value>
+  </data>
+  <data name="ButtonRemoveApp" xml:space="preserve">
+    <value>Remove Selected App</value>
+  </data>
+  
+  <!-- Main Buttons -->
+  <data name="ButtonGenerateLicense" xml:space="preserve">
+    <value>Generate License File</value>
+  </data>
+  <data name="ButtonValidateLicense" xml:space="preserve">
+    <value>Validate License File</value>
+  </data>
+  
+  <!-- DLL Encryption Group -->
+  <data name="GroupDllEncryption" xml:space="preserve">
+    <value>DLL Encryption/Decryption</value>
+  </data>
+  <data name="LabelDllFilePath" xml:space="preserve">
+    <value>DLL File Path:</value>
+  </data>
+  <data name="ButtonSelectDllFile" xml:space="preserve">
+    <value>Select DLL</value>
+  </data>
+  <data name="ButtonEncryptDll" xml:space="preserve">
+    <value>Encrypt DLL</value>
+  </data>
+  <data name="LabelEncryptedFilePath" xml:space="preserve">
+    <value>Encrypted File Path:</value>
+  </data>
+  <data name="ButtonSelectEncryptedFile" xml:space="preserve">
+    <value>Select File</value>
+  </data>
+  <data name="ButtonDecryptDll" xml:space="preserve">
+    <value>Decrypt to DLL</value>
+  </data>
+  <data name="ButtonDecryptToStream" xml:space="preserve">
+    <value>Decrypt to Stream</value>
+  </data>
+  
+  <!-- Messages - Warnings -->
+  <data name="MsgEnterMacAddress" xml:space="preserve">
+    <value>Please enter a MAC address!</value>
+  </data>
+  <data name="MsgInvalidMacFormat" xml:space="preserve">
+    <value>Invalid MAC address format!
+Supported formats:
+- 00-11-22-33-44-55
+- 00:11:22:33:44:55
+- 001122334455</value>
+  </data>
+  <data name="MsgMacCountExceeded" xml:space="preserve">
+    <value>MAC address count cannot exceed License count ({0})!</value>
+  </data>
+  <data name="MsgDuplicateMac" xml:space="preserve">
+    <value>This MAC address already exists!</value>
+  </data>
+  <data name="MsgSelectMacToRemove" xml:space="preserve">
+    <value>Please select a MAC address to remove!</value>
+  </data>
+  <data name="MsgSelectAppToRemove" xml:space="preserve">
+    <value>Please select an application to remove!</value>
+  </data>
+  <data name="MsgMacCountMismatch" xml:space="preserve">
+    <value>MAC address count ({0}) must equal License count ({1})!</value>
+  </data>
+  <data name="MsgAddAtLeastOneMac" xml:space="preserve">
+    <value>Please add at least one MAC address!</value>
+  </data>
+  <data name="MsgAddAtLeastOneApp" xml:space="preserve">
+    <value>When application restriction is enabled, please add at least one application!</value>
+  </data>
+  
+  <!-- Messages - Success -->
+  <data name="MsgLicenseGenerateSuccess" xml:space="preserve">
+    <value>License file generated successfully!
+
+File Path: {0}
+License Count: {1}
+Valid Until: {2:yyyy-MM-dd}</value>
+  </data>
+  <data name="MsgLicenseValidationSuccess" xml:space="preserve">
+    <value>License validation successful! {0}
+
+License Count: {1}
+Validity: {2} days
+Expiration Date: {3:yyyy-MM-dd HH:mm:ss}
+Created Date: {4:yyyy-MM-dd HH:mm:ss}
+Customer Name: {5}
+Notes: {6}
+
+MAC Address List ({7}):
+{8}</value>
+  </data>
+  <data name="MsgLicenseValid" xml:space="preserve">
+    <value>[Valid]</value>
+  </data>
+  <data name="MsgLicenseExpired" xml:space="preserve">
+    <value>[Expired]</value>
+  </data>
+  <data name="MsgNotSet" xml:space="preserve">
+    <value>Not Set</value>
+  </data>
+  <data name="MsgNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="MsgAppRestriction" xml:space="preserve">
+    <value>
+
+Application Restriction ({0}):
+</value>
+  </data>
+  <data name="MsgAppPath" xml:space="preserve">
+    <value>  Path: {0}
+</value>
+  </data>
+  <data name="MsgAppMD5" xml:space="preserve">
+    <value>  MD5: {0}
+</value>
+  </data>
+  
+  <!-- Messages - Errors -->
+  <data name="MsgReadFileError" xml:space="preserve">
+    <value>Failed to read file information: {0}</value>
+  </data>
+  <data name="MsgGenerateLicenseError" xml:space="preserve">
+    <value>Failed to generate license file: {0}</value>
+  </data>
+  <data name="MsgValidationFailed" xml:space="preserve">
+    <value>License validation failed!
+The file may be corrupted or tampered with.</value>
+  </data>
+  <data name="MsgReadLicenseError" xml:space="preserve">
+    <value>Failed to read license file: {0}</value>
+  </data>
+  
+  <!-- Dialog Titles -->
+  <data name="TitleWarning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="TitleError" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="TitleSuccess" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="TitleValidationFailed" xml:space="preserve">
+    <value>Validation Failed</value>
+  </data>
+  <data name="TitleValidationResult" xml:space="preserve">
+    <value>License Validation Result</value>
+  </data>
+  
+  <!-- File Dialogs -->
+  <data name="FilterExecutableFiles" xml:space="preserve">
+    <value>Executable Files (*.exe)|*.exe|All Files (*.*)|*.*</value>
+  </data>
+  <data name="FilterLicenseFiles" xml:space="preserve">
+    <value>MARS License Files (*.mlic)|*.mlic|All Files (*.*)|*.*</value>
+  </data>
+  <data name="DialogTitleSelectApp" xml:space="preserve">
+    <value>Select Application</value>
+  </data>
+  <data name="DialogTitleSaveLicense" xml:space="preserve">
+    <value>Save License File</value>
+  </data>
+  <data name="DialogTitleValidateLicense" xml:space="preserve">
+    <value>Select License File to Validate</value>
+  </data>
+</root>
+
+

@@ -1,0 +1,219 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Data;
+using ClosedXML.Excel;
+
+namespace Mars.TestFramework.DataCompare.DataCompareBatch
+{
+    public class DataCompareBatchConfig
+    {
+        private string batchConfigFileName;
+        public List<DataCompareBatchConfigItem> itemList = new List<DataCompareBatchConfigItem>();
+
+        public DataCompareBatchConfig(string batchConfigFileName)
+        {
+            // TODO: Complete member initialization
+            this.batchConfigFileName = batchConfigFileName;
+            DataTable dt = ImportExceltoDatatable(batchConfigFileName, "Sheet1");
+            InitColumnNumbers(dt);
+            foreach (DataRow row in dt.Rows)
+            {
+                DataCompareBatchConfigItem item = new DataCompareBatchConfigItem();
+                item.Name = row["Name"].ToString();
+                item.Action = row["Action"].ToString();
+                item.CompareConfigID = row["CompareConfigID"].ToString();
+                item.File1 = row["File1"].ToString();
+                item.File2 = row["File2"].ToString();
+                item.OutputFile = row["OutputFile"].ToString();
+                item.Status = row["Status"].ToString();
+                item.Comment = row["Comment"].ToString();
+                item.OutputFileLink = row["OutputFileLink"].ToString();
+                if (item.Name.Length < 0)
+                    item.isEmpty = true;
+
+                itemList.Add(item);
+                
+            }
+
+        }
+
+        private void InitColumnNumbers(DataTable dt)
+        {
+            for (int i = 0; i < dt.Columns.Count; i++)
+            {
+                switch (dt.Columns[i].ColumnName)
+                {
+                    case "Name":
+                        NameColumnNumber = i + 1;
+                        break;
+
+                    case "Action":
+                        ActionColumnNumber = i + 1;
+                        break;
+
+                    case "CompareConfigID":
+                        CompareConfigIDColumnNumber = i + 1;
+                        break;
+
+                    case "File1":
+                        File1ColumnNumber = i + 1;
+                        break;
+
+                    case "File2":
+                        File2ColumnNumber = i + 1;
+                        break;
+
+                    case "OutputFile":
+                        OutputFileColumnNumber = i + 1;
+                        break;
+
+                    case "Status":
+                        StatusColumnNumber = i + 1;
+                        break;
+
+                    case "Comment":
+                        CommentColumnNumber = i + 1;
+                        break;
+
+                    case "OutputFileLink":
+                        OutputFileLinkColumnNumber = i + 1;
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+        }
+
+        public static List<string> GetHeadersFromExcelFile(string filePath)
+        {
+            List<string> headers = new List<string>();
+
+            DataTable dt = ImportExceltoDatatable(filePath, "Sheet1");
+            foreach ( DataColumn col in dt.Columns)
+            {
+                headers.Add(col.ColumnName);
+            }
+
+            return headers;
+        }
+
+
+        public static DataTable ImportExceltoDatatable(string filePath, string sheetName)
+        {
+            // Open the Excel file using ClosedXML.
+            // Keep in mind the Excel file cannot be open when trying to read it
+            using (XLWorkbook workBook = new XLWorkbook(filePath))
+            {
+                //Read the first Sheet from Excel file.
+                IXLWorksheet workSheet = workBook.Worksheet(1);
+
+                //Create a new DataTable.
+                DataTable dt = new DataTable();
+
+                //Loop through the Worksheet rows.
+                bool firstRow = true;
+
+                var worksheetRows = workSheet.Rows();
+
+                foreach (IXLRow row in worksheetRows)
+                {
+                    //Use the first row to add columns to DataTable.
+                    if (firstRow)
+                    {
+                        foreach (IXLCell cell in row.Cells())
+                        {
+                            dt.Columns.Add(cell.Value.ToString());
+                        }
+                        firstRow = false;
+                    }
+                    else
+                    {
+                        //Add rows to DataTable.
+                        try
+                        {
+                            dt.Rows.Add();
+                            int i = 0;
+
+                            foreach (IXLCell cell in row.Cells(row.FirstCellUsed().Address.ColumnNumber, row.LastCellUsed().Address.ColumnNumber))
+                            {
+                                dt.Rows[dt.Rows.Count - 1][i] = cell.Value.ToString();
+                                i++;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            continue;
+                           // break;
+                        }
+                    }
+                }
+
+                return dt;
+            }
+        }
+
+
+        internal void UpdateConfigFile()
+        {
+            using (XLWorkbook workBook = new XLWorkbook(batchConfigFileName))
+            {
+
+                IXLWorksheet workSheet = workBook.Worksheet(1);
+
+                for (int i = 0; i < itemList.Count; i++)
+                {
+                    var item = itemList[i];
+                    if (item.isEmpty)
+                        continue;
+                    workSheet.Cell(i + 2, StatusColumnNumber).Value = item.Status;
+                    workSheet.Cell(i + 2, CommentColumnNumber).Value = item.Comment;
+                    workSheet.Cell(i + 2, ActionColumnNumber).Value = item.Action;
+
+                  
+
+                    if (item.Status.Equals(""))
+                    {
+                        workSheet.Cell(i + 2, OutputFileLinkColumnNumber).Value = "";
+                        workSheet.Cell(i + 2, OutputFileLinkColumnNumber).Hyperlink = null;
+                    }
+                       
+                    else
+                    {
+                        workSheet.Cell(i + 2, OutputFileLinkColumnNumber).Value = item.OutputFile;
+                        workSheet.Cell(i + 2, OutputFileLinkColumnNumber).Hyperlink = new XLHyperlink(item.OutputFile);
+                    }
+                        
+
+                    if (item.File1 != null && item.File1.Trim().Length > 0)
+                    {
+                        workSheet.Cell(i + 2, File1ColumnNumber).Value = item.File1;
+                        workSheet.Cell(i + 2, File1ColumnNumber).Hyperlink = new XLHyperlink(item.File1);
+                    }
+
+                    if (item.File2 != null && item.File2.Trim().Length > 0)
+                    {
+                        workSheet.Cell(i + 2, File2ColumnNumber).Value = item.File2;
+                        workSheet.Cell(i + 2, File2ColumnNumber).Hyperlink = new XLHyperlink(item.File2);
+                    }
+
+
+                }
+                workBook.Save(false);
+            }
+        }
+
+        public int NameColumnNumber { get; set; }
+        public int ActionColumnNumber { get; set; }
+        public int CompareConfigIDColumnNumber { get; set; }
+        public int File1ColumnNumber { get; set; }
+        public int File2ColumnNumber { get; set; }
+        public int OutputFileColumnNumber { get; set; }
+        public int StatusColumnNumber { get; set; }
+        public int CommentColumnNumber { get; set; }
+        public int OutputFileLinkColumnNumber { get; set; }
+    }
+}

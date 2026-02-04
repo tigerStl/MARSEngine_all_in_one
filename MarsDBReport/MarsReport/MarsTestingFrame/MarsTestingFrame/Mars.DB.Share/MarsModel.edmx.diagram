@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="172f7222ea5f48748dd545db1dae9038" Name="Diagram1" ZoomLevel="97">
+        <EntityTypeShape EntityType="MarsEntities.REL_APP_PROJ" Width="1.5" PointX="6" PointY="29" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.REL_APP_TESTCASE" Width="1.5" PointX="0.75" PointY="6.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.REL_APP_TESTSUITE" Width="1.5" PointX="10.75" PointY="2.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.REL_TC_DATA_SUMMARY" Width="1.5" PointX="3" PointY="13" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.REL_TEST_CASE_TEST_SUITE" Width="1.5" PointX="3" PointY="10.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.REL_TEST_SUIT_PROJECT" Width="1.5" PointX="6" PointY="19.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.SYSTEM_LOOKUP" Width="1.5" PointX="10.75" PointY="8.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_COMPARE_CONFIG" Width="1.5" PointX="8.75" PointY="12.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_COMPARE_CONNECTIONS" Width="1.5" PointX="10.75" PointY="11.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_COMPARE_QUERIES" Width="1.5" PointX="11.75" PointY="5.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_DATA_SOURCE" Width="1.5" PointX="3.75" PointY="32.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_DIC_RELATION_KEYWORD" Width="1.5" PointX="9" PointY="4.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_GUI_COMPONENT_TYPE_DIC" Width="1.5" PointX="1.5" PointY="2.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_KEYWORD" Width="1.5" PointX="3.75" PointY="6.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_PROJ_TC_MGR" Width="1.5" PointX="6" PointY="12.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_PROJ_TEST_RESULT" Width="1.5" PointX="12.75" PointY="8.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_PROJECT_DATA_SOURCE" Width="1.5" PointX="6" PointY="31.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_REGISTED_OBJECT" Width="1.5" PointX="3.75" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_REGISTERED_APPS" Width="1.5" PointX="12.75" PointY="13.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_SHARED_OBJECT_POOL" Width="1.5" PointX="8.25" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_STORYBOARD_HISTORY" Width="1.5" PointX="6" PointY="34.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_STORYBOARD_SUMMARY" Width="1.5" PointX="3.75" PointY="16.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_TEST_CASE_SUMMARY" Width="1.5" PointX="0.75" PointY="12.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_TEST_CASE_VERSION" Width="1.5" PointX="3" PointY="20.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_TEST_DATA_SUMMARY" Width="1.5" PointX="6" PointY="2.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_TEST_ENUM" Width="1.5" PointX="12.75" PointY="2.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_TEST_PROJECT" Width="1.5" PointX="3.75" PointY="28.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_TEST_REPORT" Width="1.5" PointX="3" PointY="24" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_TEST_REPORT_STEPS" Width="1.5" PointX="5.25" PointY="24" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_TEST_STEPS" Width="1.5" PointX="6" PointY="7.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.T_TEST_SUITE" Width="1.5" PointX="0.75" PointY="9.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.TEST_DATA_SETTING" Width="1.5" PointX="8.25" PointY="7.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.TEST_CASE_VIEW" Width="1.5" PointX="14.75" PointY="2.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.TEST_CASE_VIEW2" Width="1.5" PointX="14.75" PointY="6.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.TEST_OBJECT_VIEW" Width="1.5" PointX="14.75" PointY="10.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.TEST_PROJECT_VIEW" Width="1.5" PointX="14.75" PointY="14.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.V_OBJECT_APPS" Width="1.5" PointX="8.75" PointY="17.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="MarsEntities.V_STORYBOARD_TEST_FULLVISION" Width="1.5" PointX="14.75" PointY="17.125" IsExpanded="true" />
+        <AssociationConnector Association="MarsEntities.FK_REL_APP__REFERENCE_T_TEST_P" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_REL_TC_D_REFERENCE_T_TEST_C" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_REL_TC_D_REFERENCE_T_TEST_D" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_REL_TEST_REFERENCE_T_TEST_2" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_REL_TEST_REFERENCE_T_TEST_C" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_REL_TEST_REFERENCE_T_TEST_P" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_REL_TEST_REFERENCE_T_TEST_S" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_PROJEC_REFERENCE_T_DATA_S" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_DIC_RE_REFERENCE_T_GUI_CO" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_DIC_RE_REFERENCE_T_KEYWOR" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_REGIST_REFERENCE_T_GUI_CO" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_TEST_S_REFERENCE_T_KEYWOR" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_PROJ_T_REFERENCE_T_STORYB" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_PROJ_T_REFERENCE_T_TEST_C" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_PROJ_T_REFERENCE_T_TEST_P" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_PROJEC_REFERENCE_T_TEST_P" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_TEST_S_REFERENCE_T_REGIST" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_SHARED_REFERENCE_T_TEST_D" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_STORYB_REFERENCE_T_STORYB" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_TEST_C_REFERENCE_T_TEST_C" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_TEST_R_REFERENCE_T_TEST_C" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_TEST_S_REFERENCE_T_TEST_C" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_TEST_DAT_REFERENCE_T_TEST_D" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_TEST_R_REFERENCE_T_TEST_R" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_T_TEST_R_REFERENCE_T_TEST_S" ManuallyRouted="false" />
+        <AssociationConnector Association="MarsEntities.FK_TEST_DAT_REFERENCE_T_TEST_S" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

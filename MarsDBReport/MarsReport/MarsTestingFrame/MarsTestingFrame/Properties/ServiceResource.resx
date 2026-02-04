@@ -1,0 +1,231 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="_CLIENT_ERROR_PARAMETERISNULL_PARA_1" xml:space="preserve">
+    <value>One parameter value is NULL. Parameter:[{0}]</value>
+  </data>
+  <data name="_ENTITY_ERROR_SAVE_PARA_1" xml:space="preserve">
+    <value>Can't Save to Entity with Error message:[{0}]</value>
+  </data>
+  <data name="_SERVCIE_ERROR_NO_TESTSUITE_IS_DONE_STATUS_ASSIGNED_PARA_0" xml:space="preserve">
+    <value>No deletegate is assigned on Test suite is done. </value>
+  </data>
+  <data name="_SERVICE_ERROR_CALL_BEGIN_NAVIGATEFIRST_PARA_0" xml:space="preserve">
+    <value>Call OnGetNextTestSuiteEvent First to initialize Current Test suite object.</value>
+  </data>
+  <data name="_SERVICE_ERROR_CANT_CREATE_GLOBEVAR_FOR_SYSLOOKUP_2" xml:space="preserve">
+    <value>Can't create [{0}] variable. Exception:[{1}]</value>
+  </data>
+  <data name="_SERVICE_ERROR_CANT_CREATE_LASTMARK_ID_PARA_1" xml:space="preserve">
+    <value>Can't Create Storyboard testing Last Mark ID,with Exception:[{0}]</value>
+  </data>
+  <data name="_SERVICE_ERROR_CLIENT_CANT_END_NAVIGATE" xml:space="preserve">
+    <value>Can't end Navigate current Test Steps. </value>
+  </data>
+  <data name="_SERVICE_ERROR_CLIENT_CANT_START_NAVIGATE" xml:space="preserve">
+    <value>Can't start to Navigate Test flows.</value>
+  </data>
+  <data name="_SERVICE_ERROR_CLIENT_CONNECT_2_SERVICE_FIRST" xml:space="preserve">
+    <value>Connect to Mars Testing framework Service First.</value>
+  </data>
+  <data name="_SERVICE_ERROR_CLIENT_DATA_ISNULL_PARA_0" xml:space="preserve">
+    <value>Data from client side is NULL.</value>
+  </data>
+  <data name="_SERVICE_ERROR_CLIENT_KEYWORDNAME_ISNULL_PARA_0" xml:space="preserve">
+    <value>Keyword name from client side is NULL.</value>
+  </data>
+  <data name="_SERVICE_ERROR_CLIENT_LOOP_ISNOT_A_NUMBER_PARA_1" xml:space="preserve">
+    <value>Loop is not a int. Loop:[{0}]</value>
+  </data>
+  <data name="_SERVICE_ERROR_CLIENT_LOOP_ISNULL_PARA_0" xml:space="preserve">
+    <value>Loop from client side is NULL.</value>
+  </data>
+  <data name="_SERVICE_ERROR_CLIENT_OBJECTNAME_ISNULL_PARA_0" xml:space="preserve">
+    <value>ObjectName from client side is NULL.</value>
+  </data>
+  <data name="_SERVICE_ERROR_CLIENT_SWITCH_DATA_NO_FILENAME_PARA_0" xml:space="preserve">
+    <value>No File name passed when call switch Data.</value>
+  </data>
+  <data name="_SERVICE_ERROR_CLIENT_UNKNOW" xml:space="preserve">
+    <value>Unknow Exception occurres when Connect to Server [{1}].Exception:[{0}]</value>
+  </data>
+  <data name="_SERVICE_ERROR_IF_SUBOBJECT_REQUIRED_PARA_1" xml:space="preserve">
+    <value>Clone to Sub-Steps information, IF sub object is required, but :[{0}] find.</value>
+  </data>
+  <data name="_SERVICE_ERROR_NO_APPLICATION_INFO_PARA_1" xml:space="preserve">
+    <value>Can't find Application information by ShortName:[{0}]</value>
+  </data>
+  <data name="_SERVICE_ERROR_NO_COMPILER_ASSIGNED_PARA_2" xml:space="preserve">
+    <value>No compiler is assigned for Testsuite:[{0}] and Testcaes:[{1}]</value>
+  </data>
+  <data name="_SERVICE_ERROR_NO_GETNEXTTESTSUITE_ASSIGNED_PARA_0" xml:space="preserve">
+    <value>No Get next Test suite Delegate is assigned. Assign a delegate first.</value>
+  </data>
+  <data name="_SERVICE_ERROR_NO_HOST_SETTING" xml:space="preserve">
+    <value>No host setting for WCF server.</value>
+  </data>
+  <data name="_SERVICE_ERROR_NO_MONITOR_SEVICE_PARA_0" xml:space="preserve">
+    <value>No Testing Log Monitor service configuration found.</value>
+  </data>
+  <data name="_SERVICE_ERROR_NO_PORT_SETTING" xml:space="preserve">
+    <value>No port setting for WCF server.</value>
+  </data>
+  <data name="_SERVICE_ERROR_NO_PROTOCO_SETTING" xml:space="preserve">
+    <value>No protocol setting for WCF server.</value>
+  </data>
+  <data name="_SERVICE_ERROR_NO_SERVICENAME_SETTING" xml:space="preserve">
+    <value>No ServiceName setting for WCF server.</value>
+  </data>
+  <data name="_SERVICE_ERROR_NO_SERVICE_START_UNKNOW" xml:space="preserve">
+    <value>Unknow Exception occurres when start Service. Exception:[{0}]</value>
+  </data>
+  <data name="_SERVICE_ERROR_NO_SERVICE_STOP_UNKNOW" xml:space="preserve">
+    <value>Unknow Exception occurres when stop Service. Exception:[{0}]</value>
+  </data>
+  <data name="_SERVICE_ERROR_NO_STEP_OBJECT_PARA_O" xml:space="preserve">
+    <value>Step Log object from Client is NULL.</value>
+  </data>
+  <data name="_SERVICE_ERROR_NO_TESTCASE_GETTER_ASSIGNED_PARA_0" xml:space="preserve">
+    <value>No Test case Getter is assigned. </value>
+  </data>
+  <data name="_SERVICE_ERROR_NO_TESTSUITE_NAVIGATE_ASSIGNED_PARA_0" xml:space="preserve">
+    <value>No Test suite navigate is assigned. assigned a delegate first.</value>
+  </data>
+  <data name="_SERVICE_ERROR_OBJECT_TYPE_IS_NOT_TEST_STEP" xml:space="preserve">
+    <value>Teststep is required but [{0}] find.</value>
+  </data>
+  <data name="_SERVICE_ERROR_PARAMETER_SHOULDBE_INT_PARAP_1" xml:space="preserve">
+    <value>A "int" number is required but a [{}] passed.</value>
+  </data>
+  <data name="_SERVICE_ERROR_SERVER_ASSIGN_LOADTESTSUITE_FIRST_PARA_0" xml:space="preserve">
+    <value>Assign Deletegate LoadTestSuite First. </value>
+  </data>
+  <data name="_SERVICE_ERROR_SERVER_NO_DATAFILE_CREATED_PARA_1" xml:space="preserve">
+    <value>Can't find loaded data file in Memory. FileName:[{0}]</value>
+  </data>
+  <data name="_SERVICE_ERROR_SERVER_NO_TESTCASENAME_PARA_0" xml:space="preserve">
+    <value>No Test case name passed from client. </value>
+  </data>
+  <data name="_SERVICE_ERROR_SERVER_NO_TESTSUITE_SETTING" xml:space="preserve">
+    <value>No Test suite instance is setting on server side. </value>
+  </data>
+  <data name="_SERVICE_ERROR_UNKOWN_EXCETPION_TEST_REPORT_1" xml:space="preserve">
+    <value>Unknow exceptions when save to T_TEST_REPORT table. Exception:[{0}]</value>
+  </data>
+</root>

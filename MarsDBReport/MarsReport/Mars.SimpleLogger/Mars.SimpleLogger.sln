@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35818.85
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mars.SimpleLogger", "Mars.SimpleLogger.csproj", "{509573A8-2217-4ECB-A472-6752B9574A6E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSimpleLogger", "..\TestSimpleLogger\TestSimpleLogger.csproj", "{88D5B3A8-19F6-45D0-996A-ACC2476AACBE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{509573A8-2217-4ECB-A472-6752B9574A6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{509573A8-2217-4ECB-A472-6752B9574A6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{509573A8-2217-4ECB-A472-6752B9574A6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{509573A8-2217-4ECB-A472-6752B9574A6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88D5B3A8-19F6-45D0-996A-ACC2476AACBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88D5B3A8-19F6-45D0-996A-ACC2476AACBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88D5B3A8-19F6-45D0-996A-ACC2476AACBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88D5B3A8-19F6-45D0-996A-ACC2476AACBE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FC3B7076-1CE6-4046-AF45-A4DD68B680EB}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,305 @@
+{
+  "ignoreTypes": [
+    "System.Windows.Forms.ContainerControl",
+    "System.Windows.Forms.SplitterPanel",
+    "Infragistics.Win.UltraWinDock.AutoHideControl",
+    "Infragistics.Win.UltraWinDock.WindowDockingArea",
+    "System.Windows.Forms.Panel",
+    "System.Windows.Forms.SplitContainer",
+    "System.Windows.Forms.PictureBox",
+    "System.Windows.Forms.TabPage",
+    "Infragistics.Win.UltraWinDock.DockableWindow",
+    "Infragistics.Win.UltraWinDock.UnpinnedTabArea",
+    "Infragistics.Win.EmbeddableTextBoxWithUIPermissions",
+    "Summit.Applications.Swap.SwapView",
+    "Summit.Framework.Desktop.ApplicationLayout",
+    "Summit.Framework.Desktop.ApplicationPane",
+    "Summit.Framework.Desktop.DesktopPanel",
+    "Summit.Framework.Desktop.Page",
+    "Summit.Framework.Desktop.PaneTabControl",
+    "Summit.Framework.Desktop.TitleControl",
+    "Summit.Framework.Desktop.WindowPane",
+    "Summit.Framework.DesktopContent.BaseSpreadsheetControl",
+    "Summit.Framework.DesktopContent.SneezeGuard",
+    "Summit.Framework.View.AsOfDateControl",
+    "Summit.Framework.View.PanelControl",
+    "Summit.Framework.View.PortfolioIdControl",
+    "Summit.Framework.View.ProductFormulaControl",
+    "Summit.Framework.View.SerializedDataSpreadsheetControl",
+    "Summit.Framework.View.SummitTabControl",
+    "Summit.Framework.View.GroupBoxControl"
+  ],
+  "marsTypeMapping_dotNet": [
+    {
+      "marsType": "PegWindow",
+      "controlType": [
+        "Summit.Framework.Desktop.Desktop",
+        "System.Windows.Forms.Form",
+        "Infragistics.Win.UltraWinDock.DockableWindow",
+        "Summit.Framework.Desktop.LoginDialog"
+      ],
+      "defaultKeywords": [
+        "PegWindow"
+      ]
+    },
+    {
+      "marsType": "SwfToolbar",
+      "controlType": [
+        "Infragistics.Win.UltraWinToolbars.UltraToolbarsDockArea"
+      ],
+      "defaultKeywords": [
+        "ClickMenuIcon",
+        "SelectMenuItem"
+      ]
+    },
+    {
+      "marsType": "SwfStatusBar",
+      "controlType": [
+        "System.Windows.Forms.StatusBar"
+      ],
+      "defaultKeywords": [
+        "CaptureValue",
+        "CaptureAndCompare"
+      ]
+    },
+    {
+      "marsType": "SwfLabel",
+      "controlType": [
+        "System.Windows.Forms.Label",
+        "Summit.Framework.Desktop.TitleControl"
+      ],
+      "defaultKeywords": [
+        "CaptureValue",
+        "CaptureAndCompare"
+      ]
+    },
+    {
+      "marsType": "SwfList",
+      "controlType": [
+        "Summit.Framework.Desktop.Launcher",
+        "System.Windows.Forms.ListView"
+      ],
+      "defaultKeywords": [
+        "SelectListItem"
+      ]
+    },
+    {
+      "marsType": "SwfEdit",
+      "controlType": [
+        "Summit.Framework.View.TextControlBase"
+      ],
+      "defaultKeywords": [
+        "FillEdit"
+      ]
+    },
+    {
+      "marsType": "SwfCheckBox",
+      "controlType": [
+        "Summit.Framework.Desktop.LoginCheckBox"
+      ],
+      "defaultKeywords": [
+        "SetBox"
+      ]
+    },
+    {
+      "marsType": "SwfCombobox",
+      "controlType": [
+        "Summit.Framework.View.DDownControl"
+      ],
+      "defaultKeywords": [
+        "SelectDropdown"
+      ]
+    },
+    {
+      "marsType": "SwfButton",
+      "controlType": [
+        "Summit.Framework.View.ButtonControl",
+        "Summit.Framework.DesktopContent.ImageButton"
+      ],
+      "defaultKeywords": [
+        "ClickButton"
+      ]
+    },
+    {
+      "marsType": "SwfTable",
+      "controlType": [
+        "Summit.Framework.View.SerializedDataSpreadsheetControl",
+        "Summit.Framework.View.SpreadsheetControl",
+        "Summit.Framework.DesktopContent.BaseSpreadsheetControl",
+        "Infragistics.Win.UltraWinGrid.UltraGrid",
+        "Infragistics.Win.UltraWinGrid.UltraGridBase"
+      ],
+      "defaultKeywords": [
+        "FillTable"
+      ]
+    },
+    {
+      "marsType": "SwfTab",
+      "controlType": [
+        "Summit.Framework.Desktop.PaneTabControl",
+        "Summit.Framework.View.TabControlEx",
+        "Infragistics.Win.UltraWinTabControl.UltraTabControl"
+      ],
+      "defaultKeywords": [
+        "FillTable"
+      ]
+    }
+  ],
+  "marsTypeMapping_wpf_core": {
+    "IgnoreWpfTypes": [
+      "System.Windows.Controls.DockPanel",
+      "System.Windows.Controls.Grid",
+      "System.Windows.Controls.WrapPanel",
+      "System.Windows.Controls.Canvas",
+      "System.Windows.Controls.Border",
+      "System.Windows.Controls.ContentControl",
+      "System.Windows.Controls.Primitives.UniformGrid",
+      "DevExpress.Xpf.Grid.FitColumnHeader"
+    ],
+    "MARSStopChildTypes": [],
+    "TypesAndKeywords": [
+      {
+        "marsType": "PegWindow",
+        "controlType": [],
+        "defaultKeywords": [
+          "PegWindow"
+        ]
+      },
+      {
+        "marsType": "swfLable",
+        "controlType": [
+          "System.Windows.Controls.Label",
+          "System.Windows.Controls.TextBlock"
+        ],
+        "defaultKeywords": [
+          "ClickAt"
+        ]
+      },
+      {
+        "marsType": "SwfEdit",
+        "controlType": [
+          "System.Windows.Controls.TextBox",
+          "DevExpress.Xpf.Editors.CheckEdit",
+          "DevExpress.Xpf.Editors.DateEdit",
+          "DevExpress.Xpf.Editors.EditorControl",
+          "DevExpress.Xpf.Editors.LookUpEdit",
+          "DevExpress.Xpf.Editors.ButtonEdit",
+          "DevExpress.Xpf.Editors.TextEdit",
+          "DevExpress.Xpf.Editors.ComboBoxEdit",
+          "DevExpress.Xpf.Editors.SpinEdit",
+          "DevExpress.Xpf.Editors.TokenEdit",
+          "DevExpress.Xpf.Editors.PopupSpinEdit",
+          "DevExpress.Xpf.Editors.PopupDateEdit",
+          "DevExpress.Xpf.Editors.PopupLookUpEdit",
+          "DevExpress.Xpf.Editors.PopupSpinEdit",
+          "DevExpress.Xpf.Editors.PopupTextEdit",
+          "DevExpress.Xpf.Editors.PopupComboBoxEdit",
+          "DevExpress.Xpf.Editors.PopupCheckEdit",
+          "DevExpress.Xpf.Grid.LookUp.LookUpEdit"
+        ],
+        "defaultKeywords": [
+          "FillEdit"
+        ]
+      },
+      {
+        "marsType": "SwfButton",
+        "controlType": [
+          "System.Windows.Controls.Button"
+        ],
+        "defaultKeywords": [
+          "ClickButton"
+        ]
+      },
+      {
+        "marsType": "SwfWebView",
+        "controlType": [
+          "System.Windows.Controls.WebBrowser",
+          "Microsoft.Web.WebView2.Wpf.WebView2",
+          "CefSharp.Wpf.ChromiumWebBrowser"
+        ],
+        "defaultKeywords": [
+          "ConnectToWebView"
+        ]
+      },
+      {
+        "marsType": "SwfCheckBox",
+        "controlType": [
+          "System.Windows.Controls.CheckBox"
+        ],
+        "defaultKeywords": [
+          "SetBox"
+        ]
+      },
+      {
+        "marsType": "SwfRadioButton",
+        "controlType": [
+          "System.Windows.Controls.RadioButton"
+        ],
+        "defaultKeywords": [
+          "SetBox"
+        ]
+      },
+      {
+        "marsType": "SwfList",
+        "controlType": [
+          "System.Windows.Controls.ListBox",
+          "System.Windows.Controls.ListView",
+          "System.Windows.Controls.TreeView",
+          "DevExpress.Xpf.Grid.TreeListControl",
+          "DevExpress.Xpf.Grid.TreeListView",
+          "DevExpress.Xpf.TreeMap.TreeMapControl"
+        ],
+        "defaultKeywords": [
+          "SelectListItem"
+        ]
+      },
+      {
+        "marsType": "SwfTable",
+        "controlType": [
+          "DevExpress.Xpf.PivotGrid.PivotGridControl",
+          "System.Windows.Controls.ListView",
+          "System.Windows.Controls.TreeView",
+          "DevExpress.Xpf.Grid.TreeListControl",
+          "DevExpress.Xpf.Spreadsheet.SpreadsheetControl",
+          "DevExpress.Xpf.Grid.TableView"
+        ],
+        "defaultKeywords": [
+          "FillTable",
+          "SearchAndUpdate",
+          "SearchAndClick"
+        ]
+      },
+      {
+        "marsType": "SwfTab",
+        "controlType": [
+          "System.Windows.Controls.TabControl",
+          "HSUCF.WPF.Core.Dock.Controls.DocumentPaneTabPanel",
+          "HSUCF.WPF.Controls.HsTabControl"
+        ],
+        "defaultKeywords": [
+          "SelectTab"
+        ]
+      }
+    ]
+  },
+  "marsTypeMapping_web_core": {
+    "PreviewScanType": [ "WebAGGridColumn" ],
+    "TypesAndKeywords": [
+      {
+        "marsType": "WebAGGridColumn",
+        "webXPaths": [ "//div[@id='myGrid']//div[contains(@class, 'ag-header')]//div[@col-id]" ],
+        "webColumnHeaderTextProperty": "col-id",
+        "defaultKeywords": [ "SearchAndClick" ]
+      }
+    ]
+  },
+  "typeAndEnvent": {
+    "mouseDownEvent": [
+      "Infragistics.Win.UltraWinTabControl.UltraTabControl"
+    ]
+  },
+  "twoStepsTypes": [
+    "Summit.Framework.View.DDownControl",
+    "Infragistics.Win.UltraWinGrid.UltraCombo"
+  ]
+}

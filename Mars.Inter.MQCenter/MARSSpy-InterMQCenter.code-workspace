@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../MarsSpyTool"
+		},
+		{
+			"path": "../Mars.AutoTestingDriver"
+		}
+	],
+	"settings": {}
+}

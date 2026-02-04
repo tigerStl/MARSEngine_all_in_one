@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WebSocket Demo</title>
+</head>
+<body>
+<script>
+function socketSendAndRev(jsonData){
+	const socket = new WebSocket("ws://localhost:8666/marsEngineTest/");
+	socket.onopen = function() {
+	  console.log("connected") ;
+	  socket.send(JSON.stringify(jsonData));
+	};
+	socket.onmessage = function(event) {
+		console.log(event.data);
+	};
+    socket.onclose = function() {
+		console.log("Connection closed");
+	};
+}
+
+function connect() {
+  <!-- var socket = new WebSocket("ws://localhost:8666/marsEngineTest/"); -->
+  
+  const jsonData = {
+	  command: "CMD_GET_HOSTNAME",
+	  uuid: "dfdfdslfkj-2lkjfkdfd-kljkjdfsf",
+	};
+
+	<!-- const socket = new WebSocket("ws://localhost:8666/marsEngineTest/"); -->
+	<!-- socket.onopen = function() { -->
+	  <!-- console.log("connected") ; -->
+	  <!-- socket.send(JSON.stringify(jsonData)); -->
+	<!-- }; -->
+	<!-- socket.onmessage = function(event) { -->
+		<!-- console.log(event.data); -->
+	<!-- }; -->
+    <!-- socket.onclose = function() { -->
+		<!-- console.log("Connection closed"); -->
+	<!-- }; -->
+	socketSendAndRev(jsonData);
+	
+  <!-- socket.onopen = function() { -->
+    <!-- socket.send("hello"); -->
+  <!-- }; -->
+}
+function connect1() {
+  <!-- var socket = new WebSocket("ws://localhost:8666/marsEngineTest/"); -->
+  
+  const jsonData = {
+	  command: "CMD_GET_HOSTNAME",
+	  uuid: "dfdfdslfkj-2lkjfkdfd-kljkjdfsf",
+	};
+
+	const socket = new WebSocket("ws://localhost:8666/");
+	socket.onopen = function() {
+	  console.log("connected") ;
+	  socket.send(JSON.stringify(jsonData));
+	};
+	socket.onmessage = function(event) {
+		console.log(event.data);
+	};
+    socket.onclose = function() {
+		console.log("Connection closed");
+	};
+	
+	
+  <!-- socket.onopen = function() { -->
+    <!-- socket.send("hello"); -->
+  <!-- }; -->
+}
+function TestKeyword(){
+	const _objectHappyName ="test one" ;
+	const _objectQuickAccess = document.getElementById("objectQuickAccess").value ;
+	const _parameters = document.getElementById("parameters").value ;
+	const _keyword = document.getElementById("keyword").value ;
+	
+	const _data = document.getElementById("data").value ;
+	const _dbId = document.getElementById("dbId").value ;
+	const _app = document.getElementById("app").value ;
+	
+	const _objectQuickAccess1 = document.getElementById("objectQuickAccess1").value ;
+	const _parameters1 = document.getElementById("parameters1").value ;
+	const _keyword1 = document.getElementById("keyword1").value ;
+	
+	const _data1 = document.getElementById("data1").value ;
+	
+	const _userName = document.getElementById("userName").value;
+	const jdtat={
+		command:"CMD_RUN_STEPS", 
+		uuid:"dfdfdslfkj-2lkjfkdfd-kljkjdfsf",		
+		TestStepInfo:{
+			currentDB:_dbId,
+			app:_app, 
+			testMode:"BASELINE",
+			userName:_userName,
+			testStepsForJson:
+			[
+				{
+					ord:"1", 
+					k_n:_keyword, 						
+					obj:_objectQuickAccess,
+					para:_parameters,
+					data:_data
+				},
+				{
+					ord:"2", 
+					k_n:_keyword1, 						
+					obj:_objectQuickAccess1,
+					para:_parameters1,
+					data:_data1
+				}
+			]
+		}
+		
+	}
+	socketSendAndRev(jdtat);
+}
+</script>
+<button onclick="connect()">Connect</button>
+<button onclick="connect1()">Connect1</button>
+<br>
+<br>
+<table>
+	<tr><th style="width:100px">
+		Database
+		</th>
+		<th>Application</th>
+		<th>App Id </th>
+		<th>current Mars User</th>
+	</tr>
+	<tr><td>
+		<input type="text" value="GEN_MARS_5" id="dbId">
+		</td>
+		<td>
+			<input type="text" value="IFCSummit6.1" id="appName">
+		</td>
+		<td>
+			<input type="text" value="1" id="app">
+		</td>
+		<td>
+			<input type="text" value="adminTest" id="userName">
+		</td>
+	</tr>
+</table>
+
+<table style="text-align:top">
+	<tr>
+		<th>Keyword</th>	
+		<th>object Info</th>
+		<th>Parameter</th>
+		<th>Data</th>
+	</tr>
+	<tr style="text-align:top">
+		<td><input type="text" width="100px" value="Pegwindow" id="keyword"></td>
+		<td><textarea  type="textarea" rows="5" width="200px" id="objectQuickAccess">is owned window:=False
+is child window:=False 
+text:=((Misys|Finastra ){0,1}(FusionCapital|Fusion ){0,1}(Markets ){0,1}Summit( FT){0,1})(?!(.*Login)).* 
+index:=0</textarea></td>
+		<td><input type="text" width="100px" id="parameters" value="test"></td>
+		<td><input type="text" width="100px" id="data"></td>
+	</tr>
+	<tr style="text-align:top">
+		<td><input type="text" width="100px" id="keyword1" value="FillEdit"></td>
+		<td><textarea  type="textarea" rows="5" width="200px" id="objectQuickAccess1">
+swfname:=_user
+swfname	path:=.*ProxySettingsDialog.*	</textarea></td>
+		<td><input type="text" width="100px" id="parameters1"></td>
+		<td><input type="text" width="100px" id="data1" value="qauser"></td>
+	</tr>
+	
+</table>
+<button onclick="TestKeyword()">Test keyword</button>
+</body>
+</html>

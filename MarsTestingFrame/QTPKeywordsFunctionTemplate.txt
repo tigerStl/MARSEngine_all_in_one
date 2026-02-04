@@ -1,0 +1,168 @@
+﻿'Head part'
+'说明：
+'公用方法，组建qtpscript时候的先写
+'----------------------------------------------'
+''
+'----------------------------------------------'
+Function CheckObjExists(Identifier, strKeyWordName)
+
+
+
+'参数{4}是happyname'
+Function FillEdit({0},{1},{2},ByRef {3},{4})
+
+   Dim uThere,uEnabled,uText
+   Dim m_happy
+   Dim strErrorInfo, mDeskPhoto
+
+   On Error Resume Next
+   FillEdit = False
+
+   Call u_WirteOneLine2LogFile("INFO","Starting FillEdit Keyword")
+
+     'Get the Happy Name
+'	Set  m_happy_env = environment.Value("INST_CURRENT_OBJ")
+'	m_happy = m_happy_env.m_strObject
+
+	'If the value in the Test Case column  is blank then use the data from the Data Workbook. 
+	If Data = "" Then
+		Data = Data_TC
+	End If
+
+	Reporter.Filter = rfEnableErrorsAndWarnings ' Send only Errors and Warnings to the QTP log.
+    Call u_writeOneline2LogFile("INFO","BEFORE uThere")
+    ' Check to see if the object exists.
+   Execute "uThere =" &  Identifier & ".exist(0)"
+   'If Not Catch(err.number,err.description)Then : Exit Function 
+   If  uThere <> True Then
+        Reporter.ReportEvent micFail, identifier & "Not found", "Fill Edit object not found on screen"
+		Call DeskTopPhotoGraph(mDeskPhoto)
+		'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+		Call u_ReportInfo2Word("Fail","FillEdit",m_happy,Data,"Cannot find Edit",mDeskPhoto)
+        FillEdit = False
+        Exit Function
+   End If 
+ 	Call u_writeOneline2LogFile("INFO","BEFORE uEnabled")
+   Execute "uEnabled="  &  Identifier & ".GetROProperty(""enabled"")"
+   'If Not Catch(err.number,err.description)Then : Exit Function 
+   If uEnabled <> True Then
+      Reporter.ReportEvent micFail, identifier & "Not enabled", "object not ready to receive input"
+	  Call DeskTopPhotoGraph(mDeskPhoto)
+	  'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+	  Call u_ReportInfo2Word("Fail","FillEdit",m_happy,Data,"Cannot find Edit",mDeskPhoto)
+      FillEdit = False
+      Exit Function
+   End If
+	Call u_writeOneline2LogFile("INFO","BEFORE objDes")
+	Execute "Set objDes = " & Identifier
+	strType =objDes.GetROProperty("Class Name")
+	strType = uCase(strType)
+	Select Case strType
+	  Case  "SWFEDIT"
+	  		Call u_writeOneline2LogFile("INFO","BEFORE SwfEdit")
+		    Call u_WirteOneLine2LogFile("INFO","FillEdit - Processing SwfEdit")
+			Execute Identifier & ".Click()"
+			'If Not Catch(err.number,err.description)Then : Exit Function 
+			Call wait (0,10)
+			Call u_writeOneline2LogFile("INFO","BEFORE Set")
+			Execute Identifier&".Set """""
+			Call u_writeOneline2LogFile("INFO","BEFORE EveryChar")
+			Call EveryChar(Data)
+			wsh.SendKeys("{TAB}")
+			Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+			Reporter.ReportEvent micDone,"FillEdit Keyword completed","Data:  "  &  Data
+			call u_ReportInfo2Word("Done", "FillEdit",m_happy,Data,"Populated Edit Box","")
+			FillEdit = true
+	  Case "SWFEDITOR"',"SWFCOMBOBOX"
+		    ' Example is Start in the Repo Trade(FNMA) application
+		    Call u_WirteOneLine2LogFile("INFO","FillEdit - Processing SwfEditor")
+			objDes.object.Text =""
+           'call objDes.object.AppendText(Data)
+		   hwndType = objDes.GetROProperty("hwnd")
+		   Call u_writeOneline2LogFile("INFO","BEFORE SendKeyPressMessage")
+			call SendKeyPressMessage(hwndType,data)
+			'Execute "hwndType=" & Identifier & ".GetROProperty(""hwnd"")"
+			'SwfWindow("Summit FT - Bond Issuance Trade (FNMA) - [PENDINGCUSIP]").SwfObject("_distribtionDD").Click
+			Extern.SendMessage hwndType,cb_FOCUS,  0,0
+			
+			'Call wait (0,200)
+			'Call EveryChar(Data)
+			'objDes.object.Text = Data
+			Call wait (0,50)
+			objDes.SetCaretPos 0,2
+			Call SendTabMessage(hwndType)
+			'objDes.Type micTab
+			'wsh.SendKeys("{TAB}")
+			Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+			Reporter.ReportEvent micDone,"FillEdit Keyword completed","Data:  "  &  Data
+			call u_ReportInfo2Word("Done", "FillEdit",m_happy,Data,"Populated Editor","")
+			FillEdit = true
+      Case "SWFCOMBOBOX"
+		   'User Name Log In
+		    Call u_WirteOneLine2LogFile("INFO","FillEdit - Processing SwfComboBox")
+	        'check the children,find winedit 
+			Dim objSubEdit,objSubDes,arrChildren
+			Set objSubDes=Description.Create()
+			objSubDes("Class Name").value="WinEdit"
+			objSubDes("object class").value="Edit"
+			set arrChildren = objDes.ChildObjects(objSubDes)
+			If arrChildren.Count<=0 Then
+                strErrorInfo = "FillEdit,Can't find WinEdit from Combox!"
+				Call u_WirteOneLine2LogFile("ERROR",strErrorInfo)
+				Call DeskTopPhotoGraph(mDeskPhoto)
+				call u_ReportInfo2Word("Fail", "FillEdit",m_happy,Data,strErrorInfo,mDeskPhoto)
+				Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+				fillEdit = false
+				Exit function
+			End If
+		     '08/28/14 Adding 
+		     Call u_writeOneline2LogFile("INFO","BEFORE hwnd")
+			hwndType = objDes.GetROProperty("hwnd")
+			'Execute "hwndType=" & Identifier & ".GetROProperty(""hwnd"")"
+			'SwfWindow("Summit FT - Bond Issuance Trade (FNMA) - [PENDINGCUSIP]").SwfObject("_distribtionDD").Click
+			Call u_writeOneline2LogFile("INFO","BEFORE cb_FOCUS")
+			Extern.SendMessage hwndType,cb_FOCUS,  0,0
+			Call u_writeOneline2LogFile("INFO","BEFORE set empty")
+			objDes.dblClick 1,1,micLeftBtn
+			Call wait (0,100)
+			Call u_writeOneline2LogFile("INFO","BEFORE setData")
+			call SendKeyPressMessage(hwndType,data)
+			'objDes.object.text= cstr(Data)
+			Call wait (0,100)
+			Call u_writeOneline2LogFile("INFO","BEFORE send tab")
+			'If Not Catch(err.number,err.description)Then : Exit Function 
+			'wsh.SendKeys("{TAB}")
+			Call u_writeOneline2LogFile("INFO","BEFORE send ReportEvent")
+			Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+			Reporter.ReportEvent micDone,"FillEdit Keyword completed","Data:  "  &  Data
+			call u_ReportInfo2Word("Done", "FillEdit",m_happy,Data,"Selected from ComboBox","")
+			FillEdit = true
+		Case Else
+			strErrorInfo = "Object must be of type EDIT,  EDITOR, or COMBOBOX. It is using:  " & strType
+			Call DeskTopPhotoGraph(mDeskPhoto)
+			Call u_ReportInfo2Word("Fail", "FillEdit",m_happy,Data,strErrorInfo,mDeskPhoto)
+			Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+			FillEdit = False
+			Exit Function
+	End Select
+
+   'input data with date changes such as 5y or 10m can change the value after moving off of
+   'the object.   Report a message and send the new value back out through the Data_TC 
+   ' parameter.
+   Execute "uText ="  &  Identifier & ".GetROProperty(""text"")"
+   ' If Not Catch(err.number,err.description)Then : Exit Function 
+   If uText <> Data Then
+      Reporter.ReportEvent micDone, identifier & "FillEdit Data different in Edit Field after setting the data in it.", "Fill Edit Data field changed the value of the input data."
+	  Data_TC = uText
+      'FillEdit = False
+      'Exit Function
+   End If
+   'Setting.Webpackage("ReplayType")= 1
+
+	Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+
+	Reporter.ReportEvent micDone,"FillEdit Keyword completed","Data:  "  &  Data
+
+    On Error GoTo 0
+
+End Function

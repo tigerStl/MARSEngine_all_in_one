@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/obj/Release For Webversion/ShellBasics.dll
+/obj/Release For Webversion/ShellBasics.pdb
+/obj/DEBUG FOR WEBVERSION/ShellBasics.dll
+/obj/DEBUG FOR WEBVERSION/ShellBasics.pdb

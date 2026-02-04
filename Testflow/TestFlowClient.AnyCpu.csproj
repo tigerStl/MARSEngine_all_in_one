@@ -1,0 +1,353 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{05201161-BADA-4EA2-BC9B-4CCB8EB6EE1E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TestFlowClient</RootNamespace>
+    <AssemblyName>TestFlowClientAny</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'debug with qtp|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\binWithQtp\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'release with qtp|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\binWithQtp\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit;_NO_C_DRIVER_WRITE</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'debug with qtp|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\debug with qtp\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit;_NO_C_DRIVER_WRITE</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'release with qtp|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\release with qtp\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit;_NO_C_DRIVER_WRITE</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\bin32\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\bin32\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'debug with qtp|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\debug with qtp\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit;_NO_C_DRIVER_WRITE</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'release with qtp|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\release with qtp\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit;_NO_C_DRIVER_WRITE</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugQT|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DebugQT\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugQT|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\DebugQT\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugQT|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\DebugQT\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Webversion|AnyCPU'">
+    <OutputPath>bin\Release For Webversion\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Webversion|x64'">
+    <OutputPath>bin\x64\Release For Webversion\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Webversion|x86'">
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\bin32\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DEBUG FOR WEBVERSION|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DEBUG FOR WEBVERSION\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DEBUG FOR WEBVERSION|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\DEBUG FOR WEBVERSION\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DEBUG FOR WEBVERSION|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\DEBUG FOR WEBVERSION\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>tigerForTestClient.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CustomMarshalers" />
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\Mars.AutoTestingDriver\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Mars\Utility\ExcelUtil.cs">
+      <Link>referenceSource\office\ExcelUtil.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsTestingFrame\CommuniteServer\CommuniteServer.cs">
+      <Link>referenceSource\CommuniteServer.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsTestingFrame\SourceCode\systemUtil\LicenseLoader.cs">
+      <Link>referenceSource\LicenseLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsTestingFrame\SourceCode\systemUtil\MLogger.cs">
+      <Link>referenceSource\MLogger.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsTestingFrame\SourceCode\xmlConfig\WCFXmlCfgMgr.cs">
+      <Link>referenceSource\WCFXmlCfgMgr.cs</Link>
+    </Compile>
+    <Compile Include="..\TestFrameMonitor\Server\ServiceContracts\IMonitorService.cs">
+      <Link>referenceSource\IMonitorService.cs</Link>
+    </Compile>
+    <Compile Include="BreakPoints\TestBreakPoinstsDataType.cs" />
+    <Compile Include="ClientAddins\AddinsMgr\ClientAddinsMgr.cs" />
+    <Compile Include="ClientAddins\ApplicationAddins\OpicsAddins\OpicsDataAddins.cs" />
+    <Compile Include="ClientAddins\MarsClientAddins.cs" />
+    <Compile Include="Debug\DebugMgr.cs" />
+    <Compile Include="DuplexClientBase.cs" />
+    <Compile Include="Mars.Office.Support\MarsExcel.cs" />
+    <Compile Include="Mars.TigerConfig\AppConfigReader.cs" />
+    <Compile Include="MarsMsgCenter\MarsDispatchCenter.cs" />
+    <Compile Include="MarsMsg\IMarsDispatchTestFrameMsg.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <DependentUpon>Resources.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Properties\ServiceResource.Designer.cs">
+      <DependentUpon>ServiceResource.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="referenceSource\MarsExceptions.cs" />
+    <Compile Include="referenceSource\ServicebasicInformation.cs" />
+    <Compile Include="referenceSource\SystemConstant.cs" />
+    <Compile Include="referenceSource\TigerMarsAPIs.cs" />
+    <Compile Include="referenceSource\TigerMarsUtil.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="referenceSource\WMessages.cs" />
+    <Compile Include="TestFlowMainEntry.cs" />
+    <Compile Include="TestFrameUtility.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\ServiceResource.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>ServiceResource.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="packages.config" />
+    <None Include="tigerForTestClient.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Form.Info\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\ShellBasics\ShellBasics\MarsShellLib - Any.csproj">
+      <Project>{fc484768-3432-4485-8683-65a55ee6becb}</Project>
+      <Name>MarsShellLib - Any</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Utilities\Mars.Securities\Mars.Securities - Any.csproj">
+      <Project>{7806b8e2-aa1c-4e03-84ad-1665f7497498}</Project>
+      <Name>Mars.Securities - Any</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

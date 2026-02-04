@@ -1,0 +1,327 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+
+namespace CustomComboBox
+{
+    public partial class ToleranceGrid : UserControl
+    {
+        public static string V2_MARKER = "==";
+
+        public ToleranceGrid()
+        {
+            InitializeComponent();
+        }
+
+        public ToleranceGrid(string initialValues)
+        {
+            InitializeComponent();
+            InitGrid(initialValues);
+
+            // Added to handle checkbox events
+            //this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
+        }
+
+        public void InitGrid(string initialValues)
+        {
+            
+            dataGridView1.Rows.Clear();
+            if (initialValues == null)
+                return;
+            string[] rows = initialValues.Split(';');
+            foreach (string row in rows)
+            {
+                string[] values = row.Split('|');
+
+                string fieldName = values[0];
+                Boolean isUsed;
+                if (values[1].Equals("1"))
+                    isUsed = true;
+                else
+                    isUsed = false;
+                string type = values[2];
+                if (type != null && type.Equals("P"))
+                    type = "Percent";
+                if (type != null && type.Equals("A"))
+                    type = "Absolute";
+                string value = values[3];
+
+                dataGridView1.Rows.Add(new object[] { fieldName, isUsed, type, value });
+
+            }
+        }
+
+        public void AddGridItem(string initialValues)
+        {
+            if (initialValues.Trim().Length == 0)
+                return;
+            string[] values = initialValues.Split('|');
+
+            string fieldName = values[0];
+            Boolean isUsed;
+            if (values[1].Equals("1"))
+                isUsed = true;
+            else
+                isUsed = false;
+            string type = values[2];
+            if (type != null && type.Equals("P"))
+                type = "Percent";
+            if (type != null && type.Equals("A"))
+                type = "Absolute";
+            string value = values[3];
+
+            dataGridView1.Rows.Add(new object[] { fieldName, isUsed, type, value });
+        }
+        
+
+        public void InitGridWithoutTolerance(string initialValues)
+        {
+            dataGridView1.Rows.Clear();
+            string[] rows = initialValues.Split(';');
+            foreach (string row in rows)
+            {
+                string[] values = row.Split('|');
+
+                string fieldName = values[0];
+                Boolean isUsed;
+                if (values[1].Equals("1"))
+                    isUsed = true;
+                else
+                    isUsed = false;
+                
+                dataGridView1.Rows.Add(new object[] { fieldName, isUsed, "", "" });
+
+            }
+        }
+
+        public string ItemsToDisplay()
+        {
+            string itemString = "";
+
+            foreach (DataGridViewRow item in dataGridView1.Rows)
+            {
+                itemString += item.Cells[0].Value.ToString() + ", ";
+            }
+            itemString = itemString.TrimEnd(' ').TrimEnd(',');
+            return itemString;
+        }
+
+        public string ItemsToDisplayForComboBox()
+        {
+            string itemString = "";
+
+            DataTable dt = GetDataTableFromDGV(dataGridView1);
+
+            foreach (DataGridViewRow item in dataGridView1.Rows)
+            {
+                if (item.Cells[1].Value == null || item.Cells[1].Value.ToString().ToLower().Equals("false"))
+                   continue;
+
+                itemString += item.Cells[0].Value.ToString() + ", ";
+            }
+            itemString = itemString.TrimEnd(' ').TrimEnd(',');
+            return itemString;
+        }
+
+        private DataTable GetDataTableFromDGV(DataGridView dgv)
+        {
+            var dt = new DataTable();
+            foreach (DataGridViewColumn column in dgv.Columns)
+            {
+                if (column.Visible)
+                {
+                    // You could potentially name the column based on the DGV column name (beware of dupes)
+                    // or assign a type based on the data type of the data bound to this DGV column.
+                    dt.Columns.Add();
+                }
+            }
+
+            object[] cellValues = new object[dgv.Columns.Count];
+            foreach (DataGridViewRow row in dgv.Rows)
+            {
+                for (int i = 0; i < row.Cells.Count; i++)
+                {
+                    cellValues[i] = row.Cells[i].Value;
+                }
+                dt.Rows.Add(cellValues);
+            }
+
+            return dt;
+        }
+
+        public string ItemsToCompare()
+        {
+            string itemString = V2_MARKER;
+            foreach (DataGridViewRow item in dataGridView1.Rows)
+            {
+                string fieldId = "", isUsed= "", type= "", value = "";
+                fieldId = item.Cells[0].Value.ToString();
+
+                string tmp = item.Cells[1].Value.ToString();
+                Console.WriteLine(tmp);
+
+                if (item.Cells[1].Value.ToString().ToLower().Equals("true"))
+                    isUsed = "1";
+                else
+                    //isUsed = "0";
+                    continue;
+
+                if (item.Cells[2].Value.ToString().Equals("Absolute"))
+                    type = "A";
+                else if (item.Cells[2].Value.ToString().Equals("Percent"))
+                    type = "P";
+
+                value = item.Cells[3].Value.ToString();
+                itemString += fieldId + "|" + isUsed + "|" + type + "|" + value +  ";";
+            }
+            itemString = itemString.TrimEnd(' ').TrimEnd(';');
+            return itemString;
+        }
+
+        
+
+        public void AddItems(string initialValues)
+        {
+            dataGridView1.Rows.Clear();
+            string[] rows = initialValues.Split(',');
+            foreach (string row in rows)
+            {
+               dataGridView1.Rows.Add(new object[] { row.Trim(), "", "", "" });
+
+            }
+        }
+
+        //private void dataGridView1_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        //{
+
+        //}
+
+        private void dataGridView1_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        {
+            e.Control.KeyPress -= new KeyPressEventHandler(Column3_KeyPress);
+            if (dataGridView1.CurrentCell.ColumnIndex == 3) //Desired Column
+            {
+                TextBox tb = e.Control as TextBox;
+                if (tb != null)
+                {
+                    tb.KeyPress += new KeyPressEventHandler(Column3_KeyPress);
+                }
+            }
+
+        }
+        private void Column3_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // allowed only numeric value  ex.10
+            //if (!char.IsControl(e.KeyChar)
+            //    && !char.IsDigit(e.KeyChar))
+            //{
+            //    e.Handled = true;
+            //}
+
+            // allowed numeric and one dot  ex. 10.23
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)
+                 && e.KeyChar != '.')
+            {
+                e.Handled = true;
+            }
+
+            // only allow one decimal point
+            if (e.KeyChar == '.'
+                && (sender as TextBox).Text.IndexOf('.') > -1)
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            //We make DataGridCheckBoxColumn commit changes with single click
+            //use index of logout column
+            if (e.ColumnIndex == 1 && e.RowIndex >= 0)
+            {
+                this.dataGridView1.CommitEdit(DataGridViewDataErrorContexts.Commit);
+
+                //Check the value of cell
+                if ((bool)this.dataGridView1.CurrentCell.Value == false)
+                {
+                    //Use index of TimeOut column
+                    this.dataGridView1.Rows[e.RowIndex].Cells[2].Value = DBNull.Value;
+                    this.dataGridView1.Rows[e.RowIndex].Cells[3].Value = DBNull.Value;
+                }
+            }
+        }
+
+        void dataGridView1_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+        {
+            if (this.dataGridView1.IsCurrentCellDirty)
+            {
+                // This fires the cell value changed handler below
+                dataGridView1.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            }
+        }
+
+        private void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0)
+            {
+                DataGridViewComboBoxCell cb = (DataGridViewComboBoxCell)dataGridView1.Rows[e.RowIndex].Cells[2];
+                if (cb.Value != null && cb.Value.ToString().Trim().Length == 0)
+                {
+                    // do stuff
+                    this.dataGridView1.Rows[e.RowIndex].Cells[3].Value = DBNull.Value;
+                    dataGridView1.Invalidate();
+                }
+            }
+        }
+
+        private void dataGridView1_KeyDown(object sender, KeyEventArgs e)
+        {
+            Console.WriteLine("Key pressed");
+
+            if (e.Modifiers == Keys.Control && e.KeyCode == Keys.A)
+            {
+                
+                foreach (DataGridViewRow row in dataGridView1.Rows)
+                {
+                    DataGridViewCheckBoxCell chk = (DataGridViewCheckBoxCell)row.Cells[1];
+                    if (chk.Selected == true)
+                    {
+                        chk.Selected = false;
+                        chk.TrueValue = false;
+                        chk.Value = false;
+                    }
+                    else
+                    {
+                        chk.Selected = true;
+                        chk.TrueValue = true;
+                        chk.Value = true;
+                    }
+                }
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+
+            if (e.Modifiers == Keys.Shift && e.KeyCode == Keys.A)
+            {
+
+                foreach (DataGridViewRow row in dataGridView1.Rows)
+                {
+                    DataGridViewCheckBoxCell chk = (DataGridViewCheckBoxCell)row.Cells[1];
+                    
+                        chk.Selected = false;
+                       // chk.TrueValue = chk.FalseValue;
+                        chk.Value = chk.FalseValue;
+                   
+                }
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+            dataGridView1.Update();
+        }
+    }
+}

@@ -1,0 +1,219 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9FBDE35C-028F-42B2-8B6B-B664D69D1CA0}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Mars.DB.Share</RootNamespace>
+    <AssemblyName>Mars.DB.Share</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Class1.cs" />
+    <Compile Include="MarsModel.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MarsModel.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="MarsModel.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="MarsModel.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MarsModel.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="REL_APP_PROJ.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="REL_APP_TESTCASE.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="REL_APP_TESTSUITE.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="REL_TC_DATA_SUMMARY.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="REL_TEST_CASE_TEST_SUITE.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="REL_TEST_SUIT_PROJECT.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="SYSTEM_LOOKUP.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TEST_CASE_VIEW.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TEST_CASE_VIEW2.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TEST_DATA_SETTING.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TEST_OBJECT_VIEW.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TEST_PROJECT_VIEW.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_COMPARE_CONFIG.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_COMPARE_CONNECTIONS.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_COMPARE_QUERIES.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_DATA_SOURCE.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_DIC_RELATION_KEYWORD.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_GUI_COMPONENT_TYPE_DIC.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_KEYWORD.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_PROJECT_DATA_SOURCE.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_PROJ_TC_MGR.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_PROJ_TEST_RESULT.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_REGISTED_OBJECT.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_REGISTERED_APPS.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_SHARED_OBJECT_POOL.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_STORYBOARD_HISTORY.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_STORYBOARD_SUMMARY.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_TEST_CASE_SUMMARY.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_TEST_CASE_VERSION.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_TEST_DATA_SUMMARY.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_TEST_ENUM.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_TEST_PROJECT.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_TEST_REPORT.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_TEST_REPORT_STEPS.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_TEST_STEPS.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T_TEST_SUITE.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="V_OBJECT_APPS.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="V_STORYBOARD_TEST_FULLVISION.cs">
+      <DependentUpon>MarsModel.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EntityDeploy Include="MarsModel.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>MarsModel.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.Config" />
+    <None Include="MarsModel.edmx.diagram">
+      <DependentUpon>MarsModel.edmx</DependentUpon>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="MarsModel.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>MarsModel.Context.cs</LastGenOutput>
+      <DependentUpon>MarsModel.edmx</DependentUpon>
+    </Content>
+    <Content Include="MarsModel.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>MarsModel.edmx</DependentUpon>
+      <LastGenOutput>MarsModel.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

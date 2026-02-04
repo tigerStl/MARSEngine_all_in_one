@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "MARSEncoderApps": {
+      "commandName": "Project",
+      "commandLineArgs": "-m EncodePwd"
+    },
+    "Profile 1": {
+      "commandName": "Executable"
+    }
+  }
+}

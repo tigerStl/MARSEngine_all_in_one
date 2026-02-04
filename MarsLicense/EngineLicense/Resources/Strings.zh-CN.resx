@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" msdata:Ordinal="5" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Form -->
+  <data name="FormTitle" xml:space="preserve">
+    <value>MARS License管理系统</value>
+  </data>
+  
+  <!-- Basic Info Group -->
+  <data name="GroupBasicInfo" xml:space="preserve">
+    <value>基本信息</value>
+  </data>
+  <data name="LabelLicenseCount" xml:space="preserve">
+    <value>License数量:</value>
+  </data>
+  <data name="LabelValidityDays" xml:space="preserve">
+    <value>有效期(天):</value>
+  </data>
+  <data name="LabelExpirationDate" xml:space="preserve">
+    <value>到期日期:</value>
+  </data>
+  <data name="LabelCustomerName" xml:space="preserve">
+    <value>客户名称:</value>
+  </data>
+  <data name="LabelNotes" xml:space="preserve">
+    <value>备注:</value>
+  </data>
+  <data name="LabelLanguage" xml:space="preserve">
+    <value>语言:</value>
+  </data>
+  
+  <!-- MAC Address Group -->
+  <data name="GroupMacAddress" xml:space="preserve">
+    <value>MAC地址管理</value>
+  </data>
+  <data name="PlaceholderMacAddress" xml:space="preserve">
+    <value>输入MAC地址 (例如: 00-11-22-33-44-55)</value>
+  </data>
+  <data name="ButtonAddMac" xml:space="preserve">
+    <value>添加MAC地址</value>
+  </data>
+  <data name="ButtonRemoveMac" xml:space="preserve">
+    <value>移除选中MAC</value>
+  </data>
+  
+  <!-- Application Group -->
+  <data name="GroupApplication" xml:space="preserve">
+    <value>应用程序限制</value>
+  </data>
+  <data name="CheckBoxRestrictApp" xml:space="preserve">
+    <value>启用应用程序限制</value>
+  </data>
+  <data name="ButtonAddApp" xml:space="preserve">
+    <value>添加应用程序</value>
+  </data>
+  <data name="ButtonRemoveApp" xml:space="preserve">
+    <value>移除选中应用</value>
+  </data>
+  
+  <!-- Main Buttons -->
+  <data name="ButtonGenerateLicense" xml:space="preserve">
+    <value>生成License文件</value>
+  </data>
+  <data name="ButtonValidateLicense" xml:space="preserve">
+    <value>验证License文件</value>
+  </data>
+  
+  <!-- Messages - Warnings -->
+  <data name="MsgEnterMacAddress" xml:space="preserve">
+    <value>请输入MAC地址！</value>
+  </data>
+  <data name="MsgInvalidMacFormat" xml:space="preserve">
+    <value>MAC地址格式不正确！
+支持的格式：
+- 00-11-22-33-44-55
+- 00:11:22:33:44:55
+- 001122334455</value>
+  </data>
+  <data name="MsgMacCountExceeded" xml:space="preserve">
+    <value>MAC地址数量不能超过License数量({0})！</value>
+  </data>
+  <data name="MsgDuplicateMac" xml:space="preserve">
+    <value>该MAC地址已存在！</value>
+  </data>
+  <data name="MsgSelectMacToRemove" xml:space="preserve">
+    <value>请先选择要移除的MAC地址！</value>
+  </data>
+  <data name="MsgSelectAppToRemove" xml:space="preserve">
+    <value>请先选择要移除的应用程序！</value>
+  </data>
+  <data name="MsgMacCountMismatch" xml:space="preserve">
+    <value>MAC地址数量({0})必须等于License数量({1})！</value>
+  </data>
+  <data name="MsgAddAtLeastOneMac" xml:space="preserve">
+    <value>请至少添加一个MAC地址！</value>
+  </data>
+  <data name="MsgAddAtLeastOneApp" xml:space="preserve">
+    <value>启用应用程序限制后，请至少添加一个应用程序！</value>
+  </data>
+  
+  <!-- Messages - Success -->
+  <data name="MsgLicenseGenerateSuccess" xml:space="preserve">
+    <value>License文件生成成功！
+
+文件路径：{0}
+License数量：{1}
+有效期至：{2:yyyy-MM-dd}</value>
+  </data>
+  <data name="MsgLicenseValidationSuccess" xml:space="preserve">
+    <value>License验证成功！ {0}
+
+License数量：{1}
+有效期：{2} 天
+到期日期：{3:yyyy-MM-dd HH:mm:ss}
+创建日期：{4:yyyy-MM-dd HH:mm:ss}
+客户名称：{5}
+备注：{6}
+
+MAC地址列表({7})：
+{8}</value>
+  </data>
+  <data name="MsgLicenseValid" xml:space="preserve">
+    <value>【有效】</value>
+  </data>
+  <data name="MsgLicenseExpired" xml:space="preserve">
+    <value>【已过期】</value>
+  </data>
+  <data name="MsgNotSet" xml:space="preserve">
+    <value>未设置</value>
+  </data>
+  <data name="MsgNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="MsgAppRestriction" xml:space="preserve">
+    <value>
+
+应用程序限制({0})：
+</value>
+  </data>
+  <data name="MsgAppPath" xml:space="preserve">
+    <value>  路径：{0}
+</value>
+  </data>
+  <data name="MsgAppMD5" xml:space="preserve">
+    <value>  MD5：{0}
+</value>
+  </data>
+  
+  <!-- Messages - Errors -->
+  <data name="MsgReadFileError" xml:space="preserve">
+    <value>读取文件信息失败：{0}</value>
+  </data>
+  <data name="MsgGenerateLicenseError" xml:space="preserve">
+    <value>生成License文件失败：{0}</value>
+  </data>
+  <data name="MsgValidationFailed" xml:space="preserve">
+    <value>License验证失败！
+文件可能已损坏或被篡改。</value>
+  </data>
+  <data name="MsgReadLicenseError" xml:space="preserve">
+    <value>读取License文件失败：{0}</value>
+  </data>
+  
+  <!-- Dialog Titles -->
+  <data name="TitleWarning" xml:space="preserve">
+    <value>提示</value>
+  </data>
+  <data name="TitleError" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="TitleSuccess" xml:space="preserve">
+    <value>成功</value>
+  </data>
+  <data name="TitleValidationFailed" xml:space="preserve">
+    <value>验证失败</value>
+  </data>
+  <data name="TitleValidationResult" xml:space="preserve">
+    <value>License验证结果</value>
+  </data>
+  
+  <!-- File Dialogs -->
+  <data name="FilterExecutableFiles" xml:space="preserve">
+    <value>可执行文件 (*.exe)|*.exe|所有文件 (*.*)|*.*</value>
+  </data>
+  <data name="FilterLicenseFiles" xml:space="preserve">
+    <value>MARS License文件 (*.mlic)|*.mlic|所有文件 (*.*)|*.*</value>
+  </data>
+  <data name="DialogTitleSelectApp" xml:space="preserve">
+    <value>选择应用程序</value>
+  </data>
+  <data name="DialogTitleSaveLicense" xml:space="preserve">
+    <value>保存License文件</value>
+  </data>
+  <data name="DialogTitleValidateLicense" xml:space="preserve">
+    <value>选择License文件进行验证</value>
+  </data>
+</root>
+
+

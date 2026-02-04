@@ -1,0 +1,226 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E77FCB14-49FB-4A13-AF5D-DD59AFF87F27}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Mars.AutoTestingDriver</RootNamespace>
+    <AssemblyName>Mars.AutoTestingDriverQT</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_MarsCDriver;_Datafrom_Database;_remoteDebug1</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;_MarsCDriver;_Datafrom_Database;_remoteDebug1;TigerQT;_EngineDriver</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'debug with qtp|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\debug with qtp\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_MarsCDriver;_Datafrom_Database;_remoteDebug1</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugQT|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DebugQT\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_MarsCDriver;_Datafrom_Database;_remoteDebug1;_EngineDriver</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DEBUG FOR WEBVERSION|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DEBUG FOR WEBVERSION\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_MarsCDriver;_Datafrom_Database;_remoteDebug1</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For WEB|AnyCPU'">
+    <OutputPath>bin\Release For WEB\</OutputPath>
+    <DefineConstants>TRACE;_MarsCDriver;_Datafrom_Database;_remoteDebug1;TigerQT;_EngineDriver</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Webversion|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\QT\release\</OutputPath>
+    <DefineConstants>TRACE;_MarsCDriver;_Datafrom_Database;_tigerQT;_EngineDriver;_remoteDebug1;_forWebClient</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseQT|AnyCPU'">
+    <OutputPath>bin\ReleaseQT\</OutputPath>
+    <DefineConstants>TRACE;_MarsCDriver;_Datafrom_Database;_remoteDebug1;TigerQT;_EngineDriver</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Messaging" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Channels" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Mars.TestFramework.DataCompare\ChangeAppConfig.cs">
+      <Link>referenceSources\ChangeAppConfig.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MarsErrorMessageBox\MarsErrorMessageBox\MarsErrorMessageBox.cs">
+      <Link>ErrorMessage\MarsErrorMessageBox.cs</Link>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="..\..\MarsErrorMessageBox\MarsErrorMessageBox\MarsErrorMessageBox.designer.cs">
+      <Link>ErrorMessage\MarsErrorMessageBox.designer.cs</Link>
+      <DependentUpon>MarsErrorMessageBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="..\..\MarsErrorMessageBox\MarsErrorMessageBox\PictureBox.cs">
+      <Link>ErrorMessage\PictureBox.cs</Link>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="..\..\MarsErrorMessageBox\MarsErrorMessageBox\PictureBox.designer.cs">
+      <Link>ErrorMessage\PictureBox.designer.cs</Link>
+      <DependentUpon>PictureBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="..\..\Mars\Utility\MarsConstants.cs">
+      <Link>referenceSources\MarsConstants.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsTestingFrame\SourceCode\com.Mars.Config\RegisterdApplictions.cs">
+      <Link>referenceSources\configuration\RegisterdApplictions.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsTestingFrame\SourceCode\com.Mars.DB\SystemConstant.cs">
+      <Link>referenceSources\SystemConstant.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsTestingFrame\SourceCode\systemUtil\AppConfigReader.cs">
+      <Link>referenceSources\configuration\AppConfigReader.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsTestingFrame\SourceCode\xmlConfig\UserCfgMgr.cs">
+      <Link>referenceSources\UserCfgMgr.cs</Link>
+    </Compile>
+    <Compile Include="..\MarsTestingFrame\SourceCode\xmlConfig\WCFXmlCfgMgr.cs">
+      <Link>referenceSources\WCFXmlCfgMgr.cs</Link>
+    </Compile>
+    <Compile Include="DataTolerance\MarsVerifyValueToleranceHost.cs" />
+    <Compile Include="db\DatabaseEnvironment.cs" />
+    <Compile Include="db\TestObjectManagement.cs" />
+    <Compile Include="ErrorMessage\MarsErrorStacks.cs" />
+    <Compile Include="ExecuteStoryboard\ExecutableTestStoryBoard.cs" />
+    <Compile Include="ExecuteStoryboard\StoryboardDBRecordMgr.cs" />
+    <Compile Include="ExecuteStoryboard\StoryboardExecute.cs" />
+    <Compile Include="ExecuteTestcase\ExecutableTestCase.cs" />
+    <Compile Include="ExecuteTestcase\keywordOp\baseInterfaceAndClass\MarsKeywordBase.cs" />
+    <Compile Include="ExecuteTestcase\keywordOp\KeywordOpAgent.cs" />
+    <Compile Include="ExecuteTestcase\keywordOp\KeywordOpForGUI.cs" />
+    <Compile Include="ExecuteTestcase\keywordOp\KeyWordsOPForNonGUI.cs" />
+    <Compile Include="injector\InjectorMessageAgent.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="referenceSources\configuration\MarsDriverAppConfigMgr.cs" />
+    <Compile Include="SystemUtil\ConsoleLog.cs" />
+    <Compile Include="SystemUtil\MarsDriverConst.cs" />
+    <Compile Include="SystemUtil\MarsWindowsAPIs.cs" />
+    <Compile Include="wcfClient\WcfClientAgent.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ManagedInjector\ManagedInjector64-4.0.vcxproj">
+      <Project>{a27c8b34-2527-4258-8c07-d2720c576b90}</Project>
+      <Name>ManagedInjector64-4.0</Name>
+      <Aliases>global</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\Mars.Inter.MQCenter\Mars.Inter.MQCenter.csproj">
+      <Project>{d923e1be-48c8-47da-8a7d-c3b518e6c4b6}</Project>
+      <Name>Mars.Inter.MQCenter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mars.plugins.standards\Mars.plugins.standards.csproj">
+      <Project>{73ab2085-4c8a-4c31-98b1-4c1572e1fce3}</Project>
+      <Name>Mars.plugins.standards</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mars.DB\Mars.DB.Extend - WebclientStub.csproj">
+      <Project>{7c5cf93c-16be-4dbf-a88e-8aa5f63d0416}</Project>
+      <Name>Mars.DB.Extend - WebclientStub</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mars.Securities\Mars.Securities.csproj">
+      <Project>{e1cdbddf-7ff8-4d57-879c-e1bf0bf98287}</Project>
+      <Name>Mars.Securities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TestFlow\TestFlowClient.csproj">
+      <Project>{a735bd3a-d8ea-4fa5-9db9-ddcd6c14a942}</Project>
+      <Name>TestFlowClient</Name>
+      <Aliases>clientWCF</Aliases>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\MarsErrorMessageBox\MarsErrorMessageBox\MarsErrorMessageBox.resx">
+      <Link>ErrorMessage\MarsErrorMessageBox.resx</Link>
+      <DependentUpon>MarsErrorMessageBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\MarsErrorMessageBox\MarsErrorMessageBox\PictureBox.resx">
+      <Link>ErrorMessage\PictureBox.resx</Link>
+      <DependentUpon>PictureBox.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

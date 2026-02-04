@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/obj/Release For Webversion/Mars.plugins.standards.dll
+/obj/Release For Webversion/Mars.plugins.standards.pdb
+/bin/DEBUG FOR WEBVERSION/Mars.plugins.standards.dll
+/bin/DEBUG FOR WEBVERSION/Mars.plugins.standards.pdb
+/obj/DEBUG FOR WEBVERSION/Mars.plugins.standards.dll
+/obj/DEBUG FOR WEBVERSION/Mars.plugins.standards.pdb

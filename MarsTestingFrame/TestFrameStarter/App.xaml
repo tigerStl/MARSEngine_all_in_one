@@ -1,0 +1,11 @@
+﻿<Application x:Class="MarsFrameWork.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             >
+    <Application.Resources>
+        <!--StartupUri="MainWindow.xaml"-->
+            <BitmapImage x:Key="MainIcon" CreateOptions="IgnoreImageCache" CacheOption="OnLoad" UriSource="C:\work\marquis\CSharpVersion\MarsTestingFrame\MarsTestingFrame\TestFrameStarter\Resources\favicon.ico"/>
+
+    </Application.Resources>
+
+</Application>

@@ -1,0 +1,178 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01 Driver64", "01 Driver64", "{3F1B9AF6-CD92-4314-BCDC-8B2E104C5178}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02 Libs", "02 Libs", "{75C34C2E-B757-400E-81C8-50C912C1EF81}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03 DB", "03 DB", "{1444CCFC-9821-48DF-BBA4-F0015CDDBF81}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "99 TestProjects", "99 TestProjects", "{B0C69B65-CA36-4AB7-8F77-4FD456BDB747}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04 InjectorHost", "04 InjectorHost", "{E7CE46F0-51F0-4A02-B7B5-5D02391EF1B1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "0101 QT", "0101 QT", "{B5D03AF9-4DDC-4E0B-9197-F867F0AA662C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "05 MsmqHost", "05 MsmqHost", "{C7904DE5-91A9-46DC-940D-1E0955FE3A9F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10 objectSpy", "10 objectSpy", "{54F31D35-A3BB-4A33-816F-D169D2EDC8BB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "06 Web projects", "06 Web projects", "{8214B6D3-4904-4AB2-9EFA-EFC2257FF846}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01 Engine", "01 Engine", "{8CE97D39-47E9-4AE5-B445-307861F67F94}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01 WebVersion", "01 WebVersion", "{417CACED-27A1-4B4A-B6CF-400EC38E825B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{B0CC6F47-EBB9-4E44-A81C-2C0F479A8007}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02 AppStore", "02 AppStore", "{EB4B58F9-8B65-4022-AB81-5C59C61B343D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "07 installer", "07 installer", "{1D61A280-064E-46FC-8CBF-5B7BECB1D1C8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01 Engines", "01 Engines", "{24C1F692-4EF5-41C5-8505-47B62EB6FCF8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ManagedInjector64-4.0", "..\..\..\Mars2.0\Injector\ManagedInjector\ManagedInjector64-4.0.vcxproj", "{A27C8B34-2527-4258-8C07-D2720C576B90}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		DEBUG FOR WEBVERSION|Any CPU = DEBUG FOR WEBVERSION|Any CPU
+		DEBUG FOR WEBVERSION|ARM = DEBUG FOR WEBVERSION|ARM
+		DEBUG FOR WEBVERSION|ARM64 = DEBUG FOR WEBVERSION|ARM64
+		DEBUG FOR WEBVERSION|x64 = DEBUG FOR WEBVERSION|x64
+		DEBUG FOR WEBVERSION|x86 = DEBUG FOR WEBVERSION|x86
+		debug with qtp|Any CPU = debug with qtp|Any CPU
+		debug with qtp|ARM = debug with qtp|ARM
+		debug with qtp|ARM64 = debug with qtp|ARM64
+		debug with qtp|x64 = debug with qtp|x64
+		debug with qtp|x86 = debug with qtp|x86
+		debug x86|Any CPU = debug x86|Any CPU
+		debug x86|ARM = debug x86|ARM
+		debug x86|ARM64 = debug x86|ARM64
+		debug x86|x64 = debug x86|x64
+		debug x86|x86 = debug x86|x86
+		Debug|Any CPU = Debug|Any CPU
+		Debug|ARM = Debug|ARM
+		Debug|ARM64 = Debug|ARM64
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		DebugQT|Any CPU = DebugQT|Any CPU
+		DebugQT|ARM = DebugQT|ARM
+		DebugQT|ARM64 = DebugQT|ARM64
+		DebugQT|x64 = DebugQT|x64
+		DebugQT|x86 = DebugQT|x86
+		Release For WEB|Any CPU = Release For WEB|Any CPU
+		Release For WEB|ARM = Release For WEB|ARM
+		Release For WEB|ARM64 = Release For WEB|ARM64
+		Release For WEB|x64 = Release For WEB|x64
+		Release For WEB|x86 = Release For WEB|x86
+		Release For Webversion|Any CPU = Release For Webversion|Any CPU
+		Release For Webversion|ARM = Release For Webversion|ARM
+		Release For Webversion|ARM64 = Release For Webversion|ARM64
+		Release For Webversion|x64 = Release For Webversion|x64
+		Release For Webversion|x86 = Release For Webversion|x86
+		release with qtp|Any CPU = release with qtp|Any CPU
+		release with qtp|ARM = release with qtp|ARM
+		release with qtp|ARM64 = release with qtp|ARM64
+		release with qtp|x64 = release with qtp|x64
+		release with qtp|x86 = release with qtp|x86
+		Release|Any CPU = Release|Any CPU
+		Release|ARM = Release|ARM
+		Release|ARM64 = Release|ARM64
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+		ReleaseQT|Any CPU = ReleaseQT|Any CPU
+		ReleaseQT|ARM = ReleaseQT|ARM
+		ReleaseQT|ARM64 = ReleaseQT|ARM64
+		ReleaseQT|x64 = ReleaseQT|x64
+		ReleaseQT|x86 = ReleaseQT|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DEBUG FOR WEBVERSION|Any CPU.ActiveCfg = DEBUG FOR WEBVERSION|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DEBUG FOR WEBVERSION|ARM.ActiveCfg = DEBUG FOR WEBVERSION|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DEBUG FOR WEBVERSION|ARM64.ActiveCfg = DEBUG FOR WEBVERSION|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DEBUG FOR WEBVERSION|x64.ActiveCfg = DEBUG FOR WEBVERSION|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DEBUG FOR WEBVERSION|x64.Build.0 = DEBUG FOR WEBVERSION|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DEBUG FOR WEBVERSION|x86.ActiveCfg = DEBUG FOR WEBVERSION|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DEBUG FOR WEBVERSION|x86.Build.0 = DEBUG FOR WEBVERSION|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug with qtp|Any CPU.ActiveCfg = debug with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug with qtp|ARM.ActiveCfg = debug with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug with qtp|ARM64.ActiveCfg = debug with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug with qtp|x64.ActiveCfg = debug with qtp|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug with qtp|x64.Build.0 = debug with qtp|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug with qtp|x86.ActiveCfg = debug with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug with qtp|x86.Build.0 = debug with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug x86|Any CPU.ActiveCfg = debug x86|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug x86|ARM.ActiveCfg = debug x86|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug x86|ARM64.ActiveCfg = debug x86|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug x86|x64.ActiveCfg = debug x86|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug x86|x64.Build.0 = debug x86|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug x86|x86.ActiveCfg = debug x86|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug x86|x86.Build.0 = debug x86|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Debug|ARM.ActiveCfg = Debug|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Debug|x64.ActiveCfg = Debug|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Debug|x64.Build.0 = Debug|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Debug|x86.ActiveCfg = Debug|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Debug|x86.Build.0 = Debug|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DebugQT|Any CPU.ActiveCfg = DebugQT|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DebugQT|ARM.ActiveCfg = DebugQT|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DebugQT|ARM64.ActiveCfg = DebugQT|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DebugQT|x64.ActiveCfg = DebugQT|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DebugQT|x64.Build.0 = DebugQT|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DebugQT|x86.ActiveCfg = DebugQT|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DebugQT|x86.Build.0 = DebugQT|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For WEB|Any CPU.ActiveCfg = Release For WEB|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For WEB|ARM.ActiveCfg = Release For WEB|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For WEB|ARM64.ActiveCfg = Release For WEB|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For WEB|x64.ActiveCfg = Release For WEB|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For WEB|x64.Build.0 = Release For WEB|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For WEB|x86.ActiveCfg = Release For WEB|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For WEB|x86.Build.0 = Release For WEB|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For Webversion|Any CPU.ActiveCfg = Release For Webversion|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For Webversion|ARM.ActiveCfg = Release For Webversion|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For Webversion|ARM64.ActiveCfg = Release For Webversion|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For Webversion|x64.ActiveCfg = Release For Webversion|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For Webversion|x64.Build.0 = Release For Webversion|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For Webversion|x86.ActiveCfg = Release For Webversion|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For Webversion|x86.Build.0 = Release For Webversion|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.release with qtp|Any CPU.ActiveCfg = release with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.release with qtp|ARM.ActiveCfg = release with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.release with qtp|ARM64.ActiveCfg = release with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.release with qtp|x64.ActiveCfg = release with qtp|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.release with qtp|x64.Build.0 = release with qtp|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.release with qtp|x86.ActiveCfg = release with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.release with qtp|x86.Build.0 = release with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release|Any CPU.ActiveCfg = Release|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release|ARM.ActiveCfg = Release|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release|ARM64.ActiveCfg = Release|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release|x64.ActiveCfg = Release|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release|x64.Build.0 = Release|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release|x86.ActiveCfg = Release|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release|x86.Build.0 = Release|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.ReleaseQT|Any CPU.ActiveCfg = ReleaseQT|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.ReleaseQT|ARM.ActiveCfg = ReleaseQT|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.ReleaseQT|ARM64.ActiveCfg = ReleaseQT|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.ReleaseQT|x64.ActiveCfg = ReleaseQT|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.ReleaseQT|x64.Build.0 = ReleaseQT|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.ReleaseQT|x86.ActiveCfg = ReleaseQT|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.ReleaseQT|x86.Build.0 = ReleaseQT|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B5D03AF9-4DDC-4E0B-9197-F867F0AA662C} = {3F1B9AF6-CD92-4314-BCDC-8B2E104C5178}
+		{8CE97D39-47E9-4AE5-B445-307861F67F94} = {8214B6D3-4904-4AB2-9EFA-EFC2257FF846}
+		{417CACED-27A1-4B4A-B6CF-400EC38E825B} = {1444CCFC-9821-48DF-BBA4-F0015CDDBF81}
+		{B0CC6F47-EBB9-4E44-A81C-2C0F479A8007} = {417CACED-27A1-4B4A-B6CF-400EC38E825B}
+		{EB4B58F9-8B65-4022-AB81-5C59C61B343D} = {8214B6D3-4904-4AB2-9EFA-EFC2257FF846}
+		{24C1F692-4EF5-41C5-8505-47B62EB6FCF8} = {B5D03AF9-4DDC-4E0B-9197-F867F0AA662C}
+		{A27C8B34-2527-4258-8C07-D2720C576B90} = {3F1B9AF6-CD92-4314-BCDC-8B2E104C5178}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {845C70F3-BA99-4CAF-A104-C10A94C97CC1}
+	EndGlobalSection
+EndGlobal

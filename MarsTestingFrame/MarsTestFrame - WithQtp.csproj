@@ -1,0 +1,238 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1372918E-813F-43CF-875D-4C0DC7F77285}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <NoStandardLibraries>false</NoStandardLibraries>
+    <AssemblyName>MarsTestFrame</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_tigerDebug;_tigerHintLog;_CallbackMode;_ver1_5;_Datafrom_Database;_SlienceDebug_1;TigerBuggerTrack;_START_QTP_FROM_APP;v_16AndUp;v_useNameId;LoopVar;Managed_Driver;_killUFT_1;_TestStepUnit;_NOQTP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <RegisterForComInterop>false</RegisterForComInterop>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>_tigerDebug;_tigerHintLog;_CallbackMode;_ver1_5;_Datafrom_Database;_SlienceDebug_1;TigerBuggerTrack;_START_QTP_FROM_APP;v_16AndUp;v_useNameId;LoopVar;Managed_Driver;_killUFT_1;_TestStepUnit;_NOQTP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>MarsTestFrame</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>3.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'debug with qtp|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\binWithQtp\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_tigerDebug;_tigerHintLog;_CallbackMode;_ver1_5;_Datafrom_Database;_SlienceDebug_1;TigerBuggerTrack;_START_QTP_FROM_APP;v_16AndUp;v_useNameId;LoopVar;Managed_Driver;_killUFT_1;_TestStepUnit;_NOQTP1;_NO_C_DRIVER_WRITE_1</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'release with qtp|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\..\..\automationTest\Automation Workbooks\binWithQtp\</OutputPath>
+    <DefineConstants>TRACE;_tigerDebug;_tigerHintLog;_CallbackMode;_ver1_5;_Datafrom_Database;_SlienceDebug_1;TigerBuggerTrack;_START_QTP_FROM_APP;v_16AndUp;v_useNameId;LoopVar;Managed_Driver;_killUFT_1;_TestStepUnit;_NOQTP1;_NO_C_DRIVER_WRITE_1</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'debug x86|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\debug x86\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_tigerDebug;_tigerHintLog;_CallbackMode;_ver1_5;_Datafrom_Database;_SlienceDebug_1;TigerBuggerTrack;_START_QTP_FROM_APP;v_16AndUp;v_useNameId;LoopVar;Managed_Driver;_killUFT_1;_TestStepUnit;_NOQTP</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Webversion|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release For Webversion\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_tigerDebug;_tigerHintLog;_CallbackMode;_ver1_5;_Datafrom_Database;_SlienceDebug_1;TigerBuggerTrack;_START_QTP_FROM_APP;v_16AndUp;v_useNameId;LoopVar;Managed_Driver;_killUFT_1;_TestStepUnit;_NOQTP</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Oracle.ManagedDataAccess, Version=4.121.1.0, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\app\Marquis\virtual\product\12.2.0\dbhome_1\ODP.NET\managed\common\Oracle.ManagedDataAccess.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CommuniteServer\CommuniteServer.cs" />
+    <Compile Include="CommuniteServer\DataStructureStepService\MarsServiceFramework.cs" />
+    <Compile Include="CommuniteServer\ServicebasicInformation.cs" />
+    <Compile Include="CommuniteServer\TestStepUnitServices\IMarsStepServices.cs" />
+    <Compile Include="CommuniteServer\TestStepUnitServices\MarsStepServiceHost.cs" />
+    <Compile Include="CommuniteServer\TestStepUnitServices\MarsStepTestServices.cs" />
+    <Compile Include="CommuniteServer\TigerMarsHook.cs" />
+    <Compile Include="CommuniteServer\WCFTigerServer.cs" />
+    <Compile Include="plugins\MarsPluginsLoader.cs" />
+    <Compile Include="plugins\PluginsMgr.cs" />
+    <Compile Include="Properties\KeywordsDef.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>KeywordsDef.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\ServiceResource.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ServiceResource.resx</DependentUpon>
+    </Compile>
+    <Compile Include="SourceCode\com.BasicData\MarsStackManagement.cs" />
+    <Compile Include="SourceCode\com.Mars.AutocheckError\AutoCheckError4Opics.cs" />
+    <Compile Include="SourceCode\com.Mars.BusinessLogic\MarsTestFrameBusinessLogic.cs" />
+    <Compile Include="SourceCode\com.Mars.BusinessLogic\StoryboardDBRecordMgr.cs" />
+    <Compile Include="SourceCode\com.Mars.Clipboard\TigerClipBoardMgr4StoryBoard.cs" />
+    <Compile Include="SourceCode\com.Mars.Config\KeyWordsConfigurationInfo.cs" />
+    <Compile Include="SourceCode\com.Mars.Config\RegisterdApplictions.cs" />
+    <Compile Include="SourceCode\com.Mars.DB\Bo\B_TEST_PROJECT.CS" />
+    <Compile Include="SourceCode\com.Mars.DB\Bo\B_TEST_PROJECT_VIEW.cs" />
+    <Compile Include="SourceCode\com.Mars.DB\Bo\B_DASHBOARD_TEST_FULLVISION.cs" />
+    <Compile Include="SourceCode\com.Mars.DB\Dto\TEST_PROJECT_VIEW.cs" />
+    <Compile Include="SourceCode\com.Mars.DB\Dto\V_DASHBOARD_TEST_FULLVISION.cs" />
+    <Compile Include="SourceCode\com.Mars.DB\SystemConstant.cs" />
+    <Compile Include="SourceCode\com.Mars.DB\Bo\B_OBJECT_APPS.cs" />
+    <Compile Include="SourceCode\com.Mars.DB\DBBusinessMgr.cs" />
+    <Compile Include="SourceCode\com.Mars.DB\Dto\V_OBJECT_APPS.cs" />
+    <Compile Include="SourceCode\com.Mars.DB\SourceDataFromDB.cs" />
+    <Compile Include="SourceCode\com.Mars.Excels\ConfigurationXls\BatchXls.cs" />
+    <Compile Include="SourceCode\com.Mars.Excels\ConfigurationXls\TCObjects.cs" />
+    <Compile Include="SourceCode\com.Mars.Excels\DashBoardFactory.cs" />
+    <Compile Include="SourceCode\com.Mars.Excels\DB\DashBoardFromDB.cs" />
+    <Compile Include="SourceCode\com.Mars.Excels\MarsExcelFileBase.cs" />
+    <Compile Include="SourceCode\com.Mars.KeyWords\KeyWordObject\KeyWordAdapter.cs" />
+    <Compile Include="SourceCode\com.Mars.KeyWords\KeyWordObject\KeyWordObject.cs" />
+    <Compile Include="SourceCode\com.Mars.KeyWords\KeyWordObject\KeyWordsInterface.cs" />
+    <Compile Include="SourceCode\com.Mars.KeyWords\KeyWordObject\KeyWordsSection.cs" />
+    <Compile Include="SourceCode\com.Mars.KeyWords\KeyWordObject\KeyWordsValidate.cs" />
+    <Compile Include="SourceCode\com.Mars.KeyWords\KeyWordsMainEntry.cs" />
+    <Compile Include="SourceCode\com.Mars.KeyWords\loop\LoopKeywordMgr.cs" />
+    <Compile Include="SourceCode\com.Mars.MarsTestingFrame.cs" />
+    <Compile Include="SourceCode\com.Mars.Observer\ObserverInterface4All.cs" />
+    <Compile Include="SourceCode\com.Mars.TCDataSource\TCDataFile.cs" />
+    <Compile Include="SourceCode\com.Mars.TCDataSource\TCDatasourceManagement.cs" />
+    <Compile Include="SourceCode\com.Mars.TestConfigObjects\ConfigObjectBase.cs" />
+    <Compile Include="SourceCode\com.Mars.TestConfigObjects\TestSuiteAdapter.cs" />
+    <Compile Include="SourceCode\com.Mars.Applications\TargetApplications.cs" />
+    <Compile Include="SourceCode\Compiler\TestCompiler.cs" />
+    <Compile Include="SourceCode\MarsExcelDataProvider\ConfigMain.cs" />
+    <Compile Include="SourceCode\MarsExcelDataProvider\DataProvider.cs" />
+    <Compile Include="SourceCode\MarsExcelDataProvider\DataProviderFactory.cs" />
+    <Compile Include="SourceCode\MarsExcelDataProvider\ExcelDataHandler.cs" />
+    <Compile Include="SourceCode\MarsExcelDataProvider\ExcelDataHandlerFactory.cs" />
+    <Compile Include="SourceCode\MarsExcelDataProvider\ExcelUtilities.cs" />
+    <Compile Include="SourceCode\MarsExcelDataProvider\OracleUtil.cs" />
+    <Compile Include="SourceCode\systemUtil\AppConfigReader.cs" />
+    <Compile Include="SourceCode\systemUtil\LicenseLoader.cs" />
+    <Compile Include="SourceCode\systemUtil\MarsExceptions.cs" />
+    <Compile Include="SourceCode\systemUtil\MARSFrameworkPublicInterfaces.cs" />
+    <Compile Include="SourceCode\systemUtil\SystemCommon.cs" />
+    <Compile Include="SourceCode\systemUtil\TigerMarsUtil.cs" />
+    <Compile Include="SourceCode\TestObjects\TestObjects.cs" />
+    <Compile Include="SourceCode\TestObjects\TestObjectsAdapters.cs" />
+    <Compile Include="SourceCode\xmlConfig\UserCfgMgr.cs" />
+    <Compile Include="SourceCode\xmlConfig\WCFXmlCfgMgr.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Libs\" />
+    <Folder Include="SourceCode\com.Mars.Constants\" />
+    <Folder Include="SourceCode\com.Mars.QTP\" />
+    <Folder Include="SourceCode\Dto\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\KeywordsDef.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>KeywordsDef.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\ServiceResource.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ServiceResource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="3.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\01 Plugins\Mars.plugins.standards\Mars.plugins.standards.csproj">
+      <Project>{73ab2085-4c8a-4c31-98b1-4c1572e1fce3}</Project>
+      <Name>Mars.plugins.standards</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Mars.DB\Mars.DB.csproj">
+      <Project>{8688283a-0923-442c-b176-de1e426d6db0}</Project>
+      <Name>Mars.DB</Name>
+    </ProjectReference>
+    <ProjectReference Include="Mars.LogCommon\Mars.LogCommon.csproj">
+      <Project>{f19edda6-3624-4ba6-a91e-dbcb2da7fe38}</Project>
+      <Name>Mars.LogCommon</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSHARP.Targets" />
+  <ProjectExtensions>
+    <VisualStudio AllowExistingFolder="true" />
+  </ProjectExtensions>
+</Project>

@@ -1,0 +1,401 @@
+﻿<Window x:Class="MarsSpyTool.subToolWindows.testStepEditor.TestStepEditorForSpyer"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MarsSpyTool.subToolWindows.testStepEditor"
+        xmlns:fromMQCenter="clr-namespace:Mars.Inter.MQCenter.objectEngine;assembly=MarsInterMQCenter"
+        mc:Ignorable="d"
+        Title="MARS Engine Test Steps Edito" Height="640" Width="1000" 
+        Closing="Window_Closing" IsVisibleChanged="Window_IsVisibleChanged"
+        
+        >
+    <Window.Resources>
+        <local:StringToUpperConverter x:Key="StringToUpperConverter"/>
+        <local:IsSkipToVisibilityConverter x:Key="IsSkipToVisibilityConverter"/>        
+        <local:EnumToBooleanConverter x:Key="EnumToBooleanConverter"/>
+        <Style x:Key="DataGridStyle" TargetType="DataGrid">
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style x:Key="CheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style x:Key="ButtonStyle" TargetType="Button">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Width" Value="128"/>
+            
+            <Setter Property="Height" Value="32"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="140"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="32"></RowDefinition>
+            <RowDefinition Height="32"></RowDefinition>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Vertical">
+            <ToolBarTray VerticalAlignment="Center">
+                <ToolBar>
+                    <Label Content="Menu:" VerticalAlignment="Center"></Label>
+                    <Button  Width="32" Height="32" Click="FindObjectClick" 
+                             PreviewMouseLeftButtonDown="FindObjectMouseDown"
+                             >
+                        <Image x:Name="MARS_GENERATE_TESTCASE" Source="/icons/icons8-journey-32.png"></Image>
+                        <Button.ToolTip>
+                            <ToolTip Content="Locate GUI control by dragging and dropping"></ToolTip> 
+                        </Button.ToolTip>
+                    </Button>
+                    <Button Width="32" Height="32" ToolTip="Pause the current Generating step process">
+                        <Image Source="/icons/icons8-pause-button-32.png"></Image>
+                    </Button>
+                    <Separator></Separator>
+                    <Button Width="32" Height="32">
+                        <Image x:Name="MARS_GENSTEP_SETTING" Source="/icons/icons8-gear-32.png"></Image>
+                    </Button>
+                </ToolBar>
+            </ToolBarTray>
+            <Label Content="Auto Generated Test Steps" VerticalAlignment="Center"></Label>    
+        </StackPanel>
+        
+        <!-- row 2-->
+        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical">
+            <StackPanel Height="12" VerticalAlignment="Top"></StackPanel>
+            <CheckBox Margin="5" Content="Hide skip steps" 
+                      Style="{StaticResource CheckBoxStyle}"
+                      Checked="CheckSkipSteps"
+                      Unchecked="UnCheckSkipSteps"
+                      
+                      ></CheckBox>
+            <Separator Height="1" Margin="2" Background="Gray"/>
+
+            <Button Style="{StaticResource ButtonStyle}" Height="32" VerticalAlignment="top" 
+                    Content="Refresh" Margin="5" Click="RefreshButton_Click"                  
+                    ></Button>
+
+            <Button Style="{StaticResource ButtonStyle}" Height="32" VerticalAlignment="top" Content="Locate Object" Margin="5" Click="locate_ObjectClick"
+                   
+                    ></Button>
+            <Button Style="{StaticResource ButtonStyle}" Height="32" VerticalAlignment="top" Content="Test Run" Margin="5" Click="TestRunClick"></Button>
+            <Separator Height="1" Margin="2" Background="Gray"/>
+            <Button Style="{StaticResource ButtonStyle}" Height="32" VerticalAlignment="top" Content=" Add New Row " Margin="5" Click="AddNewRowClick"></Button>
+            <Button Style="{StaticResource ButtonStyle}" Height="32" VerticalAlignment="top" Content="Remove Row(s)" Margin="5" Click="RemoveRowClick"></Button>
+            <Separator Height="1" Margin="2,2,2,30" Background="Gray"/>
+            <Button Style="{StaticResource ButtonStyle}" Height="32" VerticalAlignment="top" Content="Mapping Objects" Margin="5" Click="MappingObjectsClick"></Button>
+            
+            <Button Style="{StaticResource ButtonStyle}" Height="32" VerticalAlignment="top" Content="Del N-obj Steps" Margin="5,0,5,0" 
+                    Click="RemoveNoneMappingObjectClick"></Button>
+        </StackPanel>
+        <TabControl Grid.Row="1" Grid.Column="0" x:Name="mainTab">
+            <TabItem >
+                <!-- Content for Test case info tab -->
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/icons/icons8-about-32.png" Height="16" Margin="5,0,5,0"></Image>
+                        <TextBlock Text="Test case info"></TextBlock>
+                    </StackPanel>
+                </TabItem.Header>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40"></RowDefinition>
+                        <RowDefinition Height="200"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <DockPanel FlowDirection="LeftToRight" 
+                                Grid.Row="0" LastChildFill="True"
+                               >
+                        <Label Content="Test case name" Margin="5" ></Label>
+                        <TextBox Text="{Binding TestCaseName}" Margin="5,5,20,5" HorizontalAlignment="Stretch"/> 
+                        
+                    </DockPanel>
+                    <DockPanel FlowDirection="LeftToRight" Grid.Row="1"
+                               LastChildFill="True">
+                        <Label Content="Description" Margin="5" ></Label>
+                        <TextBox HorizontalAlignment="Stretch" 
+                                 VerticalAlignment="Stretch"
+                                 Margin="25,5,20,5" Text="{Binding TestCaseDesc}"
+                                 TextWrapping="Wrap" AcceptsReturn="True"
+                                 ></TextBox>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="TestStepsTab" >
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/icons/icons8-journey-32.png" Height="16" Margin="5,0,5,0"></Image>
+                        <TextBlock Text="Test steps"></TextBlock>
+                    </StackPanel>
+                </TabItem.Header>
+                <!-- Content for Test steps tab -->
+                <DataGrid x:Name="testStepsDataGrid" AutoGenerateColumns="False" 
+                          FrozenColumnCount="3"
+                          CanUserAddRows="False"                          
+                          CanUserDeleteRows="False"
+                          AlternationCount="2" Style="{StaticResource DataGridStyle}" 
+                          ItemsSource="{Binding TestSteps}"
+                          SelectedItem="{Binding SelectedTestStep}"
+                          
+                          VirtualizingPanel.IsVirtualizing="False"
+                          SelectionChanged="SelectedItemsChangedImpl"
+                          HeadersVisibility="All">
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Margin="5">
+                                <MenuItem.Header >
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="/icons/icons8-plus-32.png" Height="24"></Image>
+                                        <Label Content="Add To Ignore Type" Margin="5,0,5,0"></Label>
+                                    </StackPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Margin="5">
+                                <MenuItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="/icons/icons8-minus-32.png" Height="24"></Image>
+                                        <Label Content="Remove From Ignore Type" Margin="5,0,5,0"></Label>
+                                    </StackPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                    <DataGrid.Resources>
+                        <!-- Style for the column headers -->
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="FontWeight" Value="Bold"/>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="#" Binding="{Binding Run_order}" Width="auto"/>
+                        <DataGridTemplateColumn Header="Is Skip" Width="60">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding Path=IsSkip, Mode=TwoWay}" 
+                                              
+                                              HorizontalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridComboBoxColumn Header="Keyword" Width="100"      
+                                                
+                                                SelectedItemBinding="{Binding Keyword}"                                                
+                                                DisplayMemberPath="KEY_WORD_NAME">                            
+                            <DataGridComboBoxColumn.ElementStyle>
+                                <Style TargetType="ComboBox">
+                                    <Setter Property="ItemsSource" Value="{Binding DataContext.KeywordList, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                </Style>
+                            </DataGridComboBoxColumn.ElementStyle>
+                            <DataGridComboBoxColumn.EditingElementStyle>
+                                <Style TargetType="ComboBox">
+                                    <Setter Property="ItemsSource" Value="{Binding DataContext.KeywordList, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                </Style>
+                            </DataGridComboBoxColumn.EditingElementStyle>
+                            
+                        </DataGridComboBoxColumn>
+                        <DataGridTextColumn Header="Object Type" Binding="{Binding ObjectType}" Width="Auto" MinWidth="100"/>
+                        <DataGridTextColumn Header="Object Info" Binding="{Binding GuiObjectInfo}" Width="Auto" MaxWidth="600" 
+                                            MinWidth="100">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Parameter" Binding="{Binding Test_parameter}" Width="Auto" />
+                        <DataGridTextColumn Header="Current Data" Binding="{Binding CurrentData}" Width="Auto"/>
+                        <DataGridTextColumn Header="Object Name" Binding="{Binding GuiObjectName}" Width="100" >
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsObjectNameModified}" Value="True">
+                                            <Setter Property="Foreground" Value="DarkRed"></Setter>
+                                            <Setter Property="FontWeight" Value="SemiBold"></Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Control Type" Binding="{Binding ControlType}" Width="100" />
+                        <DataGridTextColumn Header="Rectangle" Binding="{Binding Rect}" Width="100" />
+                    </DataGrid.Columns>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background" Value="LightGoldenrodYellow"/>
+                            <!--<Setter Property="Visibility" Value="{Binding IsDisplay, Converter={StaticResource IsSkipToVisibilityConverter}}"></Setter>-->
+                            <Style.Triggers>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                    <Setter Property="Background" Value="White"/>
+                                </Trigger>                                
+                            </Style.Triggers>                            
+                        </Style>                        
+                    </DataGrid.RowStyle>
+                    
+                </DataGrid>
+                
+            </TabItem>
+            <TabItem VerticalAlignment="Bottom" IsSelected="True">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/icons/icons8-gear-32.png" Height="16" Margin="5,0,5,0"></Image>
+                        <TextBlock Text="Settings"></TextBlock>
+                    </StackPanel>
+                </TabItem.Header>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"></ColumnDefinition>
+                        <ColumnDefinition Width="150"></ColumnDefinition>
+                        <ColumnDefinition Width="150"></ColumnDefinition>
+                        <ColumnDefinition Width="150"></ColumnDefinition>
+                        <ColumnDefinition Width="150"></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="32"></RowDefinition>
+                        <RowDefinition Height="32"></RowDefinition>
+                        <RowDefinition Height="32"></RowDefinition>
+                        <RowDefinition Height="32"></RowDefinition>
+                        <RowDefinition Height="32"></RowDefinition>
+                        <RowDefinition Height="32"></RowDefinition>
+                        <RowDefinition></RowDefinition>                        
+                    </Grid.RowDefinitions>
+                    <GroupBox Header="Ignored Types" Grid.Row="0" Grid.RowSpan="7" Grid.ColumnSpan="2">
+                        <GroupBox.HeaderTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="/icons/icons8-no-gluten-32.png" Height="16" Margin="5,0,5,0"></Image>
+                                    <TextBlock Text="Ignored Types"></TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+
+                        </GroupBox.HeaderTemplate>
+                        <DockPanel LastChildFill="True">
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                                <TextBox Width="200" Margin="5" Text="{Binding Settings.CurrentType}"></TextBox>
+                                <Button Margin="3" Click="AddIgnoreType_Click" >
+                                    <Image Source="/icons/icons8-plus-32.png" Height="28" Width="28" ></Image>
+                                </Button>
+                                <Button Margin="3" Click="RemoveIgnoreType_Click"  >
+                                    <Image Source="/icons/icons8-minus-32.png" Height="28" Width="28" ></Image>
+                                </Button>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" DockPanel.Dock="Top">
+                                <Label Content="All ignored Types"></Label>
+
+                            </StackPanel>
+                            <ListBox ItemsSource="{Binding Settings.IgnoreTypes}" 
+                                     SelectedItem="{Binding Settings.CurrentType, Mode=TwoWay}">
+                                
+                            </ListBox>
+                        </DockPanel>
+                    </GroupBox>
+                    <GroupBox Header="Control Settings" Grid.Row="0" Grid.Column="4" Grid.ColumnSpan="2" Grid.RowSpan="6">
+                        <GroupBox.HeaderTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="/icons/icons8-gear-32.png" Height="16" Margin="5,0,5,0"></Image>
+                                    <TextBlock Text="Control Settings"></TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+
+                        </GroupBox.HeaderTemplate>
+                        <StackPanel Orientation="Vertical">
+                            <CheckBox Content="Gen ClickMenuIcon for toolbars items" Margin="3"></CheckBox>
+                            <Label Content="Table settings:"></Label>
+                            <CheckBox Content="Get all columns for SWFTable" Margin="18,3,3,3"></CheckBox>
+                            <CheckBox Content="List first column for all rows" Margin="18,3,3,3"></CheckBox>
+                            <Label Content="List and Combobox:"></Label>
+                            <CheckBox Content="Gen selectListItem for all List items" Margin="18,3,3,3"></CheckBox>
+                            <CheckBox Content="Get all item(value-key) for combobox" Margin="18,3,3,3"></CheckBox>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox BorderBrush="AntiqueWhite" Header="Objects" Grid.Column="2" Grid.ColumnSpan="2"
+                                          BorderThickness="1" Grid.Row="0" Grid.RowSpan="5">
+                        <GroupBox.HeaderTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="/icons/icons8-object-32.png" Height="16" Margin="5,0,5,0"></Image>
+                                    <TextBlock Text="Objects"></TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </GroupBox.HeaderTemplate>
+                        <StackPanel >
+                            <RadioButton Content="Only Selected Control And Its Children" 
+                                         GroupName="select_object" Margin="5" 
+                                         IsChecked="{Binding GenerateObjType}"></RadioButton>
+                            <RadioButton Content="Selected Window And Its Children"       
+                                         GroupName="select_object" Margin="5"
+                                         IsChecked="{Binding GenerateObjTypeFalse}"></RadioButton>
+                            <CheckBox Content="Display object type path" Margin="5"></CheckBox>
+                            <CheckBox Content="Use current Pegwindow's setting" Margin="5"></CheckBox>
+                            <CheckBox Content="Detected Pegwindow By AI"  Margin="5"></CheckBox>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Create Steps To" Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Grid.RowSpan="3">
+                        <GroupBox.HeaderTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="/icons/icons8-to-do-32.png" Height="16" Margin="5,2,5,2"></Image>
+                                    <TextBlock Text="Steps To"></TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+
+                        </GroupBox.HeaderTemplate>
+                        <StackPanel>
+                            <RadioButton Content="Append to the End"         GroupName="Create_Step_to" Margin="5" 
+                                         IsChecked="{Binding CurrentStepInsertOption, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static fromMQCenter:MarsStepsInsertOption.AppendToTheEnd}}"></RadioButton>
+                            <RadioButton Content="Insert After Selected Row(Same Pegwindow)" GroupName="Create_Step_to" Margin="5"
+                                         IsChecked="{Binding CurrentStepInsertOption, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static fromMQCenter:MarsStepsInsertOption.InsertAfterWithoutNewPeg}}"></RadioButton>
+                            <RadioButton Content="Insert After Selected Row(new Pegwindow)" GroupName="Create_Step_to" Margin="5"
+                                         IsChecked="{Binding CurrentStepInsertOption, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static fromMQCenter:MarsStepsInsertOption.InsertAfterWithNewPeg}}"></RadioButton>
+                                         
+                            <ComboBox Margin="20,2,10,2"></ComboBox>
+                            <Separator Margin="0,2,0,2"></Separator>
+                            <CheckBox Content="Add default Parameter"  Margin="5"></CheckBox>
+                            <CheckBox Margin="5">
+                                <CheckBox.Content>
+                                    <TextBlock TextWrapping="Wrap" Text="Insert WaitforSeconds after ClickButton|
+                                   SelectMenuIcon"></TextBlock>
+                                </CheckBox.Content>
+                            </CheckBox>
+                            <CheckBox Margin="5" IsChecked="{Binding IsGenerateCaptureAndCompareForGrid}">
+                                <CheckBox.Content>
+                                    <TextBlock TextWrapping="Wrap" Text="Generate CaptureAndCompare For All 
+                                               Data Table Columns"></TextBlock>
+                                </CheckBox.Content>
+                            </CheckBox>
+                        </StackPanel>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    
+        <!--buttons and action-->
+        <DockPanel FlowDirection="RightToLeft" LastChildFill="True" Grid.Row="2" Grid.ColumnSpan="2">
+            <StackPanel Width="5"></StackPanel>
+            <Button Content="Cancel" Margin="3" Width="100"></Button>
+            <Button Content="Save To MARS" Margin="3" Width="100" Click="SaveToMarsClick"></Button>            
+            <StackPanel></StackPanel>
+        </DockPanel>
+        <StatusBar Grid.Row="3" Grid.ColumnSpan="2">
+            <StatusBarItem MinWidth="100" Width="199">
+                <DockPanel LastChildFill="True" >
+                    <TextBlock Name="statusText" Text="{Binding CurrentWorkStatus}" Foreground="{Binding CurrentStatusColor}"/>
+                </DockPanel>
+            </StatusBarItem>
+            <StatusBarItem MinWidth="200">
+                <DockPanel>
+                    <Label Content="Current Process:"></Label>
+                    <ProgressBar x:Name="processBar"
+                        Value="{Binding CurrentProcessInfo.currentValue}" MinWidth="280" Minimum="0" Maximum="100" Foreground="Navy" FontStyle="Oblique" Width="626"></ProgressBar>
+                    <!--<ProgressBar Value="{Binding CurrentProcessInfo.currentValue}" MinWidth="280" Minimum="0" Maximum="100" Foreground="Blue" FontStyle="Oblique"></ProgressBar>-->
+                </DockPanel>
+            </StatusBarItem>
+            
+        </StatusBar>
+    </Grid>
+</Window>
+
+    

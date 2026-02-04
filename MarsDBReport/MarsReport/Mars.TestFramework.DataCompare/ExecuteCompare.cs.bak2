@@ -1,0 +1,391 @@
+﻿
+/*Class to execute compare processor
+  Takes an object of the type ComparewithID as input */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Oracle.ManagedDataAccess.Client;
+using Oracle.ManagedDataAccess.Types;
+
+
+using System.Data;
+using System.Xml;
+using System.IO;
+using Excel = Microsoft.Office.Interop.Excel;
+using System.Data.SqlClient;
+using DataTableCompare;
+
+namespace Mars.TestFramework.DataCompare
+{
+    public static class ExecuteCompare
+    {
+        private static MLogger Logger = MLogger.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static string V2_MARKER = "==";
+
+        public static string  ExecuteCompareProgram(ComparewithID NewCompareConfig, out DataCompareError error)
+        {
+            if (DataTableCompareImp(NewCompareConfig))
+            {
+                ExecuteDataTableCompareProgram(NewCompareConfig, out error);
+                return "";
+            }
+
+            else
+                error = new DataCompareError();
+
+
+                            XmlDocument[] comparesourcedocs = new XmlDocument[2];
+            comparesourcedocs[0] = new XmlDocument();
+            comparesourcedocs[1] = new XmlDocument();
+            DataTable dt = new DataTable();
+
+            // ********************************************Configuring Input***********************************************
+            // S1 DATABASE
+            if (NewCompareConfig.S1Type == "DATABASE")
+            {
+                string dbconstring = NewCompareConfig.S1ConnString;
+                string dbsqlquery = NewCompareConfig.S1Query;
+                dt = GetDataFromDatabase(NewCompareConfig.S1DBType, NewCompareConfig.S1ConnString, NewCompareConfig.S1Query);
+                comparesourcedocs[0] = Conversion.DataTableToDom(dt);
+            }
+            // S1 XML 
+            if (NewCompareConfig.S1Type == "XML")
+            {
+                comparesourcedocs[0].Load(NewCompareConfig.S1FileLocation);
+            }
+            // S1 CSV
+            if (NewCompareConfig.S1Type == "CSV")
+            {
+                comparesourcedocs[0] = Conversion.CsvToDom(NewCompareConfig.S1FileLocation, NewCompareConfig.S2CSVDelim);
+            }
+            // S1 REPORT
+            if (NewCompareConfig.S1Type == "REPORT")
+            {
+                comparesourcedocs[0] = Conversion.ReportToDom(NewCompareConfig.S1FileLocation, 1, NewCompareConfig.S1OpicsRepFileLoc);
+            }
+            // S2 DATABASE
+            if (NewCompareConfig.S2Type == "DATABASE")
+            {
+                string dbconstring = NewCompareConfig.S2ConnString;
+                string dbsqlquery = NewCompareConfig.S2Query;
+                
+                dt = GetDataFromDatabase(NewCompareConfig.S2DBType, NewCompareConfig.S2ConnString, NewCompareConfig.S2Query);
+
+                comparesourcedocs[1] = Conversion.DataTableToDom(dt);
+            }
+            // S2 XML 
+            if (NewCompareConfig.S2Type == "XML")
+            {
+                comparesourcedocs[1].Load(NewCompareConfig.S2FileLocation);
+            }
+            // S2 CSV
+            if (NewCompareConfig.S2Type == "CSV")
+            {
+                comparesourcedocs[1] = Conversion.CsvToDom(NewCompareConfig.S2FileLocation, NewCompareConfig.S2CSVDelim);
+            }
+
+            // S2 REPORT
+            if (NewCompareConfig.S2Type == "REPORT")
+            {
+                comparesourcedocs[1] = Conversion.ReportToDom(NewCompareConfig.S2FileLocation, 2, NewCompareConfig.S2OpicsRepFileLoc);
+            }
+
+            // ********************************************Configuring Output**********************************************
+            string excelfilelocation = NewCompareConfig.OFileLocation;
+
+            // ********************************************Executing Compare***********************************************
+            XmlCompareConfig xcc = initCompareConfig(NewCompareConfig);
+            XmlCompareProcessorOld xcp = new XmlCompareProcessorOld(comparesourcedocs[0], comparesourcedocs[1], xcc);
+            XmlCompareResult xcr = xcp.ProcessCompare();
+            
+            //get datatable containing diff data
+            DataTable difftable = new DataTable();
+            difftable = xcp.GetDiffTable();
+            //end of diff file code
+           
+            if (xcr == null)
+                return null;
+            XmlCompareReportConfig xcrc = initXmlCompareReportConfig();
+            XmlCompareReport xcrpt = new XmlCompareReport(xcr, xcrc, difftable, xcp, xcc);
+
+            //excelfilelocation = excelfilelocation.Replace(".xlsx", "");
+            String timeStamp = DateTime.Now.ToString("yyMMddHHmmss");
+            //xlfilepath = filePath + "\\MARS_DIR_Comp_" + timeStamp + ".xlsx";
+            //xcrpt.ProcessReport(excelfilelocation + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+            string  resultfileName = xcrpt.ProcessReport(excelfilelocation +"\\MARS_Date_Comp_" + timeStamp);
+            return resultfileName;
+        }
+
+        private static bool DataTableCompareImp(ComparewithID newCompareConfig)
+        {
+            return true;
+
+            //if (newCompareConfig.S1Type.Equals("XML") == false &&
+            //    newCompareConfig.S2Type.Equals("XML") == false)
+            //    return true;
+            //else
+            //    return false;
+        }
+
+        ///New
+        public static string ExecuteDataTableCompareProgram(ComparewithID NewCompareConfig, out DataCompareError error)
+        {
+            String timeStamp = DateTime.Now.ToString("yyMMddHHmmss");
+            string resultfileName = NewCompareConfig.OFileLocation + @"\MARS_" + NewCompareConfig.CompareID + "_" + timeStamp + ".xlsx";
+
+            if (NewCompareConfig.OfileName != null && NewCompareConfig.OfileName.Length > 6)
+                resultfileName = NewCompareConfig.OfileName;
+
+            // Text compare has no fields, is not tabular, so jus do the compare and leave
+            if (NewCompareConfig.S1Type.Equals("TEXT"))
+            {
+                string file1 = NewCompareConfig.S1FileLocation;
+                string file2 = NewCompareConfig.S2FileLocation;
+
+                string outputFile = NewCompareConfig.OFileLocation;
+                TextFileCompare tfc = new TextFileCompare();
+                tfc.Compare(file1, file2, resultfileName);
+                System.Diagnostics.Process.Start(outputFile);
+
+                var xlAppTxtCmp = new Excel.Application();
+                xlAppTxtCmp.Visible = true;
+
+                xlAppTxtCmp.Workbooks.Open(@resultfileName);
+
+                error = new DataCompareError();
+                return resultfileName;
+            }
+            
+
+
+            DataTable dt1 = null;
+            DataTable dt2 = null;
+
+            // ********************************************Configuring Input***********************************************
+            // S1 DATABASE
+            if (NewCompareConfig.S1Type == "DATABASE")
+            {
+                string dbconstring = NewCompareConfig.S1ConnString;
+                string dbsqlquery = NewCompareConfig.S1Query;
+                dt1 = GetDataFromDatabase(NewCompareConfig.S1DBType, NewCompareConfig.S1ConnString, NewCompareConfig.S1Query);
+            }
+
+            // S1 XML
+            if (NewCompareConfig.S1Type == "XML")
+            {
+                dt1 = Conversion.ConvertXMLtoDataTable(NewCompareConfig.S1FileLocation);
+            }
+            // S1 CSV
+            if (NewCompareConfig.S1Type == "CSV")
+            {
+                //dt1 = Conversion.ConvertCSVtoDataTable(NewCompareConfig.S1FileLocation);
+                dt1 = Conversion.ConvertCSVtoDataTableWithRegEx(NewCompareConfig.S1FileLocation, NewCompareConfig.S1CSVDelim);
+            }
+            // S1 Excel
+            if (NewCompareConfig.S1Type == "EXCEL")
+            {
+                dt1 = Conversion.ConvertExcelToDataTable(NewCompareConfig.S1FileLocation);
+            }
+            
+            // S1 REPORT
+            if (NewCompareConfig.S1Type == "REPORT")
+            {
+                dt1 = Conversion.ConvertReportToDataTable(NewCompareConfig.S1FileLocation, 1, NewCompareConfig.S1OpicsRepFileLoc);
+            }
+
+            // S1 SWIFT
+            if (NewCompareConfig.S1Type == "SWIFT")
+            {
+                dt1 = Conversion.ConvertSWIFTToDataTable(NewCompareConfig.S1FileLocation);
+            }
+
+            // S2 DATABASE
+            if (NewCompareConfig.S2Type == "DATABASE")
+            {
+                string dbconstring = NewCompareConfig.S2ConnString;
+                string dbsqlquery = NewCompareConfig.S2Query;
+
+                dt2 = GetDataFromDatabase(NewCompareConfig.S2DBType, NewCompareConfig.S2ConnString, NewCompareConfig.S2Query);
+            }
+            // S2 XML
+            if (NewCompareConfig.S2Type == "XML")
+            {
+                dt2 = Conversion.ConvertXMLtoDataTable(NewCompareConfig.S2FileLocation);
+            }
+            // S2 CSV
+            if (NewCompareConfig.S2Type == "CSV")
+            {
+                //dt2 = Conversion.ConvertCSVtoDataTable(NewCompareConfig.S2FileLocation);
+                dt2 = Conversion.ConvertCSVtoDataTableWithRegEx(NewCompareConfig.S2FileLocation, NewCompareConfig.S2CSVDelim);
+            }
+
+            // S2 Excel
+            if (NewCompareConfig.S2Type == "EXCEL")
+            {
+                dt2 = Conversion.ConvertExcelToDataTable(NewCompareConfig.S2FileLocation);
+            }
+            // S2 REPORT
+            if (NewCompareConfig.S2Type == "REPORT")
+            {
+                dt2 = Conversion.ConvertReportToDataTable(NewCompareConfig.S2FileLocation, 2, NewCompareConfig.S2OpicsRepFileLoc);
+            }
+
+            // S2 SWIFT
+            if (NewCompareConfig.S2Type == "SWIFT")
+            {
+                dt2 = Conversion.ConvertSWIFTToDataTable(NewCompareConfig.S2FileLocation);
+            }
+
+            // ********************************************Configuring Output**********************************************
+            string excelfilelocation = NewCompareConfig.OFileLocation;
+
+            // ********************************************Executing Compare***********************************************
+            XmlCompareConfig xcc = initCompareConfig(NewCompareConfig);
+ 
+            List<string> allFieldNames = new List<string>();
+            foreach(DataColumn col in dt1.Columns)
+            {
+                allFieldNames.Add(col.ColumnName);
+            }
+            DTCompare dtc = new DTCompare(dt1, dt2, allFieldNames.ToArray(), xcc.KeyFields.ToArray(), xcc.ShowFields.ToArray(), xcc.CompareFields.ToArray(), xcc.TolerancMap, resultfileName);
+            dtc.applyFilter = NewCompareConfig.OutputFilterApply;
+            dtc.outputFilter = NewCompareConfig.OutputFilter;
+            dtc.orderBy = NewCompareConfig.OutputOrderBy;
+
+
+            error = new DataCompareError();
+            dtc.Compare(out error.Status, out error.Message);
+            
+            // Open excel
+            if (NewCompareConfig.InteractiveMode == true)
+            {
+                var xlApp = new Excel.Application();
+                xlApp.Visible = true;
+
+                xlApp.Workbooks.Open(@resultfileName);
+
+
+            }
+
+
+
+
+            return resultfileName;
+        }
+
+        ///New end
+
+        public static DataTable GetDataFromDatabase(string dbType, string connString, string query)
+        {
+            DataTable dt = new DataTable();
+
+            switch (dbType)
+            {
+                case "Oracle":
+                    using (OracleConnection sqlConnection = new OracleConnection(connString))
+                    {
+                        OracleCommand command = new OracleCommand(query, sqlConnection);
+                        OracleDataAdapter adapter = new OracleDataAdapter(command);
+                        adapter.SelectCommand.CommandTimeout = 300;
+                        OracleCommandBuilder builder = new OracleCommandBuilder(adapter);
+                        
+                        DataSet ds = new DataSet();
+                        adapter.Fill(ds);
+                        dt = ds.Tables[0];
+                        Console.WriteLine("\ndbSource ready for access");
+                    }
+                    break;
+
+                case "SQL Server":
+
+                    using (SqlConnection sqlConnection = new SqlConnection(connString))
+                    {
+                        SqlCommand command = new SqlCommand(query, sqlConnection);
+                        SqlDataAdapter adapter = new SqlDataAdapter(command);
+                        adapter.SelectCommand.CommandTimeout = 300;
+                        SqlCommandBuilder builder = new SqlCommandBuilder(adapter);
+                        DataSet ds = new DataSet();
+                        adapter.Fill(ds);
+                        dt = ds.Tables[0];
+                        Console.WriteLine("\ndbSource ready for access");
+                    }
+                    break;
+            }
+
+            return dt;
+        }
+
+        public static XmlCompareReportConfig initXmlCompareReportConfig()
+        {
+            XmlCompareReportConfig config = new XmlCompareReportConfig();
+            return config;
+        }
+
+    
+
+        public static XmlCompareConfig initCompareConfig(ComparewithID NewCompareConfig)
+        {
+            XmlCompareConfig config = new XmlCompareConfig();
+
+            config.BlockTag = "rs:data";
+            config.ElementTag = "z:row";
+
+            // key fields
+            string[] temp = Util.Split(NewCompareConfig.KeyFields, ',');
+            config.KeyFields.AddRange(temp);
+            for (int i = 0; i < config.KeyFields.Count; i++)
+                config.KeyFields[i] = config.KeyFields[i].Trim();
+
+            // compare fields
+            string compareFields = ToleranceUtil.ExtractFields(NewCompareConfig.CompareFields);
+            temp = Util.Split(compareFields, ',');
+            config.CompareFields.AddRange(temp);
+            for (int i = 0; i < config.CompareFields.Count; i++)
+                config.CompareFields[i] = config.CompareFields[i].Trim();
+
+            // Tolerance Fields
+            Dictionary<string, ToleranceConfig> tMap = ToleranceUtil.GenerateTMap(NewCompareConfig.CompareFields);
+            config.TolerancMap = tMap;
+
+            // show fields
+            temp = Util.Split(NewCompareConfig.ShowFields, ',');
+            config.ShowFields.AddRange(temp);
+            for (int i = 0; i < config.ShowFields.Count; i++)
+                config.ShowFields[i] = config.ShowFields[i].Trim();
+
+            // Exclude fields
+            temp = Util.Split("", ',');
+            string[] excludeFields = temp;
+            for (int i = 0; i < excludeFields.Length; i++)
+                excludeFields[i] = excludeFields[i].Trim();
+            config.ExcludeFields.AddRange(excludeFields);
+
+            // Row fields
+            temp = Util.Split(NewCompareConfig.RowFields, ',');
+            config.RowFields.AddRange(temp);
+            for (int i = 0; i < config.RowFields.Count; i++)
+                config.RowFields[i] = config.RowFields[i].Trim();
+            
+            // Column fields
+            temp = Util.Split(NewCompareConfig.ColumnFields, ',');
+            config.ColumnFields.AddRange(temp);
+            for (int i = 0; i < config.ColumnFields.Count; i++)
+                config.ColumnFields[i] = config.ColumnFields[i].Trim();
+
+            // Field Name Mapping
+            FieldNameMapper fieldNameMapper = new FieldNameMapper();
+            fieldNameMapper.init("");
+            config.SetFieldNameMapper(fieldNameMapper);
+
+            // value adjustment
+            AdjustDataMap adjustDataMap = new AdjustDataMap();
+            adjustDataMap.init("");
+            config.SetAdjustData(adjustDataMap);
+
+            return config;
+        }
+    }
+}

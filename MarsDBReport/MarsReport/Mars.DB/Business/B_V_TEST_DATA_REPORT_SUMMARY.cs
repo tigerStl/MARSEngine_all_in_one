@@ -1,0 +1,441 @@
+﻿using Mars.DataLayer;
+using Mars.Dto;
+using Mars.Model;
+using Route2NSEx.src.Marquis.systemUtil;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Mars.Business
+{
+    public class B_V_TEST_DATA_REPORT_SUMMARY : V_TEST_DATA_REPORT_SUMMARYDTO
+    {
+        private static MLogger Logger = MLogger.GetLogger(typeof(B_V_TEST_DATA_REPORT_SUMMARY));
+        public Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>> GetTestReportByStoryBoardDetailId(string strDBIdx, 
+            long? currentStoryBoardDetailId)
+        {
+            Logger.Info("GetTestReportByStoryBoardDetailId", string.Format("StoryboardDetailId:[{0}]", currentStoryBoardDetailId));
+            Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>> dicResult = new Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>();
+            MarsEntities objEntities = BoHelper.GetMarsEntitiesInstance(strCurrentDB:strDBIdx);
+            /// performance is not good as sql generated is very bad
+            /// 
+            try
+            {
+                var query = from vCaptBase in objEntities.V_TEST_DATA_REPORT_SUMMARY
+                            where vCaptBase.STORYBOARD_DETAIL_ID == currentStoryBoardDetailId
+                            group vCaptBase by new { vCaptBase.STORYBOARD_DETAIL_ID, vCaptBase.TEST_MODE } into vCaptGroup
+                            from vRec in objEntities.V_TEST_DATA_REPORT_SUMMARY
+                            where
+                                vRec.STORYBOARD_DETAIL_ID == currentStoryBoardDetailId
+                                && vRec.LATEST_TEST_MARK_ID == vCaptGroup.Max(p => p.LATEST_TEST_MARK_ID)
+                                && vRec.TEST_MODE == vCaptGroup.Key.TEST_MODE
+                            orderby new { vRec.LOOP_ID, vRec.TEST_MODE, vRec.RUN_ORDER }
+                            select vRec;
+                Logger.Info("GetTestReportByStoryBoardDetailId", string.Format("Datareturnd:[{0}]", query.ToList().Count));
+                List<V_TEST_DATA_REPORT_SUMMARYDTO> lstCurrent;
+                foreach (V_TEST_DATA_REPORT_SUMMARY obj in query)
+                {
+                    if (obj == null) continue;
+                    int iKey = obj.LOOP_ID == null ? -1 : (int)obj.LOOP_ID;
+                    /// added on 17-11-19,有些数据需要处理
+                    obj.RETURN_VALUES = BoHelper.CorrectResultData(obj.RETURN_VALUES);
+                    /// added end
+                    if (!dicResult.ContainsKey(iKey))
+                    {
+                        lstCurrent = new List<V_TEST_DATA_REPORT_SUMMARYDTO>();
+                        dicResult.Add(iKey, lstCurrent);
+                    }
+                    else
+                    {
+                        lstCurrent = dicResult[iKey];
+                    }
+                    lstCurrent.Add(V_TEST_DATA_REPORT_SUMMARYAssembler.ToDTO(obj));
+                }
+                return dicResult;
+            }
+            catch (Exception e)
+            {
+                Logger.Error("GetTestReportByStoryBoardDetailId", string.Format("Exception:[{0}]", e.Message), e);
+                return new Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>();
+            }
+
+
+        }
+
+        public Dictionary<long, Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>> getTestStpReportDataByTestStoryBoardIds(string strDBIdx, 
+            List<long> lstTestStoryboardId, short sTestMode, ref bool isOk, ref string strError)
+        {
+            Logger.logBegin("getTestStpReportDataByTestStoryBoardIds", string.Format("StoryboardDetailId:[{0}]", lstTestStoryboardId));
+            try
+            {
+                MarsEntities objEntities = BoHelper.GetMarsEntitiesInstance(strCurrentDB:strDBIdx);
+                var query = from vCaptBase in objEntities.V_TEST_DATA_REPORT_SUMMARY
+                            where lstTestStoryboardId.Contains(vCaptBase.STORYBOARD_DETAIL_ID ?? -1)
+                            && vCaptBase.TEST_MODE == sTestMode
+                            group vCaptBase by new { vCaptBase.STORYBOARD_DETAIL_ID, vCaptBase.TEST_MODE } into vCaptGroup
+                            from vRec in objEntities.V_TEST_DATA_REPORT_SUMMARY
+                            where
+                                lstTestStoryboardId.Contains(vRec.STORYBOARD_DETAIL_ID ?? -1)
+                                && vRec.LATEST_TEST_MARK_ID == vCaptGroup.Max(p => p.LATEST_TEST_MARK_ID)
+                                && vRec.STORYBOARD_DETAIL_ID == vCaptGroup.Key.STORYBOARD_DETAIL_ID
+                                && vRec.TEST_MODE == vCaptGroup.Key.TEST_MODE
+                                && vRec.TEST_MODE == sTestMode
+                            orderby new { vRec.STORYBOARD_DETAIL_ID, vRec.LOOP_ID, vRec.TEST_MODE, vRec.RUN_ORDER }
+                            select vRec;
+                Dictionary<long, Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>> dicResult = new Dictionary<long, Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>>();
+                List<V_TEST_DATA_REPORT_SUMMARYDTO> lstData = query.ToDTOs();
+                Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>> dicCurStryDtlData = null;
+
+                List<V_TEST_DATA_REPORT_SUMMARYDTO> crntDataList = null;
+                for (int i = 0; i < lstData.Count; i++)
+                {
+                    long lStryBrdId = lstData[i].STORYBOARD_DETAIL_ID ?? -1;
+                    if (lStryBrdId == -1) continue;
+
+                    if (!dicResult.ContainsKey(lStryBrdId))
+                    {
+                        dicResult.Add(lStryBrdId, new Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>());
+                    }
+                    dicCurStryDtlData = dicResult[lStryBrdId];
+
+                    int crntLoop = (int)(lstData[i].LOOP_ID ?? -1);
+                    if (crntLoop == -1) continue;
+
+                    if (!dicCurStryDtlData.Keys.Contains(crntLoop))
+                    {
+                        dicCurStryDtlData.Add(crntLoop, new List<V_TEST_DATA_REPORT_SUMMARYDTO>());
+                    }
+                    crntDataList = dicCurStryDtlData[crntLoop];
+                    crntDataList.Add(lstData[i]);
+                }
+                isOk = true;
+                return dicResult;
+            }
+            catch (Exception e)
+            {
+                Logger.Error("getTestStpReportDataByTestStoryBoardIds", strError = string.Format("Exception:[{0}]", e.Message), e);
+                isOk = false;
+                return null;
+            }
+            finally
+            {
+                Logger.logEnd("getTestStpReportDataByTestStoryBoardIds");
+            }
+        }
+
+        public Dictionary<long, Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>> GetTestReportByStoryBoardDetailId(string strDBIdx, 
+            long? currentStoryBoardDetailId, long? currentCmpStoryBoardDetailId)
+        {
+            Logger.Info("GetTestReportByStoryBoardDetailId", string.Format("StoryboardDetailId:[{0}], cmpStoryBoardDetailId:[{1}]", currentStoryBoardDetailId, currentCmpStoryBoardDetailId));
+            ///steps:
+            /// 1, make sure the dataset name match each other
+            /// 2, get data from database
+            /// 
+            Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>> dicResult = new Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>();
+            MarsEntities objEntities = BoHelper.GetMarsEntitiesInstance(strCurrentDB:strDBIdx);
+            #region old codes
+            /// performance is not good as sql generated is very bad
+            //var query = from vCaptBase in objEntities.V_TEST_DATA_REPORT_SUMMARY
+            //            where vCaptBase.STORYBOARD_DETAIL_ID == currentStoryBoardDetailId
+            //            group vCaptBase by new { vCaptBase.STORYBOARD_DETAIL_ID, vCaptBase.TEST_MODE } into vCaptGroup
+            //            from vRec in objEntities.V_TEST_DATA_REPORT_SUMMARY
+            //            where
+            //                (vRec.STORYBOARD_DETAIL_ID == currentStoryBoardDetailId
+            //                || vRec.STORYBOARD_DETAIL_ID == currentCmpStoryBoardDetailId
+            //                )
+            //                && vRec.LATEST_TEST_MARK_ID == vCaptGroup.Max(p => p.LATEST_TEST_MARK_ID)
+            //            orderby new { vRec.LOOP_ID, vRec.TEST_MODE, vRec.RUN_ORDER }
+            //            select new {
+            //                storyboardDetail = vRec.STORYBOARD_DETAIL_ID,
+            //                rpt = vRec 
+            //            };
+            //var query = from vCaptBase in objEntities.V_TEST_DATA_REPORT_SUMMARY
+            //            where vCaptBase.STORYBOARD_DETAIL_ID == currentStoryBoardDetailId
+            //            group vCaptBase by new { vCaptBase.STORYBOARD_DETAIL_ID, vCaptBase.TEST_MODE } into vCaptGroup
+            //            from vRec in objEntities.V_TEST_DATA_REPORT_SUMMARY
+            //            where
+            //                (vRec.STORYBOARD_DETAIL_ID == currentStoryBoardDetailId
+            //                || vRec.STORYBOARD_DETAIL_ID == currentCmpStoryBoardDetailId
+            //                )
+            //                && vRec.LATEST_TEST_MARK_ID == vCaptGroup.Max(p => p.LATEST_TEST_MARK_ID)
+            //            orderby new { vRec.LOOP_ID, vRec.TEST_MODE, vRec.RUN_ORDER }
+            //            select new
+            //            {
+            //                storyboardDetail = vRec.STORYBOARD_DETAIL_ID,
+            //                rpt = vRec
+            //            };
+
+            //Dictionary<long?,List<V_TEST_DATA_REPORT_SUMMARY>> DicForDetail = query.GroupBy(p=>p.storyboardDetail, p=>p.rpt).ToDictionary(p=>p.Key, p=>p.ToList());
+            //Dictionary<long, Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>> dicRsltDto = new Dictionary<long, Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>>();
+            //foreach (long? itm in DicForDetail.Keys)
+            //{
+            //    if (itm == null) continue;
+            //    Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>> dicSubListForLoop = DicForDetail[itm]
+            //        .GroupBy(p => (int)(p.LOOP_ID ?? -1), p => p)
+            //        .ToDictionary(p => p.Key, p => V_TEST_DATA_REPORT_SUMMARYAssembler.ToDTOs(p.ToList()));
+
+            //    dicRsltDto.Add((long)(itm ?? -1), dicSubListForLoop);
+            //}
+            #endregion //old code
+
+            #region /// comment
+            /// new requirement:
+            /// user can input baseline data directly
+            /// That means system should check whether any base line data is available. if there were no directly inputted data,
+            /// then use the current version, otherwise, check the data summary information to see which way system will take
+            ///             
+            Dictionary<long, Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>> dicRsltDto = new Dictionary<long, Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>>();
+            //bool isBaseLineDataDirectlyInput = GetBaseLinedataModeByStoryBoardDetailId(objEntities,currentStoryBoardDetailId, ref strError,ref isException);
+            Dictionary<long?, List<V_TEST_DATA_REPORT_SUMMARY>> DicForDetailBase = null;
+            DicForDetailBase = GetHisRptDataByStoryboardDetailIdAndTestMode(objEntities, currentStoryBoardDetailId, 1);
+            Dictionary<long?, List<V_TEST_DATA_REPORT_SUMMARY>> DicForDetailCmp = GetHisRptDataByStoryboardDetailIdAndTestMode(objEntities, currentCmpStoryBoardDetailId, 0);
+
+            foreach (long? itm in DicForDetailBase.Keys)
+            {
+                if (itm == null) continue;
+                Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>> dicSubListForLoop = DicForDetailBase[itm]
+                    .GroupBy(p => (int)(p.LOOP_ID ?? -1), p => p)
+                    .ToDictionary(p => p.Key, p => V_TEST_DATA_REPORT_SUMMARYAssembler.ToDTOs(p.ToList()));
+
+                dicRsltDto.Add((long)(itm ?? -1), dicSubListForLoop);
+            }
+            foreach (long? itm in DicForDetailCmp.Keys)
+            {
+                if (itm == null) continue;
+                Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>> dicSubListForLoop = DicForDetailCmp[itm]
+                    .GroupBy(p => (int)(p.LOOP_ID ?? -1), p => p)
+                    .ToDictionary(p => p.Key, p => V_TEST_DATA_REPORT_SUMMARYAssembler.ToDTOs(p.ToList()));
+
+                dicRsltDto.Add((long)(itm ?? -1), dicSubListForLoop);
+            }
+         
+#endregion
+
+            return dicRsltDto;
+        }
+
+        public bool IsBaseLineDataDirectlyInputtedManully(string strDBIdx, long? lStoryBoardDetailId, ref string strError, ref bool hasException)
+        {
+            Logger.Info("IsBaseLineDataDirectlyInputtedManully", string.Format("Trying to get check whether base line data is inputted manully, storyboardId:[{0}]", lStoryBoardDetailId));
+            MarsEntities objEntities = BoHelper.GetMarsEntitiesInstance(true,strDBIdx);
+            return GetBaseLinedataModeByStoryBoardDetailId(objEntities, lStoryBoardDetailId, ref strError, ref hasException);
+        }
+
+        private bool GetBaseLinedataModeByStoryBoardDetailId(MarsEntities objEntities, long? lStoryBoardDetailId, ref string strError, ref bool hasException)
+        {
+            Logger.Info("GetBaseLinedataModeByStoryBoardDetailId", string.Format("try to get storyBoardId Id:[{0}]", lStoryBoardDetailId));
+            try
+            {
+                var query = from baseLineSummary in objEntities.T_BASELINE_DATA_SUMMARY
+                            from storyBd in objEntities.T_PROJ_TC_MGR
+                            from storyBdData in objEntities.T_STORYBOARD_DATASET_SETTING
+                            where
+                                storyBd.STORYBOARD_DETAIL_ID == lStoryBoardDetailId && storyBdData.STORYBOARD_DETAIL_ID == storyBdData.STORYBOARD_DETAIL_ID && baseLineSummary.DATA_SUMMARY_ID == storyBdData.DATA_SUMMARY_ID
+                            select baseLineSummary;
+                T_BASELINE_DATA_SUMMARY objTarget = query.FirstOrDefault();
+                hasException = false;
+                return objTarget == null;
+            }
+            catch (Exception e)
+            {
+                Logger.Error("GetBaseLinedataModeByStoryBoardDetailId", strError = string.Format("Exception:[{0}], stackTrace:[{1}]", e.Message, e.StackTrace), e);
+                hasException = true;
+                return false;
+            }
+        }
+
+        private Dictionary<long?, List<V_TEST_DATA_REPORT_SUMMARY>> GetHisRptDataByStoryboardDetailIdAndTestMode(MarsEntities objEntities, long? lStoryBoardDetailId, int iTestMode)
+        {
+            Logger.Info("GetHisRptDataByStoryboardDetailIdAndTestMode", string.Format("Storyboard Detail Id:[{0}] TestMode(0-nonBase, 1-Base):[{1}]", lStoryBoardDetailId, iTestMode));
+            var query = from vCaptBase in objEntities.V_TEST_DATA_REPORT_SUMMARY
+                        where
+                        (
+                            vCaptBase.STORYBOARD_DETAIL_ID == lStoryBoardDetailId
+                            && vCaptBase.TEST_MODE == iTestMode
+                        )
+                        group vCaptBase by new { vCaptBase.STORYBOARD_DETAIL_ID, vCaptBase.TEST_MODE } into vCaptGroup
+                        from vRec in objEntities.V_TEST_DATA_REPORT_SUMMARY
+                        where
+                            (vRec.LATEST_TEST_MARK_ID == vCaptGroup.Max(p => p.LATEST_TEST_MARK_ID)
+                            && vCaptGroup.Key.STORYBOARD_DETAIL_ID == lStoryBoardDetailId
+                            && vCaptGroup.Key.TEST_MODE == iTestMode
+                            )
+                        orderby new { vRec.LOOP_ID, vRec.TEST_MODE, vRec.RUN_ORDER }
+                        select new
+                        {
+                            storyboardDetail = vRec.STORYBOARD_DETAIL_ID,
+                            rpt = vRec
+                        };
+            Dictionary<long?, List<V_TEST_DATA_REPORT_SUMMARY>> DicForDetail = query.GroupBy(p => p.storyboardDetail, p => p.rpt).ToDictionary(p => p.Key, p => p.ToList());
+#if PERFORMANCE_TRACKING
+            Logger.Info("GetHisRptDataByStoryboardDetailIdAndTestMode", "Data grouped, end");
+#endif 
+            return DicForDetail;
+        }
+        public Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>> GetHisRptDataByStoryboardDetailIdAndTestMode(long? lStoryBoardDetailId, int iTestMode)
+        {
+            Logger.Info("GetHisRptDataByStoryboardDetailIdAndTestMode", string.Format("Storyboard Detail Id:[{0}] TestMode(0-nonBase, 1-Base):[{1}]", lStoryBoardDetailId, iTestMode));
+            MarsEntities objEntities = new MarsEntities();
+
+            Dictionary<long?, List<V_TEST_DATA_REPORT_SUMMARY>> dicData = GetHisRptDataByStoryboardDetailIdAndTestMode(objEntities, lStoryBoardDetailId, iTestMode);
+            Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>> dicRslt = new Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>();
+            foreach (long? lKey in dicData.Keys)
+            {
+                if (lKey == null) continue;
+                dicRslt.Add((int)lKey, V_TEST_DATA_REPORT_SUMMARYAssembler.ToDTOs(dicData[lKey]));
+            }
+            return dicRslt;
+        }
+        /// <summary>
+        /// keyValuePair -- Storyboard run order,
+        ///     ---- Dictionary -- int - loop id, and ordered step test data
+        /// </summary>
+        /// <param name="testStoryBoardId"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public List<KeyValuePair<int, Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>>> getTestStpReportDataByTestStoryBoardId(string strDBIdx, 
+            long testStoryBoardId,
+            ref string strError, int testMode,
+            bool isNormalizationReq = false)
+        {
+            Logger.Info("getTestStpReportDataByTestStoryBoardId", string.Format("story boardId :[{0}]", testStoryBoardId));
+            MarsEntities objEntities = BoHelper.GetMarsEntitiesInstance(strCurrentDB:strDBIdx);
+            //var query = from vStp in objEntities.V_TEST_DATA_REPORT_SUMMARY                        
+            //            where vStp.STORYBOARD_ID == testStoryBoardId
+            //            //&& tTC.TEST_CASE_ID== vStp.TEST_CASE_ID
+            //            select vStp;
+            #region alex
+            //var query = from vStp in objEntities.V_TEST_DATA_REPORT_SUMMARY
+            //            from vMxStpInfo in (
+            //                from stptmp in objEntities.V_TEST_DATA_REPORT_SUMMARY
+            //                where stptmp.STORYBOARD_ID == testStoryBoardId
+            //                /// changed below, can you try again??????------tiger
+            //                //group stptmp by new { stptmp.STORYBOARD_DETAIL_ID, stptmp.TEST_CASE_ID, stptmp.TEST_MODE } into mxInfo                              
+            //                group stptmp by new { stptmp.STORYBOARD_ORDER,stptmp.STORYBOARD_DETAIL_ID, stptmp.TEST_CASE_ID, stptmp.TEST_MODE } into mxInfo
+            //                select new {
+            //                    maxMar = mxInfo.Max(p=>p.LATEST_TEST_MARK_ID),
+            //                    ent = mxInfo.Key
+            //                }
+            //            )
+            //            where vStp.STORYBOARD_ID == testStoryBoardId
+            //            && vStp.TEST_CASE_ID==vMxStpInfo.ent.TEST_CASE_ID
+            //            && vStp.STORYBOARD_DETAIL_ID== vMxStpInfo.ent.STORYBOARD_DETAIL_ID
+            //            && vStp.LATEST_TEST_MARK_ID==vMxStpInfo.maxMar
+            //            && vStp.TEST_MODE==vMxStpInfo.ent.TEST_MODE
+            //            && vStp.TEST_MODE == testMode
+            //            //&& tTC.TEST_CASE_ID== vStp.TEST_CASE_ID
+            //            select vStp;
+            #endregion
+            #region tiger
+            var query = from vCaptBase in objEntities.V_TEST_DATA_REPORT_SUMMARY
+                        where vCaptBase.STORYBOARD_ID == testStoryBoardId
+                        && vCaptBase.TEST_MODE == testMode
+                        group vCaptBase by new { vCaptBase.STORYBOARD_DETAIL_ID, vCaptBase.TEST_MODE } into vCaptGroup
+                        from vRec in objEntities.V_TEST_DATA_REPORT_SUMMARY
+                        where
+                            vRec.STORYBOARD_ID == testStoryBoardId
+                            && vRec.LATEST_TEST_MARK_ID == vCaptGroup.Max(p => p.LATEST_TEST_MARK_ID)
+                            && vRec.STORYBOARD_DETAIL_ID == vCaptGroup.Key.STORYBOARD_DETAIL_ID
+                            && vRec.TEST_MODE == vCaptGroup.Key.TEST_MODE
+                            && vRec.TEST_MODE == testMode
+                        orderby new { vRec.LOOP_ID, vRec.STORYBOARD_ORDER, vRec.STORYBOARD_DETAIL_ID, vRec.TEST_MODE, vRec.RUN_ORDER }
+                        select vRec;
+            #endregion
+
+            try
+            {
+                var objQ = query.ToList();
+                Dictionary<long?, List<V_TEST_DATA_REPORT_SUMMARY>> orderdQ = objQ.GroupBy(p => p.STORYBOARD_ORDER, p => p).ToDictionary(p => p.Key, p => p.ToList());
+                //IQueryable<IGrouping<long?, V_TEST_DATA_REPORT_SUMMARY>> objGroupQ = query.GroupBy(p => p.STORYBOARD_ORDER, p => p);
+                //Dictionary<long?, List<V_TEST_DATA_REPORT_SUMMARY>> orderdQ = new Dictionary<long?, List<V_TEST_DATA_REPORT_SUMMARY>>();
+                //foreach ( var objItm in objGroupQ.ToArray())
+                //{
+                //    var objItmKey = objItm.Key;                    
+                //    if (objItmKey == null) continue;
+                //    List<V_TEST_DATA_REPORT_SUMMARY> lstCurrItm = null;
+                //    if (orderdQ.ContainsKey(objItmKey))
+                //    {
+                //        lstCurrItm = orderdQ[objItmKey];
+                //    }else
+                //    {
+                //        orderdQ.Add(objItmKey,lstCurrItm=new List<V_TEST_DATA_REPORT_SUMMARY>());
+                //    }                    
+                //    lstCurrItm.AddRange(objItm.ToList());
+                //}
+
+                //Dictionary<long?, List<V_TEST_DATA_REPORT_SUMMARY>> orderdQ = objGroupQ.ToDictionary(p => p.Key, p => p.ToList());
+                //Dictionary <long?, List<V_TEST_DATA_REPORT_SUMMARY>> orderdQ = query.GroupBy(p => p.STORYBOARD_ORDER, p => p).ToDictionary(p => p.Key, p => p.ToList());
+                List<KeyValuePair<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>> lstRslt = new List<KeyValuePair<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>>();
+                List<KeyValuePair<int, Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>>> lstResult = new List<KeyValuePair<int, Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>>>();
+
+                foreach (long? lStoryBoardOrd in orderdQ.Keys)
+                {
+                    if (lStoryBoardOrd == null) continue;
+                    List<V_TEST_DATA_REPORT_SUMMARYDTO> lstStpDataInfo = new List<V_TEST_DATA_REPORT_SUMMARYDTO>();
+                    lstStpDataInfo.AddRange(V_TEST_DATA_REPORT_SUMMARYAssembler.ToDTOs(orderdQ[lStoryBoardOrd]).OrderBy(p => p.LOOP_ID).ThenBy(p => p.RUN_ORDER));
+                    Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>> dicStpInfo = lstStpDataInfo.GroupBy(p => (int)(p.LOOP_ID ?? -1), p => p).ToDictionary(p => p.Key, p => p.ToList());
+                    if (isNormalizationReq)
+                    {
+                        dicStpInfo = NormalizationStepReportData(dicStpInfo);
+                    }
+                    lstResult.Add(new KeyValuePair<int, Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>>((int)lStoryBoardOrd, dicStpInfo));
+                }
+
+                var lst = (from s in lstResult
+                           orderby s.Key
+                           select s).ToList();
+
+                //return lstResult;
+                return lst;
+            }
+            catch (Exception e)
+            {
+                Logger.Error("getTestStpReportDataByTestStoryBoardId", string.Format("Exception:[{0}] stackTrace:[{1}]", e.Message, e.StackTrace), e);
+                return null;
+            }
+        }
+
+        private Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>> NormalizationStepReportData(Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>> dicStpInfo)
+        {
+            Logger.Info("NormalizationStepReportData", string.Format("try to normalization data:[{0}]", dicStpInfo == null ? 0 : dicStpInfo.Keys == null ? 0 : dicStpInfo.Keys.Count));
+            if (dicStpInfo == null) return null;
+            if (dicStpInfo.Keys == null) return dicStpInfo;
+            Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>> dicResult = new Dictionary<int, List<V_TEST_DATA_REPORT_SUMMARYDTO>>();
+            foreach (int iLoop in dicStpInfo.Keys)
+            {
+                List<V_TEST_DATA_REPORT_SUMMARYDTO> lstTmp = new List<V_TEST_DATA_REPORT_SUMMARYDTO>();
+                dicResult.Add(iLoop, lstTmp);
+                /// Normalize data
+                /// 
+                #region tiger changed
+                //List<V_TEST_DATA_REPORT_SUMMARYDTO> lstSrc = dicStpInfo[iLoop];
+                List<V_TEST_DATA_REPORT_SUMMARYDTO> lstSrc = dicStpInfo[iLoop] == null ? null :
+                    dicStpInfo[iLoop].OrderBy(p => p.INPUT_VALUE_SETTING).ToList();
+                #endregion
+                V_TEST_DATA_REPORT_SUMMARYDTO tmpStpInfo = null;
+                for (int i = 0; i < lstSrc.Count; i++)
+                {
+                    tmpStpInfo = lstSrc[i];
+                    if (tmpStpInfo == null)
+                    {
+                        continue;
+                    }
+                    if (lstTmp.Count == 0)
+                    {
+                        lstTmp.Add(tmpStpInfo);
+                        continue;
+                    }
+                    if (tmpStpInfo.STEPS_ID == lstTmp[lstTmp.Count - 1].STEPS_ID)
+                    {
+                        lstTmp[lstTmp.Count - 1].RETURN_VALUES = string.Format("{0}\r\n{1}", lstTmp[lstTmp.Count - 1].RETURN_VALUES ?? "", tmpStpInfo.RETURN_VALUES ?? "");
+                    }
+                    else
+                    {
+                        lstTmp.Add(tmpStpInfo);
+                    }
+                }
+            }
+            return dicResult;
+        }
+    }
+}

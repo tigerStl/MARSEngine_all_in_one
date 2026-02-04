@@ -1,0 +1,505 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BreakpointCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Breakpoints>
+    <Breakpoint>
+      <Version>15</Version>
+      <IsEnabled>1</IsEnabled>
+      <IsVisible>1</IsVisible>
+      <IsEmulated>0</IsEmulated>
+      <IsCondition>0</IsCondition>
+      <IsProductionBps>0</IsProductionBps>
+      <ConditionType>WhenTrue</ConditionType>
+      <LocationType>SourceLocation</LocationType>
+      <TextPosition>
+        <Version>4</Version>
+        <FileName>.\ExecuteTestcase\ExecutableTestCase.cs</FileName>
+        <startLine>1026</startLine>
+        <StartColumn>28</StartColumn>
+        <EndLine>1026</EndLine>
+        <EndColumn>76</EndColumn>
+        <MarkerId>0</MarkerId>
+        <IsLineBased>0</IsLineBased>
+        <IsDocumentPathNotFound>0</IsDocumentPathNotFound>
+        <ShouldUpdateTextSpan>1</ShouldUpdateTextSpan>
+        <Checksum>
+          <Version>1</Version>
+          <Algorithm>00000000-0000-0000-0000-000000000000</Algorithm>
+          <ByteCount>0</ByteCount>
+          <Bytes />
+        </Checksum>
+      </TextPosition>
+      <NamedLocationText>Mars.AutoTestingDriver.ExecuteTestcase.ExecutableTestCaseMgr.RunTestStepOneByOne(ref IMonitorService mntrCnt,
+            ref long lAppId,
+            long lTestcaseId,
+            MARSRecoverMgr testStepInfo, //List&lt;ExecutableTestCaseStep&gt; lstTestStps,
+            List&lt;ExecutableTestCaseStep&gt; lstNxtTestStps,
+            bool isIgnoreError,
+            string strMode,
+            StoryboardDBRecordMgr recodeMgr,
+            ref Mars_applicationTyp.MARS_APPTYPE appTyp,
+            ref string strError,
+            ref string strAdv,
+            ref string strStack,
+            ref string strLastPeg,
+            ref string strLastObjectName,
+            ref string strLastTestStep,
+            ref int iLastStepNum,
+            ref bool hasError,
+            bool isVerifyValueSkipper = false,
+            bool isNotRequiredToWriteBackToDB = false,
+            OnTestStepExectionDoneEvent teststepDoneCallBack = null,
+            OnTestcaseIsDoneEvent teststepsListDoneCallBack = null
+            )</NamedLocationText>
+      <NamedLocationLine>155</NamedLocationLine>
+      <NamedLocationColumn>0</NamedLocationColumn>
+      <HitCountType>NoHitCount</HitCountType>
+      <HitCountTarget>1</HitCountTarget>
+      <Language>3f5162f8-07c6-11d3-9053-00c04fa302a1</Language>
+      <IsMapped>0</IsMapped>
+      <BreakpointType>PendingBreakpoint</BreakpointType>
+      <AddressLocation>
+        <Version>0</Version>
+        <MarkerId>0</MarkerId>
+        <FunctionLine>0</FunctionLine>
+        <FunctionColumn>0</FunctionColumn>
+        <Language>00000000-0000-0000-0000-000000000000</Language>
+      </AddressLocation>
+      <DataCount>4</DataCount>
+      <IsTracepointActive>0</IsTracepointActive>
+      <TracepointTargetType>VsOutputWindow</TracepointTargetType>
+      <TimeTravelTraceMarker>NoTracing</TimeTravelTraceMarker>
+      <IsBreakWhenHit>1</IsBreakWhenHit>
+      <IsRunMacroWhenHit>0</IsRunMacroWhenHit>
+      <UseChecksum>1</UseChecksum>
+      <Labels />
+      <RequestRemapped>0</RequestRemapped>
+      <IsSnapshotWhenHit>1</IsSnapshotWhenHit>
+      <SnapshotCountTarget>1</SnapshotCountTarget>
+      <parentIndex>-1</parentIndex>
+    </Breakpoint>
+    <Breakpoint>
+      <Version>15</Version>
+      <IsEnabled>1</IsEnabled>
+      <IsVisible>1</IsVisible>
+      <IsEmulated>0</IsEmulated>
+      <IsCondition>0</IsCondition>
+      <IsProductionBps>0</IsProductionBps>
+      <ConditionType>WhenTrue</ConditionType>
+      <LocationType>SourceLocation</LocationType>
+      <TextPosition>
+        <Version>4</Version>
+        <FileName>.\ExecuteTestcase\ExecutableTestCase.cs</FileName>
+        <startLine>1503</startLine>
+        <StartColumn>28</StartColumn>
+        <EndLine>1518</EndLine>
+        <EndColumn>87</EndColumn>
+        <MarkerId>0</MarkerId>
+        <IsLineBased>0</IsLineBased>
+        <IsDocumentPathNotFound>0</IsDocumentPathNotFound>
+        <ShouldUpdateTextSpan>1</ShouldUpdateTextSpan>
+        <Checksum>
+          <Version>1</Version>
+          <Algorithm>00000000-0000-0000-0000-000000000000</Algorithm>
+          <ByteCount>0</ByteCount>
+          <Bytes />
+        </Checksum>
+      </TextPosition>
+      <NamedLocationText>Mars.AutoTestingDriver.ExecuteTestcase.ExecutableTestCaseMgr.RunTestStepOneByOne(ref IMonitorService mntrCnt,
+            ref long lAppId,
+            long lTestcaseId,
+            MARSRecoverMgr testStepInfo, //List&lt;ExecutableTestCaseStep&gt; lstTestStps,
+            List&lt;ExecutableTestCaseStep&gt; lstNxtTestStps,
+            bool isIgnoreError,
+            string strMode,
+            StoryboardDBRecordMgr recodeMgr,
+            ref Mars_applicationTyp.MARS_APPTYPE appTyp,
+            ref string strError,
+            ref string strAdv,
+            ref string strStack,
+            ref string strLastPeg,
+            ref string strLastObjectName,
+            ref string strLastTestStep,
+            ref int iLastStepNum,
+            ref bool hasError,
+            bool isVerifyValueSkipper = false,
+            bool isNotRequiredToWriteBackToDB = false,
+            OnTestStepExectionDoneEvent teststepDoneCallBack = null,
+            OnTestcaseIsDoneEvent teststepsListDoneCallBack = null
+            )</NamedLocationText>
+      <NamedLocationLine>632</NamedLocationLine>
+      <NamedLocationColumn>0</NamedLocationColumn>
+      <HitCountType>NoHitCount</HitCountType>
+      <HitCountTarget>1</HitCountTarget>
+      <Language>3f5162f8-07c6-11d3-9053-00c04fa302a1</Language>
+      <IsMapped>0</IsMapped>
+      <BreakpointType>PendingBreakpoint</BreakpointType>
+      <AddressLocation>
+        <Version>0</Version>
+        <MarkerId>0</MarkerId>
+        <FunctionLine>0</FunctionLine>
+        <FunctionColumn>0</FunctionColumn>
+        <Language>00000000-0000-0000-0000-000000000000</Language>
+      </AddressLocation>
+      <DataCount>4</DataCount>
+      <IsTracepointActive>0</IsTracepointActive>
+      <TracepointTargetType>VsOutputWindow</TracepointTargetType>
+      <TimeTravelTraceMarker>NoTracing</TimeTravelTraceMarker>
+      <IsBreakWhenHit>1</IsBreakWhenHit>
+      <IsRunMacroWhenHit>0</IsRunMacroWhenHit>
+      <UseChecksum>1</UseChecksum>
+      <Labels />
+      <RequestRemapped>0</RequestRemapped>
+      <IsSnapshotWhenHit>1</IsSnapshotWhenHit>
+      <SnapshotCountTarget>1</SnapshotCountTarget>
+      <parentIndex>-1</parentIndex>
+    </Breakpoint>
+    <Breakpoint>
+      <Version>15</Version>
+      <IsEnabled>1</IsEnabled>
+      <IsVisible>1</IsVisible>
+      <IsEmulated>0</IsEmulated>
+      <IsCondition>0</IsCondition>
+      <IsProductionBps>0</IsProductionBps>
+      <ConditionType>WhenTrue</ConditionType>
+      <LocationType>SourceLocation</LocationType>
+      <TextPosition>
+        <Version>4</Version>
+        <FileName>.\ExecuteTestcase\ExecutableTestCase.cs</FileName>
+        <startLine>894</startLine>
+        <StartColumn>12</StartColumn>
+        <EndLine>894</EndLine>
+        <EndColumn>141</EndColumn>
+        <MarkerId>0</MarkerId>
+        <IsLineBased>0</IsLineBased>
+        <IsDocumentPathNotFound>0</IsDocumentPathNotFound>
+        <ShouldUpdateTextSpan>1</ShouldUpdateTextSpan>
+        <Checksum>
+          <Version>1</Version>
+          <Algorithm>00000000-0000-0000-0000-000000000000</Algorithm>
+          <ByteCount>0</ByteCount>
+          <Bytes />
+        </Checksum>
+      </TextPosition>
+      <NamedLocationText>Mars.AutoTestingDriver.ExecuteTestcase.ExecutableTestCaseMgr.RunTestStepOneByOne(ref IMonitorService mntrCnt,
+            ref long lAppId,
+            long lTestcaseId,
+            MARSRecoverMgr testStepInfo, //List&lt;ExecutableTestCaseStep&gt; lstTestStps,
+            List&lt;ExecutableTestCaseStep&gt; lstNxtTestStps,
+            bool isIgnoreError,
+            string strMode,
+            StoryboardDBRecordMgr recodeMgr,
+            ref Mars_applicationTyp.MARS_APPTYPE appTyp,
+            ref string strError,
+            ref string strAdv,
+            ref string strStack,
+            ref string strLastPeg,
+            ref string strLastObjectName,
+            ref string strLastTestStep,
+            ref int iLastStepNum,
+            ref bool hasError,
+            bool isVerifyValueSkipper = false,
+            bool isNotRequiredToWriteBackToDB = false,
+            OnTestStepExectionDoneEvent teststepDoneCallBack = null,
+            OnTestcaseIsDoneEvent teststepsListDoneCallBack = null
+            )</NamedLocationText>
+      <NamedLocationLine>23</NamedLocationLine>
+      <NamedLocationColumn>0</NamedLocationColumn>
+      <HitCountType>NoHitCount</HitCountType>
+      <HitCountTarget>1</HitCountTarget>
+      <Language>3f5162f8-07c6-11d3-9053-00c04fa302a1</Language>
+      <IsMapped>0</IsMapped>
+      <BreakpointType>PendingBreakpoint</BreakpointType>
+      <AddressLocation>
+        <Version>0</Version>
+        <MarkerId>0</MarkerId>
+        <FunctionLine>0</FunctionLine>
+        <FunctionColumn>0</FunctionColumn>
+        <Language>00000000-0000-0000-0000-000000000000</Language>
+      </AddressLocation>
+      <DataCount>4</DataCount>
+      <IsTracepointActive>0</IsTracepointActive>
+      <TracepointTargetType>VsOutputWindow</TracepointTargetType>
+      <TimeTravelTraceMarker>NoTracing</TimeTravelTraceMarker>
+      <IsBreakWhenHit>1</IsBreakWhenHit>
+      <IsRunMacroWhenHit>0</IsRunMacroWhenHit>
+      <UseChecksum>1</UseChecksum>
+      <Labels />
+      <RequestRemapped>0</RequestRemapped>
+      <IsSnapshotWhenHit>1</IsSnapshotWhenHit>
+      <SnapshotCountTarget>1</SnapshotCountTarget>
+      <parentIndex>-1</parentIndex>
+    </Breakpoint>
+    <Breakpoint>
+      <Version>15</Version>
+      <IsEnabled>1</IsEnabled>
+      <IsVisible>1</IsVisible>
+      <IsEmulated>0</IsEmulated>
+      <IsCondition>0</IsCondition>
+      <IsProductionBps>0</IsProductionBps>
+      <ConditionType>WhenTrue</ConditionType>
+      <LocationType>SourceLocation</LocationType>
+      <TextPosition>
+        <Version>4</Version>
+        <FileName>.\ExecuteTestcase\ExecutableTestCase.cs</FileName>
+        <startLine>930</startLine>
+        <StartColumn>12</StartColumn>
+        <EndLine>930</EndLine>
+        <EndColumn>35</EndColumn>
+        <MarkerId>0</MarkerId>
+        <IsLineBased>0</IsLineBased>
+        <IsDocumentPathNotFound>0</IsDocumentPathNotFound>
+        <ShouldUpdateTextSpan>1</ShouldUpdateTextSpan>
+        <Checksum>
+          <Version>1</Version>
+          <Algorithm>00000000-0000-0000-0000-000000000000</Algorithm>
+          <ByteCount>0</ByteCount>
+          <Bytes />
+        </Checksum>
+      </TextPosition>
+      <NamedLocationText>Mars.AutoTestingDriver.ExecuteTestcase.ExecutableTestCaseMgr.RunTestStepOneByOne(ref IMonitorService mntrCnt,
+            ref long lAppId,
+            long lTestcaseId,
+            MARSRecoverMgr testStepInfo, //List&lt;ExecutableTestCaseStep&gt; lstTestStps,
+            List&lt;ExecutableTestCaseStep&gt; lstNxtTestStps,
+            bool isIgnoreError,
+            string strMode,
+            StoryboardDBRecordMgr recodeMgr,
+            ref Mars_applicationTyp.MARS_APPTYPE appTyp,
+            ref string strError,
+            ref string strAdv,
+            ref string strStack,
+            ref string strLastPeg,
+            ref string strLastObjectName,
+            ref string strLastTestStep,
+            ref int iLastStepNum,
+            ref bool hasError,
+            bool isVerifyValueSkipper = false,
+            bool isNotRequiredToWriteBackToDB = false,
+            OnTestStepExectionDoneEvent teststepDoneCallBack = null,
+            OnTestcaseIsDoneEvent teststepsListDoneCallBack = null
+            )</NamedLocationText>
+      <NamedLocationLine>59</NamedLocationLine>
+      <NamedLocationColumn>0</NamedLocationColumn>
+      <HitCountType>NoHitCount</HitCountType>
+      <HitCountTarget>1</HitCountTarget>
+      <Language>3f5162f8-07c6-11d3-9053-00c04fa302a1</Language>
+      <IsMapped>0</IsMapped>
+      <BreakpointType>PendingBreakpoint</BreakpointType>
+      <AddressLocation>
+        <Version>0</Version>
+        <MarkerId>0</MarkerId>
+        <FunctionLine>0</FunctionLine>
+        <FunctionColumn>0</FunctionColumn>
+        <Language>00000000-0000-0000-0000-000000000000</Language>
+      </AddressLocation>
+      <DataCount>4</DataCount>
+      <IsTracepointActive>0</IsTracepointActive>
+      <TracepointTargetType>VsOutputWindow</TracepointTargetType>
+      <TimeTravelTraceMarker>NoTracing</TimeTravelTraceMarker>
+      <IsBreakWhenHit>1</IsBreakWhenHit>
+      <IsRunMacroWhenHit>0</IsRunMacroWhenHit>
+      <UseChecksum>1</UseChecksum>
+      <Labels />
+      <RequestRemapped>0</RequestRemapped>
+      <IsSnapshotWhenHit>1</IsSnapshotWhenHit>
+      <SnapshotCountTarget>1</SnapshotCountTarget>
+      <parentIndex>-1</parentIndex>
+    </Breakpoint>
+    <Breakpoint>
+      <Version>15</Version>
+      <IsEnabled>1</IsEnabled>
+      <IsVisible>1</IsVisible>
+      <IsEmulated>0</IsEmulated>
+      <IsCondition>0</IsCondition>
+      <IsProductionBps>0</IsProductionBps>
+      <ConditionType>WhenTrue</ConditionType>
+      <LocationType>SourceLocation</LocationType>
+      <TextPosition>
+        <Version>4</Version>
+        <FileName>.\ExecuteTestcase\ExecutableTestCase.cs</FileName>
+        <startLine>958</startLine>
+        <StartColumn>12</StartColumn>
+        <EndLine>958</EndLine>
+        <EndColumn>27</EndColumn>
+        <MarkerId>0</MarkerId>
+        <IsLineBased>0</IsLineBased>
+        <IsDocumentPathNotFound>0</IsDocumentPathNotFound>
+        <ShouldUpdateTextSpan>1</ShouldUpdateTextSpan>
+        <Checksum>
+          <Version>1</Version>
+          <Algorithm>00000000-0000-0000-0000-000000000000</Algorithm>
+          <ByteCount>0</ByteCount>
+          <Bytes />
+        </Checksum>
+      </TextPosition>
+      <NamedLocationText>Mars.AutoTestingDriver.ExecuteTestcase.ExecutableTestCaseMgr.RunTestStepOneByOne(ref IMonitorService mntrCnt,
+            ref long lAppId,
+            long lTestcaseId,
+            MARSRecoverMgr testStepInfo, //List&lt;ExecutableTestCaseStep&gt; lstTestStps,
+            List&lt;ExecutableTestCaseStep&gt; lstNxtTestStps,
+            bool isIgnoreError,
+            string strMode,
+            StoryboardDBRecordMgr recodeMgr,
+            ref Mars_applicationTyp.MARS_APPTYPE appTyp,
+            ref string strError,
+            ref string strAdv,
+            ref string strStack,
+            ref string strLastPeg,
+            ref string strLastObjectName,
+            ref string strLastTestStep,
+            ref int iLastStepNum,
+            ref bool hasError,
+            bool isVerifyValueSkipper = false,
+            bool isNotRequiredToWriteBackToDB = false,
+            OnTestStepExectionDoneEvent teststepDoneCallBack = null,
+            OnTestcaseIsDoneEvent teststepsListDoneCallBack = null
+            )</NamedLocationText>
+      <NamedLocationLine>87</NamedLocationLine>
+      <NamedLocationColumn>0</NamedLocationColumn>
+      <HitCountType>NoHitCount</HitCountType>
+      <HitCountTarget>1</HitCountTarget>
+      <Language>3f5162f8-07c6-11d3-9053-00c04fa302a1</Language>
+      <IsMapped>0</IsMapped>
+      <BreakpointType>PendingBreakpoint</BreakpointType>
+      <AddressLocation>
+        <Version>0</Version>
+        <MarkerId>0</MarkerId>
+        <FunctionLine>0</FunctionLine>
+        <FunctionColumn>0</FunctionColumn>
+        <Language>00000000-0000-0000-0000-000000000000</Language>
+      </AddressLocation>
+      <DataCount>4</DataCount>
+      <IsTracepointActive>0</IsTracepointActive>
+      <TracepointTargetType>VsOutputWindow</TracepointTargetType>
+      <TimeTravelTraceMarker>NoTracing</TimeTravelTraceMarker>
+      <IsBreakWhenHit>1</IsBreakWhenHit>
+      <IsRunMacroWhenHit>0</IsRunMacroWhenHit>
+      <UseChecksum>1</UseChecksum>
+      <Labels />
+      <RequestRemapped>0</RequestRemapped>
+      <IsSnapshotWhenHit>1</IsSnapshotWhenHit>
+      <SnapshotCountTarget>1</SnapshotCountTarget>
+      <parentIndex>-1</parentIndex>
+    </Breakpoint>
+    <Breakpoint>
+      <Version>15</Version>
+      <IsEnabled>1</IsEnabled>
+      <IsVisible>1</IsVisible>
+      <IsEmulated>0</IsEmulated>
+      <IsCondition>0</IsCondition>
+      <IsProductionBps>0</IsProductionBps>
+      <ConditionType>WhenTrue</ConditionType>
+      <LocationType>SourceLocation</LocationType>
+      <TextPosition>
+        <Version>4</Version>
+        <FileName>.\Program.cs</FileName>
+        <startLine>1213</startLine>
+        <StartColumn>12</StartColumn>
+        <EndLine>1216</EndLine>
+        <EndColumn>96</EndColumn>
+        <MarkerId>0</MarkerId>
+        <IsLineBased>0</IsLineBased>
+        <IsDocumentPathNotFound>0</IsDocumentPathNotFound>
+        <ShouldUpdateTextSpan>1</ShouldUpdateTextSpan>
+        <Checksum>
+          <Version>1</Version>
+          <Algorithm>00000000-0000-0000-0000-000000000000</Algorithm>
+          <ByteCount>0</ByteCount>
+          <Bytes />
+        </Checksum>
+      </TextPosition>
+      <NamedLocationText>Mars.AutoTestingDriver.AutoTestingDriverEntry.RunTestCaseOrTestStoryBoard(string strCurMarsAccount, string[] arrParameters,ref bool isExitItself)</NamedLocationText>
+      <NamedLocationLine>70</NamedLocationLine>
+      <NamedLocationColumn>0</NamedLocationColumn>
+      <HitCountType>NoHitCount</HitCountType>
+      <HitCountTarget>1</HitCountTarget>
+      <Language>3f5162f8-07c6-11d3-9053-00c04fa302a1</Language>
+      <IsMapped>0</IsMapped>
+      <BreakpointType>PendingBreakpoint</BreakpointType>
+      <AddressLocation>
+        <Version>0</Version>
+        <MarkerId>0</MarkerId>
+        <FunctionLine>0</FunctionLine>
+        <FunctionColumn>0</FunctionColumn>
+        <Language>00000000-0000-0000-0000-000000000000</Language>
+      </AddressLocation>
+      <DataCount>4</DataCount>
+      <IsTracepointActive>0</IsTracepointActive>
+      <TracepointTargetType>VsOutputWindow</TracepointTargetType>
+      <TimeTravelTraceMarker>NoTracing</TimeTravelTraceMarker>
+      <IsBreakWhenHit>1</IsBreakWhenHit>
+      <IsRunMacroWhenHit>0</IsRunMacroWhenHit>
+      <UseChecksum>1</UseChecksum>
+      <Labels />
+      <RequestRemapped>0</RequestRemapped>
+      <IsSnapshotWhenHit>1</IsSnapshotWhenHit>
+      <SnapshotCountTarget>1</SnapshotCountTarget>
+      <parentIndex>-1</parentIndex>
+    </Breakpoint>
+    <Breakpoint>
+      <Version>15</Version>
+      <IsEnabled>1</IsEnabled>
+      <IsVisible>1</IsVisible>
+      <IsEmulated>0</IsEmulated>
+      <IsCondition>0</IsCondition>
+      <IsProductionBps>0</IsProductionBps>
+      <ConditionType>WhenTrue</ConditionType>
+      <LocationType>SourceLocation</LocationType>
+      <TextPosition>
+        <Version>4</Version>
+        <FileName>.\ExecuteStoryboard\StoryboardExecute.cs</FileName>
+        <startLine>1332</startLine>
+        <StartColumn>12</StartColumn>
+        <EndLine>1338</EndLine>
+        <EndColumn>15</EndColumn>
+        <MarkerId>0</MarkerId>
+        <IsLineBased>0</IsLineBased>
+        <IsDocumentPathNotFound>0</IsDocumentPathNotFound>
+        <ShouldUpdateTextSpan>1</ShouldUpdateTextSpan>
+        <Checksum>
+          <Version>1</Version>
+          <Algorithm>00000000-0000-0000-0000-000000000000</Algorithm>
+          <ByteCount>0</ByteCount>
+          <Bytes />
+        </Checksum>
+      </TextPosition>
+      <NamedLocationText>Mars.AutoTestingDriver.ExecuteStoryboard.StoryboardExecute.RunTestCaseById(V_STORYBOARD_TEST_FULLVISIONDTO assignedTestObjectFromDB,
+            V_STORYBOARD_TEST_FULLVISIONDTO nextTestCase,
+            ref long lAppId, 
+            string strMode,
+            ref Mars_applicationTyp.MARS_APPTYPE appTyp,
+            ref string strError,ref string strAdv, ref string strStack,
+            ref string strLastPeg, ref string strLastObjName, ref string strLastTestSTep, ref int iLastStepId,
+            ref bool hasError,ref long changedApplicationId ,
+            bool isIgnoreError = false ,            
+            bool isVerifyValueSkipper = false,
+            string strDBIdx = MarsEntitiesExtends.cnst_default_dbName)</NamedLocationText>
+      <NamedLocationLine>17</NamedLocationLine>
+      <NamedLocationColumn>0</NamedLocationColumn>
+      <HitCountType>NoHitCount</HitCountType>
+      <HitCountTarget>1</HitCountTarget>
+      <Language>3f5162f8-07c6-11d3-9053-00c04fa302a1</Language>
+      <IsMapped>0</IsMapped>
+      <BreakpointType>PendingBreakpoint</BreakpointType>
+      <AddressLocation>
+        <Version>0</Version>
+        <MarkerId>0</MarkerId>
+        <FunctionLine>0</FunctionLine>
+        <FunctionColumn>0</FunctionColumn>
+        <Language>00000000-0000-0000-0000-000000000000</Language>
+      </AddressLocation>
+      <DataCount>4</DataCount>
+      <IsTracepointActive>0</IsTracepointActive>
+      <TracepointTargetType>VsOutputWindow</TracepointTargetType>
+      <TimeTravelTraceMarker>NoTracing</TimeTravelTraceMarker>
+      <IsBreakWhenHit>1</IsBreakWhenHit>
+      <IsRunMacroWhenHit>0</IsRunMacroWhenHit>
+      <UseChecksum>1</UseChecksum>
+      <Labels />
+      <RequestRemapped>0</RequestRemapped>
+      <IsSnapshotWhenHit>1</IsSnapshotWhenHit>
+      <SnapshotCountTarget>1</SnapshotCountTarget>
+      <parentIndex>-1</parentIndex>
+    </Breakpoint>
+  </Breakpoints>
+</BreakpointCollection>

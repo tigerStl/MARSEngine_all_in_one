@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="make_sure_process_is_running_with_name" xml:space="preserve">
+    <value>Code 037:Please make sure that process [{0}] is running.Please check taksmgr, the process [{0}] has been started.</value>
+  </data>
+  <data name="mars_cannot_access_target_process_3" xml:space="preserve">
+    <value>Code 030:MARS engine can't access test application.Please make sure MARS engine is started from web browse as administartor.</value>
+    <comment>only process id is passed , so can't get process name</comment>
+  </data>
+  <data name="mars_cannot_find_process_mainhandle_code_4" xml:space="preserve">
+    <value>Code 031:MARS engine can't find target application's main handle, please make sure the right application is config.</value>
+  </data>
+  <data name="mars_cannot_start_32engine" xml:space="preserve">
+    <value>Code 02D:MARS can not start 32bit engine, please make sure that the browser was started as administrator.</value>
+  </data>
+  <data name="mars_cannot_start_target_application" xml:space="preserve">
+    <value>Code 032:MARS engine can't start target application [{0}], or can not access the process. Please check taksmgr, the process [{0}] has been started.</value>
+  </data>
+  <data name="mars_dataforquery_is_wrong_format" xml:space="preserve">
+    <value>Code 04B:Please make sure that the datasource info is right.</value>
+  </data>
+  <data name="mars_datasouce_no_db_connection_string" xml:space="preserve">
+    <value>Code 04D:No database connection string is configured. </value>
+  </data>
+  <data name="mars_datasource_data_no_export" xml:space="preserve">
+    <value>Code 051: Please set "export" section for data. So the data would be index by Name</value>
+  </data>
+  <data name="mars_datasource_dbtype_or_connstring" xml:space="preserve">
+    <value>Code 04E:Make sure the database type and connection string are right.</value>
+  </data>
+  <data name="mars_datasource_deal_no_parameter" xml:space="preserve">
+    <value>Code 04C:No valiated DB source Data is passed.</value>
+  </data>
+  <data name="mars_datasource_is_null" xml:space="preserve">
+    <value>Code 050:No query datasource parameter is passed</value>
+  </data>
+  <data name="mars_datasource_para_not_match" xml:space="preserve">
+    <value>Code 04F:Make sure that parameter settings from Data column match Datasource settings.</value>
+  </data>
+  <data name="mars_dta_cmp_cannot_invoke" xml:space="preserve">
+    <value>Code 023:Can't call DBCompare</value>
+  </data>
+  <data name="mars_engine_cant_access_target_app_code_3" xml:space="preserve">
+    <value>Code 02E:MARS engine can't access process [{0}]. Please make sure MARS engine is started from web browse as administartor. Error code is INJ_3.</value>
+  </data>
+  <data name="mars_engine_cant_access_target_app_code_4" xml:space="preserve">
+    <value>Code 02F:MARS engine can't access process [{0}]. Please make sure MARS engine is started from web browse as administartor. Error code is INJ_4.</value>
+  </data>
+  <data name="mars_exe_sb_cannot_update_depends_status" xml:space="preserve">
+    <value>Code 01A:MARS engine can not update storyboard executtion status.</value>
+  </data>
+  <data name="mars_exe_sb_engine_attach_to_process" xml:space="preserve">
+    <value>Code 021:Can't attach MARS Engine to [{0}]</value>
+  </data>
+  <data name="mars_exe_sb_engine_cant_run_testcaseByid_exception" xml:space="preserve">
+    <value>Code 022:can not run test case by id</value>
+  </data>
+  <data name="mars_exe_sb_exception_update_depends_status" xml:space="preserve">
+    <value>Code 01B:Exceptions when MARS engine tries to update execution status</value>
+  </data>
+  <data name="mars_exe_sb_no_object_info_fromDB" xml:space="preserve">
+    <value>Code 01C:MARS engine doesn't get Object Information from DB.</value>
+  </data>
+  <data name="mars_exe_sb_tc_cannot_execute" xml:space="preserve">
+    <value>Code 01E:can't execute test case</value>
+  </data>
+  <data name="mars_exe_sb_tc_cannot_getAppId_cfg" xml:space="preserve">
+    <value>Code 01F:Can't get  applciation [{0}] from configuration file</value>
+  </data>
+  <data name="mars_exe_sb_tc_cannot_inject" xml:space="preserve">
+    <value>Code 020:MARS engine can't operate target process, please make sure that MARS engine is running admin mode.</value>
+  </data>
+  <data name="mars_exe_sb_tc_id_ds_id_was_not_validate" xml:space="preserve">
+    <value>Code 01D:Test case id [{0}] or Data setting id [{1}] is invalid</value>
+  </data>
+  <data name="mars_if_keyword_check_exception_F_F" xml:space="preserve">
+    <value>Code 029:if keyword wants to check "MARS_HAS_EXCEPTION" with [false], and memory variable is [false]</value>
+  </data>
+  <data name="mars_if_keyword_check_exception_F_T" xml:space="preserve">
+    <value>Code 02A:if keyword wants to check "MARS_HAS_EXCEPTION" with [false], and memory variable is [true]</value>
+  </data>
+  <data name="mars_if_keyword_check_exception_T_F" xml:space="preserve">
+    <value>Code 02B:if keyword wants to check "MARS_HAS_EXCEPTION" with [true], and memory variable is [false]</value>
+  </data>
+  <data name="mars_if_keyword_check_excepttion_T_T" xml:space="preserve">
+    <value>Code 02C:IF keyword wants to check "MARS_HAS_EXCEPTION" with [true], and memory variable is [true]</value>
+  </data>
+  <data name="mars_if_keyword_para_env_var_paired_value" xml:space="preserve">
+    <value>Code 028:environment variable is matched:[{0}]-[{1}]</value>
+  </data>
+  <data name="mars_if_keyword_para_no_such_env_var_paired_value" xml:space="preserve">
+    <value>Code 035:no such environment variable is matched:[{0}]-[{1}]</value>
+  </data>
+  <data name="mars_if_keyword_para_unsupport_env_var_typ" xml:space="preserve">
+    <value>Code 038:Unspported env var type or format:[{0}]</value>
+  </data>
+  <data name="mars_inject_exist_abnormal_with_para_code" xml:space="preserve">
+    <value>Code 033:MarsInjector exists abnormal. Code is [{0}]. \r\nPlease make sure that MARS engine running under administrator mode.</value>
+  </data>
+  <data name="mars_java_engine_connect_ws" xml:space="preserve">
+    <value>Code 043:Can't connect to Java engine service, make sure that java engine starts at required port. </value>
+  </data>
+  <data name="mars_java_engine_connect_ws_failed" xml:space="preserve">
+    <value>Code 044:Can't connect to Java engine web socket service, make sure that java engine has been started.</value>
+  </data>
+  <data name="mars_java_engine_package_no_response" xml:space="preserve">
+    <value>Code 055:Java Data package type should end with "_response"</value>
+  </data>
+  <data name="mars_java_engine_recv_exception" xml:space="preserve">
+    <value>Code 046:There is connection problem when getting data from java engine. Exception type is {0}</value>
+  </data>
+  <data name="mars_java_engine_recv_loop_outof_control" xml:space="preserve">
+    <value>Code 045:There is websocket error when receiving data. </value>
+  </data>
+  <data name="mars_java_engine_recv_null" xml:space="preserve">
+    <value>Code 054:No response from Java engine.</value>
+  </data>
+  <data name="mars_java_engine_recv_time_out" xml:space="preserve">
+    <value>Code 053:No data returned from Java engine until 60 seconds.</value>
+  </data>
+  <data name="mars_java_engine_return_wrong_uuid" xml:space="preserve">
+    <value>Code 056:Java Engine returned wrong keyword data. Please try again, and make sure, only one Engine is running.</value>
+  </data>
+  <data name="mars_keywod_load_variable_status" xml:space="preserve">
+    <value>Code 011:Status variable format is wrong, it should be :{0}</value>
+  </data>
+  <data name="mars_keyword_captureAndCompare_cannot_convertCSV" xml:space="preserve">
+    <value>Code 039:Can not convert Captured data back to DataTable format.</value>
+  </data>
+  <data name="mars_keyword_captureAndCompare_datatable_null" xml:space="preserve">
+    <value>Code 03A: Memory parameter is null.</value>
+  </data>
+  <data name="mars_keyword_captureAndCompare_no_column_caption" xml:space="preserve">
+    <value>Code 03B:Can't from column [{0}] from Memory datatable.</value>
+  </data>
+  <data name="mars_keyword_killapplication_cannot_kill" xml:space="preserve">
+    <value>Code 00F:\t...Exception when kill application:[{0}]\r\n\t{1}\r\n\t{2}</value>
+  </data>
+  <data name="mars_keyword_killapplication_no_parameter_data" xml:space="preserve">
+    <value>Code 00E:\t......no Parameter and DataSetting, return false</value>
+  </data>
+  <data name="mars_keyword_load_variable_backend_error" xml:space="preserve">
+    <value>Code 012:MARS can not get data from from backend</value>
+  </data>
+  <data name="mars_keyword_loop_can_not_get_loop_var" xml:space="preserve">
+    <value>Code 010:Can't get variable [{0}] from variable table</value>
+  </data>
+  <data name="mars_keyword_no_java_engine_jar" xml:space="preserve">
+    <value>Code 040:Java engine MARSJaveEngineMainWithLibs.jar dose not exists. Please check Pah |{0}|, and make sure MARSJaveEngineMainWithLibs.jar exists. </value>
+  </data>
+  <data name="mars_keyword_query_db_error_from_restful" xml:space="preserve">
+    <value>Code 047:No query data From RESTful svc. </value>
+  </data>
+  <data name="mars_keyword_query_db_exception" xml:space="preserve">
+    <value>Code 042:Can't get Data from DB for Query datasource "{0}" ,Please make sure the Query and related Settings are right. </value>
+  </data>
+  <data name="mars_keyword_start_application_cannot_access_proc_by_agnt" xml:space="preserve">
+    <value>Code 017:StartApplication Error: can't Access application:[{0}] by Mars Agent</value>
+  </data>
+  <data name="mars_keyword_start_application_cannot_inter_op_target_process" xml:space="preserve">
+    <value>Code 016:Can't inter-op target porcess-[{0}]</value>
+  </data>
+  <data name="mars_keyword_start_application_cannt_find_new_process" xml:space="preserve">
+    <value>Code 026:Can't find new started process [{0}]</value>
+  </data>
+  <data name="mars_keyword_start_application_cannt_find_process" xml:space="preserve">
+    <value>Code 025:Can't find new process [{0}]</value>
+  </data>
+  <data name="mars_keyword_start_application_cant_create_process" xml:space="preserve">
+    <value>Code 03F:|{0}| can't start. Please make sure that required java application is accessable. </value>
+  </data>
+  <data name="mars_keyword_start_application_checkOuput_setting" xml:space="preserve">
+    <value>Code 036:Please check Output settings of Startapplication keyword.</value>
+  </data>
+  <data name="mars_keyword_start_application_java_not_match_version" xml:space="preserve">
+    <value>Code 03E:Installed Java Version {0} is not match required java version {1}. Please install java version {0} or above.</value>
+  </data>
+  <data name="mars_keyword_start_application_java_version_wrong" xml:space="preserve">
+    <value>Code 03D:Java version setting wrong, please make sure the application set with right Java Version.</value>
+  </data>
+  <data name="mars_keyword_start_application_noright_start_or_access_application" xml:space="preserve">
+    <value>Code 018:Please make sure that MARS  has right access application's directory, and can start application.</value>
+  </data>
+  <data name="mars_keyword_start_application_noright_start_or_access_application_1" xml:space="preserve">
+    <value>Code 019:Please make sure that MARS  has right access application's directory, and can start application.</value>
+  </data>
+  <data name="mars_keyword_start_application_no_app" xml:space="preserve">
+    <value>Code 027:CURRENT_APPLICATION IS SET, but no value of the application.</value>
+  </data>
+  <data name="mars_keyword_start_application_no_app_in_cfgfile" xml:space="preserve">
+    <value>Code 024:can't find app from config [{0}]</value>
+  </data>
+  <data name="mars_keyword_start_application_no_cfg_shortName_app" xml:space="preserve">
+    <value>Code 034:No such application with short Name:[{0}]</value>
+  </data>
+  <data name="mars_keyword_start_application_no_java" xml:space="preserve">
+    <value>Code 03C:No java is installed. Please Download And Install Java First. </value>
+  </data>
+  <data name="mars_keyword_start_application_no_right_to_access_process" xml:space="preserve">
+    <value>Code 001:Make sure that MARS engine has right to access process [{0}]</value>
+  </data>
+  <data name="mars_keyword_start_application_use_regular_java" xml:space="preserve">
+    <value>Code 03E:Can't get right version of installed Java. Please install the legal Java version.</value>
+  </data>
+  <data name="mars_keyword_start_application_web_failed" xml:space="preserve">
+    <value>Code 015:Start web application failed</value>
+  </data>
+  <data name="mars_keyword_start_application_web_no_shortname_indb" xml:space="preserve">
+    <value>Code 013:No Application information from DB</value>
+  </data>
+  <data name="mars_keyword_start_applicaton_web_not_set_4_browser" xml:space="preserve">
+    <value>Code 014:Applcation '{0}' with URL '{strURL}' is not set for WEB-browser</value>
+  </data>
+  <data name="mars_load_test_data_compare_error" xml:space="preserve">
+    <value>Code 002:Can't load file Mars.TestFramework.DataCompare.dll</value>
+  </data>
+  <data name="mars_load_test_dta_cmp_no_class" xml:space="preserve">
+    <value>Code 003:no such type exists [Mars.TestFramework.DataCompare.DataCompare]</value>
+  </data>
+  <data name="mars_nodataquery_returns" xml:space="preserve">
+    <value>Code 04A:No data source returns from MARS.</value>
+  </data>
+  <data name="mars_no_keyword" xml:space="preserve">
+    <value>Code 004:No such Keyword function for [{0}]</value>
+  </data>
+  <data name="mars_no_such_exefile" xml:space="preserve">
+    <value>Code 005:Please make sure that  [{0}] exists.</value>
+  </data>
+  <data name="mars_obj_tool_target_id_is_wrong_code_2" xml:space="preserve">
+    <value>Code 006:MARS object tools can't start due to wrong process id.</value>
+  </data>
+  <data name="mars_obj_tool_wrong_para_code_1" xml:space="preserve">
+    <value>Code 007:MARS object tools can't start due to wrong parameters' version. </value>
+  </data>
+  <data name="mars_qt_injector_missing_with_para_0" xml:space="preserve">
+    <value>Code 008:Please make sure that QTInjectorDll exists</value>
+  </data>
+  <data name="mars_symboltable_cant_add" xml:space="preserve">
+    <value>Code 052:Can't add var to system symbol table, please try again. If it continues to happened, then contact MARS.</value>
+  </data>
+  <data name="mars_undefined_error" xml:space="preserve">
+    <value>Code 009:Undefined error</value>
+  </data>
+  <data name="mars_unknow_command_code_0" xml:space="preserve">
+    <value>Code 00A:Unknow command.</value>
+  </data>
+  <data name="mars_unsupport_keyword" xml:space="preserve">
+    <value>Code 00B:unsupported keyword:[{0}]</value>
+  </data>
+  <data name="mars_websocket_exception_when_sendcmd" xml:space="preserve">
+    <value>Code 048:Excpetions when send command to Java engine. </value>
+  </data>
+  <data name="mars_websocket_reponsedata_wrong_format" xml:space="preserve">
+    <value>Code 049:Engine desn't return the right format data.</value>
+  </data>
+  <data name="mars_wrong_dataSetting_format_for_query_data" xml:space="preserve">
+    <value>Code 041:Data setting format is not wrong. Please check Manual for QueryDataFromDataSource.</value>
+  </data>
+  <data name="mars_wrong_parameter_for_injectexe_code_1" xml:space="preserve">
+    <value>Code 00C:Please make sure that process [{0}] is running.Please check taksmgr, the process [{0}] has been started.</value>
+  </data>
+  <data name="mars_wrong_parameter_for_injectexe_code_2" xml:space="preserve">
+    <value>Code 00D:MARS engine doesn't set the right parameters for application [{0}]. Application para is not set.</value>
+  </data>
+</root>

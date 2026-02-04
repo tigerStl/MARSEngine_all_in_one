@@ -1,0 +1,236 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ERROR_NLP_CANNT_UNDERSTAND_DOBJ" xml:space="preserve">
+    <value>I can't understand you (the direct object) ,Please try to use different way</value>
+  </data>
+  <data name="ERROR_NLP_CANNT_UNDERSTAND_POBJ" xml:space="preserve">
+    <value>I can't understand you ,Please try to use different way</value>
+  </data>
+  <data name="ERROR_NLP_CANT_FIND_THAT_RELATED_OBJ" xml:space="preserve">
+    <value>MARS can't related object part for clause.</value>
+    <comment>无法找到宾语从句的指代的宾语</comment>
+  </data>
+  <data name="ERROR_NLP_CONFUSION_OBJECT" xml:space="preserve">
+    <value>The word has more one meanings, can you clearify it?</value>
+  </data>
+  <data name="ERROR_NLP_EXCEPTION_WHEN_GEN_STEP" xml:space="preserve">
+    <value>MARS AI come across unexpected error, please try later</value>
+  </data>
+  <data name="ERROR_NLP_FIND_SPECIAL_TOKEN_NULL_PARA" xml:space="preserve">
+    <value>MARS AI internal Error|Error code:ERROR_NLP_FIND_SPECIAL_TOKEN_NULL_PARA</value>
+    <comment>内部错误，核心参数为空</comment>
+  </data>
+  <data name="ERROR_NLP_FIND_THAT_RELATED_OBJ_NULL_PARA" xml:space="preserve">
+    <value>MARS AI internal Error| Error code:ERROR_NLP_FIND_THAT_RELATED_OBJ_NULL_PARA</value>
+    <comment>that从句方法出现空参数，内部错误（通常不会发生）</comment>
+  </data>
+  <data name="ERROR_NLP_INTERNAL_IDX_NOT_SET" xml:space="preserve">
+    <value>MARS AI come across an internal Error with Error code:ERROR_NLP_INTERNAL_IDX_NOT_SET</value>
+    <comment>token中的idx没有值</comment>
+  </data>
+  <data name="ERROR_NLP_INTERNAL_NO_PREDICTION_TOKEN" xml:space="preserve">
+    <value>Internal Error, prediction token is null when tracing conjunction sub sentence.</value>
+    <comment>分析连词子句时候（谓语模式），没有传谓语信息</comment>
+  </data>
+  <data name="ERROR_NLP_INTERNAL_NO_SUBSENTENCE_PREVIEW" xml:space="preserve">
+    <value>Internal Error, sub sentence is null, Error Code:ERROR_NLP_INTERNAL_NO_SUBSENTENCE_PREVIEW</value>
+    <comment>连词子句预览时候，没有</comment>
+  </data>
+  <data name="ERROR_NLP_INTERNAL_QUERY_ID_NOT_EXISTS" xml:space="preserve">
+    <value>MARS AI come across an Internal Error with Error code:ERROR_NLP_INTERNAL_QUERY_ID_NOT_EXISTS</value>
+    <comment>没有query_id</comment>
+  </data>
+  <data name="ERROR_NLP_INTERNAL_QUERY_ID_NOT_NUMBER" xml:space="preserve">
+    <value>MARS AI come across an Internal Error with Error code:ERROR_NLP_INTERNAL_QUERY_ID_NOT_NUMBER</value>
+    <comment>query_id不是一个整数</comment>
+  </data>
+  <data name="ERROR_NLP_NO_MARS_OBJ" xml:space="preserve">
+    <value>MARS AI SVC currently has problem, can you try later? Please notify us if this error continues. Error code 001</value>
+  </data>
+  <data name="ERROR_NLP_NO_MORPHEME_IN_SEMANTIC_PREDICT" xml:space="preserve">
+    <value>No morpheme(verb) in the semantic block. </value>
+    <comment>语义树中没有与动词语素</comment>
+  </data>
+  <data name="ERROR_NLP_NO_OBJ_FOR_IS_ARE" xml:space="preserve">
+    <value>MARS AI can't find object from the sentence. Please Train it.</value>
+  </data>
+  <data name="ERROR_NLP_NO_PARAMETER_FOR_CHECK_SUBJ_ITSELF" xml:space="preserve">
+    <value>No semantic data is passed.</value>
+    <comment>没有传入语义参数</comment>
+  </data>
+  <data name="ERROR_NLP_NO_SUBJECT_FOR_IS_ARE" xml:space="preserve">
+    <value>MARS AI can't find subject from the sentence. Please Train it.</value>
+  </data>
+  <data name="ERROR_NLP_UNKNOW_OBJECT_TYPE" xml:space="preserve">
+    <value>MARS can understand you, but MARS can't find the object information from our dictionary, can you add it?</value>
+  </data>
+  <data name="ERROR_NO_SEMANTIC_BLOCK" xml:space="preserve">
+    <value>Internal Error, no Semantic block is generated</value>
+    <comment>没有连词等信息</comment>
+  </data>
+  <data name="MESSAGE_NLP_NO_FIND_PREDICTION" xml:space="preserve">
+    <value>No similar prediction part is found after traced parents semantics block.</value>
+    <comment>没有找到合适类似的</comment>
+  </data>
+  <data name="NLP_NO_OBJECT" xml:space="preserve">
+    <value>MARS can't find object, please reinput.</value>
+  </data>
+  <data name="NLP_NO_PAIRED_BRACKETS" xml:space="preserve">
+    <value>No paired bracket exist in the sentence, Please change your text and try again.</value>
+    <comment>文本中缺乏配对的括号，请修改再输入。</comment>
+  </data>
+  <data name="NLP_NO_SUCH_ITEM_IN_DICTIONARY" xml:space="preserve">
+    <value>MARS AI needs more trainning to understand the word.</value>
+  </data>
+  <data name="NLP_NO_WORD_DESCRIPTION" xml:space="preserve">
+    <value>MARS AI needs more infomation to understand the word.</value>
+  </data>
+  <data name="NLP_NO_WORD_DITIONARY_DATA" xml:space="preserve">
+    <value>MARS AI misses dictionary data, please contact to MARS support.</value>
+  </data>
+  <data name="NLP_UNKNOW_PATTERN" xml:space="preserve">
+    <value>MARS AI is still learning, your feeds will make MARS AI stronger. Please wait for next version.</value>
+  </data>
+  <data name="SYS_EXCEPTION_FROM_GETLASTOFROMSTACK" xml:space="preserve">
+    <value>System Error, "Get last object function" gens Exception|{0}</value>
+  </data>
+  <data name="SYS_EXCEPTION_INTERNAL_CANT_GET_CONJUCTION_SUBLIST" xml:space="preserve">
+    <value>System internal Error, when try to find sub token list for conjunction. </value>
+    <comment>内部错误，在获取连词子链时候出现异常</comment>
+  </data>
+  <data name="SYS_EXCEPTION_INTERNAL_GET_CONJUCTION" xml:space="preserve">
+    <value>System internal Error, when try to navigate or find sub token list for conjunction.</value>
+    <comment>内部错误，在枚举连词子链时候出现异常</comment>
+  </data>
+  <data name="SYS_EXCEPTION_WHEN_GEN_STEPS_BASED_ON_SEMANTICS_BLOCK" xml:space="preserve">
+    <value>Internal Error, MARS can't generate Test steps for semantics block. Error code:SYS_EXCEPTION_WHEN_GEN_STEPS_BASED_ON_SEMANTICS_BLOCK</value>
+    <comment>产生test step时未分类异常。</comment>
+  </data>
+  <data name="SYS_NLP_VO_MODE_NO_VERB" xml:space="preserve">
+    <value>MARS AI can't find verb from NLP engine</value>
+  </data>
+  <data name="SYS_PARA_MORPHEMEM_IS_NULL" xml:space="preserve">
+    <value>System Error, morpheme is NULL</value>
+  </data>
+  <data name="SYS_PARA_TOKENS_IS_NULL" xml:space="preserve">
+    <value>System internal Error,when try to build semantics block, Error Code:SYS_PARA_TOKENS_IS_NULL</value>
+    <comment>构建语义树时，token参数为空指针。</comment>
+  </data>
+</root>

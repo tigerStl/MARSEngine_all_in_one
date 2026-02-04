@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LoginOptions>
+	<Environments default="PSAMERV623">
+		<Environment>
+			<Name>PSAMERV623</Name> 
+			<Context>PSAMERV623:orcl</Context> 
+			<URL>http://marquis202:8080/ft_middle_ws</URL> 
+			<ETKLocation>http://marquis202:8080/axis2/services/ETKSessionService</ETKLocation>
+		</Environment>
+	</Environments>
+</LoginOptions>

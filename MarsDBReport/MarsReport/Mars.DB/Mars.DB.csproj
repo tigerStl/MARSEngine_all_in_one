@@ -1,0 +1,493 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8688283A-0923-442C-B176-DE1E426D6DB0}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Mars</RootNamespace>
+    <AssemblyName>Mars.DB</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;v_16AndUp;v_useNameId;PERFORMANCE_TRACKING;Managed_Driver</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\..\..\automationTest\Automation Workbooks\dlls\</OutputPath>
+    <DefineConstants>TRACE;v_16AndUp;v_useNameId;PERFORMANCE_TRACKING;Managed_Driver</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>12.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'debug with qtp|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\..\automationTest\Automation Workbooks\binWithQtp\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;v_16AndUp;v_useNameId;PERFORMANCE_TRACKING;Managed_Driver</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'release with qtp|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\..\automationTest\Automation Workbooks\binWithQtp\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;v_16AndUp;v_useNameId;PERFORMANCE_TRACKING;Managed_Driver</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'debug x86|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\debug x86\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;v_16AndUp;v_useNameId;PERFORMANCE_TRACKING;Managed_Driver</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Webversion|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release For Webversion\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;v_16AndUp;v_useNameId;PERFORMANCE_TRACKING;Managed_Driver</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Oracle.DataAccess, Version=4.121.1.0, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\app\Marquis\virtual\product\12.2.0\dbhome_1\ODP.NET\bin\4\Oracle.DataAccess.dll</HintPath>
+    </Reference>
+    <Reference Include="Oracle.ManagedDataAccess, Version=4.122.1.0, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
+      <HintPath>..\MarsTestingFrame\MarsTestingFrame\packages\Oracle.ManagedDataAccess.12.2.1100\lib\net40\Oracle.ManagedDataAccess.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BaselineData\BaselineDataPersist.cs" />
+    <Compile Include="Business\B_DIC_RELATION_KEYWORD.cs" />
+    <Compile Include="Business\B_GUI_COMPONENT_TYPE_DIC.cs" />
+    <Compile Include="Business\B_KEYWORD.cs" />
+    <Compile Include="Business\B_LINKED_DATA_SHEET.cs" />
+    <Compile Include="Business\B_OBJECT_APPS.cs" />
+    <Compile Include="Business\B_PROJ_TC_MGR.cs" />
+    <Compile Include="Business\B_PROJ_TS_TC_FULLVISION.cs" />
+    <Compile Include="Business\B_REGISTED_OBJECT.cs" />
+    <Compile Include="Business\B_REGISTERED_APPS.cs" />
+    <Compile Include="Business\B_REL_APP_PROJ.cs" />
+    <Compile Include="Business\B_REL_APP_TESTCASE.cs" />
+    <Compile Include="Business\B_REL_APP_TESTSUITE.cs" />
+    <Compile Include="Business\B_REL_TEST_CASE_TEST_SUITE.cs" />
+    <Compile Include="Business\B_REL_TEST_SUIT_PROJECT.cs" />
+    <Compile Include="Business\B_SHARED_OBJECT_POOL.cs" />
+    <Compile Include="Business\B_STORYBOARD_DATASET_SETTING.cs" />
+    <Compile Include="Business\B_STORYBOARD_SUMMARY.cs" />
+    <Compile Include="Business\B_STORYBOARD_TEST_FULLVISION.cs" />
+    <Compile Include="Business\B_SYSTEM_LOOKUP.cs" />
+    <Compile Include="Business\B_TEST_BATCH_.cs" />
+    <Compile Include="Business\B_TEST_BATCH_DETAIL.cs" />
+    <Compile Include="Business\B_TEST_CASE.cs" />
+    <Compile Include="Business\B_TEST_DATA_SETTING.cs" />
+    <Compile Include="Business\B_TEST_ENUM.cs" />
+    <Compile Include="Business\B_TEST_PROJECT.cs" />
+    <Compile Include="Business\B_TEST_REPORT.cs" />
+    <Compile Include="Business\B_TEST_REPORT_STEPS.cs" />
+    <Compile Include="Business\B_TEST_STEPS.cs" />
+    <Compile Include="Business\B_TEST_SUITE.cs" />
+    <Compile Include="Business\B_T_BASE_LINE_DATA_SUMMARY.cs" />
+    <Compile Include="Business\B_T_PROJ_TEST_RESULT.cs" />
+    <Compile Include="Business\B_T_SHARED_OBJECT_POOLDTO.cs" />
+    <Compile Include="Business\B_T_TEST_DATA_SUMMARYDTO.cs" />
+    <Compile Include="Business\B_USER_COMPANY.cs" />
+    <Compile Include="Business\B_V_BASE_LINEDATA.cs" />
+    <Compile Include="Business\B_V_OBJECT_SNAPSHOT.cs" />
+    <Compile Include="Business\B_V_PROJ_TS_TC_FULLVISION.cs" />
+    <Compile Include="Business\B_V_STB_PROJ_APP_FULLVISION.cs" />
+    <Compile Include="Business\B_V_STORYBOARD_SUMMARY.cs" />
+    <Compile Include="Business\B_V_STORYBOARD_TEST_FULLVISION.cs" />
+    <Compile Include="Business\B_V_TEST_DATA_REPORT_SUMMARY.cs" />
+    <Compile Include="Business\B_V_TEST_STEPS_FULLVISIONDTO.cs" />
+    <Compile Include="Business\B_PROJ_TEST_RESULT.cs" />
+    <Compile Include="Class1.cs" />
+    <Compile Include="DataLayer\BoHelper.cs" />
+    <Compile Include="DataLayer\DbDomHelper.cs" />
+    <Compile Include="DataLayer\Generic\MarsGenericDataLayer.cs" />
+    <Compile Include="DataLayer\MarsDBGlobe_Cache.cs" />
+    <Compile Include="DataLayer\MarsTransactionMgr.cs" />
+    <Compile Include="DataLayer\MarsTransactionMgrByConn.cs" />
+    <Compile Include="Dto\REL_APP_PROJAssembler.cs" />
+    <Compile Include="Dto\REL_APP_PROJDTO.cs" />
+    <Compile Include="Dto\REL_APP_TESTCASEAssembler.cs" />
+    <Compile Include="Dto\REL_APP_TESTCASEDTO.cs" />
+    <Compile Include="Dto\REL_APP_TESTSUITEAssembler.cs" />
+    <Compile Include="Dto\REL_APP_TESTSUITEDTO.cs" />
+    <Compile Include="Dto\REL_TC_DATA_SUMMARYAssembler.cs" />
+    <Compile Include="Dto\REL_TC_DATA_SUMMARYDTO.cs" />
+    <Compile Include="Dto\REL_TEST_CASE_TEST_SUITEAssembler.cs" />
+    <Compile Include="Dto\REL_TEST_CASE_TEST_SUITEDTO.cs" />
+    <Compile Include="Dto\REL_TEST_SUIT_PROJECTAssembler.cs" />
+    <Compile Include="Dto\REL_TEST_SUIT_PROJECTDTO.cs" />
+    <Compile Include="Dto\SYSTEM_LOOKUPAssembler.cs" />
+    <Compile Include="Dto\SYSTEM_LOOKUPDTO.cs" />
+    <Compile Include="Dto\TEST_DATA_SETTINGAssembler.cs" />
+    <Compile Include="Dto\TEST_DATA_SETTINGDTO.cs" />
+    <Compile Include="Dto\T_BASELINE_DATA_DETAILAssembler.cs" />
+    <Compile Include="Dto\T_BASELINE_DATA_DETAILDTO.cs" />
+    <Compile Include="Dto\T_BASELINE_DATA_SUMMARYAssembler.cs" />
+    <Compile Include="Dto\T_BASELINE_DATA_SUMMARYDTO.cs" />
+    <Compile Include="Dto\T_BAT_RESULTAssembler.cs" />
+    <Compile Include="Dto\T_BAT_RESULTDTO.cs" />
+    <Compile Include="Dto\T_BAT_RESULT_DETAILAssembler.cs" />
+    <Compile Include="Dto\T_BAT_RESULT_DETAILDTO.cs" />
+    <Compile Include="Dto\T_COMPARE_CONFIGAssembler.cs" />
+    <Compile Include="Dto\T_COMPARE_CONFIGDTO.cs" />
+    <Compile Include="Dto\T_COMPARE_CONNECTIONSAssembler.cs" />
+    <Compile Include="Dto\T_COMPARE_CONNECTIONSDTO.cs" />
+    <Compile Include="Dto\T_COMPARE_QUERIESAssembler.cs" />
+    <Compile Include="Dto\T_COMPARE_QUERIESDTO.cs" />
+    <Compile Include="Dto\T_DATA_SOURCEAssembler.cs" />
+    <Compile Include="Dto\T_DATA_SOURCEDTO.cs" />
+    <Compile Include="Dto\T_DIC_RELATION_KEYWORDAssembler.cs" />
+    <Compile Include="Dto\T_DIC_RELATION_KEYWORDDTO.cs" />
+    <Compile Include="Dto\T_GUI_COMPONENT_TYPE_DICAssembler.cs" />
+    <Compile Include="Dto\T_GUI_COMPONENT_TYPE_DICDTO.cs" />
+    <Compile Include="Dto\T_KEYWORDAssembler.cs" />
+    <Compile Include="Dto\T_KEYWORDDTO.cs" />
+    <Compile Include="Dto\T_MARS_COMPANYAssembler.cs" />
+    <Compile Include="Dto\T_MARS_COMPANYDTO.cs" />
+    <Compile Include="Dto\T_OBJECT_CHILDAssembler.cs" />
+    <Compile Include="Dto\T_OBJECT_CHILDDTO.cs" />
+    <Compile Include="Dto\T_OBJECT_NAMEINFOAssembler.cs" />
+    <Compile Include="Dto\T_OBJECT_NAMEINFODTO.cs" />
+    <Compile Include="Dto\T_PROJECT_DATA_SOURCEAssembler.cs" />
+    <Compile Include="Dto\T_PROJECT_DATA_SOURCEDTO.cs" />
+    <Compile Include="Dto\T_PROJ_TC_MGRAssembler.cs" />
+    <Compile Include="Dto\T_PROJ_TC_MGRDTO.cs" />
+    <Compile Include="Dto\T_PROJ_TEST_RESULTAssembler.cs" />
+    <Compile Include="Dto\T_PROJ_TEST_RESULTDTO.cs" />
+    <Compile Include="Dto\T_REGISTED_OBJECTAssembler.cs" />
+    <Compile Include="Dto\T_REGISTED_OBJECTDTO.cs" />
+    <Compile Include="Dto\T_REGISTERED_APPSAssembler.cs" />
+    <Compile Include="Dto\T_REGISTERED_APPSDTO.cs" />
+    <Compile Include="Dto\T_SHARED_OBJECT_POOLAssembler.cs" />
+    <Compile Include="Dto\T_SHARED_OBJECT_POOLDTO.cs" />
+    <Compile Include="Dto\T_STORYBOARD_DATASET_SETTINGAssembler.cs" />
+    <Compile Include="Dto\T_STORYBOARD_DATASET_SETTINGDTO.cs" />
+    <Compile Include="Dto\T_STORYBOARD_HISTORYAssembler.cs" />
+    <Compile Include="Dto\T_STORYBOARD_HISTORYDTO.cs" />
+    <Compile Include="Dto\T_STORYBOARD_SUMMARYAssembler.cs" />
+    <Compile Include="Dto\T_STORYBOARD_SUMMARYDTO.cs" />
+    <Compile Include="Dto\T_TESTER_INFOAssembler.cs" />
+    <Compile Include="Dto\T_TESTER_INFODTO.cs" />
+    <Compile Include="Dto\T_TEST_BATCHAssembler.cs" />
+    <Compile Include="Dto\T_TEST_BATCHDTO.cs" />
+    <Compile Include="Dto\T_TEST_BATCH_DETAILAssembler.cs" />
+    <Compile Include="Dto\T_TEST_BATCH_DETAILDTO.cs" />
+    <Compile Include="Dto\T_TEST_CASE_SUMMARYAssembler.cs" />
+    <Compile Include="Dto\T_TEST_CASE_SUMMARYDTO.cs" />
+    <Compile Include="Dto\T_TEST_CASE_VERSIONAssembler.cs" />
+    <Compile Include="Dto\T_TEST_CASE_VERSIONDTO.cs" />
+    <Compile Include="Dto\T_TEST_DATA_SUMMARYAssembler.cs" />
+    <Compile Include="Dto\T_TEST_DATA_SUMMARYDTO.cs" />
+    <Compile Include="Dto\T_TEST_ENUMAssembler.cs" />
+    <Compile Include="Dto\T_TEST_ENUMDTO.cs" />
+    <Compile Include="Dto\T_TEST_PROJECTAssembler.cs" />
+    <Compile Include="Dto\T_TEST_PROJECTDTO.cs" />
+    <Compile Include="Dto\T_TEST_REPORTAssembler.cs" />
+    <Compile Include="Dto\T_TEST_REPORTDTO.cs" />
+    <Compile Include="Dto\T_TEST_REPORT_STEPSAssembler.cs" />
+    <Compile Include="Dto\T_TEST_REPORT_STEPSDTO.cs" />
+    <Compile Include="Dto\T_TEST_STEPSAssembler.cs" />
+    <Compile Include="Dto\T_TEST_STEPSDTO.cs" />
+    <Compile Include="Dto\T_TEST_SUITEAssembler.cs" />
+    <Compile Include="Dto\T_TEST_SUITEDTO.cs" />
+    <Compile Include="Dto\V_BASE_LINEDATAAssembler.cs" />
+    <Compile Include="Dto\V_BASE_LINEDATADTO.cs" />
+    <Compile Include="Dto\V_OBJECT_APPSAssembler.cs" />
+    <Compile Include="Dto\V_OBJECT_APPSDTO.cs" />
+    <Compile Include="Dto\V_OBJECT_SNAPSHOTAssembler.cs" />
+    <Compile Include="Dto\V_OBJECT_SNAPSHOTDTO.cs" />
+    <Compile Include="Dto\V_PROJ_TS_TC_FULLVISIONAssembler.cs" />
+    <Compile Include="Dto\V_PROJ_TS_TC_FULLVISIONDTO.cs" />
+    <Compile Include="Dto\V_STB_PROJ_APP_FULLVISIONAssembler.cs" />
+    <Compile Include="Dto\V_STB_PROJ_APP_FULLVISIONDTO.cs" />
+    <Compile Include="Dto\V_STORYBOARD_TEST_FULLVISIONAssembler.cs" />
+    <Compile Include="Dto\V_STORYBOARD_TEST_FULLVISIONDTO.cs" />
+    <Compile Include="Dto\V_TESTSTORYBOARD_SUMMARYAssembler.cs" />
+    <Compile Include="Dto\V_TESTSTORYBOARD_SUMMARYDTO.cs" />
+    <Compile Include="Dto\V_TEST_DATARPT_CAPTUREAssembler.cs" />
+    <Compile Include="Dto\V_TEST_DATARPT_CAPTUREDTO.cs" />
+    <Compile Include="Dto\V_TEST_DATA_REPORT_SUMMARYAssembler.cs" />
+    <Compile Include="Dto\V_TEST_DATA_REPORT_SUMMARYDTO.cs" />
+    <Compile Include="Dto\V_TEST_STEPS_FULLVISIONAssembler.cs" />
+    <Compile Include="Dto\V_TEST_STEPS_FULLVISIONDTO.cs" />
+    <Compile Include="Dto\V_USER_COMPANYAssembler.cs" />
+    <Compile Include="Dto\V_USER_COMPANYDTO.cs" />
+    <Compile Include="MarsDataStructure\TestResult\StoryboardHistSummaryInfo.cs" />
+    <Compile Include="Model\MarsEntities.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MarsEntities.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\MarsEntities.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\MarsModel.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MarsModel.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Model\REL_APP_PROJ.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\REL_APP_TESTCASE.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\REL_APP_TESTSUITE.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\REL_TC_DATA_SUMMARY.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\REL_TEST_CASE_TEST_SUITE.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\REL_TEST_SUIT_PROJECT.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\SYSTEM_LOOKUP.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\TEST_DATA_SETTING.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_BASELINE_DATA_DETAIL.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_BASELINE_DATA_SUMMARY.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_BAT_RESULT.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_BAT_RESULT_DETAIL.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_COMPARE_CONFIG.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_COMPARE_CONNECTIONS.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_COMPARE_QUERIES.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_DATA_SOURCE.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_DIC_RELATION_KEYWORD.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_GUI_COMPONENT_TYPE_DIC.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_KEYWORD.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_MARS_COMPANY.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_OBJECT_CHILD.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_OBJECT_NAMEINFO.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_PROJECT_DATA_SOURCE.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_PROJ_TC_MGR.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_PROJ_TEST_RESULT.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_REGISTED_OBJECT.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_REGISTERED_APPS.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_SHARED_OBJECT_POOL.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_STORYBOARD_DATASET_SETTING.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_STORYBOARD_HISTORY.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_STORYBOARD_SUMMARY.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_TESTER_INFO.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_TEST_BATCH.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_TEST_BATCH_DETAIL.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_TEST_CASE_SUMMARY.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_TEST_CASE_VERSION.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_TEST_DATA_SUMMARY.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_TEST_ENUM.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_TEST_PROJECT.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_TEST_REPORT.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_TEST_REPORT_STEPS.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_TEST_STEPS.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\T_TEST_SUITE.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\V_BASE_LINEDATA.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\V_OBJECT_APPS.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\V_OBJECT_SNAPSHOT.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\V_PROJ_TS_TC_FULLVISION.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\V_STB_PROJ_APP_FULLVISION.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\V_STORYBOARD_TEST_FULLVISION.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\V_TESTSTORYBOARD_SUMMARY.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\V_TEST_DATARPT_CAPTURE.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\V_TEST_DATA_REPORT_SUMMARY.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\V_TEST_STEPS_FULLVISION.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\V_USER_COMPANY.cs">
+      <DependentUpon>MarsEntities.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ToleranceMgr\MarsToleranceMgr.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EntityDeploy Include="Model\MarsModel.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>MarsModel.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="12.ico" />
+    <Content Include="Model\MarsEntities.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>MarsEntities.Context.cs</LastGenOutput>
+      <DependentUpon>MarsModel.edmx</DependentUpon>
+    </Content>
+    <Content Include="Model\MarsEntities.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>MarsEntities.cs</LastGenOutput>
+      <DependentUpon>MarsModel.edmx</DependentUpon>
+    </Content>
+    <Content Include="tempEntity.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="SystemFunctions\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MarsTestingFrame\MarsTestingFrame\Mars.LogCommon\Mars.LogCommon.csproj">
+      <Project>{f19edda6-3624-4ba6-a91e-dbcb2da7fe38}</Project>
+      <Name>Mars.LogCommon</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utilities\Mars.Securities\Mars.Securities.csproj">
+      <Project>{e1cdbddf-7ff8-4d57-879c-e1bf0bf98287}</Project>
+      <Name>Mars.Securities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

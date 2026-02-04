@@ -1,0 +1,18 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/MarsSpyTool
+/.vs
+/obj
+/bin
+/packages/Microsoft.Extensions.Configuration.8.0.0
+/packages
+/obj/Debug
+/obj/Release/MarsSpyTool_MarkupCompile.lref
+/obj/Release/MarsSpyTool.csproj.CoreCompileInputs.cache
+/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+/obj/Debug/MarsSpyTool_MarkupCompile.i.cache
+/obj/Release/DesignTimeResolveAssemblyReferencesInput.cache
+/obj/Release/MarsSpyTool.csproj.FileListAbsolute.txt
+/obj/Release/MarsSpyTool_MarkupCompile.i.cache

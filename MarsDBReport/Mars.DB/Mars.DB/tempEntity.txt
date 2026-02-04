@@ -1,0 +1,26 @@
+﻿private static MarsEntities gInstance = null;
+        public static MarsEntities GetInstance()
+        {
+            if (gInstance == null)
+            {
+                gInstance = new MarsEntities();
+            }
+            try
+            {
+                if (gInstance.Database.Connection.State!= ConnectionState.Open)
+                {
+                    gInstance.Database.Connection.Open();
+                }
+            }
+            catch (Exception)
+            {
+                
+                
+            }
+            return gInstance;
+        }
+
+        private MarsEntities()
+            : base("name=MarsEntities")
+        {
+        }

@@ -1,0 +1,473 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+using System.Runtime.InteropServices;
+
+
+namespace cmdLineCompDir
+{
+
+    public class CompareDirs
+    {
+        public enum COMP_ERR
+        {
+            COMP_ERR_SUCCESS = 0,
+            COMP_ERR_INVALID_DIR,
+            COMP_ERR_FOLDER_SAME,
+            COMP_ERR_SAVE_FAILED,
+            COMP_OUT_FILENAME
+        }
+
+        static Microsoft.Office.Interop.Excel.Application excelApp;
+
+        string pathA;
+        string pathB;
+        string filePath;
+        string xlfilepath;
+
+        public void init(string directory1, string directory2, string dirout)
+        {
+
+            pathA = directory1;
+            pathB = directory2;
+            filePath = dirout;
+        }
+
+        public string getErrStr(COMP_ERR err)
+        {
+            string retStr = "";
+            switch (err)
+            {
+                case CompareDirs.COMP_ERR.COMP_ERR_INVALID_DIR:
+                    break;
+                case CompareDirs.COMP_ERR.COMP_ERR_FOLDER_SAME:
+                    retStr = "The files in the folders are identical";
+                    break;
+                case CompareDirs.COMP_ERR.COMP_ERR_SAVE_FAILED:
+                    retStr = "Failed to save output Excel file";
+                    break;
+                case CompareDirs.COMP_ERR.COMP_OUT_FILENAME:
+                    retStr = xlfilepath;
+                    break;
+                case CompareDirs.COMP_ERR.COMP_ERR_SUCCESS:
+                default:
+                    retStr = "Sucessfully Completed";
+                    break;
+            }
+            return retStr;
+        }
+
+        public COMP_ERR doDirCompare()
+        {
+            
+            System.IO.DirectoryInfo dir1 = new System.IO.DirectoryInfo(pathA);
+            System.IO.DirectoryInfo dir2 = new System.IO.DirectoryInfo(pathB);
+
+            if (!System.IO.Directory.Exists(pathA)) 
+            {
+                Console.WriteLine("Invalid path:" + pathA);
+                return CompareDirs.COMP_ERR.COMP_ERR_INVALID_DIR;
+            }
+
+            if (!System.IO.Directory.Exists(pathB))
+            {
+                Console.WriteLine("Invalid path:" + pathB);
+                return CompareDirs.COMP_ERR.COMP_ERR_INVALID_DIR;
+            }
+
+            if (!System.IO.Directory.Exists(filePath))
+            {
+                Console.WriteLine("Invalid path:" + filePath);
+                return CompareDirs.COMP_ERR.COMP_ERR_INVALID_DIR;
+            }
+
+
+            // Take a snapshot of the file system.
+            IEnumerable<System.IO.FileInfo> list1 = dir1.GetFiles("*.*", System.IO.SearchOption.AllDirectories);
+            IEnumerable<System.IO.FileInfo> list2 = dir2.GetFiles("*.*", System.IO.SearchOption.AllDirectories);
+            //*********EXCEL*********************************************************
+
+
+            // Create an Excel application instance
+            excelApp = new Microsoft.Office.Interop.Excel.Application();
+
+            // Create an Excel workbook instance and open it from the predefined location
+            Microsoft.Office.Interop.Excel.Workbooks xlWorkbooks = excelApp.Workbooks;
+            Microsoft.Office.Interop.Excel.Workbook xlWorkbook = xlWorkbooks.Add(Microsoft.Office.Interop.Excel.XlWBATemplate.xlWBATWorksheet);
+            //******************************************************************
+            //A custom file comparer defined below
+            FileCompare myFileCompare = new FileCompare(pathA, pathB);
+            FileNameCompare myFileNameCompare = new FileNameCompare(pathA, pathB);
+            // This query determines whether the two folders contain
+            // identical file lists, based on the custom file comparer
+            // that is defined in the FileCompare class.
+            // The query executes immediately because it returns a bool.
+            bool areIdentical = list1.SequenceEqual(list2, myFileCompare);
+
+            if (areIdentical == true)
+            {
+                Console.WriteLine("the two folders are the same");
+                return CompareDirs.COMP_ERR.COMP_ERR_FOLDER_SAME;
+            }
+            else
+            {
+                Console.WriteLine("The two folders are not the same");
+            }
+
+            // Find the common files. It produces a sequence and doesn't 
+            // execute until the foreach statement.
+            var queryCommonFiles = list1.Intersect(list2, myFileCompare);
+
+/*
+            var queryCommonFilesList = (from f
+                                       in queryCommonFiles
+                                        select new { f.Directory, f.Length, CheckSum = 0 }).ToList();
+*/
+            /*
+            if (queryCommonFiles.Count() > 0)
+            {
+                Console.WriteLine("The following files are in both folders:");
+                foreach (var v in queryCommonFiles)
+                {
+                    Console.WriteLine("FN:{0} Dir:{1}, CT:{2}, LWT:{3}, Len:{4}, Name:{5}", v.FullName, v.DirectoryName, v.CreationTime, v.LastWriteTime, v.Length, v.Name); //shows which items end up in result list
+                }
+            }
+            else
+            {
+                Console.WriteLine("There are no common files in the two folders.");
+            }
+            */
+            // Find the set difference between the two folders.
+            // For this example we only check one way.
+            var queryList1Only = (from file in list1 select file).Except(list2, myFileCompare);
+            var queryList2Only = (from file in list2 select file).Except(list1, myFileCompare);
+            /*
+            Console.WriteLine("The following files are in list1 but not list2:");
+            
+            foreach (var v in queryList1Only)
+            {
+                Console.WriteLine(v.FullName);
+            }
+            */
+            // Keep the console window open in debug mode.
+            //Console.WriteLine("Press any key to exit.");
+            //***Console.ReadKey();
+
+            //************* ******EXECEL*************
+            ExcelDirComp.ExportXmlCompareResultToExcel(xlWorkbook, queryCommonFiles, null, "Common", "Dir1:" + pathA + "  Dir2:" + pathB);
+            //****************Next seperate by name and size**************
+            //queryList1Only sort by  name and size
+            //queryList1OnlyName sort by name only
+            var queryList1Name = (from file in list1 select file).Except(list2, myFileNameCompare);
+            var queryList2Name = (from file in list2 select file).Except(list1, myFileNameCompare);
+            //ExcelDirComp.ExportXmlCompareResultToExcel(xlWorkbook, queryList1Name,null,  "name1_only");
+            //ExcelDirComp.ExportXmlCompareResultToExcel(xlWorkbook, queryList2Name, null, "name2_only");
+
+            //****************Next seperate size only **************
+            var queryList3OnlySize = (from file in queryList1Only select file).Except(queryList1Name, myFileNameCompare);
+            var queryList4OnlySize = (from file in queryList2Only select file).Except(queryList2Name, myFileNameCompare);
+            ExcelDirComp.ExportXmlCompareResultToExcel(xlWorkbook, queryList1Name, queryList3OnlySize, "In_Dir1_Not_Dir2", "Dir1:" + pathA);
+            ExcelDirComp.ExportXmlCompareResultToExcel(xlWorkbook, queryList2Name, queryList4OnlySize, "In_Dir2_Not_Dir1", "Dir2:" + pathB);
+
+            String timeStamp = DateTime.Now.ToString("yyMMddHHmmss");
+            xlfilepath = filePath + "\\MARS_DIR_Comp_" + timeStamp + ".xlsx";
+
+
+            //----------Saving and closing
+            try
+            {
+                xlWorkbook.SaveAs(xlfilepath);
+            }
+            catch (Exception )
+            {
+                Console.WriteLine("Failed to save file (catch):" + xlfilepath);
+                return CompareDirs.COMP_ERR.COMP_ERR_SAVE_FAILED;
+            }
+
+
+            //pdf
+            //string pdffilepath = filePath + ".pdf";
+            //xlWorkbook.ExportAsFixedFormat(Microsoft.Office.Interop.Excel.XlFixedFormatType.xlTypePDF, pdffilepath);
+            //---
+            Microsoft.Office.Interop.Excel.Application XLapp = excelApp.Application;
+
+            xlWorkbook.Close();
+            XLapp.Quit();
+            excelApp.Quit();
+            Marshal.ReleaseComObject(xlWorkbook);
+            Marshal.ReleaseComObject(xlWorkbooks);
+            Marshal.ReleaseComObject(XLapp);
+            Marshal.ReleaseComObject(excelApp);
+
+
+            excelApp = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            return CompareDirs.COMP_ERR.COMP_ERR_SUCCESS;
+        }
+
+        // This implementation defines a very simple comparison
+        // between two FileInfo objects. It only compares the name
+        // of the files being compared and their length in bytes.
+        class FileCompare : System.Collections.Generic.IEqualityComparer<System.IO.FileInfo>
+        {
+            string pathA;
+            string pathB;
+
+            public FileCompare(string dir1, string dir2)
+            {
+                pathA = dir1;
+                pathB = dir2;
+            }
+
+            public bool Equals(System.IO.FileInfo f1, System.IO.FileInfo f2)
+            {
+                string str1;
+                string str2;
+                int idx;
+
+                if (f1.FullName.StartsWith(pathA))
+                {
+                    //match
+                    idx = pathA.Length;
+                    str1 = f1.FullName.Substring(idx);
+                }
+                else
+                {
+                    //match
+                    idx = pathB.Length;
+                    str1 = f1.FullName.Substring(idx);
+                }
+
+
+                if (f2.FullName.StartsWith(pathA))
+                {
+                    //match
+                    idx = pathA.Length;
+                    str2 = f2.FullName.Substring(idx);
+                }
+                else
+                {
+                    //match
+                    idx = pathB.Length;
+                    str2 = f2.FullName.Substring(idx);
+                }
+
+                return (str1 == str2 && f1.Length == f2.Length);
+            }
+
+            // Return a hash that reflects the comparison criteria. According to the 
+            // rules for IEqualityComparer<T>, if Equals is true, then the hash codes must
+            // also be equal. Because equality as defined here is a simple value equality, not
+            // reference identity, it is possible that two or more objects will produce the same
+            // hash code.
+            public int GetHashCode(System.IO.FileInfo fi)
+            {
+                string str1;
+                int idx;
+
+                if (fi.FullName.StartsWith(pathA))
+                {
+                    //match
+                    idx = pathA.Length;
+                    str1 = fi.FullName.Substring(idx);
+                }
+                else
+                {
+                    //match
+                    idx = pathB.Length;
+                    str1 = fi.FullName.Substring(idx);
+                }
+
+                string s = String.Format("{0}{1}", str1, fi.Length);
+
+                return s.GetHashCode();
+            }
+        }
+
+        class FileNameCompare : System.Collections.Generic.IEqualityComparer<System.IO.FileInfo>
+        {
+            string pathA;
+            string pathB;
+
+            public FileNameCompare(string dir1, string dir2)
+            {
+                pathA = dir1;
+                pathB = dir2;
+            }
+
+            public bool Equals(System.IO.FileInfo f1, System.IO.FileInfo f2)
+            {
+                string str1;
+                string str2;
+                int idx;
+
+                if (f1.FullName.StartsWith(pathA))
+                {
+                    //match
+                    idx = pathA.Length;
+                    str1 = f1.FullName.Substring(idx);
+                }
+                else
+                {
+                    //match
+                    idx = pathB.Length;
+                    str1 = f1.FullName.Substring(idx);
+                }
+
+
+                if (f2.FullName.StartsWith(pathA))
+                {
+                    //match
+                    idx = pathA.Length;
+                    str2 = f2.FullName.Substring(idx);
+                }
+                else
+                {
+                    //match
+                    idx = pathB.Length;
+                    str2 = f2.FullName.Substring(idx);
+                }
+                return (str1 == str2);
+            }
+
+            // Return a hash that reflects the comparison criteria. According to the 
+            // rules for IEqualityComparer<T>, if Equals is true, then the hash codes must
+            // also be equal. Because equality as defined here is a simple value equality, not
+            // reference identity, it is possible that two or more objects will produce the same
+            // hash code.
+            public int GetHashCode(System.IO.FileInfo fi)
+            {
+                string str1;
+                int idx;
+
+                if (fi.FullName.StartsWith(pathA))
+                {
+                    //match
+                    idx = pathA.Length;
+                    str1 = fi.FullName.Substring(idx);
+                }
+                else
+                {
+                    //match
+                    idx = pathB.Length;
+                    str1 = fi.FullName.Substring(idx);
+                }
+
+                string s = String.Format("{0}", str1);
+
+                return s.GetHashCode();
+            }
+        }
+
+        class ExcelDirComp
+        {
+
+            public static void ExportXmlCompareResultToExcel(Microsoft.Office.Interop.Excel.Workbook xlWorkbook,
+                                IEnumerable<System.IO.FileInfo> fileList, IEnumerable<System.IO.FileInfo> fileList2, string tabname, string pathName)
+            {
+                //filePath = @"C:\temp\test1234";
+                //// Create an Excel application instance
+                //excelApp = new Microsoft.Office.Interop.Excel.Application();
+
+                //// Create an Excel workbook instance and open it from the predefined location
+                //Microsoft.Office.Interop.Excel.Workbook xlWorkbook = excelApp.Workbooks.Add(Microsoft.Office.Interop.Excel.XlWBATemplate.xlWBATWorksheet);
+
+                //----------Summary (diff) worksheet
+
+                // Adding the Diff Worksheet
+                Microsoft.Office.Interop.Excel.Sheets diffWorkSheets = xlWorkbook.Sheets;
+                Microsoft.Office.Interop.Excel.Worksheet diffWorkSheet = diffWorkSheets.Add();
+                diffWorkSheet.Name = tabname;
+
+                // populating the diff worksheet
+                int count = 1;
+
+                // create header row
+                diffWorkSheet.Cells[1, 1] = "Full Name";
+                diffWorkSheet.Cells[1, 2] = "Directory";
+                diffWorkSheet.Cells[1, 3] = "Last Write";
+                diffWorkSheet.Cells[1, 4] = "Size";
+                diffWorkSheet.Cells[1, 5] = "Name";
+                diffWorkSheet.Cells[1, 6] = pathName;
+
+
+                if (fileList.Count() > 0)
+                {
+                    // Console.WriteLine("The following files are in both folders:");
+                    foreach (var v in fileList)
+                    {
+                        //Console.WriteLine("FN:{0} Dir:{1}, CT:{2}, LWT:{3}, Len:{4}, Name:{5}", v.FullName, v.DirectoryName, v.CreationTime, v.LastWriteTime, v.Length, v.Name); //shows which items end up in result list
+                        diffWorkSheet.Cells[count + 1, 1] = v.FullName;
+                        diffWorkSheet.Cells[count + 1, 2] = v.DirectoryName;
+                        diffWorkSheet.Cells[count + 1, 3] = v.LastWriteTime;
+                        diffWorkSheet.Cells[count + 1, 4] = v.Length;
+                        diffWorkSheet.Cells[count + 1, 5] = v.Name;
+                        count++;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("There are no common files in the two folders.");
+                }
+
+                if (fileList2 != null && fileList2.Count() > 0)
+                {
+                    //Console.WriteLine("The following files size are diff:");
+                    foreach (var v in fileList2)
+                    {
+                        diffWorkSheet.Cells[count + 1, 1] = v.FullName;
+                        diffWorkSheet.Cells[count + 1, 2] = v.DirectoryName;
+                        diffWorkSheet.Cells[count + 1, 3] = v.LastWriteTime;
+                        diffWorkSheet.Cells[count + 1, 4] = v.Length;
+                        diffWorkSheet.Cells[count + 1, 5] = v.Name;
+                        diffWorkSheet.Cells[count + 1, 1].Interior.Color = Microsoft.Office.Interop.Excel.XlRgbColor.rgbLightPink;
+                        diffWorkSheet.Cells[count + 1, 4].Interior.Color = Microsoft.Office.Interop.Excel.XlRgbColor.rgbLightPink;
+
+                        count++;
+                    }
+                }
+
+
+                // Autofit
+                diffWorkSheet.Columns.AutoFit();
+                // Left Alignment
+                Microsoft.Office.Interop.Excel.Range diffrange = diffWorkSheet.UsedRange;
+                diffrange.Style.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignLeft;
+                // Header
+                Microsoft.Office.Interop.Excel.Range diffrows = diffrange.Rows;
+                int counter = 0;
+                foreach (Microsoft.Office.Interop.Excel.Range row in diffrows)
+                {
+                    if (counter == 0)
+                    {
+                        Microsoft.Office.Interop.Excel.Range firstCell1 = row.Cells;
+                        row.Font.Color = Microsoft.Office.Interop.Excel.XlRgbColor.rgbGreen;
+                        row.Font.Bold = true;
+                        row.Interior.Color = Microsoft.Office.Interop.Excel.XlRgbColor.rgbLightGreen;
+                        Marshal.ReleaseComObject(firstCell1);
+                        break;
+                    }
+                    counter++;
+                }
+
+                //----------Main worksheet
+
+
+
+
+                // Find the Process Id
+                Marshal.ReleaseComObject(diffWorkSheets);
+                Marshal.ReleaseComObject(diffWorkSheet);
+                Marshal.ReleaseComObject(diffrange);
+
+
+            }
+        }
+    }
+}
+

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33414.496
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MARS.AI.Host", "MARS.AI.Host.csproj", "{555DACFE-B714-4E81-BF06-82283E6A0CBB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MARS.AI.NLP.interface", "MARS.AI.NLP.interface.csproj", "{52A18CB8-16EF-4126-B798-DEE41A9AA2D7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{555DACFE-B714-4E81-BF06-82283E6A0CBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{555DACFE-B714-4E81-BF06-82283E6A0CBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{555DACFE-B714-4E81-BF06-82283E6A0CBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{555DACFE-B714-4E81-BF06-82283E6A0CBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52A18CB8-16EF-4126-B798-DEE41A9AA2D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52A18CB8-16EF-4126-B798-DEE41A9AA2D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52A18CB8-16EF-4126-B798-DEE41A9AA2D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52A18CB8-16EF-4126-B798-DEE41A9AA2D7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {85BC4775-2B2F-43CA-91B2-55FA7E08194D}
+	EndGlobalSection
+EndGlobal

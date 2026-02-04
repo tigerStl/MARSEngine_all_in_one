@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35818.85 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarsLicenseManager", "MarsLicenseManager.csproj", "{FE781E76-97B5-8F8F-E217-6660038701B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LicenseEnCodeAndDecode", "..\LicenseEnCodeAndDecode\LicenseEnCodeAndDecode.csproj", "{68317966-1D30-CA4D-9FA3-A04198A6DBD8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE781E76-97B5-8F8F-E217-6660038701B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE781E76-97B5-8F8F-E217-6660038701B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE781E76-97B5-8F8F-E217-6660038701B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE781E76-97B5-8F8F-E217-6660038701B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68317966-1D30-CA4D-9FA3-A04198A6DBD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68317966-1D30-CA4D-9FA3-A04198A6DBD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68317966-1D30-CA4D-9FA3-A04198A6DBD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68317966-1D30-CA4D-9FA3-A04198A6DBD8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3239B4E4-165B-4AB0-BCBD-0B9846785109}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,1322 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="_QTP_KEYWORDS_CLICKBUTTON" xml:space="preserve">
+    <value>Function ClickButton(Identifier,Data,RC,Data_TC)	
+	Dim uThere,uEnabled,uText
+	Dim m_happy_env, m_happy   
+	Dim mDeskPhoto	
+	On Error Resume Next
+	ClickButton = False	
+	Set  m_happy_env = environment.Value("INST_CURRENT_OBJ")
+	m_happy = m_happy_env.m_strObject	
+	If Data = "" Then
+		Data = Data_TC
+	End If	
+	Reporter.Filter = rfEnableErrorsAndWarnings 	
+	Call u_WriteOneLine2LogFile("INFO","Before exist")
+	Execute "uThere =" &amp;  Identifier &amp; ".exist(0)"
+	If Not Catch(Err.number,Err.description)Then : Exit Function 
+	If  uThere &lt;&gt; True Then
+		Reporter.ReportEvent micFail, m_happy  &amp; " Not found", "Button not found on screen"
+		Call DeskTopPhotoGraph(mDeskPhoto)	
+		Call u_ReportInfo2Word("Fail","ClickButton",m_happy,Data,"Object does not exist",mDeskPhoto)
+		ClickButton = False
+		Exit Function
+	End If 
+	
+	Execute "uEnabled="  &amp;  Identifier &amp; ".GetROProperty(""enabled"")"
+	If Not Catch(Err.number,Err.description)Then : Exit Function 
+	If uEnabled &lt;&gt; True Then
+		Reporter.ReportEvent micFail, m_happy &amp; " Not enabled", "object not ready to receive input"
+		Call DeskTopPhotoGraph(mDeskPhoto)		
+		Call u_ReportInfo2Word("Fail","ClickButton",m_happy,Data,"Object disabled",mDeskPhoto)
+		ClickButton = False
+		Exit Function
+	End If
+	
+	Reporter.Filter = rfEnableAll  		
+	Dim isSplitter, strTypeName, objInst
+	Execute "set objInst=" &amp; Identifier
+	strTypeName = objInst.getROProperty("swftypename")
+	If InStr(strTypeName,"Splitter")&gt;0 Then
+		isSplitter = True
+	Else
+		isSplitter = False
+	End If	
+	If Not isSplitter Then
+		Execute Identifier &amp; ".Click()"
+	Else
+		Dim iWidth, iX
+		iWidth = objInst.getROProperty("width")
+		iX = Int(iWidth / 2)
+		objInst.click iX, 1
+	End If
+	
+	If Not Catch(Err.number,Err.description)Then : Exit Function 
+	Call u_WriteOneLine2LogFile("INFO","ClickButton End")
+	
+	Reporter.ReportEvent micDone,"ClickButton Keyword completed for  " &amp; m_happy ,"Data:  "  &amp;  Data
+	Call u_ReportInfo2Word("Done", "ClickButton",m_happy,"","","")
+	
+	ClickButton = True
+End Function</value>
+  </data>
+  <data name="_QTP_KEYWORDS_FILLEDIT" xml:space="preserve">
+    <value>Function FillEdit(Identifier,Data,RC,ByRef Data_TC)
+   ' Enters data into a edit box, Editor or a multi-line data box.
+   Dim uThere,uEnabled,uText
+   Dim m_happy_env, m_happy
+   Dim strErrorInfo, mDeskPhoto
+
+   On Error Resume Next
+   FillEdit = False
+
+   Call u_WirteOneLine2LogFile("INFO","Starting FillEdit Keyword")
+
+     'Get the Happy Name
+'	Set  m_happy_env = environment.Value("INST_CURRENT_OBJ")
+'	m_happy = m_happy_env.m_strObject
+
+	'If the value in the Test Case column  is blank then use the data from the Data Workbook. 
+	If Data = "" Then
+		Data = Data_TC
+	End If
+
+	Reporter.Filter = rfEnableErrorsAndWarnings ' Send only Errors and Warnings to the QTP log.
+    Call u_writeOneline2LogFile("INFO","BEFORE uThere")
+    ' Check to see if the object exists.
+   Execute "uThere =" &amp;  Identifier &amp; ".exist(0)"
+   'If Not Catch(err.number,err.description)Then : Exit Function 
+   If  uThere &lt;&gt; True Then
+        Reporter.ReportEvent micFail, identifier &amp; "Not found", "Fill Edit object not found on screen"
+		Call DeskTopPhotoGraph(mDeskPhoto)
+		'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+		Call u_ReportInfo2Word("Fail","FillEdit",m_happy,Data,"Cannot find Edit",mDeskPhoto)
+        FillEdit = False
+        Exit Function
+   End If 
+ 	Call u_writeOneline2LogFile("INFO","BEFORE uEnabled")
+   Execute "uEnabled="  &amp;  Identifier &amp; ".GetROProperty(""enabled"")"
+   'If Not Catch(err.number,err.description)Then : Exit Function 
+   If uEnabled &lt;&gt; True Then
+      Reporter.ReportEvent micFail, identifier &amp; "Not enabled", "object not ready to receive input"
+	  Call DeskTopPhotoGraph(mDeskPhoto)
+	  'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+	  Call u_ReportInfo2Word("Fail","FillEdit",m_happy,Data,"Cannot find Edit",mDeskPhoto)
+      FillEdit = False
+      Exit Function
+   End If
+	Call u_writeOneline2LogFile("INFO","BEFORE objDes")
+	Execute "Set objDes = " &amp; Identifier
+	strType =objDes.GetROProperty("Class Name")
+	strType = uCase(strType)
+	Select Case strType
+	  Case  "SWFEDIT"
+	  		Call u_writeOneline2LogFile("INFO","BEFORE SwfEdit")
+		    Call u_WirteOneLine2LogFile("INFO","FillEdit - Processing SwfEdit")
+			Execute Identifier &amp; ".Click()"
+			'If Not Catch(err.number,err.description)Then : Exit Function 
+			Call wait (0,10)
+			Call u_writeOneline2LogFile("INFO","BEFORE Set")
+			Execute Identifier&amp;".Set """""
+			Call u_writeOneline2LogFile("INFO","BEFORE EveryChar")
+			Call EveryChar(Data)
+			wsh.SendKeys("{TAB}")
+			Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+			Reporter.ReportEvent micDone,"FillEdit Keyword completed","Data:  "  &amp;  Data
+			call u_ReportInfo2Word("Done", "FillEdit",m_happy,Data,"Populated Edit Box","")
+			FillEdit = true
+	  Case "SWFEDITOR"',"SWFCOMBOBOX"
+		    ' Example is Start in the Repo Trade(FNMA) application
+		    Call u_WirteOneLine2LogFile("INFO","FillEdit - Processing SwfEditor")
+			objDes.object.Text =""
+           'call objDes.object.AppendText(Data)
+		   hwndType = objDes.GetROProperty("hwnd")
+		   Call u_writeOneline2LogFile("INFO","BEFORE SendKeyPressMessage")
+			call SendKeyPressMessage(hwndType,data)
+			'Execute "hwndType=" &amp; Identifier &amp; ".GetROProperty(""hwnd"")"
+			'SwfWindow("Summit FT - Bond Issuance Trade (FNMA) - [PENDINGCUSIP]").SwfObject("_distribtionDD").Click
+			Extern.SendMessage hwndType,cb_FOCUS,  0,0
+			
+			'Call wait (0,200)
+			'Call EveryChar(Data)
+			'objDes.object.Text = Data
+			Call wait (0,50)
+			objDes.SetCaretPos 0,2
+			Call SendTabMessage(hwndType)
+			'objDes.Type micTab
+			'wsh.SendKeys("{TAB}")
+			Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+			Reporter.ReportEvent micDone,"FillEdit Keyword completed","Data:  "  &amp;  Data
+			call u_ReportInfo2Word("Done", "FillEdit",m_happy,Data,"Populated Editor","")
+			FillEdit = true
+      Case "SWFCOMBOBOX"
+		   'User Name Log In
+		    Call u_WirteOneLine2LogFile("INFO","FillEdit - Processing SwfComboBox")
+	        'check the children,find winedit 
+			Dim objSubEdit,objSubDes,arrChildren
+			Set objSubDes=Description.Create()
+			objSubDes("Class Name").value="WinEdit"
+			objSubDes("object class").value="Edit"
+			set arrChildren = objDes.ChildObjects(objSubDes)
+			If arrChildren.Count&lt;=0 Then
+                strErrorInfo = "FillEdit,Can't find WinEdit from Combox!"
+				Call u_WirteOneLine2LogFile("ERROR",strErrorInfo)
+				Call DeskTopPhotoGraph(mDeskPhoto)
+				call u_ReportInfo2Word("Fail", "FillEdit",m_happy,Data,strErrorInfo,mDeskPhoto)
+				Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+				fillEdit = false
+				Exit function
+			End If
+		     '08/28/14 Adding 
+		     Call u_writeOneline2LogFile("INFO","BEFORE hwnd")
+			hwndType = objDes.GetROProperty("hwnd")
+			'Execute "hwndType=" &amp; Identifier &amp; ".GetROProperty(""hwnd"")"
+			'SwfWindow("Summit FT - Bond Issuance Trade (FNMA) - [PENDINGCUSIP]").SwfObject("_distribtionDD").Click
+			Call u_writeOneline2LogFile("INFO","BEFORE cb_FOCUS")
+			Extern.SendMessage hwndType,cb_FOCUS,  0,0
+			Call u_writeOneline2LogFile("INFO","BEFORE set empty")
+			objDes.dblClick 1,1,micLeftBtn
+			Call wait (0,100)
+			Call u_writeOneline2LogFile("INFO","BEFORE setData")
+			call SendKeyPressMessage(hwndType,data)
+			'objDes.object.text= cstr(Data)
+			Call wait (0,100)
+			Call u_writeOneline2LogFile("INFO","BEFORE send tab")
+			'If Not Catch(err.number,err.description)Then : Exit Function 
+			'wsh.SendKeys("{TAB}")
+			Call u_writeOneline2LogFile("INFO","BEFORE send ReportEvent")
+			Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+			Reporter.ReportEvent micDone,"FillEdit Keyword completed","Data:  "  &amp;  Data
+			call u_ReportInfo2Word("Done", "FillEdit",m_happy,Data,"Selected from ComboBox","")
+			FillEdit = true
+		Case Else
+			strErrorInfo = "Object must be of type EDIT,  EDITOR, or COMBOBOX. It is using:  " &amp; strType
+			Call DeskTopPhotoGraph(mDeskPhoto)
+			Call u_ReportInfo2Word("Fail", "FillEdit",m_happy,Data,strErrorInfo,mDeskPhoto)
+			Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+			FillEdit = False
+			Exit Function
+	End Select
+
+   'input data with date changes such as 5y or 10m can change the value after moving off of
+   'the object.   Report a message and send the new value back out through the Data_TC 
+   ' parameter.
+   Execute "uText ="  &amp;  Identifier &amp; ".GetROProperty(""text"")"
+   ' If Not Catch(err.number,err.description)Then : Exit Function 
+   If uText &lt;&gt; Data Then
+      Reporter.ReportEvent micDone, identifier &amp; "FillEdit Data different in Edit Field after setting the data in it.", "Fill Edit Data field changed the value of the input data."
+	  Data_TC = uText
+      'FillEdit = False
+      'Exit Function
+   End If
+   'Setting.Webpackage("ReplayType")= 1
+
+	Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+
+	Reporter.ReportEvent micDone,"FillEdit Keyword completed","Data:  "  &amp;  Data
+
+    On Error GoTo 0
+
+End Function
+
+''Original 09/03/2014
+'Function EditFill(Identifier,Data,RC,Data_TC)
+'   EditFill = fillEdit(Identififer,Data,RC,Data_TC)
+'End Function
+'Function FillEdit(Identifier,Data,RC,ByRef Data_TC)
+'   ' Enters data into a edit box or a multi-line data box.
+'   Dim uThere,uEnabled,uText
+'   Dim m_happy_env, m_happy
+'   Dim mDeskPhoto
+'
+'   On Error Resume Next
+'   FillEdit = False
+'
+'     'Get the Happy Name
+'	Set  m_happy_env = environment.Value("INST_CURRENT_OBJ")
+'	m_happy = m_happy_env.m_strObject
+'
+'	'If the value in the Test Case column  is blank then use the data from the Data Workbook. 
+'	If Data = "" Then
+'		Data = Data_TC
+'	End If
+'
+'	Reporter.Filter = rfEnableErrorsAndWarnings ' Send only Errors and Warnings to the QTP log.
+'
+'   ' Check to see if the object exists.
+'   Execute "uThere =" &amp;  Identifier &amp; ".exist(0)"
+'   If Not Catch(err.number,err.description)Then : Exit Function 
+'   If  uThere &lt;&gt; True Then
+'        Reporter.ReportEvent micFail, identifier &amp; "Not found", "Fill Edit object not found on screen"
+'		Call DeskTopPhotoGraph(mDeskPhoto)
+'		'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+'		Call u_ReportInfo2Word("Fail","FillEdit",m_happy,Data,"Cannot find Edit",mDeskPhoto)
+'        FillEdit = False
+'        Exit Function
+'   End If 
+' 
+'   Execute "uEnabled="  &amp;  Identifier &amp; ".GetROProperty(""enabled"")"
+'   If Not Catch(err.number,err.description)Then : Exit Function 
+'   If uEnabled &lt;&gt; True Then
+'      Reporter.ReportEvent micFail, identifier &amp; "Not enabled", "object not ready to receive input"
+'	  Call DeskTopPhotoGraph(mDeskPhoto)
+'	  'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+'	  Call u_ReportInfo2Word("Fail","FillEdit",m_happy,Data,"Cannot find Edit",mDeskPhoto)
+'      FillEdit = False
+'      Exit Function
+'   End If
+'
+'	' for SwfEditor
+'	Dim objDes,strType
+'	Execute "Set objDes = " &amp; Identifier
+'	Execute "strType =" &amp; Identifier &amp; ".GetROProperty(""Class Name"")"
+'	If ucase(strType) = "SWFEDIT" Then
+'		Execute Identifier &amp; ".Click()"
+'		If Not Catch(err.number,err.description)Then : Exit Function 
+'		Call wait (0,200)
+'		Execute Identifier&amp;".Set """""
+'	ELSE
+'		'for Summit 5.7 , user name component of login form combined with combox and edit. To make it runnable, 
+'		'Framework should make it available.
+'		If strType="SwfComboBox" Then
+'			'check the children,find winedit
+'			Dim objSubEdit,objSubDes,arrChildren
+'			Set objSubDes=Description.Create()
+'			objSubDes("Class Name").value="WinEdit"
+'			objSubDes("object class").value="Edit"
+'			set arrChildren = objDes.ChildObjects(objSubDes)
+'			If arrChildren.Count&lt;=0 Then
+'				Dim strErrorInfo
+'				strErrorInfo = "FillEdit,Can't find WinEdit from Combox!"
+'				Call u_WirteOneLine2LogFile("ERROR",strErrorInfo)
+'				Call DeskTopPhotoGraph(mDeskPhoto)
+'				call u_ReportInfo2Word("Fail", "FillEdit",m_happy,Data,strErrorInfo,mDeskPhoto)
+'				fillEdit = false
+'				Exit function
+'			End If
+'
+''********
+'            '08/28/14 Adding 
+'			hwndType = objDes.GetROProperty("hwnd")
+'			'Execute "hwndType=" &amp; Identifier &amp; ".GetROProperty(""hwnd"")"
+'			'SwfWindow("Summit FT - Bond Issuance Trade (FNMA) - [PENDINGCUSIP]").SwfObject("_distribtionDD").Click
+'			Extern.SendMessage hwndType,cb_FOCUS,  0,0
+''*******
+'			objDes.object.Text =""
+'			Call wait (0,200)
+'			objDes.object.Text = Data
+''********
+'				wsh.SendKeys("{TAB}")
+''********
+'			Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+'
+'			Reporter.ReportEvent micDone,"FillEdit Keyword completed","Data:  "  &amp;  Data
+'			call u_ReportInfo2Word("Done", "FillEdit",m_happy,Data,"","")
+'			FillEdit = true
+'			Exit function
+'			'tra
+'		End If
+'	
+'		
+'		Execute Identifier &amp; ".object.clear()"
+'		If Not Catch(err.number,err.description)Then : Exit Function 
+'		Call wait (0,200)
+'		'Execute Identifier&amp;".Type """""
+'	End If
+'   'Click on the edit field
+'   
+'	'Enter data into the edit field
+'	'Execute Identifier  &amp; ".Highlight"
+'    ' Slowly send keys into field.
+'	Call wait(1)
+'	If ucase(strType) = "SWFEDIT" Then
+'		Call EveryChar(Data)
+'	else
+'		call objDes.object.AppendText(Data)
+'	end if 
+'	If Not Catch(err.number,err.description)Then : Exit Function
+' 
+'  ' Enter the data in the Edit field.
+'   'Execute Identifier &amp; ".Set Data"
+'    'If Not Catch(err.number,err.description)Then : Exit Function 
+' 
+'	wsh.SendKeys("{TAB}")
+'
+'   'input data with date changes such as 5y or 10m can change the value after moving off of
+'   'the object.   Report a message and send the new value back out through the Data_TC 
+'   ' parameter.
+'   Execute "uText ="  &amp;  Identifier &amp; ".GetROProperty(""text"")"
+'    If Not Catch(err.number,err.description)Then : Exit Function 
+'   If uText &lt;&gt; Data Then
+'      Reporter.ReportEvent micDone, identifier &amp; "FillEdit Data different in Edit Field after setting the data in it.", "Fill Edit Data field changed the value of the input data."
+'	  Data_TC = uText
+'      'FillEdit = False
+'      'Exit Function
+'   End If
+'   'Setting.Webpackage("ReplayType")= 1
+'   
+'   FillEdit = True
+'
+'	Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+'
+'	Reporter.ReportEvent micDone,"FillEdit Keyword completed","Data:  "  &amp;  Data
+'	call u_ReportInfo2Word("Done", "FillEdit",m_happy,Data,"","")
+'
+'   On Error GoTo 0
+'End Function
+
+'=======================================================
+' Description:
+' 		QTP sometimes could not click a button when a script is running.
+' 	To make clickbutton runs, performClick api of button is called. This 
+' 	 KeyWord can only be used in one case when clickButton doesn't 
+'    Work.
+' Creator:
+' 		Marquis
+' Date: 07-10-2014
+' Version: 1.0 
+'=======================================================
+Function ClickButtonEx(Identifier,Data,RC,Data_TC)
+
+   Dim uThere,uEnabled,uText
+   Dim m_happy_env, m_happy
+   Dim mDeskPhoto  
+
+   On Error Resume Next
+   ClickButtonEx = False
+
+   	'Get the Happy Name
+	Set  m_happy_env = environment.Value("INST_CURRENT_OBJ")
+	m_happy = m_happy_env.m_strObject
+
+	'If the value in the Test Case column  is blank then use the data from the Data Workbook. 
+	If Data = "" Then
+		Data = Data_TC
+	End If
+
+	Reporter.Filter = rfEnableErrorsAndWarnings ' Send only Errors and Warnings to the QTP log.
+
+   ' Setting.Webpackage("ReplayType")= 2
+   ' Check to see if the object exists.
+   Call u_WriteOneLine2LogFile("INFO","Before exist")
+   Execute "uThere =" &amp;  Identifier &amp; ".exist(0)"
+   If Not Catch(err.number,err.description)Then : Exit Function 
+   If  uThere &lt;&gt; True Then
+        Reporter.ReportEvent micFail, m_happy  &amp; " Not found", "Button not found on screen"
+        ClickButtonEx = False
+        Exit Function
+   End If 
+ 
+   Execute "uEnabled="  &amp;  Identifier &amp; ".GetROProperty(""enabled"")"
+   If Not Catch(err.number,err.description)Then : Exit Function 
+   If uEnabled &lt;&gt; True Then
+      Reporter.ReportEvent micFail, m_happy &amp; " Not enabled", "object not ready to receive input"
+      ClickButtonEx = False
+      Exit Function
+   End If
+
+   Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+
+	Dim objDes
+	Execute "set objDes = " &amp; Identifier
+	objDes.object.PerformClick()
+   'Click on the button.
+   'Execute Identifier &amp; ".Click()"
+   If Not Catch(err.number,err.description)Then : Exit Function 
+  Call u_WriteOneLine2LogFile("INFO","ClickButton End")
+
+  Reporter.ReportEvent micDone,"ClickButton Keyword completed for  " &amp; m_happy ,"Data:  "  &amp;  Data
+
+  ClickButtonEx = True
+End Function
+
+Function FillEditSuffix(Identifier,Data,RC,ByRef Data_TC)
+   'Place Holder.  This  Keyword may not be required.
+   Dim uThere,uEnabled,uText
+   Dim m_happy_env, m_happy
+   Dim mDeskPhoto
+
+   On Error Resume Next
+   FillEditSuffix = False
+
+     'Get the Happy Name
+	Set  m_happy_env = environment.Value("INST_CURRENT_OBJ")
+	m_happy = m_happy_env.m_strObject
+
+	'If the value in the Test Case column  is blank then use the data from the Data Workbook. 
+	If Data = "" Then
+		Data = Data_TC
+	End If
+
+	Reporter.Filter = rfEnableErrorsAndWarnings ' Send only Errors and Warnings to the QTP log.
+
+   ' Check to see if the object exists.
+   Execute "uThere =" &amp;  Identifier &amp; ".exist(0)"
+   If Not Catch(err.number,err.description)Then : Exit Function 
+   If  uThere &lt;&gt; True Then
+        Reporter.ReportEvent micFail, identifier &amp; "Not found", "Fill Edit object not found on screen"
+		Call DeskTopPhotoGraph(mDeskPhoto)
+		'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+		Call u_ReportInfo2Word("Fail","FillEditSuffix",m_happy,Data,"Cannot find Edit",mDeskPhoto)
+        FillEditSuffix = False
+        Exit Function
+   End If 
+ 
+   Execute "uEnabled="  &amp;  Identifier &amp; ".GetROProperty(""enabled"")"
+   If Not Catch(err.number,err.description)Then : Exit Function 
+   If uEnabled &lt;&gt; True Then
+      Reporter.ReportEvent micFail, identifier &amp; "Not enabled", "object not ready to receive input"
+	  Call DeskTopPhotoGraph(mDeskPhoto)
+	  'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+	  Call u_ReportInfo2Word("Fail","FillEditSuffix",m_happy,Data,"Cannot find Edit",mDeskPhoto)
+      FillEditSuffix = False
+      Exit Function
+   End If
+
+	' for SwfEditor
+	Dim objDes,strType
+	Execute "Set objDes = " &amp; Identifier
+	Execute "strType =" &amp; Identifier &amp; ".GetROProperty(""Class Name"")"
+	If ucase(strType) = "SWFEDIT" Then
+		Execute Identifier &amp; ".Click()"
+		If Not Catch(err.number,err.description)Then : Exit Function 
+		Call wait (0,200)
+		Execute Identifier&amp;".Set """""
+	ELSE
+		Execute Identifier &amp; ".object.clear()"
+		If Not Catch(err.number,err.description)Then : Exit Function 
+		Call wait (0,200)
+		'Execute Identifier&amp;".Type """""
+	End If
+   'Click on the edit field
+   
+	'Enter data into the edit field
+	'Execute Identifier  &amp; ".Highlight"
+    ' Slowly send keys into field.
+	Call wait(1)
+	If ucase(strType) = "SWFEDIT" Then
+		Call EveryChar(Data)
+		Call EveryChar(Data_TC)
+	else
+		call objDes.object.AppendText(Data)
+		call objDes.object.AppendText(Data_TC)
+	end if 
+	If Not Catch(err.number,err.description)Then : Exit Function
+ 
+  ' Enter the data in the Edit field.
+   'Execute Identifier &amp; ".Set Data"
+    'If Not Catch(err.number,err.description)Then : Exit Function 
+ 
+	wsh.SendKeys("{TAB}")
+
+   'input data with date changes such as 5y or 10m can change the value after moving off of
+   'the object.   Report a message and send the new value back out through the Data_TC 
+   ' parameter.
+   Execute "uText ="  &amp;  Identifier &amp; ".GetROProperty(""text"")"
+    If Not Catch(err.number,err.description)Then : Exit Function 
+   If uText &lt;&gt; Data Then
+      Reporter.ReportEvent micDone, identifier &amp; "FillEditSuffix Data different in Edit Field after setting the data in it.", "Fill Edit Data field changed the value of the input data."
+	  Data_TC = uText
+      'FillEdit = False
+      'Exit Function
+   End If
+   'Setting.Webpackage("ReplayType")= 1
+   
+   FillEditSuffix = True
+
+	Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+
+	Reporter.ReportEvent micDone,"FillEditSuffix Keyword completed","Data:  "  &amp;  Data
+	call u_ReportInfo2Word("Done", "FillEdit",m_happy,Data,"","")
+
+   On Error GoTo 0
+End Function
+
+Function ClickButton(Identifier,Data,RC,Data_TC)
+
+   Dim uThere,uEnabled,uText
+   Dim m_happy_env, m_happy   
+   Dim mDeskPhoto
+
+   On Error Resume Next
+   ClickButton = False
+
+   	'Get the Happy Name
+	Set  m_happy_env = environment.Value("INST_CURRENT_OBJ")
+	m_happy = m_happy_env.m_strObject
+
+	'If the value in the Test Case column  is blank then use the data from the Data Workbook. 
+	If Data = "" Then
+		Data = Data_TC
+	End If
+
+	Reporter.Filter = rfEnableErrorsAndWarnings ' Send only Errors and Warnings to the QTP log.
+
+   ' Setting.Webpackage("ReplayType")= 2
+   ' Check to see if the object exists.
+   Call u_WriteOneLine2LogFile("INFO","Before exist")
+   Execute "uThere =" &amp;  Identifier &amp; ".exist(0)"
+   If Not Catch(err.number,err.description)Then : Exit Function 
+   If  uThere &lt;&gt; True Then
+        Reporter.ReportEvent micFail, m_happy  &amp; " Not found", "Button not found on screen"
+		Call DeskTopPhotoGraph(mDeskPhoto)
+		 'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+        Call u_ReportInfo2Word("Fail","ClickButton",m_happy,Data,"Object does not exist",mDeskPhoto)
+        ClickButton = False
+        Exit Function
+   End If 
+ 
+   Execute "uEnabled="  &amp;  Identifier &amp; ".GetROProperty(""enabled"")"
+   If Not Catch(err.number,err.description)Then : Exit Function 
+   If uEnabled &lt;&gt; True Then
+      Reporter.ReportEvent micFail, m_happy &amp; " Not enabled", "object not ready to receive input"
+	  Call DeskTopPhotoGraph(mDeskPhoto)
+	  	'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+        Call u_ReportInfo2Word("Fail","ClickButton",m_happy,Data,"Object disabled",mDeskPhoto)
+      ClickButton = False
+      Exit Function
+   End If
+
+   Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+
+  ' for spliter
+	Dim isSplitter, strTypeName, objInst
+	Execute "set objInst=" &amp; Identifier
+	strTypeName = objInst.getROProperty("swftypename")
+	If instr(strTypeName,"Splitter")&gt;0 Then
+		isSplitter = true
+	else
+		isSplitter = false
+	End If
+
+	'Click on the button
+	If not isSplitter then
+		Execute Identifier &amp; ".Click()"
+	else
+		Dim iWidth, iX
+		iWidth = objInst.getROProperty("width")
+		iX = Int(iWidth / 2)
+		objInst.click iX, 1
+	end if
+
+   If Not Catch(err.number,err.description)Then : Exit Function 
+  Call u_WriteOneLine2LogFile("INFO","ClickButton End")
+
+  Reporter.ReportEvent micDone,"ClickButton Keyword completed for  " &amp; m_happy ,"Data:  "  &amp;  Data
+  call u_ReportInfo2Word("Done", "ClickButton",m_happy,"","","")
+
+  ClickButton = True
+End Function
+
+Function CaptureValue(byval Identifier,byval Data,byval RC,ByRef Data_TC)
+'Get the value of an item from Summit with consideration of the object type.
+' Send the value back to the Data_TC parameter.  The harness returns
+' this value to the data workbook container. It has been tested for SwfEdit and 
+'SwfDropdown.  The other types including SwfTable can be added as needed.
+   Dim uThere,uText,uClassName
+   Dim m_happy_env, m_happy
+   Dim mDeskPhoto
+
+   On Error Resume Next
+   CaptureValue = False
+
+     'Get the Happy Name
+	Set  m_happy_env = environment.Value("INST_CURRENT_OBJ")
+	m_happy = m_happy_env.m_strObject
+
+	Reporter.Filter = rfEnableErrorsAndWarnings ' Send only Errors and Warnings to the QTP log.
+
+	'added by tiger for xml captureValue
+	If typename(Identifier)="XMLObjectInfo" Then
+		'xml capture mode
+		Call u_WriteOneLine2LogFile("INFO", "to call Xml capture...")
+		Dim iXmlResult
+		iXmlResult = XmlCaputreValue(Identifier, Data_TC)
+		If iXmlResult&lt;&gt;0 Then
+			Call u_ReportInfo2Word("Fail","CaptureValue",m_happy,"","Call xml Capture fail with return code:" &amp; iXmlResult,"")
+			CaptureValue = iXmlResult
+		else
+			CaptureValue = 0
+		End If
+		Exit function
+	End If
+
+
+   ' Setting.Webpackage("ReplayType")= 2
+   ' Check to see if the object exists.
+   Execute "uThere =" &amp;  Identifier &amp; ".exist(0)"
+   If Not Catch(err.number,err.description)Then : Exit Function 
+   If  uThere &lt;&gt; True Then
+        Reporter.ReportEvent micFail, identifier &amp; "Not found", "Button not found on screen"
+		Call DeskTopPhotoGraph(mDeskPhoto)
+		'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+        Call u_ReportInfo2Word("Fail","CaptureValue",m_happy,"","Object does not exist",mDeskPhoto)
+        CaptureValue = False
+        Exit Function
+   End If 
+ 
+   If gisHighLightComponet Then
+   	execute Identifier &amp;".highlight"
+   End If
+ 
+   'Get the class name of the object to find out its type.
+   Execute "uClassName =" &amp; Identifier &amp; ".GetROProperty(""Class Name"")"
+
+     uClassName = uCase(uClassName)
+
+	'Get the value and send it back out through the Data parameter of the function.
+	Select Case uClassName
+		Case "SWFWINDOW"
+			Execute "Data_TC = " &amp;  Identifier &amp; ".GetROProperty(""text"")"
+			If Not Catch(err.number,err.description)Then : Exit Function 
+		Case "SWFEDIT"
+			On error resume next
+			execute Identifier &amp; ".click 1,1"
+			On error goto 0
+			Execute "Data_TC = " &amp;  Identifier &amp; ".GetROProperty(""text"")"
+			If Not Catch(err.number,err.description)Then : Exit Function 
+		Case "SWFCOMBOBOX"
+              Execute "Data_TC = " &amp;  Identifier &amp; ".GetROProperty(""text"")"
+			  If Not Catch(err.number,err.description)Then : Exit Function 
+		Case "SWFLABEL"
+			  Execute "Data_TC = " &amp;  Identifier &amp; ".GetROProperty(""text"")"
+			  If Not Catch(err.number,err.description)Then : Exit Function 
+		Case "SWFTABLE"
+			On error resume next
+			Dim strCaseValue
+            strCaseValue = ucase(strValue)
+		   Dim objTable,column_row
+		   column_row=RC ' To match the name of the parameter.
+		   Execute "set objTable="&amp; Identifier
+		
+			Dim iRowCnt,iCheckCount
+			iCheckCount = 0
+			For i=0 to 4
+				iRowCnt = objTable.object.Rows.count
+				If iRowCnt&gt;0 Then
+					Exit for
+				else
+					Call wait(10)
+				End If
+			Next
+			
+			'get Column from column_row
+			'SearchAndClick	DEALERS_TABLE	_dealer	DONE
+			Dim arrCR,iRowLoop,strValue
+			strValue = Data ' to make the parameter name match.
+			arrCR = split(column_row,";")
+			If ubound(arrCR)&lt;&gt;1 Then
+				Call u_WriteOneLine2LogFile("ERROR","To use SearchAndClick Keyword, 'row_column' filed should be two fields....")
+				CaptureValue = ID_ERROR_SEARCHCLICK_CRFORMAT
+				Exit function
+			End If
+
+			mRow =  ArrCR(0)
+			If IsNumeric(mRow) = False Then
+                mRow = Ucase(mRow)
+			End If
+
+			If arrCR(0)="" Then
+				iRowLoop = iRowCnt -1
+				arrCR(0) = CNST_TABLE_DYNAMICROW
+			ElseIf strcomp(mRow,"ALLROWS" ) = 0 Then
+                 'Do nothing here for this condition 
+			Else
+				iRowLoop = arrCR(0) - 1
+			End If
+		
+			'find Column Id
+			Dim iColumnId 
+			iColumnId = -1
+			If iRowCnt&lt;=0 Then
+				Call u_WriteOneLine2LogFile("INFO","No row exists. Just quit")
+				CaptureValue = ID_ERROR_SEARCHCLICK_NOROW
+				Exit function 
+			End If
+			Dim strClickedKey 
+			For iCol = 0 to objTable.object.Rows.item(0).cells.count -1
+				Dim strColumnKey ,strHeaderCaption
+				strColumnKey = objTable.object.rows.item(0).cells.item(iCol).column.key
+				strHeaderCaption = objTable.object.rows.item(0).cells.item(iCol).column.Header.Caption
+				If (strcomp(ucase(strColumnKey),ucase(arrCR(1)))=0) or (strcomp(ucase(strHeaderCaption),ucase(arrCR(1)))=0) Then
+					iColumnId = iCol
+					strClickedKey = strColumnKey
+					Exit for
+				End If
+			Next
+			If iColumnId &lt;0 Then
+				Call u_WriteOneLine2LogFile("ERROR","No such column found:"&amp;arrRC(1))
+				CaptureValue = ID_ERROR_SEARCHCLICK_NOCOLUMN
+				Exit function
+			End If
+		
+'			'compare Data
+'			CaptureValue = false
+'			
+			Dim strTmpCellText,strTmpCellValue,strHeadCaption, mRow
+			mRow =  ArrCR(0)
+			If IsNumeric(mRow) = False Then
+                mRow = Ucase(mRow)
+			End If
+			If strcomp(mRow,"ALLROWS" ) = 0 Then
+        		Dim mThisCell
+				For iCol = 0 to objTable.object.Rows.count -1
+					mThisCell = trim(objTable.object.rows.item(iCol).cells.item(iColumnId).text)
+					'Call u_WriteOneLine2LogFile("INFO", iCol  &amp; ":" &amp; mThisCell)
+                    strTmpCellText = strTmpCellText &amp; mThisCell &amp; vbLF
+				Next
+				'msgbox strTmpCellText
+			Else
+			  	strTmpCellText = trim(objTable.object.rows.item(iRowLoop).cells.item(iColumnId).text)
+			End If
+		
+			Data_TC = strTmpCellText
+			'strTmpCellValue=trim(objTable.object.rows.item(iRowLoop).cells.item(iColumnId).value)
+			'strHeadCaption = trim(objTable.object.rows.item(iRowLoop).cells.item(iColumnId).Header.Caption)
+		Case "SWFOBJECT"
+			Execute "Data_TC = " &amp;  Identifier &amp; ".GetROProperty(""text"")"
+			If Not Catch(err.number,err.description)Then : Exit Function 
+		Case Else
+			Reporter.ReportEvent micFail,"CaptureValue() function does not handle objects of type: "  &amp; uClassName, "Class Type unknown"
+	End Select
+
+   Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+
+	' Send Captured Value to the Flat file and QTP Result logs.
+	Reporter.ReportEvent micDone,"CaptureValue Keyword captured: "  &amp; Data_TC, "CaptureValue()" &amp; Data_TC
+	call u_WriteOneLine2LogFile("INFO","CaptureValue" &amp; Data_TC)
+
+    Reporter.ReportEvent micDone,"CaptureValue Keyword completed","Data:  "  &amp;  Data   
+
+     'p1 = Done | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+	call u_ReportInfo2Word("Done", "CaptureValue",m_happy,"","Captured value:  "  &amp; Left(Data_TC,100) ,"")
+
+	CaptureValue = True
+
+End Function
+
+Function SelectTab(Identifier,Data,RC, Data_TC)
+'Click on a tab within a SwfGrid object.
+	Dim aTabs, uThisElement, mSuccess, mNumberOfElements, uThere, uContent,uSelection,uClassName
+	Dim m_happy_env, m_happy
+	Dim mDeskPhoto
+
+   SelectTab = False
+
+    'Get the Happy Name
+	Set  m_happy_env = environment.Value("INST_CURRENT_OBJ")
+	m_happy = m_happy_env.m_strObject
+   On Error Resume Next
+	
+	Reporter.Filter = rfEnableErrorsAndWarnings ' Send only Errors and Warnings to the QTP log.
+
+   	'If the value in the Test Case column  is blank then use the data from the Data Workbook. 
+	If Data = "" Then
+		Data = Data_TC
+	End If
+
+   ' Check that the object exists.
+   Execute "uThere =" &amp;  Identifier &amp; ".exist(0)"
+   If Not Catch(err.number,err.description)Then : Exit Function 
+   If  uThere &lt;&gt; True Then
+        Reporter.ReportEvent micFail, identifier &amp; "Tab Not found", "Tab not found on screen"
+		Call DeskTopPhotoGraph(mDeskPhoto)
+		'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+        Call u_ReportInfo2Word("Fail","SelectTab",m_happy,Data,"Object does not exist",mDeskPhoto)
+		SelectTab = False
+		Exit Function
+   End If  
+
+	' Check that the tab enabled.
+   Execute "uEnabled="  &amp;  Identifier &amp; ".GetROProperty(""enabled"")"
+   If Not Catch(err.number,err.description)Then : Exit Function 
+   If uEnabled &lt;&gt; True Then
+		Reporter.ReportEvent micFail, identifier &amp; "Not enabled", "Tab not ready to receive input"
+		Call DeskTopPhotoGraph(mDeskPhoto)
+		'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+        Call u_ReportInfo2Word("Fail","SelectTab",m_happy,Data,"Object disabled",mDeskPhoto)
+		SelectTab = False
+		Exit Function
+   End If
+
+    'Add verification to check that it is a SwfGrid object.
+	'Check if the object type is SwfEdit.
+	 'Get the class name of the object to find out its type.
+     Execute "uClassName =" &amp; Identifier &amp; ".GetROProperty(""Class Name"")"
+	 'Ensure that is is an Edit box.
+	 If Not Catch(err.number,err.description)Then : Exit Function 
+	 If uClassName &lt;&gt; "SwfTab"  Then
+		 Reporter.ReportEvent micFail,"Keyword SelectTab() only works with SwfTab Object", "Object Type is:  " &amp; uClassName
+		 Call DeskTopPhotoGraph(mDeskPhoto)
+		 'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+        Call u_ReportInfo2Word("Fail","SelectTab",m_happy,Data,"Object disabled",mDeskPhoto)
+	 End If
+  
+	'Get all of the tabs.  
+'	Execute "uContent=" &amp; Identifier &amp; ".GetContent"
+'	' Split on the chr(10) LineReturn
+'	aTabs = split(uContent,chr(10))
+'	mNumberOfElements = uBound(aTabs)
+'	mSuccess = False
+'	' Ensure that the tab we are trying to click on exists.
+'	For uThisElement = 0 To mNumberOfElements
+'		If aTabs(uThisElement) = Data Then
+'			mSuccess = True
+'			Exit For
+'		End If
+'	Next
+	Dim objTab
+	Execute "set objTab=" &amp; Identifier
+	'get all tabs captions
+	Dim arrTabCaptions,iTabCount, strTabCaption, iIdx
+	iTabCount=objTab.object.controls.count
+	mSuccess = False
+
+	'----------------------------------------------------------------------------------------------------------------
+	' regular express for tab name is available from 8-20-2014
+	' Creator: Marquis
+	'----------------------------------------------------------------------------------------------------------------
+	Set objRegExp = new RegExp 
+	objRegExp.IgnoreCase = true
+	objRegExp.Global = true 
+	objRegExp.Pattern = Data
+
+	For i=0 to iTabCount -1
+		strTabCaption = objTab.object.TabPages.item(i).text
+		If strcomp(strTabCaption, Data)=0 or objRegExp.Test(strTabCaption) Then
+			mSuccess = True
+'			objTab.object.SelectedIndex=i
+			objTab.object.SelectTab(i)  
+			If objTab.object.SelectedIndex &lt;&gt; i Then
+				objTab.Select i
+			End If
+			Call u_WriteOneLine2LogFile("INFO", "select Tab Ok")
+			Set objTab = nothing
+			Exit For
+		End If
+	Next
+
+	If mSuccess &lt;&gt; True Then
+		Reporter.ReportEvent micFail, "SelectTab cannot find a tab named:  " &amp; Data, "Tab not found"
+		SelectTab = False
+		Call u_WriteOneLine2LogFile("ERROR", "Can't find the tab with name "&amp;Data)
+		'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+        Call u_ReportInfo2Word("Fail","SelectTab",m_happy,Data,"Cannot find Tab","")
+		Exit Function
+	End If
+
+	'Click on the tab.
+'	Execute Identifier &amp; ".Select " &amp; chr(34) &amp; Data &amp; chr(34)&amp;"  ,micLeftBtn" 'chr(34) is double quotes
+'	  If Not Catch(err.number,err.description)Then : Exit Function 
+'
+'	Check that the correct tab is selected.
+'	Execute "uSelection =" &amp;  Identifier &amp; ".GetSelection"
+'     If Not Catch(err.number,err.description)Then : Exit Function
+'
+'	 Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+'    
+'	If uSelection &lt;&gt; Data Then
+'		Reporter.ReportEvent micFail, "SelectTab did not select the correct Tab:  " &amp; Data, "Tab not selected"
+'		SelectTab = False
+'		Exit Function
+'	End If
+
+	On Error GoTo 0
+
+	Reporter.ReportEvent micDone,"SelectTab Keyword completed", "SelectTab"
+	'p1 = Done | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+	call u_ReportInfo2Word("Done", "SelectTab",m_happy,"","Tab Selected OK" ,"")
+
+   SelectTab = True
+End Function
+
+'Function EveryChar(Data)  - old OK to delete after testing new version of function.
+'   Dim strLength,Character,ThisChar
+'   Reporter.Filter = rfEnableErrorsAndWarnings ' Send only Errors and Warnings to the QTP log.
+'    strLength = Len(Data)
+'   For Character = 1 to strLength
+'	   ThisChar = Mid(Data,Character,1)
+'	   wsh.SendKeys ThisChar
+'	   Call Wait (0,100)
+'   Next
+'   	 Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+'End Function
+
+Function EveryChar(Data)
+   Dim strLength,Character,ThisChar
+   Reporter.Filter = rfEnableErrorsAndWarnings ' Send only Errors and Warnings to the QTP log.
+    strLength = Len(Data)
+    For Character = 1 to strLength
+	   ThisChar = Mid(Data,Character,1)
+	   Select Case ThisChar 'Add to the Select Case as special characters are encountered.
+	      Case  "("   'Parenthesis
+			  ThisChar = "{(}"  
+          Case ")"
+			  ThisChar = "{)}"
+          Case "["    'Brackets
+              ThisChar = "{[}"
+		  Case "]"
+			   ThisChar = "{]}"
+		  Case "{"  'Braces
+                 ThisChar = "{{}"
+		  Case "}"
+			     ThisChar = "{}}"
+		  Case "+" 'Plus sign
+                 ThisChar =  "{+}"
+          Case  "^"  'caret
+			      ThisChar = "{^}"
+          Case "%" 'percent sign
+			      ThisChar = "{%}"
+		  Case "~" 'tilde 
+			      ThisChar = "{~}"
+	   End Select
+	   wsh.SendKeys ThisChar
+	   Call Wait (0,20)
+   Next
+		 Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+End Function
+ 
+Function VerifyValue(byval Identifier,byval Data,byval RC,byval Data_TC)
+   Dim wsh
+   Dim uThere,uEnabled,uText
+   Dim m_happy_env, m_happy
+   Dim mDeskPhoto
+   Dim mLastTwoChars, bExactMatch, mMatchString
+
+    'Get the Happy Name
+	Set  m_happy_env = environment.Value("INST_CURRENT_OBJ")
+	m_happy = m_happy_env.m_strObject
+
+   On Error Resume Next
+   VerifyValue = False
+
+	'If the value in the Test Case column  is blank then use the data from the Data Workbook. 
+	If Data = "" Then
+		data = unescape(Data)
+		Data_TC = unescape(Data_TC)
+
+		Data = Data_TC
+	else
+		data = unescape(Data)
+		Data_TC = unescape(Data_TC)
+
+	End If
+
+   Reporter.Filter = rfEnableErrorsAndWarnings ' Send only Errors and Warnings to the QTP log.
+
+	'Execute Identifier &amp; ".highlight"
+   ' Setting.Webpackage("ReplayType")= 2
+   ' Check to see if the object exists.
+   Execute "uThere =" &amp;  Identifier &amp; ".exist(0)"
+   If Not Catch(err.number,err.description)Then : Exit Function 
+   If  uThere &lt;&gt; True Then
+        Reporter.ReportEvent micFail, identifier &amp; "Not found", "VerifyValue object not found on screen"
+		Call DeskTopPhotoGraph(mDeskPhoto)
+		'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+        Call u_ReportInfo2Word("Fail","VerifyValue",m_happy,Data,"Cannot find Object",mDeskPhoto)
+        VerifyValue = False
+        Exit Function
+   End If 
+
+   'Get the class name of the object to find out its type.
+   Execute "uClassName =" &amp; Identifier &amp; ".GetROProperty(""Class Name"")"
+
+   uClassName = uCase(uClassName)
+
+	'Get the value and send it back out through the Data parameter of the function.
+	Select Case uClassName
+		Case "SWFWINDOW"
+			Execute "uText = " &amp;  Identifier &amp; ".GetROProperty(""text"")"
+			If Not Catch(err.number,err.description)Then : Exit Function 
+		Case "SWFEDIT"
+			Execute "uText = " &amp;  Identifier &amp; ".GetROProperty(""text"")"
+			If Not Catch(err.number,err.description)Then : Exit Function 
+		Case "SWFCOMBOBOX"
+			'strCurrentItemValue = trim(objSwf.object.Items.Item(iCurrentItem-1).Datavalue.toString)
+			'strCurrentDisplayText = trim(objSwf.object.Items.Item(iCurrentItem-1).DisplayText)
+			  Execute "uText = " &amp;  Identifier &amp; ".GetROProperty(""text"")"
+			  Dim swfObject
+			  Execute "SET swfObject = " &amp; Identifier
+			  Dim iId
+			  iid= uFindComboInternalIndex(swfObject,data)
+			  iresult = false
+			  If iid&gt;=0 Then
+					iresult =uFindComboExternalValue(swfObject,iId)
+			 Else
+				    ' Cannot find value 
+				   Reporter.ReportEvent micFail, identifier &amp; "Expected Data not Showing in DropDown", "Exepcted: " &amp; Data
+				   call u_WriteOneLine2LogFile("ERROR","Expected Data not Showing in DropDown"  &amp; Data)
+				   Call DeskTopPhotoGraph(mDeskPhoto)
+				   	'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+					Call u_ReportInfo2Word("Fail","VerifyValue",m_happy,Data,"Expected Value not showing in Dropdown",mDeskPhoto)
+                   VerifyValue = False 
+					Exit function
+			  End If
+
+			  Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+
+			  'The Verify Passed if the script reached this point.
+			  If iresult Then
+					Reporter.ReportEvent micPass,  "Expected Data Showing in DropDown", "Exepcted: " &amp; Data
+					call u_WriteOneLine2LogFile("PASS","Expected Data  Showing in DropDown"  &amp; Data)
+			  else
+			  		Reporter.ReportEvent micFail,  "Expected Data NOT Showing in DropDown", "Exepcted: " &amp; Data
+					call u_WriteOneLine2LogFile("FAIL","Expected NOT Data  Showing in DropDown.  Expected was:  "  &amp; Data)
+					Call DeskTopPhotoGraph(mDeskPhoto)
+					'p1 = Fail | p2 = KeyWord | p3 = HappyName | p4 = Data | p5 = Messages | p6 = image
+					Call u_ReportInfo2Word("Fail","VerifyValue",m_happy,Data,"Expected Value not showing in Dropdown. Expected was:  " &amp; Data,mDeskPhoto)
+			  End If 
+			  VerifyValue = iResult 
+			  Exit function
+		Case "SWFTABLE"
+            On error resume next
+
+			'=== check the table setting mode ===
+			Dim iTableMode
+			iTableMode = u_getVerifyValueTableRCMode(RC)
+			If iTableMode=1 Then ' compare and transfer mode
+				VerifyValue = u_VerifyValueTableMode1(Identifier,Data,RC,Data_TC)
+				If verifyValue&lt;&gt;true Then</value>
+  </data>
+  <data name="_QTP_KEYWORDS_KILLSUMMIT" xml:space="preserve">
+    <value>Function KillSummit(Identifier,Data,RC,Data_TC)
+   KillSummit = False
+   	'If the value in the Test Case column  is blank then use the data from the Data Workbook. 
+	If Data = "" Then
+		Data = Data_TC
+	End If
+
+	Reporter.Filter = rfEnableErrorsAndWarnings ' Send only Errors and Warnings to the QTP log.
+
+	'Kill open versions of Summit
+	SystemUtil.CloseProcessByName("SummitFT.exe")
+	If Not Catch(err.number,err.description)Then : Exit Function
+
+	Reporter.Filter = rfEnableAll  ' Send All messages to the QTP Result log.
+
+	Reporter.ReportEvent micDone,"KillSummit Keyword complete", "KillSummit"
+	call u_ReportInfo2Word("Done", "KillSummit","","","","")
+
+	KillSummit = True
+End Function</value>
+  </data>
+  <data name="_QTP_KEYWORDS_PEGWINDOW" xml:space="preserve">
+    <value>Function PegWindow(strKeyWord,object,column_row,strValue)
+	PegWindow = 0
+End Function</value>
+  </data>
+  <data name="_QTP_KEYWORDS_SNAPSHOT" xml:space="preserve">
+    <value>Function SnapShot(Identifier,Data,RC,Data_TC)
+	Dim fso
+	Dim m_happy_env, m_happy
+	Dim mDeskPhoto
+	
+	SnapShot = False
+	
+	Set  m_happy_env = environment.Value("INST_CURRENT_OBJ")
+	m_happy = m_happy_env.m_strObject
+	
+	Dim BitmapFileName
+	On Error Resume Next
+	If Data = "" Then
+		Data = Data_TC
+	End If
+	Set fso = CreateObject("scripting.FileSystemObject")
+	If Not fso.FolderExists("d:\Bitmaps") Then
+		fso.CreateFolder("d:\Bitmaps")
+	End If
+	BitmapFileName = "d:\Bitmaps\SnapShot_" &amp; Year(Now) &amp; Month(Now) &amp; Day(Now) &amp; Hour(Now) &amp; Minute(Now) &amp; Second(Now) &amp; ".bmp" ' to .bmp 9/10/14
+	Execute Identifier &amp;  ".CaptureBitmap BitmapFileName"
+	If Not Catch(Err.number,Err.description)Then : Exit Function 
+	Reporter.ReportEvent micDone,"Snapshot of:  " &amp; Identifier,"SnapShot",BitmapFileName
+	Call u_ReportInfo2Word("Done", "SnapShot",m_happy,"","" ,BitmapFileName)
+	Set fso = Nothing
+	SnapShot = True
+End Function</value>
+  </data>
+  <data name="_QTP_KEYWORDS_WAITFORSECONDS" xml:space="preserve">
+    <value>Function WaitForSeconds(strIdentifier,Data,RC,Data_TC)
+	Call u_WriteOneLine2LogFile("INFO", "WaitForSeconds:"&amp;Data_TC)
+	
+	Reporter.Filter = rfEnableErrorsAndWarnings 
+	If (Data_TC="") Then
+		Data_TC = 3 
+	End If
+	If Not IsNumeric(Data_TC) Then
+		Reporter.ReportEvent micDone, " WaitForSeconds uses non-numeric parameter, default value 3 will be applied.", "Default value 3 will be applied."
+	End If
+	
+	If RC="" Or StrComp(UCase(RC),"SMARTWAIT")&lt;&gt;0 Then
+		Call wait(Data_TC)
+		Call u_ReportInfo2Word("Done", "waitForSeconds","",Data_TC,"","")
+		On Error Goto 0
+		waitForSeconds = 0
+		Exit Function
+	End If
+	
+	
+	Dim objTopApplicationWindow, iTimeWait, iDefaultCnt, strCursor,bStayWait, strError
+	iTimeWait = 0
+	iDefaultCnt = 0
+	bStayWait = True
+	On Error Resume Next
+	Set objTopApplicationWindow = swfwindow("is owned window:=False","is child window:=False","text:=Misys Summit FT.*", "index:=0")
+	Do While bStayWait
+		strCursor = objTopApplicationWindow.Object.cursor.toString
+		If InStr(1,UCase(strCursor),UCase("wait"))&gt;0 Then
+			iTimeWait = iTimeWait +10
+			iDefaultCnt  = 0
+			Call wait(10)
+		Else
+			If InStr(1, UCase(strCursor), UCase("default"))&gt;0 Then
+				iDefaultCnt = iDefaultCnt + 1
+			Else
+				iDefaultCnt  = 0
+			End If
+			Call wait(1)
+			iTimeWait = iTimeWait + 1
+		End If
+		If iDefaultCnt&gt;=2 Then
+			bStayWait = False
+			strError =  "find cursor turned to default [" &amp; iDefaultCnt &amp;"] times, Framework takes application as available now...Total wait seconds is " &amp; iTimeWait
+			Call u_WriteOneLine2LogFile("INFO",strError)
+			Call u_ReportInfo2Word("Done", "waitForSeconds","",Data_TC,strError,"")
+			On Error Goto 0
+			Exit Do
+		Else
+			If iTimeWait&gt;(Data_TC) Then
+				bStayWait = False
+				strError =  "find cursor turned to default [" &amp; iDefaultCnt &amp;"] times, But wait time is over.Total wait seconds is " &amp; iTimeWait
+				Call u_WriteOneLine2LogFile("INFO",strError)
+				Call u_ReportInfo2Word("Done", "waitForSeconds","",Data_TC,strError,"")
+				On Error Goto 0
+				Exit Do
+			End If
+		End If
+		
+	Loop
+	On Error Goto 0  
+	
+	Reporter.ReportEvent micDone,"WaitForSeconds Keyword completed","Data_TC:  "  &amp;  Data_TC
+	WaitForSeconds = True
+End Function</value>
+  </data>
+</root>

@@ -1,0 +1,65 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>MARS.AIL.Hosting</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants);_EXE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants);_EXE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="AutoData\**" />
+    <Compile Remove="AutoSteps\**" />
+    <Compile Remove="dllEntry\**" />
+    <Compile Remove="interfaceMain\**" />
+    <Compile Remove="keywords\**" />
+    <Compile Remove="lang\**" />
+    <Compile Remove="restClient\**" />
+    <Compile Remove="utilities\**" />
+    <Compile Remove="verb\**" />
+    <EmbeddedResource Remove="AutoData\**" />
+    <EmbeddedResource Remove="AutoSteps\**" />
+    <EmbeddedResource Remove="dllEntry\**" />
+    <EmbeddedResource Remove="interfaceMain\**" />
+    <EmbeddedResource Remove="keywords\**" />
+    <EmbeddedResource Remove="lang\**" />
+    <EmbeddedResource Remove="restClient\**" />
+    <EmbeddedResource Remove="utilities\**" />
+    <EmbeddedResource Remove="verb\**" />
+    <None Remove="AutoData\**" />
+    <None Remove="AutoSteps\**" />
+    <None Remove="dllEntry\**" />
+    <None Remove="interfaceMain\**" />
+    <None Remove="keywords\**" />
+    <None Remove="lang\**" />
+    <None Remove="restClient\**" />
+    <None Remove="utilities\**" />
+    <None Remove="verb\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Resource.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove=".gitignore" />
+    <None Remove="appsettings.development.json" />
+    <None Remove="appsettings.json" />
+    <None Remove="nlog.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="MARS.AI.NLP.interface.csproj" />
+  </ItemGroup>
+
+</Project>

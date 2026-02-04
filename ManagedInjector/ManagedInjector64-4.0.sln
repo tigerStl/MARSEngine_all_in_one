@@ -1,0 +1,79 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30621.155
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ManagedInjector64-4.0", "ManagedInjector64-4.0.vcxproj", "{A27C8B34-2527-4258-8C07-D2720C576B90}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		DEBUG FOR WEBVERSION|x64 = DEBUG FOR WEBVERSION|x64
+		DEBUG FOR WEBVERSION|x86 = DEBUG FOR WEBVERSION|x86
+		debug with qtp|x64 = debug with qtp|x64
+		debug with qtp|x86 = debug with qtp|x86
+		debug x86|x64 = debug x86|x64
+		debug x86|x86 = debug x86|x86
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		DebugQT|x64 = DebugQT|x64
+		DebugQT|x86 = DebugQT|x86
+		Release For WEB|x64 = Release For WEB|x64
+		Release For WEB|x86 = Release For WEB|x86
+		Release For Webversion|x64 = Release For Webversion|x64
+		Release For Webversion|x86 = Release For Webversion|x86
+		release with qtp|x64 = release with qtp|x64
+		release with qtp|x86 = release with qtp|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+		ReleaseQT|x64 = ReleaseQT|x64
+		ReleaseQT|x86 = ReleaseQT|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DEBUG FOR WEBVERSION|x64.ActiveCfg = DEBUG FOR WEBVERSION|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DEBUG FOR WEBVERSION|x64.Build.0 = DEBUG FOR WEBVERSION|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DEBUG FOR WEBVERSION|x86.ActiveCfg = DEBUG FOR WEBVERSION|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DEBUG FOR WEBVERSION|x86.Build.0 = DEBUG FOR WEBVERSION|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug with qtp|x64.ActiveCfg = debug with qtp|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug with qtp|x64.Build.0 = debug with qtp|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug with qtp|x86.ActiveCfg = debug with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug with qtp|x86.Build.0 = debug with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug x86|x64.ActiveCfg = debug x86|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug x86|x64.Build.0 = debug x86|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug x86|x86.ActiveCfg = debug x86|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.debug x86|x86.Build.0 = debug x86|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Debug|x64.ActiveCfg = Debug|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Debug|x64.Build.0 = Debug|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Debug|x86.ActiveCfg = Debug|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Debug|x86.Build.0 = Debug|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DebugQT|x64.ActiveCfg = DebugQT|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DebugQT|x64.Build.0 = DebugQT|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DebugQT|x86.ActiveCfg = DebugQT|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.DebugQT|x86.Build.0 = DebugQT|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For WEB|x64.ActiveCfg = Release For WEB|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For WEB|x64.Build.0 = Release For WEB|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For WEB|x86.ActiveCfg = Release For WEB|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For WEB|x86.Build.0 = Release For WEB|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For Webversion|x64.ActiveCfg = Release For Webversion|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For Webversion|x64.Build.0 = Release For Webversion|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For Webversion|x86.ActiveCfg = Release For Webversion|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release For Webversion|x86.Build.0 = Release For Webversion|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.release with qtp|x64.ActiveCfg = release with qtp|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.release with qtp|x64.Build.0 = release with qtp|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.release with qtp|x86.ActiveCfg = release with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.release with qtp|x86.Build.0 = release with qtp|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release|x64.ActiveCfg = Release|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release|x64.Build.0 = Release|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release|x86.ActiveCfg = Release|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.Release|x86.Build.0 = Release|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.ReleaseQT|x64.ActiveCfg = ReleaseQT|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.ReleaseQT|x64.Build.0 = ReleaseQT|x64
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.ReleaseQT|x86.ActiveCfg = ReleaseQT|Win32
+		{A27C8B34-2527-4258-8C07-D2720C576B90}.ReleaseQT|x86.Build.0 = ReleaseQT|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {876ABDE0-01DC-4346-91A2-59608253D8B2}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,64 @@
+﻿<Window x:Class="MarsFrameWork.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Mars Test framework Starter" Height="260" Width="340" WindowStyle="ThreeDBorderWindow" ResizeMode="CanMinimize" Loaded="Window_Loaded" Icon="/TestFrameStarter;component/Images/favicon.ico" WindowStartupLocation="CenterScreen">
+    <Grid Margin="5,5,5,5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition MinWidth="180"></ColumnDefinition>
+
+        </Grid.ColumnDefinitions>
+        <Label FontWeight="Bold" FontSize="11" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.ColumnSpan="2" Margin="0,-5,0,7" Foreground="Blue">Financial SoftWare</Label>
+        <Label FontWeight="Bold" FontSize="16" HorizontalAlignment="Left" VerticalAlignment="Bottom" Content="MARS Test Framework"/>
+        <DockPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
+            <Grid x:Name="DockPanelGrid">
+                <Grid.RowDefinitions>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition></RowDefinition>
+
+                    <RowDefinition></RowDefinition>
+                    
+                    <RowDefinition Height="28"></RowDefinition>
+                    <RowDefinition Height="3"></RowDefinition>                    
+                    <RowDefinition ></RowDefinition>
+                    
+                    <RowDefinition Height="5"></RowDefinition>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition ></ColumnDefinition>                    
+                    <!--ColumnDefinition></ColumnDefinition>-->
+                </Grid.ColumnDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">Available Test Projects:</Label>
+                <ComboBox x:Name="AvailableProjects" Grid.Row="1" Grid.Column="0" Margin="5,3" Grid.ColumnSpan="2" SelectionChanged="AvailableProjects_SelectionChanged" SelectedIndex="0" ></ComboBox>
+
+                <Button x:Name="LoadButton" Height="24" Margin="0,5,5,5" Click="Button_Click" Grid.Row="5" Grid.Column="0" Width="90" HorizontalAlignment="Right" Grid.ColumnSpan="2">
+                    Start Test
+                </Button>
+                <Button x:Name="StopServiceButton" Height="24" Margin="0,5,100,5"  Grid.Row="5" Grid.Column="0" Width="90" HorizontalAlignment="Right" Click="StopServiceButton_Click">
+                    Stop 
+                </Button>
+                <CheckBox x:Name="BaseLineCheckBox" Grid.Row="5" VerticalAlignment="Center" Margin="5,5,0,5" HorizontalAlignment="Left"  Checked="BaseLineCheckBox_Checked" Unchecked="BaseLineCheckBox_Checked"> Baseline Test </CheckBox>
+                <!-- Default Application -->
+                <Label x:Name="lblApplications" Grid.Row="2" Content="Select Current Application from Registered:"/>
+                <ComboBox x:Name="AvailableApps" Grid.Row="3" Grid.Column="0" Margin="5,3" Grid.ColumnSpan="2" SelectionChanged="AvailableApps_SelectionChanged"></ComboBox>
+                <Rectangle Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="2" Margin="5,0,1,0" Grid.Row="4" Stroke="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" VerticalAlignment="Bottom" Width="310" />
+
+                <!--
+                <Button Height="24" x:Name="TestButton" Margin="5" Grid.Row="0" Grid.Column="1" Click="TestButton_Click">Test</Button>
+                <Button Height="24" x:Name="TestButtonAssembly" Margin="5" Grid.Row="1" Grid.Column="0" Click="TestButtonAssembly_Click" >Assembly Test</Button>
+                <Button Height="24" x:Name="TestApplicationConfig" Margin="5" Grid.Row="1" Grid.Column="1" Click="TestApplicationConfig_Click"  >TestApplication Config</Button>
+                <Button Height="24" x:Name="TestKeywords" Margin="5" Grid.Row="2" Grid.Column="0" Click="TestKeywords_Click" >Test Key Words</Button>
+                <Button Height="24" x:Name="TestAction" Margin="5" Grid.Row="2" Grid.Column="1" Click="TestAction_Click" >Action</Button>
+                 -->
+            </Grid>
+
+        </DockPanel>
+
+
+
+    </Grid>
+</Window>

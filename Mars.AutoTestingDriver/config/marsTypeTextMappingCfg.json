@@ -1,0 +1,34 @@
+{
+	"imageButtonConvert": [
+		{
+			"type": "Summit.Framework.View.ImageButtonControl",
+			"propertyName": "Checked",
+			"objectHappyName": "TRADE_SELL",
+			"valueMapping": [
+				{
+					"v": "true",
+					"t": "SELL"
+				},
+				{
+					"v": "false",
+					"t": "BUY"
+				}
+			]
+		},
+		{
+			"type": "Summit.Framework.View.ImageButtonControl",
+			"propertyName": "Checked",
+			"objectHappyName": "TRADE_BUY",
+			"valueMapping": [
+				{
+					"v": "true",
+					"t": "SELL"
+				},
+				{
+					"v": "false",
+					"t": "BUY"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,2677 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="MarsEntities.Store" Provider="Oracle.ManagedDataAccess.Client" ProviderManifestToken="11.2" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="REL_APP_PROJ">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="APPLICATION_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="PROJECT_ID" Type="number" Precision="16" Scale="0" />
+        </EntityType>
+        <EntityType Name="REL_APP_TESTCASE">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="APPLICATION_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TEST_CASE_ID" Type="number" Precision="16" Scale="0" />
+        </EntityType>
+        <EntityType Name="REL_APP_TESTSUITE">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="APPLICATION_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TEST_SUITE_ID" Type="number" Precision="16" Scale="0" />
+        </EntityType>
+        <EntityType Name="REL_TC_DATA_SUMMARY">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="DATA_SUMMARY_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TEST_CASE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="CREATE_TIME" Type="date" />
+        </EntityType>
+        <EntityType Name="REL_TEST_CASE_TEST_SUITE">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="TEST_CASE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TEST_SUITE_ID" Type="number" Precision="16" Scale="0" />
+        </EntityType>
+        <EntityType Name="REL_TEST_SUIT_PROJECT">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="TEST_SUITE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="PROJECT_ID" Type="number" Precision="16" Scale="0" />
+        </EntityType>
+        <EntityType Name="SYSTEM_LOOKUP">
+          <Key>
+            <PropertyRef Name="LOOKUP_ID" />
+          </Key>
+          <Property Name="LOOKUP_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="TABLE_NAME" Type="varchar2" MaxLength="32" />
+          <Property Name="FIELD_NAME" Type="varchar2" MaxLength="32" />
+          <Property Name="VALUE" Type="number" Precision="2" Scale="0" />
+          <Property Name="DISPLAY_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="STATUS" Type="number" Precision="2" Scale="0" />
+        </EntityType>
+        <EntityType Name="T_COMPARE_CONFIG">
+          <Key>
+            <PropertyRef Name="COMPARE_ID" />
+          </Key>
+          <Property Name="COMPARE_ID" Type="number" Precision="38" Scale="0" Nullable="false" />
+          <Property Name="COMPARE_NAME" Type="varchar2" MaxLength="30" Nullable="false" />
+          <Property Name="S1_TYPE" Type="varchar2" MaxLength="30" Nullable="false" />
+          <Property Name="S1_DBCONN" Type="varchar2" MaxLength="30" />
+          <Property Name="S1_QUERY" Type="varchar2" MaxLength="30" />
+          <Property Name="S1_FILE_LOC" Type="varchar2" MaxLength="50" />
+          <Property Name="S2_TYPE" Type="varchar2" MaxLength="30" Nullable="false" />
+          <Property Name="S2_DBCONN" Type="varchar2" MaxLength="30" />
+          <Property Name="S2_QUERY" Type="varchar2" MaxLength="30" />
+          <Property Name="S2_FILE_LOC" Type="varchar2" MaxLength="50" />
+          <Property Name="O_FILE_LOC" Type="varchar2" MaxLength="50" Nullable="false" />
+          <Property Name="KEY_FIELDS" Type="varchar2" MaxLength="100" />
+          <Property Name="SHOW_FIELDS" Type="varchar2" MaxLength="100" />
+          <Property Name="COMPARE_FIELDS" Type="varchar2" MaxLength="100" />
+          <Property Name="ROW_FIELDS" Type="varchar2" MaxLength="100" />
+          <Property Name="COLUMN_FIELDS" Type="varchar2" MaxLength="100" />
+        </EntityType>
+        <EntityType Name="T_COMPARE_CONNECTIONS">
+          <Key>
+            <PropertyRef Name="DBCONN_ID" />
+          </Key>
+          <Property Name="DBCONN_ID" Type="number" Precision="38" Scale="0" Nullable="false" />
+          <Property Name="DBCONN_NAME" Type="varchar2" MaxLength="30" Nullable="false" />
+          <Property Name="TYPE" Type="varchar2" MaxLength="30" Nullable="false" />
+          <Property Name="HOST" Type="varchar2" MaxLength="30" Nullable="false" />
+          <Property Name="PORT" Type="varchar2" MaxLength="30" Nullable="false" />
+          <Property Name="PROTOCOL" Type="varchar2" MaxLength="30" Nullable="false" />
+          <Property Name="SERVICE_NAME" Type="varchar2" MaxLength="30" Nullable="false" />
+          <Property Name="USERID" Type="varchar2" MaxLength="30" Nullable="false" />
+          <Property Name="PASSWORD" Type="varchar2" MaxLength="30" Nullable="false" />
+        </EntityType>
+        <EntityType Name="T_COMPARE_QUERIES">
+          <Key>
+            <PropertyRef Name="QUERY_ID" />
+          </Key>
+          <Property Name="QUERY_ID" Type="number" Precision="38" Scale="0" Nullable="false" />
+          <Property Name="QUERY_NAME" Type="varchar2" MaxLength="30" Nullable="false" />
+          <Property Name="QUERY_VAL" Type="varchar2" MaxLength="2000" Nullable="false" />
+        </EntityType>
+        <EntityType Name="T_DATA_SOURCE">
+          <Key>
+            <PropertyRef Name="DATA_SOURCE_ID" />
+          </Key>
+          <Property Name="DATA_SOURCE_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="DATA_SOURCE_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="DATA_SOURCE_TYPE" Type="number" Precision="2" Scale="0" />
+          <Property Name="DETAILS" Type="clob" />
+          <Property Name="DB_CONNECTION" Type="varchar2" MaxLength="128" />
+          <Property Name="DB_TYPE" Type="number" Precision="2" Scale="0" />
+          <Property Name="TEST_CONNECTION" Type="varchar2" MaxLength="128" />
+        </EntityType>
+        <EntityType Name="T_DIC_RELATION_KEYWORD">
+          <Key>
+            <PropertyRef Name="RELATION_ID" />
+          </Key>
+          <Property Name="RELATION_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="TYPE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="KEY_WORD_ID" Type="number" Precision="16" Scale="0" />
+        </EntityType>
+        <EntityType Name="T_GUI_COMPONENT_TYPE_DIC">
+          <Key>
+            <PropertyRef Name="TYPE_ID" />
+          </Key>
+          <Property Name="TYPE_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="TYPE_NAME" Type="varchar2" MaxLength="32" />
+          <Property Name="APPLICATION_TYPE_ID" Type="number" Precision="2" Scale="0" />
+          <Property Name="DESCRIPTION" Type="varchar2" MaxLength="64" />
+        </EntityType>
+        <EntityType Name="T_KEYWORD">
+          <Key>
+            <PropertyRef Name="KEY_WORD_ID" />
+          </Key>
+          <Property Name="KEY_WORD_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="KEY_WORD_NAME" Type="varchar2" MaxLength="255" />
+          <Property Name="DESCRIPTION" Type="varchar2" MaxLength="64" />
+          <Property Name="KEY_WORD_POSITION_ID" Type="number" Precision="2" Scale="0" />
+          <Property Name="ENTRY_IN_DATA_FILE" Type="varchar2" MaxLength="8" />
+        </EntityType>
+        <EntityType Name="T_PROJ_TC_MGR">
+          <Key>
+            <PropertyRef Name="STORYBOARD_DETAIL_ID" />
+          </Key>
+          <Property Name="STORYBOARD_DETAIL_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="PROJECT_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TEST_CASE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="STORYBOARD_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="RUN_TYPE" Type="number" Precision="2" Scale="0" />
+          <Property Name="DEPENDS_ON" Type="number" Precision="16" Scale="0" />
+          <Property Name="RUN_ORDER" Type="number" Precision="16" Scale="0" />
+          <Property Name="LATEST_TEST_MARK_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="RECORD_VERSION" Type="number" Precision="38" Scale="0" />
+          <Property Name="ALIAS_NAME" Type="varchar2" MaxLength="64" />
+        </EntityType>
+        <EntityType Name="T_PROJ_TEST_RESULT">
+          <Key>
+            <PropertyRef Name="HIST_ID" />
+          </Key>
+          <Property Name="HIST_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="TEST_CASE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="STORYBOARD_DETAIL_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TEST_BEGIN_TIME" Type="date" />
+          <Property Name="TEST_END_TIME" Type="date" />
+          <Property Name="TEST_RESULT_IN_TEXT" Type="varchar2" MaxLength="2048" Nullable="false" />
+          <Property Name="TEST_MODE" Type="number" Precision="2" Scale="0" />
+          <Property Name="TEST_RESULT" Type="number" Precision="2" Scale="0" />
+          <Property Name="TESTER_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="CREATE_TIME" Type="date" />
+          <Property Name="LATEST_TEST_MARK_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="RELY_TEST_CASE_ID" Type="number" Precision="16" Scale="0" />
+        </EntityType>
+        <EntityType Name="T_PROJECT_DATA_SOURCE">
+          <Key>
+            <PropertyRef Name="PRO_DBS_ID" />
+          </Key>
+          <Property Name="PRO_DBS_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="PROJECT_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="DATA_SOURCE_ID" Type="number" Precision="16" Scale="0" />
+        </EntityType>
+        <EntityType Name="T_REGISTED_OBJECT">
+          <Key>
+            <PropertyRef Name="OBJECT_ID" />
+          </Key>
+          <Property Name="OBJECT_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="OBJECT_HAPPY_NAME" Type="varchar2" MaxLength="255" />
+          <Property Name="APPLICATION_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TYPE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="QUICK_ACCESS" Type="varchar2" MaxLength="128" />
+          <Property Name="OBJECT_TYPE" Type="varchar2" MaxLength="32" />
+          <Property Name="COMMENT" Type="varchar2" MaxLength="128" />
+          <Property Name="ENUM_TYPE" Type="varchar2" MaxLength="100" />
+        </EntityType>
+        <EntityType Name="T_REGISTERED_APPS">
+          <Key>
+            <PropertyRef Name="APPLICATION_ID" />
+          </Key>
+          <Property Name="APPLICATION_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="APP_SHORT_NAME" Type="varchar2" MaxLength="32" />
+          <Property Name="PROCESS_IDENTIFIER" Type="varchar2" MaxLength="32" />
+          <Property Name="STARTER_PATH" Type="varchar2" MaxLength="128" />
+          <Property Name="STARTER_COMMAND" Type="varchar2" MaxLength="128" />
+          <Property Name="VERSION" Type="varchar2" MaxLength="10" />
+          <Property Name="COMMENT" Type="varchar2" MaxLength="128" />
+          <Property Name="APPLICATION_TYPE_ID" Type="number" Precision="2" Scale="0" />
+          <Property Name="RECORD_CREATE_PERSON" Type="varchar2" MaxLength="32" />
+          <Property Name="RECORD_CREATE_DATE" Type="date" />
+          <Property Name="EXTRAREQUIREMENT" Type="varchar2" MaxLength="256" />
+          <Property Name="EXTRAPOPUPMENU" Type="varchar2" MaxLength="32" />
+        </EntityType>
+        <EntityType Name="T_SHARED_OBJECT_POOL">
+          <Key>
+            <PropertyRef Name="OBJECT_POOL_ID" />
+          </Key>
+          <Property Name="OBJECT_POOL_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="DATA_SUMMARY_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="OBJECT_NAME" Type="varchar2" MaxLength="32" />
+          <Property Name="OBJECT_ORDER" Type="number" Precision="16" Scale="0" />
+          <Property Name="LOOP_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="DATA_VALUE" Type="varchar2" MaxLength="128" />
+          <Property Name="CREATE_TIME" Type="date" />
+          <Property Name="VERSION" Type="number" Precision="16" Scale="0" />
+        </EntityType>
+        <EntityType Name="T_STORYBOARD_HISTORY">
+          <Key>
+            <PropertyRef Name="DASHBOARD_HIST_ID" />
+          </Key>
+          <Property Name="DASHBOARD_HIST_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="STORYBOARD_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="VERION" Type="number" Precision="16" Scale="0" />
+          <Property Name="CREATE_TIME" Type="date" />
+          <Property Name="CREATOR" Type="number" Precision="16" Scale="0" />
+          <Property Name="STORYBOARD_NAME" Type="varchar2" MaxLength="128" />
+          <Property Name="ASSIGNED_PROJECT_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="DESCRIPTION" Type="varchar2" MaxLength="128" />
+          <Property Name="HISTORY_CREATE_TIME" Type="date" />
+          <Property Name="REASON" Type="varchar2" MaxLength="128" />
+        </EntityType>
+        <EntityType Name="T_STORYBOARD_SUMMARY">
+          <Key>
+            <PropertyRef Name="STORYBOARD_ID" />
+          </Key>
+          <Property Name="STORYBOARD_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="CREATE_TIME" Type="date" />
+          <Property Name="LATEST_VERISON" Type="number" Precision="38" Scale="0" />
+          <Property Name="DESCRIPTION" Type="varchar2" MaxLength="128" />
+          <Property Name="CREATER" Type="number" Precision="16" Scale="0" />
+          <Property Name="ASSIGNED_PROJECT_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="STORYBOARD_NAME" Type="varchar2" MaxLength="128" />
+        </EntityType>
+        <EntityType Name="T_TEST_CASE_SUMMARY">
+          <Key>
+            <PropertyRef Name="TEST_CASE_ID" />
+          </Key>
+          <Property Name="TEST_CASE_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="TEST_CASE_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="TEST_STEP_DESCRIPTION" Type="varchar2" MaxLength="128" />
+          <Property Name="TEST_STEP_CREATOR" Type="varchar2" MaxLength="32" />
+          <Property Name="TEST_STEP_CREATE_TIME" Type="date" />
+          <Property Name="USAGE_STATUS" Type="number" Precision="2" Scale="0" />
+        </EntityType>
+        <EntityType Name="T_TEST_CASE_VERSION">
+          <Key>
+            <PropertyRef Name="TC_VERSOIN_ID" />
+          </Key>
+          <Property Name="TC_VERSOIN_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="TEST_CASE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="VERSION_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="VERSION_DESC" Type="varchar2" MaxLength="128" />
+          <Property Name="VERSION_NUMBER" Type="number" Precision="16" Scale="0" />
+          <Property Name="AVAILABLE_MARK" Type="number" Precision="2" Scale="0" />
+          <Property Name="CREATE_TIME" Type="date" />
+          <Property Name="CREATOR_ID" Type="number" Precision="16" Scale="0" />
+        </EntityType>
+        <EntityType Name="T_TEST_DATA_SUMMARY">
+          <Key>
+            <PropertyRef Name="DATA_SUMMARY_ID" />
+          </Key>
+          <Property Name="DATA_SUMMARY_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="ALIAS_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="DESCRIPTION_INFO" Type="varchar2" MaxLength="128" />
+          <Property Name="AVAILABLE_MARK" Type="number" Precision="2" Scale="0" />
+          <Property Name="VERSION" Type="number" Precision="16" Scale="0" />
+          <Property Name="SHARE_MARK" Type="number" Precision="2" Scale="0" />
+          <Property Name="CREATE_TIME" Type="date" />
+          <Property Name="STATUS" Type="number" Precision="2" Scale="0" />
+          <Property Name="DATA_SET_TYPE" Type="number" Precision="2" Scale="0" />
+        </EntityType>
+        <EntityType Name="T_TEST_ENUM">
+          <Key>
+            <PropertyRef Name="ENUM_ID" />
+          </Key>
+          <Property Name="ENUM_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="ENUM_TYPE" Type="varchar2" MaxLength="100" />
+          <Property Name="ENUM_VALUE" Type="varchar2" MaxLength="255" />
+        </EntityType>
+        <EntityType Name="T_TEST_PROJECT">
+          <Key>
+            <PropertyRef Name="PROJECT_ID" />
+          </Key>
+          <Property Name="PROJECT_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="PROJECT_NAME" Type="varchar2" MaxLength="32" />
+          <Property Name="PROJECT_DESCRIPTION" Type="varchar2" MaxLength="128" />
+          <Property Name="CREATOR" Type="varchar2" MaxLength="32" />
+          <Property Name="CREATE_DATE" Type="date" />
+          <Property Name="STATUS" Type="number" Precision="2" Scale="0" />
+        </EntityType>
+        <EntityType Name="T_TEST_REPORT">
+          <Key>
+            <PropertyRef Name="TEST_REPORT_ID" />
+          </Key>
+          <Property Name="TEST_REPORT_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="TEST_CASE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="LOOP_ID" Type="number" Precision="38" Scale="0" />
+          <Property Name="BEGIN_TIME" Type="date" />
+          <Property Name="END_TIME" Type="date" />
+          <Property Name="RUNNING_RESULT" Type="number" Precision="2" Scale="0" />
+          <Property Name="RETURN_VALUES" Type="varchar2" MaxLength="64" />
+          <Property Name="RUNNING_RESULT_INFO" Type="varchar2" MaxLength="128" />
+          <Property Name="HIST_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="APPLICATION_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TEST_MODE" Type="number" Precision="2" Scale="0" />
+        </EntityType>
+        <EntityType Name="T_TEST_REPORT_STEPS">
+          <Key>
+            <PropertyRef Name="TEST_REPORT_STEP_ID" />
+          </Key>
+          <Property Name="TEST_REPORT_STEP_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="TEST_REPORT_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="STEPS_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="BEGIN_TIME" Type="date" />
+          <Property Name="END_TIME" Type="date" />
+          <Property Name="RUNNING_RESULT" Type="number" Precision="2" Scale="0" />
+          <Property Name="RETURN_VALUES" Type="varchar2" MaxLength="64" />
+          <Property Name="RUNNING_RESULT_INFO" Type="varchar2" MaxLength="128" />
+          <Property Name="DATA_SUMMARY_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="INPUT_VALUE_SETTING" Type="varchar2" MaxLength="128" />
+          <Property Name="ACTUAL_INPUT_DATA" Type="varchar2" MaxLength="128" />
+          <Property Name="DATA_ORDER" Type="number" Precision="16" Scale="0" />
+        </EntityType>
+        <EntityType Name="T_TEST_STEPS">
+          <Key>
+            <PropertyRef Name="STEPS_ID" />
+          </Key>
+          <Property Name="STEPS_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="RUN_ORDER" Type="number" Precision="38" Scale="0" />
+          <Property Name="KEY_WORD_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TEST_CASE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="OBJECT_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="COLUMN_ROW_SETTING" Type="varchar2" MaxLength="128" />
+          <Property Name="VALUE_SETTING" Type="varchar2" MaxLength="128" />
+          <Property Name="COMMENT" Type="varchar2" MaxLength="128" />
+          <Property Name="IS_RUNNABLE" Type="number" Precision="38" Scale="0" />
+        </EntityType>
+        <EntityType Name="T_TEST_SUITE">
+          <Key>
+            <PropertyRef Name="TEST_SUITE_ID" />
+          </Key>
+          <Property Name="TEST_SUITE_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="TEST_SUITE_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="TEST_SUITE_DESCRIPTION" Type="varchar2" MaxLength="128" />
+        </EntityType>
+        <EntityType Name="TEST_DATA_SETTING">
+          <Key>
+            <PropertyRef Name="DATA_SETTING_ID" />
+          </Key>
+          <Property Name="DATA_SETTING_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="STEPS_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="LOOP_ID" Type="number" Precision="38" Scale="0" />
+          <Property Name="DATA_VALUE" Type="varchar2" MaxLength="128" />
+          <Property Name="VALUE_OR_OBJECT" Type="number" Precision="2" Scale="0" />
+          <Property Name="DESCRIPTION" Type="varchar2" MaxLength="128" />
+          <Property Name="DATA_SUMMARY_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="DATA_DIRECTION" Type="number" Precision="2" Scale="0" />
+          <Property Name="VERSION" Type="number" Precision="16" Scale="0" />
+          <Property Name="CREATE_TIME" Type="date" />
+          <Property Name="POOL_ID" Type="number" Precision="16" Scale="0" />
+        </EntityType>
+        <!--生成过程中发现错误:
+警告 6002: 表/视图“TESTIDE2.TEST_CASE_VIEW”未定义主键。已推断出该键，并将定义创建为只读的表/视图。-->
+        <EntityType Name="TEST_CASE_VIEW">
+          <Key>
+            <PropertyRef Name="OBJECT_ID" />
+          </Key>
+          <Property Name="PROJECT_NAME" Type="varchar2" MaxLength="32" />
+          <Property Name="TEST_SUITE_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="TEST_CASE_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="KEY_WORD_NAME" Type="varchar2" MaxLength="255" />
+          <Property Name="OBJECT_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="OBJECT_HAPPY_NAME" Type="varchar2" MaxLength="255" />
+          <Property Name="COLUMN_ROW_SETTING" Type="varchar2" MaxLength="128" />
+          <Property Name="DATA_VALUE" Type="varchar2" MaxLength="128" />
+          <Property Name="LOOP_ID" Type="number" Precision="38" Scale="0" />
+        </EntityType>
+        <!--生成过程中发现错误:
+警告 6002: 表/视图“TESTIDE2.TEST_CASE_VIEW2”未定义主键。已推断出该键，并将定义创建为只读的表/视图。-->
+        <EntityType Name="TEST_CASE_VIEW2">
+          <Key>
+            <PropertyRef Name="OBJECT_ID" />
+            <PropertyRef Name="STEPS_ID" />
+          </Key>
+          <Property Name="PROJECT_NAME" Type="varchar2" MaxLength="32" />
+          <Property Name="TEST_SUITE_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="TEST_CASE_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="KEY_WORD_NAME" Type="varchar2" MaxLength="255" />
+          <Property Name="OBJECT_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="OBJECT_HAPPY_NAME" Type="varchar2" MaxLength="255" />
+          <Property Name="COLUMN_ROW_SETTING" Type="varchar2" MaxLength="128" />
+          <Property Name="DATA_VALUE" Type="varchar2" MaxLength="128" />
+          <Property Name="LOOP_ID" Type="number" Precision="38" Scale="0" />
+          <Property Name="STEPS_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+        </EntityType>
+        <!--生成过程中发现错误:
+警告 6002: 表/视图“TESTIDE2.TEST_OBJECT_VIEW”未定义主键。已推断出该键，并将定义创建为只读的表/视图。-->
+        <EntityType Name="TEST_OBJECT_VIEW">
+          <Key>
+            <PropertyRef Name="OBJECT_ID" />
+          </Key>
+          <Property Name="OBJECT_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="OBJECT_HAPPY_NAME" Type="varchar2" MaxLength="255" />
+          <Property Name="APPLICATION_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TYPE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="QUICK_ACCESS" Type="varchar2" MaxLength="128" />
+          <Property Name="OBJECT_TYPE" Type="varchar2" MaxLength="32" />
+          <Property Name="COMMENT" Type="varchar2" MaxLength="128" />
+          <Property Name="ENUM_TYPE" Type="varchar2" MaxLength="100" />
+          <Property Name="APP_SHORT_NAME" Type="varchar2" MaxLength="32" />
+          <Property Name="TYPE_NAME" Type="varchar2" MaxLength="32" />
+        </EntityType>
+        <!--生成过程中发现错误:
+警告 6002: 表/视图“TESTIDE2.TEST_PROJECT_VIEW”未定义主键。已推断出该键，并将定义创建为只读的表/视图。-->
+        <EntityType Name="TEST_PROJECT_VIEW">
+          <Key>
+            <PropertyRef Name="PROJECT_ID" />
+            <PropertyRef Name="TEST_SUITE_ID" />
+            <PropertyRef Name="APPLICATION_ID" />
+          </Key>
+          <Property Name="PROJECT_NAME" Type="varchar2" MaxLength="32" />
+          <Property Name="PROJECT_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="TEST_SUITE_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="TEST_SUITE_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="APP_SHORT_NAME" Type="varchar2" MaxLength="32" />
+          <Property Name="APPLICATION_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+        </EntityType>
+        <!--生成过程中发现错误:
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“DASHBOARD_ID”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“PROJECT_ID”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“PROJECT_NAME”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“PROJECT_DESCRIPTION”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“TEST_CASE_NAME”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“TEST_CASE_ID”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“TEST_STEP_DESCRIPTION”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“TEST_SUITE_ID”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“TEST_SUITE_DESCRIPTION”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“RUN_ORDER”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“RELY_ON”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“ALIAS_NAME”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“DISPLAY_NAME”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“TEST_RUN_VALUE”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“LATEST_TEST_MARK_ID”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“HIS_LATEST_TEST_MARK_ID”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“HIS_ID”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“HIS_TEST_ID”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“TEST_CASE_BEGIN_TIME”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“TEST_CASE_END_TIME”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“HIST_TEST_RESULT_IN_TEXT”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“HIST_TEST_MODE”。
+警告 6005: 目标实体框架版本目前不支持数据类型“undefined”；已排除表“TESTIDE2.V_ALEX_TEST”中的列“HIS_RESULT”。
+警告 6013: 表/视图“TESTIDE2.V_ALEX_TEST”未定义主键，并且无法推断有效的主键。已排除了此表/视图。若要使用实体，将需要检查您的架构、添加正确的键并取消对实体的注释。
+        <EntityType Name="V_ALEX_TEST" />-->
+        <!--生成过程中发现错误:
+警告 6002: 表/视图“TESTIDE2.V_OBJECT_APPS”未定义主键。已推断出该键，并将定义创建为只读的表/视图。-->
+        <EntityType Name="V_OBJECT_APPS">
+          <Key>
+            <PropertyRef Name="OBJECT_ID" />
+          </Key>
+          <Property Name="APPLICATION_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="OBJECT_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="COMMENT" Type="varchar2" MaxLength="128" />
+          <Property Name="ENUM_TYPE" Type="varchar2" MaxLength="100" />
+          <Property Name="OBJECT_HAPPY_NAME" Type="varchar2" MaxLength="255" />
+          <Property Name="OBJECT_TYPE" Type="varchar2" MaxLength="32" />
+          <Property Name="QUICK_ACCESS" Type="varchar2" MaxLength="128" />
+          <Property Name="TYPE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="APP_APPLICATION_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="APP_SHORT_NAME" Type="varchar2" MaxLength="32" />
+          <Property Name="APPLICATION_TYPE_ID" Type="number" Precision="2" Scale="0" />
+          <Property Name="COMMENT_APP" Type="varchar2" MaxLength="128" />
+          <Property Name="EXTRAPOPUPMENU" Type="varchar2" MaxLength="32" />
+          <Property Name="EXTRAREQUIREMENT" Type="varchar2" MaxLength="256" />
+          <Property Name="PROCESS_IDENTIFIER" Type="varchar2" MaxLength="32" />
+          <Property Name="STARTER_COMMAND" Type="varchar2" MaxLength="128" />
+          <Property Name="STARTER_PATH" Type="varchar2" MaxLength="128" />
+          <Property Name="VERSION" Type="varchar2" MaxLength="10" />
+          <Property Name="TYPE_APPLICATION_TYPE_ID" Type="number" Precision="2" Scale="0" />
+          <Property Name="TYPE_DESCRPTION" Type="varchar2" MaxLength="64" />
+          <Property Name="TYP_TYPE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TYPE_NAME" Type="varchar2" MaxLength="32" />
+        </EntityType>
+        <!--生成过程中发现错误:
+警告 6002: 表/视图“TESTIDE2.V_STORYBOARD_TEST_FULLVISION”未定义主键。已推断出该键，并将定义创建为只读的表/视图。-->
+        <EntityType Name="V_STORYBOARD_TEST_FULLVISION">
+          <Key>
+            <PropertyRef Name="STORYBOARD_DETAIL_ID" />
+          </Key>
+          <Property Name="STORYBOARD_DETAIL_ID" Type="number" Precision="16" Scale="0" Nullable="false" />
+          <Property Name="STORYBOARD_NAME" Type="varchar2" MaxLength="128" />
+          <Property Name="PROJECT_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="PROJECT_NAME" Type="varchar2" MaxLength="32" />
+          <Property Name="PROJECT_DESCRIPTION" Type="varchar2" MaxLength="128" />
+          <Property Name="TEST_CASE_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="TEST_CASE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TEST_STEP_DESCRIPTION" Type="varchar2" MaxLength="128" />
+          <Property Name="TEST_SUITE_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TEST_SUITE_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="TEST_SUITE_DESCRIPTION" Type="varchar2" MaxLength="128" />
+          <Property Name="RUN_ORDER" Type="number" Precision="16" Scale="0" />
+          <Property Name="DEPENDS_ON" Type="number" Precision="16" Scale="0" />
+          <Property Name="ALIAS_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="PARENT_ALIAS_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="DISPLAY_NAME" Type="varchar2" MaxLength="64" />
+          <Property Name="TEST_RUN_VALUE" Type="number" Precision="2" Scale="0" />
+          <Property Name="LATEST_TEST_MARK_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="HIST_LATEST_TEST_MARK_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="HIST_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="HIST_TEST_ID" Type="number" Precision="16" Scale="0" />
+          <Property Name="TEST_CASE_BEGIN_TIME" Type="date" />
+          <Property Name="TEST_CASE_END_TIME" Type="date" />
+          <Property Name="HIST_TEST_RESULT_IN_TEXT" Type="varchar2" MaxLength="2048" />
+          <Property Name="HIST_TEST_MODE" Type="number" Precision="2" Scale="0" />
+          <Property Name="HIST_RESULT" Type="number" Precision="2" Scale="0" />
+        </EntityType>
+        <Association Name="FK_REL_APP__REFERENCE_T_TEST_P">
+          <End Role="T_TEST_PROJECT" Type="Self.T_TEST_PROJECT" Multiplicity="0..1" />
+          <End Role="REL_APP_PROJ" Type="Self.REL_APP_PROJ" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Principal>
+            <Dependent Role="REL_APP_PROJ">
+              <PropertyRef Name="PROJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TC_D_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="REL_TC_DATA_SUMMARY" Type="Self.REL_TC_DATA_SUMMARY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="REL_TC_DATA_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TC_D_REFERENCE_T_TEST_D">
+          <End Role="T_TEST_DATA_SUMMARY" Type="Self.T_TEST_DATA_SUMMARY" Multiplicity="0..1" />
+          <End Role="REL_TC_DATA_SUMMARY" Type="Self.REL_TC_DATA_SUMMARY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_DATA_SUMMARY">
+              <PropertyRef Name="DATA_SUMMARY_ID" />
+            </Principal>
+            <Dependent Role="REL_TC_DATA_SUMMARY">
+              <PropertyRef Name="DATA_SUMMARY_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TEST_REFERENCE_T_TEST_2">
+          <End Role="T_TEST_SUITE" Type="Self.T_TEST_SUITE" Multiplicity="0..1" />
+          <End Role="REL_TEST_CASE_TEST_SUITE" Type="Self.REL_TEST_CASE_TEST_SUITE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_SUITE">
+              <PropertyRef Name="TEST_SUITE_ID" />
+            </Principal>
+            <Dependent Role="REL_TEST_CASE_TEST_SUITE">
+              <PropertyRef Name="TEST_SUITE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TEST_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="REL_TEST_CASE_TEST_SUITE" Type="Self.REL_TEST_CASE_TEST_SUITE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="REL_TEST_CASE_TEST_SUITE">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TEST_REFERENCE_T_TEST_P">
+          <End Role="T_TEST_PROJECT" Type="Self.T_TEST_PROJECT" Multiplicity="0..1" />
+          <End Role="REL_TEST_SUIT_PROJECT" Type="Self.REL_TEST_SUIT_PROJECT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Principal>
+            <Dependent Role="REL_TEST_SUIT_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TEST_REFERENCE_T_TEST_S">
+          <End Role="T_TEST_SUITE" Type="Self.T_TEST_SUITE" Multiplicity="0..1" />
+          <End Role="REL_TEST_SUIT_PROJECT" Type="Self.REL_TEST_SUIT_PROJECT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_SUITE">
+              <PropertyRef Name="TEST_SUITE_ID" />
+            </Principal>
+            <Dependent Role="REL_TEST_SUIT_PROJECT">
+              <PropertyRef Name="TEST_SUITE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_DIC_RE_REFERENCE_T_GUI_CO">
+          <End Role="T_GUI_COMPONENT_TYPE_DIC" Type="Self.T_GUI_COMPONENT_TYPE_DIC" Multiplicity="0..1" />
+          <End Role="T_DIC_RELATION_KEYWORD" Type="Self.T_DIC_RELATION_KEYWORD" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_GUI_COMPONENT_TYPE_DIC">
+              <PropertyRef Name="TYPE_ID" />
+            </Principal>
+            <Dependent Role="T_DIC_RELATION_KEYWORD">
+              <PropertyRef Name="TYPE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_DIC_RE_REFERENCE_T_KEYWOR">
+          <End Role="T_KEYWORD" Type="Self.T_KEYWORD" Multiplicity="0..1" />
+          <End Role="T_DIC_RELATION_KEYWORD" Type="Self.T_DIC_RELATION_KEYWORD" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_KEYWORD">
+              <PropertyRef Name="KEY_WORD_ID" />
+            </Principal>
+            <Dependent Role="T_DIC_RELATION_KEYWORD">
+              <PropertyRef Name="KEY_WORD_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_PROJ_T_REFERENCE_T_STORYB">
+          <End Role="T_STORYBOARD_SUMMARY" Type="Self.T_STORYBOARD_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_PROJ_TC_MGR" Type="Self.T_PROJ_TC_MGR" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_STORYBOARD_SUMMARY">
+              <PropertyRef Name="STORYBOARD_ID" />
+            </Principal>
+            <Dependent Role="T_PROJ_TC_MGR">
+              <PropertyRef Name="STORYBOARD_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_PROJ_T_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_PROJ_TC_MGR" Type="Self.T_PROJ_TC_MGR" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="T_PROJ_TC_MGR">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_PROJ_T_REFERENCE_T_TEST_P">
+          <End Role="T_TEST_PROJECT" Type="Self.T_TEST_PROJECT" Multiplicity="0..1" />
+          <End Role="T_PROJ_TC_MGR" Type="Self.T_PROJ_TC_MGR" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Principal>
+            <Dependent Role="T_PROJ_TC_MGR">
+              <PropertyRef Name="PROJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_PROJEC_REFERENCE_T_DATA_S">
+          <End Role="T_DATA_SOURCE" Type="Self.T_DATA_SOURCE" Multiplicity="0..1" />
+          <End Role="T_PROJECT_DATA_SOURCE" Type="Self.T_PROJECT_DATA_SOURCE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_DATA_SOURCE">
+              <PropertyRef Name="DATA_SOURCE_ID" />
+            </Principal>
+            <Dependent Role="T_PROJECT_DATA_SOURCE">
+              <PropertyRef Name="DATA_SOURCE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_PROJEC_REFERENCE_T_TEST_P">
+          <End Role="T_TEST_PROJECT" Type="Self.T_TEST_PROJECT" Multiplicity="0..1" />
+          <End Role="T_PROJECT_DATA_SOURCE" Type="Self.T_PROJECT_DATA_SOURCE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Principal>
+            <Dependent Role="T_PROJECT_DATA_SOURCE">
+              <PropertyRef Name="PROJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_REGIST_REFERENCE_T_GUI_CO">
+          <End Role="T_GUI_COMPONENT_TYPE_DIC" Type="Self.T_GUI_COMPONENT_TYPE_DIC" Multiplicity="0..1" />
+          <End Role="T_REGISTED_OBJECT" Type="Self.T_REGISTED_OBJECT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_GUI_COMPONENT_TYPE_DIC">
+              <PropertyRef Name="TYPE_ID" />
+            </Principal>
+            <Dependent Role="T_REGISTED_OBJECT">
+              <PropertyRef Name="TYPE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_SHARED_REFERENCE_T_TEST_D">
+          <End Role="T_TEST_DATA_SUMMARY" Type="Self.T_TEST_DATA_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_SHARED_OBJECT_POOL" Type="Self.T_SHARED_OBJECT_POOL" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_DATA_SUMMARY">
+              <PropertyRef Name="DATA_SUMMARY_ID" />
+            </Principal>
+            <Dependent Role="T_SHARED_OBJECT_POOL">
+              <PropertyRef Name="DATA_SUMMARY_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_STORYB_REFERENCE_T_STORYB">
+          <End Role="T_STORYBOARD_SUMMARY" Type="Self.T_STORYBOARD_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_STORYBOARD_HISTORY" Type="Self.T_STORYBOARD_HISTORY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_STORYBOARD_SUMMARY">
+              <PropertyRef Name="STORYBOARD_ID" />
+            </Principal>
+            <Dependent Role="T_STORYBOARD_HISTORY">
+              <PropertyRef Name="STORYBOARD_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_C_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_TEST_CASE_VERSION" Type="Self.T_TEST_CASE_VERSION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_CASE_VERSION">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_R_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_TEST_REPORT" Type="Self.T_TEST_REPORT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_REPORT">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_R_REFERENCE_T_TEST_R">
+          <End Role="T_TEST_REPORT" Type="Self.T_TEST_REPORT" Multiplicity="0..1" />
+          <End Role="T_TEST_REPORT_STEPS" Type="Self.T_TEST_REPORT_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_REPORT">
+              <PropertyRef Name="TEST_REPORT_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_REPORT_STEPS">
+              <PropertyRef Name="TEST_REPORT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_R_REFERENCE_T_TEST_S">
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="0..1" />
+          <End Role="T_TEST_REPORT_STEPS" Type="Self.T_TEST_REPORT_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_STEPS">
+              <PropertyRef Name="STEPS_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_REPORT_STEPS">
+              <PropertyRef Name="STEPS_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_S_REFERENCE_T_KEYWOR">
+          <End Role="T_KEYWORD" Type="Self.T_KEYWORD" Multiplicity="0..1" />
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_KEYWORD">
+              <PropertyRef Name="KEY_WORD_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_STEPS">
+              <PropertyRef Name="KEY_WORD_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_S_REFERENCE_T_REGIST">
+          <End Role="T_REGISTED_OBJECT" Type="Self.T_REGISTED_OBJECT" Multiplicity="0..1" />
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_REGISTED_OBJECT">
+              <PropertyRef Name="OBJECT_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_STEPS">
+              <PropertyRef Name="OBJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_S_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_STEPS">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TEST_DAT_REFERENCE_T_TEST_D">
+          <End Role="T_TEST_DATA_SUMMARY" Type="Self.T_TEST_DATA_SUMMARY" Multiplicity="0..1" />
+          <End Role="TEST_DATA_SETTING" Type="Self.TEST_DATA_SETTING" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_DATA_SUMMARY">
+              <PropertyRef Name="DATA_SUMMARY_ID" />
+            </Principal>
+            <Dependent Role="TEST_DATA_SETTING">
+              <PropertyRef Name="DATA_SUMMARY_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TEST_DAT_REFERENCE_T_TEST_S">
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="1" />
+          <End Role="TEST_DATA_SETTING" Type="Self.TEST_DATA_SETTING" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_STEPS">
+              <PropertyRef Name="STEPS_ID" />
+            </Principal>
+            <Dependent Role="TEST_DATA_SETTING">
+              <PropertyRef Name="STEPS_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Function Name="GETNEXT_VAL" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="TESTIDE2">
+          <Parameter Name="P_SEQUENCE_NAME" Type="varchar2" Mode="In" />
+          <Parameter Name="V_NEXTVAL" Type="number" Mode="Out" />
+        </Function>
+        <EntityContainer Name="MarsEntitiesStoreContainer">
+          <EntitySet Name="REL_APP_PROJ" EntityType="Self.REL_APP_PROJ" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="REL_APP_TESTCASE" EntityType="Self.REL_APP_TESTCASE" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="REL_APP_TESTSUITE" EntityType="Self.REL_APP_TESTSUITE" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="REL_TC_DATA_SUMMARY" EntityType="Self.REL_TC_DATA_SUMMARY" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="REL_TEST_CASE_TEST_SUITE" EntityType="Self.REL_TEST_CASE_TEST_SUITE" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="REL_TEST_SUIT_PROJECT" EntityType="Self.REL_TEST_SUIT_PROJECT" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="SYSTEM_LOOKUP" EntityType="Self.SYSTEM_LOOKUP" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_COMPARE_CONFIG" EntityType="Self.T_COMPARE_CONFIG" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_COMPARE_CONNECTIONS" EntityType="Self.T_COMPARE_CONNECTIONS" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_COMPARE_QUERIES" EntityType="Self.T_COMPARE_QUERIES" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_DATA_SOURCE" EntityType="Self.T_DATA_SOURCE" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_DIC_RELATION_KEYWORD" EntityType="Self.T_DIC_RELATION_KEYWORD" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_GUI_COMPONENT_TYPE_DIC" EntityType="Self.T_GUI_COMPONENT_TYPE_DIC" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_KEYWORD" EntityType="Self.T_KEYWORD" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_PROJ_TC_MGR" EntityType="Self.T_PROJ_TC_MGR" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_PROJ_TEST_RESULT" EntityType="Self.T_PROJ_TEST_RESULT" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_PROJECT_DATA_SOURCE" EntityType="Self.T_PROJECT_DATA_SOURCE" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_REGISTED_OBJECT" EntityType="Self.T_REGISTED_OBJECT" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_REGISTERED_APPS" EntityType="Self.T_REGISTERED_APPS" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_SHARED_OBJECT_POOL" EntityType="Self.T_SHARED_OBJECT_POOL" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_STORYBOARD_HISTORY" EntityType="Self.T_STORYBOARD_HISTORY" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_STORYBOARD_SUMMARY" EntityType="Self.T_STORYBOARD_SUMMARY" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_TEST_CASE_SUMMARY" EntityType="Self.T_TEST_CASE_SUMMARY" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_TEST_CASE_VERSION" EntityType="Self.T_TEST_CASE_VERSION" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_TEST_DATA_SUMMARY" EntityType="Self.T_TEST_DATA_SUMMARY" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_TEST_ENUM" EntityType="Self.T_TEST_ENUM" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_TEST_PROJECT" EntityType="Self.T_TEST_PROJECT" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_TEST_REPORT" EntityType="Self.T_TEST_REPORT" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_TEST_REPORT_STEPS" EntityType="Self.T_TEST_REPORT_STEPS" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_TEST_STEPS" EntityType="Self.T_TEST_STEPS" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="T_TEST_SUITE" EntityType="Self.T_TEST_SUITE" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="TEST_DATA_SETTING" EntityType="Self.TEST_DATA_SETTING" Schema="TESTIDE2" store:Type="Tables" />
+          <EntitySet Name="TEST_CASE_VIEW" EntityType="Self.TEST_CASE_VIEW" store:Type="Views" store:Schema="TESTIDE2">
+            <DefiningQuery>SELECT 
+"TEST_CASE_VIEW"."PROJECT_NAME" AS "PROJECT_NAME", 
+"TEST_CASE_VIEW"."TEST_SUITE_NAME" AS "TEST_SUITE_NAME", 
+"TEST_CASE_VIEW"."TEST_CASE_NAME" AS "TEST_CASE_NAME", 
+"TEST_CASE_VIEW"."KEY_WORD_NAME" AS "KEY_WORD_NAME", 
+"TEST_CASE_VIEW"."OBJECT_ID" AS "OBJECT_ID", 
+"TEST_CASE_VIEW"."OBJECT_HAPPY_NAME" AS "OBJECT_HAPPY_NAME", 
+"TEST_CASE_VIEW"."COLUMN_ROW_SETTING" AS "COLUMN_ROW_SETTING", 
+"TEST_CASE_VIEW"."DATA_VALUE" AS "DATA_VALUE", 
+"TEST_CASE_VIEW"."LOOP_ID" AS "LOOP_ID"
+FROM "TESTIDE2"."TEST_CASE_VIEW" "TEST_CASE_VIEW"</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="TEST_CASE_VIEW2" EntityType="Self.TEST_CASE_VIEW2" store:Type="Views" store:Schema="TESTIDE2">
+            <DefiningQuery>SELECT 
+"TEST_CASE_VIEW2"."PROJECT_NAME" AS "PROJECT_NAME", 
+"TEST_CASE_VIEW2"."TEST_SUITE_NAME" AS "TEST_SUITE_NAME", 
+"TEST_CASE_VIEW2"."TEST_CASE_NAME" AS "TEST_CASE_NAME", 
+"TEST_CASE_VIEW2"."KEY_WORD_NAME" AS "KEY_WORD_NAME", 
+"TEST_CASE_VIEW2"."OBJECT_ID" AS "OBJECT_ID", 
+"TEST_CASE_VIEW2"."OBJECT_HAPPY_NAME" AS "OBJECT_HAPPY_NAME", 
+"TEST_CASE_VIEW2"."COLUMN_ROW_SETTING" AS "COLUMN_ROW_SETTING", 
+"TEST_CASE_VIEW2"."DATA_VALUE" AS "DATA_VALUE", 
+"TEST_CASE_VIEW2"."LOOP_ID" AS "LOOP_ID", 
+"TEST_CASE_VIEW2"."STEPS_ID" AS "STEPS_ID"
+FROM "TESTIDE2"."TEST_CASE_VIEW2" "TEST_CASE_VIEW2"</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="TEST_OBJECT_VIEW" EntityType="Self.TEST_OBJECT_VIEW" store:Type="Views" store:Schema="TESTIDE2">
+            <DefiningQuery>SELECT 
+"TEST_OBJECT_VIEW"."OBJECT_ID" AS "OBJECT_ID", 
+"TEST_OBJECT_VIEW"."OBJECT_HAPPY_NAME" AS "OBJECT_HAPPY_NAME", 
+"TEST_OBJECT_VIEW"."APPLICATION_ID" AS "APPLICATION_ID", 
+"TEST_OBJECT_VIEW"."TYPE_ID" AS "TYPE_ID", 
+"TEST_OBJECT_VIEW"."QUICK_ACCESS" AS "QUICK_ACCESS", 
+"TEST_OBJECT_VIEW"."OBJECT_TYPE" AS "OBJECT_TYPE", 
+"TEST_OBJECT_VIEW"."COMMENT" AS "COMMENT", 
+"TEST_OBJECT_VIEW"."ENUM_TYPE" AS "ENUM_TYPE", 
+"TEST_OBJECT_VIEW"."APP_SHORT_NAME" AS "APP_SHORT_NAME", 
+"TEST_OBJECT_VIEW"."TYPE_NAME" AS "TYPE_NAME"
+FROM "TESTIDE2"."TEST_OBJECT_VIEW" "TEST_OBJECT_VIEW"</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="TEST_PROJECT_VIEW" EntityType="Self.TEST_PROJECT_VIEW" store:Type="Views" store:Schema="TESTIDE2">
+            <DefiningQuery>SELECT 
+"TEST_PROJECT_VIEW"."PROJECT_NAME" AS "PROJECT_NAME", 
+"TEST_PROJECT_VIEW"."PROJECT_ID" AS "PROJECT_ID", 
+"TEST_PROJECT_VIEW"."TEST_SUITE_NAME" AS "TEST_SUITE_NAME", 
+"TEST_PROJECT_VIEW"."TEST_SUITE_ID" AS "TEST_SUITE_ID", 
+"TEST_PROJECT_VIEW"."APP_SHORT_NAME" AS "APP_SHORT_NAME", 
+"TEST_PROJECT_VIEW"."APPLICATION_ID" AS "APPLICATION_ID"
+FROM "TESTIDE2"."TEST_PROJECT_VIEW" "TEST_PROJECT_VIEW"</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="V_OBJECT_APPS" EntityType="Self.V_OBJECT_APPS" store:Type="Views" store:Schema="TESTIDE2">
+            <DefiningQuery>SELECT 
+"V_OBJECT_APPS"."APPLICATION_ID" AS "APPLICATION_ID", 
+"V_OBJECT_APPS"."OBJECT_ID" AS "OBJECT_ID", 
+"V_OBJECT_APPS"."COMMENT" AS "COMMENT", 
+"V_OBJECT_APPS"."ENUM_TYPE" AS "ENUM_TYPE", 
+"V_OBJECT_APPS"."OBJECT_HAPPY_NAME" AS "OBJECT_HAPPY_NAME", 
+"V_OBJECT_APPS"."OBJECT_TYPE" AS "OBJECT_TYPE", 
+"V_OBJECT_APPS"."QUICK_ACCESS" AS "QUICK_ACCESS", 
+"V_OBJECT_APPS"."TYPE_ID" AS "TYPE_ID", 
+"V_OBJECT_APPS"."APP_APPLICATION_ID" AS "APP_APPLICATION_ID", 
+"V_OBJECT_APPS"."APP_SHORT_NAME" AS "APP_SHORT_NAME", 
+"V_OBJECT_APPS"."APPLICATION_TYPE_ID" AS "APPLICATION_TYPE_ID", 
+"V_OBJECT_APPS"."COMMENT_APP" AS "COMMENT_APP", 
+"V_OBJECT_APPS"."EXTRAPOPUPMENU" AS "EXTRAPOPUPMENU", 
+"V_OBJECT_APPS"."EXTRAREQUIREMENT" AS "EXTRAREQUIREMENT", 
+"V_OBJECT_APPS"."PROCESS_IDENTIFIER" AS "PROCESS_IDENTIFIER", 
+"V_OBJECT_APPS"."STARTER_COMMAND" AS "STARTER_COMMAND", 
+"V_OBJECT_APPS"."STARTER_PATH" AS "STARTER_PATH", 
+"V_OBJECT_APPS"."VERSION" AS "VERSION", 
+"V_OBJECT_APPS"."TYPE_APPLICATION_TYPE_ID" AS "TYPE_APPLICATION_TYPE_ID", 
+"V_OBJECT_APPS"."TYPE_DESCRPTION" AS "TYPE_DESCRPTION", 
+"V_OBJECT_APPS"."TYP_TYPE_ID" AS "TYP_TYPE_ID", 
+"V_OBJECT_APPS"."TYPE_NAME" AS "TYPE_NAME"
+FROM "TESTIDE2"."V_OBJECT_APPS" "V_OBJECT_APPS"</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="V_STORYBOARD_TEST_FULLVISION" EntityType="Self.V_STORYBOARD_TEST_FULLVISION" store:Type="Views" store:Schema="TESTIDE2">
+            <DefiningQuery>SELECT 
+"V_STORYBOARD_TEST_FULLVISION"."STORYBOARD_DETAIL_ID" AS "STORYBOARD_DETAIL_ID", 
+"V_STORYBOARD_TEST_FULLVISION"."STORYBOARD_NAME" AS "STORYBOARD_NAME", 
+"V_STORYBOARD_TEST_FULLVISION"."PROJECT_ID" AS "PROJECT_ID", 
+"V_STORYBOARD_TEST_FULLVISION"."PROJECT_NAME" AS "PROJECT_NAME", 
+"V_STORYBOARD_TEST_FULLVISION"."PROJECT_DESCRIPTION" AS "PROJECT_DESCRIPTION", 
+"V_STORYBOARD_TEST_FULLVISION"."TEST_CASE_NAME" AS "TEST_CASE_NAME", 
+"V_STORYBOARD_TEST_FULLVISION"."TEST_CASE_ID" AS "TEST_CASE_ID", 
+"V_STORYBOARD_TEST_FULLVISION"."TEST_STEP_DESCRIPTION" AS "TEST_STEP_DESCRIPTION", 
+"V_STORYBOARD_TEST_FULLVISION"."TEST_SUITE_ID" AS "TEST_SUITE_ID", 
+"V_STORYBOARD_TEST_FULLVISION"."TEST_SUITE_NAME" AS "TEST_SUITE_NAME", 
+"V_STORYBOARD_TEST_FULLVISION"."TEST_SUITE_DESCRIPTION" AS "TEST_SUITE_DESCRIPTION", 
+"V_STORYBOARD_TEST_FULLVISION"."RUN_ORDER" AS "RUN_ORDER", 
+"V_STORYBOARD_TEST_FULLVISION"."DEPENDS_ON" AS "DEPENDS_ON", 
+"V_STORYBOARD_TEST_FULLVISION"."ALIAS_NAME" AS "ALIAS_NAME", 
+"V_STORYBOARD_TEST_FULLVISION"."PARENT_ALIAS_NAME" AS "PARENT_ALIAS_NAME", 
+"V_STORYBOARD_TEST_FULLVISION"."DISPLAY_NAME" AS "DISPLAY_NAME", 
+"V_STORYBOARD_TEST_FULLVISION"."TEST_RUN_VALUE" AS "TEST_RUN_VALUE", 
+"V_STORYBOARD_TEST_FULLVISION"."LATEST_TEST_MARK_ID" AS "LATEST_TEST_MARK_ID", 
+"V_STORYBOARD_TEST_FULLVISION"."HIST_LATEST_TEST_MARK_ID" AS "HIST_LATEST_TEST_MARK_ID", 
+"V_STORYBOARD_TEST_FULLVISION"."HIST_ID" AS "HIST_ID", 
+"V_STORYBOARD_TEST_FULLVISION"."HIST_TEST_ID" AS "HIST_TEST_ID", 
+"V_STORYBOARD_TEST_FULLVISION"."TEST_CASE_BEGIN_TIME" AS "TEST_CASE_BEGIN_TIME", 
+"V_STORYBOARD_TEST_FULLVISION"."TEST_CASE_END_TIME" AS "TEST_CASE_END_TIME", 
+"V_STORYBOARD_TEST_FULLVISION"."HIST_TEST_RESULT_IN_TEXT" AS "HIST_TEST_RESULT_IN_TEXT", 
+"V_STORYBOARD_TEST_FULLVISION"."HIST_TEST_MODE" AS "HIST_TEST_MODE", 
+"V_STORYBOARD_TEST_FULLVISION"."HIST_RESULT" AS "HIST_RESULT"
+FROM "TESTIDE2"."V_STORYBOARD_TEST_FULLVISION" "V_STORYBOARD_TEST_FULLVISION"</DefiningQuery>
+          </EntitySet>
+          <AssociationSet Name="FK_REL_APP__REFERENCE_T_TEST_P" Association="Self.FK_REL_APP__REFERENCE_T_TEST_P">
+            <End Role="T_TEST_PROJECT" EntitySet="T_TEST_PROJECT" />
+            <End Role="REL_APP_PROJ" EntitySet="REL_APP_PROJ" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TC_D_REFERENCE_T_TEST_C" Association="Self.FK_REL_TC_D_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="REL_TC_DATA_SUMMARY" EntitySet="REL_TC_DATA_SUMMARY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TC_D_REFERENCE_T_TEST_D" Association="Self.FK_REL_TC_D_REFERENCE_T_TEST_D">
+            <End Role="T_TEST_DATA_SUMMARY" EntitySet="T_TEST_DATA_SUMMARY" />
+            <End Role="REL_TC_DATA_SUMMARY" EntitySet="REL_TC_DATA_SUMMARY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TEST_REFERENCE_T_TEST_2" Association="Self.FK_REL_TEST_REFERENCE_T_TEST_2">
+            <End Role="T_TEST_SUITE" EntitySet="T_TEST_SUITE" />
+            <End Role="REL_TEST_CASE_TEST_SUITE" EntitySet="REL_TEST_CASE_TEST_SUITE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TEST_REFERENCE_T_TEST_C" Association="Self.FK_REL_TEST_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="REL_TEST_CASE_TEST_SUITE" EntitySet="REL_TEST_CASE_TEST_SUITE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TEST_REFERENCE_T_TEST_P" Association="Self.FK_REL_TEST_REFERENCE_T_TEST_P">
+            <End Role="T_TEST_PROJECT" EntitySet="T_TEST_PROJECT" />
+            <End Role="REL_TEST_SUIT_PROJECT" EntitySet="REL_TEST_SUIT_PROJECT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TEST_REFERENCE_T_TEST_S" Association="Self.FK_REL_TEST_REFERENCE_T_TEST_S">
+            <End Role="T_TEST_SUITE" EntitySet="T_TEST_SUITE" />
+            <End Role="REL_TEST_SUIT_PROJECT" EntitySet="REL_TEST_SUIT_PROJECT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_DIC_RE_REFERENCE_T_GUI_CO" Association="Self.FK_T_DIC_RE_REFERENCE_T_GUI_CO">
+            <End Role="T_GUI_COMPONENT_TYPE_DIC" EntitySet="T_GUI_COMPONENT_TYPE_DIC" />
+            <End Role="T_DIC_RELATION_KEYWORD" EntitySet="T_DIC_RELATION_KEYWORD" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_DIC_RE_REFERENCE_T_KEYWOR" Association="Self.FK_T_DIC_RE_REFERENCE_T_KEYWOR">
+            <End Role="T_KEYWORD" EntitySet="T_KEYWORD" />
+            <End Role="T_DIC_RELATION_KEYWORD" EntitySet="T_DIC_RELATION_KEYWORD" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_PROJ_T_REFERENCE_T_STORYB" Association="Self.FK_T_PROJ_T_REFERENCE_T_STORYB">
+            <End Role="T_STORYBOARD_SUMMARY" EntitySet="T_STORYBOARD_SUMMARY" />
+            <End Role="T_PROJ_TC_MGR" EntitySet="T_PROJ_TC_MGR" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_PROJ_T_REFERENCE_T_TEST_C" Association="Self.FK_T_PROJ_T_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="T_PROJ_TC_MGR" EntitySet="T_PROJ_TC_MGR" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_PROJ_T_REFERENCE_T_TEST_P" Association="Self.FK_T_PROJ_T_REFERENCE_T_TEST_P">
+            <End Role="T_TEST_PROJECT" EntitySet="T_TEST_PROJECT" />
+            <End Role="T_PROJ_TC_MGR" EntitySet="T_PROJ_TC_MGR" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_PROJEC_REFERENCE_T_DATA_S" Association="Self.FK_T_PROJEC_REFERENCE_T_DATA_S">
+            <End Role="T_DATA_SOURCE" EntitySet="T_DATA_SOURCE" />
+            <End Role="T_PROJECT_DATA_SOURCE" EntitySet="T_PROJECT_DATA_SOURCE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_PROJEC_REFERENCE_T_TEST_P" Association="Self.FK_T_PROJEC_REFERENCE_T_TEST_P">
+            <End Role="T_TEST_PROJECT" EntitySet="T_TEST_PROJECT" />
+            <End Role="T_PROJECT_DATA_SOURCE" EntitySet="T_PROJECT_DATA_SOURCE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_REGIST_REFERENCE_T_GUI_CO" Association="Self.FK_T_REGIST_REFERENCE_T_GUI_CO">
+            <End Role="T_GUI_COMPONENT_TYPE_DIC" EntitySet="T_GUI_COMPONENT_TYPE_DIC" />
+            <End Role="T_REGISTED_OBJECT" EntitySet="T_REGISTED_OBJECT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_SHARED_REFERENCE_T_TEST_D" Association="Self.FK_T_SHARED_REFERENCE_T_TEST_D">
+            <End Role="T_TEST_DATA_SUMMARY" EntitySet="T_TEST_DATA_SUMMARY" />
+            <End Role="T_SHARED_OBJECT_POOL" EntitySet="T_SHARED_OBJECT_POOL" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_STORYB_REFERENCE_T_STORYB" Association="Self.FK_T_STORYB_REFERENCE_T_STORYB">
+            <End Role="T_STORYBOARD_SUMMARY" EntitySet="T_STORYBOARD_SUMMARY" />
+            <End Role="T_STORYBOARD_HISTORY" EntitySet="T_STORYBOARD_HISTORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_C_REFERENCE_T_TEST_C" Association="Self.FK_T_TEST_C_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="T_TEST_CASE_VERSION" EntitySet="T_TEST_CASE_VERSION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_R_REFERENCE_T_TEST_C" Association="Self.FK_T_TEST_R_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="T_TEST_REPORT" EntitySet="T_TEST_REPORT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_R_REFERENCE_T_TEST_R" Association="Self.FK_T_TEST_R_REFERENCE_T_TEST_R">
+            <End Role="T_TEST_REPORT" EntitySet="T_TEST_REPORT" />
+            <End Role="T_TEST_REPORT_STEPS" EntitySet="T_TEST_REPORT_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_R_REFERENCE_T_TEST_S" Association="Self.FK_T_TEST_R_REFERENCE_T_TEST_S">
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+            <End Role="T_TEST_REPORT_STEPS" EntitySet="T_TEST_REPORT_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_S_REFERENCE_T_KEYWOR" Association="Self.FK_T_TEST_S_REFERENCE_T_KEYWOR">
+            <End Role="T_KEYWORD" EntitySet="T_KEYWORD" />
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_S_REFERENCE_T_REGIST" Association="Self.FK_T_TEST_S_REFERENCE_T_REGIST">
+            <End Role="T_REGISTED_OBJECT" EntitySet="T_REGISTED_OBJECT" />
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_S_REFERENCE_T_TEST_C" Association="Self.FK_T_TEST_S_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TEST_DAT_REFERENCE_T_TEST_D" Association="Self.FK_TEST_DAT_REFERENCE_T_TEST_D">
+            <End Role="T_TEST_DATA_SUMMARY" EntitySet="T_TEST_DATA_SUMMARY" />
+            <End Role="TEST_DATA_SETTING" EntitySet="TEST_DATA_SETTING" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TEST_DAT_REFERENCE_T_TEST_S" Association="Self.FK_TEST_DAT_REFERENCE_T_TEST_S">
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+            <End Role="TEST_DATA_SETTING" EntitySet="TEST_DATA_SETTING" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="MarsEntities" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="REL_APP_PROJ">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="Int64" Nullable="false" />
+          <Property Name="APPLICATION_ID" Type="Int64" />
+          <Property Name="PROJECT_ID" Type="Int64" />
+          <NavigationProperty Name="T_TEST_PROJECT" Relationship="Self.FK_REL_APP__REFERENCE_T_TEST_P" FromRole="REL_APP_PROJ" ToRole="T_TEST_PROJECT" />
+        </EntityType>
+        <EntityType Name="REL_APP_TESTCASE">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="Int64" Nullable="false" />
+          <Property Name="APPLICATION_ID" Type="Int64" />
+          <Property Name="TEST_CASE_ID" Type="Int64" />
+        </EntityType>
+        <EntityType Name="REL_APP_TESTSUITE">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="Int64" Nullable="false" />
+          <Property Name="APPLICATION_ID" Type="Int64" />
+          <Property Name="TEST_SUITE_ID" Type="Int64" />
+        </EntityType>
+        <EntityType Name="REL_TC_DATA_SUMMARY">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" />
+          <Property Name="DATA_SUMMARY_ID" Type="Int64" />
+          <Property Name="TEST_CASE_ID" Type="Int64" />
+          <Property Name="CREATE_TIME" Type="DateTime" />
+          <NavigationProperty Name="T_TEST_CASE_SUMMARY" Relationship="Self.FK_REL_TC_D_REFERENCE_T_TEST_C" FromRole="REL_TC_DATA_SUMMARY" ToRole="T_TEST_CASE_SUMMARY" />
+          <NavigationProperty Name="T_TEST_DATA_SUMMARY" Relationship="Self.FK_REL_TC_D_REFERENCE_T_TEST_D" FromRole="REL_TC_DATA_SUMMARY" ToRole="T_TEST_DATA_SUMMARY" />
+        </EntityType>
+        <EntityType Name="REL_TEST_CASE_TEST_SUITE">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_CASE_ID" Type="Int64" />
+          <Property Name="TEST_SUITE_ID" Type="Int64" />
+          <NavigationProperty Name="T_TEST_SUITE" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_2" FromRole="REL_TEST_CASE_TEST_SUITE" ToRole="T_TEST_SUITE" />
+          <NavigationProperty Name="T_TEST_CASE_SUMMARY" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_C" FromRole="REL_TEST_CASE_TEST_SUITE" ToRole="T_TEST_CASE_SUMMARY" />
+        </EntityType>
+        <EntityType Name="REL_TEST_SUIT_PROJECT">
+          <Key>
+            <PropertyRef Name="RELATIONSHIP_ID" />
+          </Key>
+          <Property Name="RELATIONSHIP_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_SUITE_ID" Type="Int64" />
+          <Property Name="PROJECT_ID" Type="Int64" />
+          <NavigationProperty Name="T_TEST_PROJECT" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_P" FromRole="REL_TEST_SUIT_PROJECT" ToRole="T_TEST_PROJECT" />
+          <NavigationProperty Name="T_TEST_SUITE" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_S" FromRole="REL_TEST_SUIT_PROJECT" ToRole="T_TEST_SUITE" />
+        </EntityType>
+        <EntityType Name="SYSTEM_LOOKUP">
+          <Key>
+            <PropertyRef Name="LOOKUP_ID" />
+          </Key>
+          <Property Name="LOOKUP_ID" Type="Int64" Nullable="false" />
+          <Property Name="TABLE_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="FIELD_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="VALUE" Type="Int16" />
+          <Property Name="DISPLAY_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="STATUS" Type="Int16" />
+        </EntityType>
+        <EntityType Name="T_COMPARE_CONFIG">
+          <Key>
+            <PropertyRef Name="COMPARE_ID" />
+          </Key>
+          <Property Name="COMPARE_ID" Type="Decimal" Precision="38" Scale="0" Nullable="false" />
+          <Property Name="COMPARE_NAME" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="S1_TYPE" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="S1_DBCONN" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Name="S1_QUERY" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Name="S1_FILE_LOC" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="S2_TYPE" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="S2_DBCONN" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Name="S2_QUERY" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Name="S2_FILE_LOC" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="O_FILE_LOC" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="KEY_FIELDS" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="SHOW_FIELDS" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="COMPARE_FIELDS" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="ROW_FIELDS" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="COLUMN_FIELDS" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="T_COMPARE_CONNECTIONS">
+          <Key>
+            <PropertyRef Name="DBCONN_ID" />
+          </Key>
+          <Property Name="DBCONN_ID" Type="Decimal" Precision="38" Scale="0" Nullable="false" />
+          <Property Name="DBCONN_NAME" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="TYPE" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="HOST" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="PORT" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="PROTOCOL" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="SERVICE_NAME" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="USERID" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="PASSWORD" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+        </EntityType>
+        <EntityType Name="T_COMPARE_QUERIES">
+          <Key>
+            <PropertyRef Name="QUERY_ID" />
+          </Key>
+          <Property Name="QUERY_ID" Type="Decimal" Precision="38" Scale="0" Nullable="false" />
+          <Property Name="QUERY_NAME" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="QUERY_VAL" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" Nullable="false" />
+        </EntityType>
+        <EntityType Name="T_DATA_SOURCE">
+          <Key>
+            <PropertyRef Name="DATA_SOURCE_ID" />
+          </Key>
+          <Property Name="DATA_SOURCE_ID" Type="Int64" Nullable="false" />
+          <Property Name="DATA_SOURCE_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="DATA_SOURCE_TYPE" Type="Int16" />
+          <Property Name="DETAILS" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="DB_CONNECTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="DB_TYPE" Type="Int16" />
+          <Property Name="TEST_CONNECTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_PROJECT_DATA_SOURCE" Relationship="Self.FK_T_PROJEC_REFERENCE_T_DATA_S" FromRole="T_DATA_SOURCE" ToRole="T_PROJECT_DATA_SOURCE" />
+        </EntityType>
+        <EntityType Name="T_DIC_RELATION_KEYWORD">
+          <Key>
+            <PropertyRef Name="RELATION_ID" />
+          </Key>
+          <Property Name="RELATION_ID" Type="Int64" Nullable="false" />
+          <Property Name="TYPE_ID" Type="Int64" />
+          <Property Name="KEY_WORD_ID" Type="Int64" />
+          <NavigationProperty Name="T_GUI_COMPONENT_TYPE_DIC" Relationship="Self.FK_T_DIC_RE_REFERENCE_T_GUI_CO" FromRole="T_DIC_RELATION_KEYWORD" ToRole="T_GUI_COMPONENT_TYPE_DIC" />
+          <NavigationProperty Name="T_KEYWORD" Relationship="Self.FK_T_DIC_RE_REFERENCE_T_KEYWOR" FromRole="T_DIC_RELATION_KEYWORD" ToRole="T_KEYWORD" />
+        </EntityType>
+        <EntityType Name="T_GUI_COMPONENT_TYPE_DIC">
+          <Key>
+            <PropertyRef Name="TYPE_ID" />
+          </Key>
+          <Property Name="TYPE_ID" Type="Int64" Nullable="false" />
+          <Property Name="TYPE_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="APPLICATION_TYPE_ID" Type="Int16" />
+          <Property Name="DESCRIPTION" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_DIC_RELATION_KEYWORD" Relationship="Self.FK_T_DIC_RE_REFERENCE_T_GUI_CO" FromRole="T_GUI_COMPONENT_TYPE_DIC" ToRole="T_DIC_RELATION_KEYWORD" />
+          <NavigationProperty Name="T_REGISTED_OBJECT" Relationship="Self.FK_T_REGIST_REFERENCE_T_GUI_CO" FromRole="T_GUI_COMPONENT_TYPE_DIC" ToRole="T_REGISTED_OBJECT" />
+        </EntityType>
+        <EntityType Name="T_KEYWORD">
+          <Key>
+            <PropertyRef Name="KEY_WORD_ID" />
+          </Key>
+          <Property Name="KEY_WORD_ID" Type="Int64" Nullable="false" />
+          <Property Name="KEY_WORD_NAME" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="DESCRIPTION" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="KEY_WORD_POSITION_ID" Type="Int16" />
+          <Property Name="ENTRY_IN_DATA_FILE" Type="String" MaxLength="8" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_DIC_RELATION_KEYWORD" Relationship="Self.FK_T_DIC_RE_REFERENCE_T_KEYWOR" FromRole="T_KEYWORD" ToRole="T_DIC_RELATION_KEYWORD" />
+          <NavigationProperty Name="T_TEST_STEPS" Relationship="Self.FK_T_TEST_S_REFERENCE_T_KEYWOR" FromRole="T_KEYWORD" ToRole="T_TEST_STEPS" />
+        </EntityType>
+        <EntityType Name="T_PROJ_TC_MGR">
+          <Key>
+            <PropertyRef Name="STORYBOARD_DETAIL_ID" />
+          </Key>
+          <Property Name="STORYBOARD_DETAIL_ID" Type="Int64" Nullable="false" />
+          <Property Name="PROJECT_ID" Type="Int64" />
+          <Property Name="TEST_CASE_ID" Type="Int64" />
+          <Property Name="STORYBOARD_ID" Type="Int64" />
+          <Property Name="RUN_TYPE" Type="Int16" />
+          <Property Name="DEPENDS_ON" Type="Int64" />
+          <Property Name="RUN_ORDER" Type="Int64" />
+          <Property Name="LATEST_TEST_MARK_ID" Type="Int64" />
+          <Property Name="RECORD_VERSION" Type="Decimal" Precision="38" Scale="0" />
+          <Property Name="ALIAS_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_STORYBOARD_SUMMARY" Relationship="Self.FK_T_PROJ_T_REFERENCE_T_STORYB" FromRole="T_PROJ_TC_MGR" ToRole="T_STORYBOARD_SUMMARY" />
+          <NavigationProperty Name="T_TEST_CASE_SUMMARY" Relationship="Self.FK_T_PROJ_T_REFERENCE_T_TEST_C" FromRole="T_PROJ_TC_MGR" ToRole="T_TEST_CASE_SUMMARY" />
+          <NavigationProperty Name="T_TEST_PROJECT" Relationship="Self.FK_T_PROJ_T_REFERENCE_T_TEST_P" FromRole="T_PROJ_TC_MGR" ToRole="T_TEST_PROJECT" />
+        </EntityType>
+        <EntityType Name="T_PROJ_TEST_RESULT">
+          <Key>
+            <PropertyRef Name="HIST_ID" />
+          </Key>
+          <Property Name="HIST_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_CASE_ID" Type="Int64" />
+          <Property Name="STORYBOARD_DETAIL_ID" Type="Int64" />
+          <Property Name="TEST_BEGIN_TIME" Type="DateTime" />
+          <Property Name="TEST_END_TIME" Type="DateTime" />
+          <Property Name="TEST_RESULT_IN_TEXT" Type="String" MaxLength="2048" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="TEST_MODE" Type="Int16" />
+          <Property Name="TEST_RESULT" Type="Int16" />
+          <Property Name="TESTER_ID" Type="Int64" />
+          <Property Name="CREATE_TIME" Type="DateTime" />
+          <Property Name="LATEST_TEST_MARK_ID" Type="Int64" />
+          <Property Name="RELY_TEST_CASE_ID" Type="Int64" />
+        </EntityType>
+        <EntityType Name="T_PROJECT_DATA_SOURCE">
+          <Key>
+            <PropertyRef Name="PRO_DBS_ID" />
+          </Key>
+          <Property Name="PRO_DBS_ID" Type="Int64" Nullable="false" />
+          <Property Name="PROJECT_ID" Type="Int64" />
+          <Property Name="DATA_SOURCE_ID" Type="Int64" />
+          <NavigationProperty Name="T_DATA_SOURCE" Relationship="Self.FK_T_PROJEC_REFERENCE_T_DATA_S" FromRole="T_PROJECT_DATA_SOURCE" ToRole="T_DATA_SOURCE" />
+          <NavigationProperty Name="T_TEST_PROJECT" Relationship="Self.FK_T_PROJEC_REFERENCE_T_TEST_P" FromRole="T_PROJECT_DATA_SOURCE" ToRole="T_TEST_PROJECT" />
+        </EntityType>
+        <EntityType Name="T_REGISTED_OBJECT">
+          <Key>
+            <PropertyRef Name="OBJECT_ID" />
+          </Key>
+          <Property Name="OBJECT_ID" Type="Int64" Nullable="false" />
+          <Property Name="OBJECT_HAPPY_NAME" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="APPLICATION_ID" Type="Int64" />
+          <Property Name="TYPE_ID" Type="Int64" />
+          <Property Name="QUICK_ACCESS" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="OBJECT_TYPE" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="COMMENT" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="ENUM_TYPE" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_GUI_COMPONENT_TYPE_DIC" Relationship="Self.FK_T_REGIST_REFERENCE_T_GUI_CO" FromRole="T_REGISTED_OBJECT" ToRole="T_GUI_COMPONENT_TYPE_DIC" />
+          <NavigationProperty Name="T_TEST_STEPS" Relationship="Self.FK_T_TEST_S_REFERENCE_T_REGIST" FromRole="T_REGISTED_OBJECT" ToRole="T_TEST_STEPS" />
+        </EntityType>
+        <EntityType Name="T_REGISTERED_APPS">
+          <Key>
+            <PropertyRef Name="APPLICATION_ID" />
+          </Key>
+          <Property Name="APPLICATION_ID" Type="Int64" Nullable="false" />
+          <Property Name="APP_SHORT_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="PROCESS_IDENTIFIER" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="STARTER_PATH" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="STARTER_COMMAND" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="VERSION" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="COMMENT" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="APPLICATION_TYPE_ID" Type="Int16" />
+          <Property Name="RECORD_CREATE_PERSON" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="RECORD_CREATE_DATE" Type="DateTime" />
+          <Property Name="EXTRAREQUIREMENT" Type="String" MaxLength="256" FixedLength="false" Unicode="false" />
+          <Property Name="EXTRAPOPUPMENU" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="T_SHARED_OBJECT_POOL">
+          <Key>
+            <PropertyRef Name="OBJECT_POOL_ID" />
+          </Key>
+          <Property Name="OBJECT_POOL_ID" Type="Int64" Nullable="false" />
+          <Property Name="DATA_SUMMARY_ID" Type="Int64" />
+          <Property Name="OBJECT_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="OBJECT_ORDER" Type="Int64" />
+          <Property Name="LOOP_ID" Type="Int64" />
+          <Property Name="DATA_VALUE" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="CREATE_TIME" Type="DateTime" />
+          <Property Name="VERSION" Type="Int64" />
+          <NavigationProperty Name="T_TEST_DATA_SUMMARY" Relationship="Self.FK_T_SHARED_REFERENCE_T_TEST_D" FromRole="T_SHARED_OBJECT_POOL" ToRole="T_TEST_DATA_SUMMARY" />
+        </EntityType>
+        <EntityType Name="T_STORYBOARD_HISTORY">
+          <Key>
+            <PropertyRef Name="DASHBOARD_HIST_ID" />
+          </Key>
+          <Property Name="DASHBOARD_HIST_ID" Type="Int64" Nullable="false" />
+          <Property Name="STORYBOARD_ID" Type="Int64" />
+          <Property Name="VERION" Type="Int64" />
+          <Property Name="CREATE_TIME" Type="DateTime" />
+          <Property Name="CREATOR" Type="Int64" />
+          <Property Name="STORYBOARD_NAME" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="ASSIGNED_PROJECT_ID" Type="Int64" />
+          <Property Name="DESCRIPTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="HISTORY_CREATE_TIME" Type="DateTime" />
+          <Property Name="REASON" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_STORYBOARD_SUMMARY" Relationship="Self.FK_T_STORYB_REFERENCE_T_STORYB" FromRole="T_STORYBOARD_HISTORY" ToRole="T_STORYBOARD_SUMMARY" />
+        </EntityType>
+        <EntityType Name="T_STORYBOARD_SUMMARY">
+          <Key>
+            <PropertyRef Name="STORYBOARD_ID" />
+          </Key>
+          <Property Name="STORYBOARD_ID" Type="Int64" Nullable="false" />
+          <Property Name="CREATE_TIME" Type="DateTime" />
+          <Property Name="LATEST_VERISON" Type="Decimal" Precision="38" Scale="0" />
+          <Property Name="DESCRIPTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="CREATER" Type="Int64" />
+          <Property Name="ASSIGNED_PROJECT_ID" Type="Int64" />
+          <Property Name="STORYBOARD_NAME" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="T_PROJ_TC_MGR" Relationship="Self.FK_T_PROJ_T_REFERENCE_T_STORYB" FromRole="T_STORYBOARD_SUMMARY" ToRole="T_PROJ_TC_MGR" />
+          <NavigationProperty Name="T_STORYBOARD_HISTORY" Relationship="Self.FK_T_STORYB_REFERENCE_T_STORYB" FromRole="T_STORYBOARD_SUMMARY" ToRole="T_STORYBOARD_HISTORY" />
+        </EntityType>
+        <EntityType Name="T_TEST_CASE_SUMMARY">
+          <Key>
+            <PropertyRef Name="TEST_CASE_ID" />
+          </Key>
+          <Property Name="TEST_CASE_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_CASE_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_STEP_DESCRIPTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_STEP_CREATOR" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_STEP_CREATE_TIME" Type="DateTime" />
+          <Property Name="USAGE_STATUS" Type="Int16" />
+          <NavigationProperty Name="REL_TC_DATA_SUMMARY" Relationship="Self.FK_REL_TC_D_REFERENCE_T_TEST_C" FromRole="T_TEST_CASE_SUMMARY" ToRole="REL_TC_DATA_SUMMARY" />
+          <NavigationProperty Name="REL_TEST_CASE_TEST_SUITE" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_C" FromRole="T_TEST_CASE_SUMMARY" ToRole="REL_TEST_CASE_TEST_SUITE" />
+          <NavigationProperty Name="T_PROJ_TC_MGR" Relationship="Self.FK_T_PROJ_T_REFERENCE_T_TEST_C" FromRole="T_TEST_CASE_SUMMARY" ToRole="T_PROJ_TC_MGR" />
+          <NavigationProperty Name="T_TEST_CASE_VERSION" Relationship="Self.FK_T_TEST_C_REFERENCE_T_TEST_C" FromRole="T_TEST_CASE_SUMMARY" ToRole="T_TEST_CASE_VERSION" />
+          <NavigationProperty Name="T_TEST_REPORT" Relationship="Self.FK_T_TEST_R_REFERENCE_T_TEST_C" FromRole="T_TEST_CASE_SUMMARY" ToRole="T_TEST_REPORT" />
+          <NavigationProperty Name="T_TEST_STEPS" Relationship="Self.FK_T_TEST_S_REFERENCE_T_TEST_C" FromRole="T_TEST_CASE_SUMMARY" ToRole="T_TEST_STEPS" />
+        </EntityType>
+        <EntityType Name="T_TEST_CASE_VERSION">
+          <Key>
+            <PropertyRef Name="TC_VERSOIN_ID" />
+          </Key>
+          <Property Name="TC_VERSOIN_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_CASE_ID" Type="Int64" />
+          <Property Name="VERSION_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="VERSION_DESC" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="VERSION_NUMBER" Type="Int64" />
+          <Property Name="AVAILABLE_MARK" Type="Int16" />
+          <Property Name="CREATE_TIME" Type="DateTime" />
+          <Property Name="CREATOR_ID" Type="Int64" />
+          <NavigationProperty Name="T_TEST_CASE_SUMMARY" Relationship="Self.FK_T_TEST_C_REFERENCE_T_TEST_C" FromRole="T_TEST_CASE_VERSION" ToRole="T_TEST_CASE_SUMMARY" />
+        </EntityType>
+        <EntityType Name="T_TEST_DATA_SUMMARY">
+          <Key>
+            <PropertyRef Name="DATA_SUMMARY_ID" />
+          </Key>
+          <Property Name="DATA_SUMMARY_ID" Type="Int64" Nullable="false" />
+          <Property Name="ALIAS_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="DESCRIPTION_INFO" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="AVAILABLE_MARK" Type="Int16" />
+          <Property Name="VERSION" Type="Int64" />
+          <Property Name="SHARE_MARK" Type="Int16" />
+          <Property Name="CREATE_TIME" Type="DateTime" />
+          <Property Name="STATUS" Type="Int16" />
+          <Property Name="DATA_SET_TYPE" Type="Int16" />
+          <NavigationProperty Name="REL_TC_DATA_SUMMARY" Relationship="Self.FK_REL_TC_D_REFERENCE_T_TEST_D" FromRole="T_TEST_DATA_SUMMARY" ToRole="REL_TC_DATA_SUMMARY" />
+          <NavigationProperty Name="T_SHARED_OBJECT_POOL" Relationship="Self.FK_T_SHARED_REFERENCE_T_TEST_D" FromRole="T_TEST_DATA_SUMMARY" ToRole="T_SHARED_OBJECT_POOL" />
+          <NavigationProperty Name="TEST_DATA_SETTING" Relationship="Self.FK_TEST_DAT_REFERENCE_T_TEST_D" FromRole="T_TEST_DATA_SUMMARY" ToRole="TEST_DATA_SETTING" />
+        </EntityType>
+        <EntityType Name="T_TEST_ENUM">
+          <Key>
+            <PropertyRef Name="ENUM_ID" />
+          </Key>
+          <Property Name="ENUM_ID" Type="Int64" Nullable="false" />
+          <Property Name="ENUM_TYPE" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="ENUM_VALUE" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="T_TEST_PROJECT">
+          <Key>
+            <PropertyRef Name="PROJECT_ID" />
+          </Key>
+          <Property Name="PROJECT_ID" Type="Int64" Nullable="false" />
+          <Property Name="PROJECT_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="PROJECT_DESCRIPTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="CREATOR" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="CREATE_DATE" Type="DateTime" />
+          <Property Name="STATUS" Type="Int16" />
+          <NavigationProperty Name="REL_APP_PROJ" Relationship="Self.FK_REL_APP__REFERENCE_T_TEST_P" FromRole="T_TEST_PROJECT" ToRole="REL_APP_PROJ" />
+          <NavigationProperty Name="REL_TEST_SUIT_PROJECT" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_P" FromRole="T_TEST_PROJECT" ToRole="REL_TEST_SUIT_PROJECT" />
+          <NavigationProperty Name="T_PROJ_TC_MGR" Relationship="Self.FK_T_PROJ_T_REFERENCE_T_TEST_P" FromRole="T_TEST_PROJECT" ToRole="T_PROJ_TC_MGR" />
+          <NavigationProperty Name="T_PROJECT_DATA_SOURCE" Relationship="Self.FK_T_PROJEC_REFERENCE_T_TEST_P" FromRole="T_TEST_PROJECT" ToRole="T_PROJECT_DATA_SOURCE" />
+        </EntityType>
+        <EntityType Name="T_TEST_REPORT">
+          <Key>
+            <PropertyRef Name="TEST_REPORT_ID" />
+          </Key>
+          <Property Name="TEST_REPORT_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_CASE_ID" Type="Int64" />
+          <Property Name="LOOP_ID" Type="Decimal" Precision="38" Scale="0" />
+          <Property Name="BEGIN_TIME" Type="DateTime" />
+          <Property Name="END_TIME" Type="DateTime" />
+          <Property Name="RUNNING_RESULT" Type="Int16" />
+          <Property Name="RETURN_VALUES" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="RUNNING_RESULT_INFO" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="HIST_ID" Type="Int64" />
+          <Property Name="APPLICATION_ID" Type="Int64" />
+          <Property Name="TEST_MODE" Type="Int16" />
+          <NavigationProperty Name="T_TEST_CASE_SUMMARY" Relationship="Self.FK_T_TEST_R_REFERENCE_T_TEST_C" FromRole="T_TEST_REPORT" ToRole="T_TEST_CASE_SUMMARY" />
+          <NavigationProperty Name="T_TEST_REPORT_STEPS" Relationship="Self.FK_T_TEST_R_REFERENCE_T_TEST_R" FromRole="T_TEST_REPORT" ToRole="T_TEST_REPORT_STEPS" />
+        </EntityType>
+        <EntityType Name="T_TEST_REPORT_STEPS">
+          <Key>
+            <PropertyRef Name="TEST_REPORT_STEP_ID" />
+          </Key>
+          <Property Name="TEST_REPORT_STEP_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_REPORT_ID" Type="Int64" />
+          <Property Name="STEPS_ID" Type="Int64" />
+          <Property Name="BEGIN_TIME" Type="DateTime" />
+          <Property Name="END_TIME" Type="DateTime" />
+          <Property Name="RUNNING_RESULT" Type="Int16" />
+          <Property Name="RETURN_VALUES" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="RUNNING_RESULT_INFO" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="DATA_SUMMARY_ID" Type="Int64" />
+          <Property Name="INPUT_VALUE_SETTING" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="ACTUAL_INPUT_DATA" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="DATA_ORDER" Type="Int64" />
+          <NavigationProperty Name="T_TEST_REPORT" Relationship="Self.FK_T_TEST_R_REFERENCE_T_TEST_R" FromRole="T_TEST_REPORT_STEPS" ToRole="T_TEST_REPORT" />
+          <NavigationProperty Name="T_TEST_STEPS" Relationship="Self.FK_T_TEST_R_REFERENCE_T_TEST_S" FromRole="T_TEST_REPORT_STEPS" ToRole="T_TEST_STEPS" />
+        </EntityType>
+        <EntityType Name="T_TEST_STEPS">
+          <Key>
+            <PropertyRef Name="STEPS_ID" />
+          </Key>
+          <Property Name="STEPS_ID" Type="Int64" Nullable="false" />
+          <Property Name="RUN_ORDER" Type="Decimal" Precision="38" Scale="0" />
+          <Property Name="KEY_WORD_ID" Type="Int64" />
+          <Property Name="TEST_CASE_ID" Type="Int64" />
+          <Property Name="OBJECT_ID" Type="Int64" />
+          <Property Name="COLUMN_ROW_SETTING" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="VALUE_SETTING" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="COMMENT" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="IS_RUNNABLE" Type="Decimal" Precision="38" Scale="0" />
+          <NavigationProperty Name="T_KEYWORD" Relationship="Self.FK_T_TEST_S_REFERENCE_T_KEYWOR" FromRole="T_TEST_STEPS" ToRole="T_KEYWORD" />
+          <NavigationProperty Name="T_REGISTED_OBJECT" Relationship="Self.FK_T_TEST_S_REFERENCE_T_REGIST" FromRole="T_TEST_STEPS" ToRole="T_REGISTED_OBJECT" />
+          <NavigationProperty Name="T_TEST_CASE_SUMMARY" Relationship="Self.FK_T_TEST_S_REFERENCE_T_TEST_C" FromRole="T_TEST_STEPS" ToRole="T_TEST_CASE_SUMMARY" />
+          <NavigationProperty Name="T_TEST_REPORT_STEPS" Relationship="Self.FK_T_TEST_R_REFERENCE_T_TEST_S" FromRole="T_TEST_STEPS" ToRole="T_TEST_REPORT_STEPS" />
+          <NavigationProperty Name="TEST_DATA_SETTING" Relationship="Self.FK_TEST_DAT_REFERENCE_T_TEST_S" FromRole="T_TEST_STEPS" ToRole="TEST_DATA_SETTING" />
+        </EntityType>
+        <EntityType Name="T_TEST_SUITE">
+          <Key>
+            <PropertyRef Name="TEST_SUITE_ID" />
+          </Key>
+          <Property Name="TEST_SUITE_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_SUITE_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_SUITE_DESCRIPTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="REL_TEST_CASE_TEST_SUITE" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_2" FromRole="T_TEST_SUITE" ToRole="REL_TEST_CASE_TEST_SUITE" />
+          <NavigationProperty Name="REL_TEST_SUIT_PROJECT" Relationship="Self.FK_REL_TEST_REFERENCE_T_TEST_S" FromRole="T_TEST_SUITE" ToRole="REL_TEST_SUIT_PROJECT" />
+        </EntityType>
+        <EntityType Name="TEST_DATA_SETTING">
+          <Key>
+            <PropertyRef Name="DATA_SETTING_ID" />
+          </Key>
+          <Property Name="DATA_SETTING_ID" Type="Int64" Nullable="false" />
+          <Property Name="STEPS_ID" Type="Int64" Nullable="false" />
+          <Property Name="LOOP_ID" Type="Decimal" Precision="38" Scale="0" />
+          <Property Name="DATA_VALUE" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="VALUE_OR_OBJECT" Type="Int16" />
+          <Property Name="DESCRIPTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="DATA_SUMMARY_ID" Type="Int64" />
+          <Property Name="DATA_DIRECTION" Type="Int16" />
+          <Property Name="VERSION" Type="Int64" />
+          <Property Name="CREATE_TIME" Type="DateTime" />
+          <Property Name="POOL_ID" Type="Int64" />
+          <NavigationProperty Name="T_TEST_DATA_SUMMARY" Relationship="Self.FK_TEST_DAT_REFERENCE_T_TEST_D" FromRole="TEST_DATA_SETTING" ToRole="T_TEST_DATA_SUMMARY" />
+          <NavigationProperty Name="T_TEST_STEPS" Relationship="Self.FK_TEST_DAT_REFERENCE_T_TEST_S" FromRole="TEST_DATA_SETTING" ToRole="T_TEST_STEPS" />
+        </EntityType>
+        <EntityType Name="TEST_CASE_VIEW">
+          <Key>
+            <PropertyRef Name="OBJECT_ID" />
+          </Key>
+          <Property Name="PROJECT_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_SUITE_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_CASE_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="KEY_WORD_NAME" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="OBJECT_ID" Type="Int64" Nullable="false" />
+          <Property Name="OBJECT_HAPPY_NAME" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="COLUMN_ROW_SETTING" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="DATA_VALUE" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="LOOP_ID" Type="Decimal" Precision="38" Scale="0" />
+        </EntityType>
+        <EntityType Name="TEST_CASE_VIEW2">
+          <Key>
+            <PropertyRef Name="OBJECT_ID" />
+            <PropertyRef Name="STEPS_ID" />
+          </Key>
+          <Property Name="PROJECT_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_SUITE_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_CASE_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="KEY_WORD_NAME" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="OBJECT_ID" Type="Int64" Nullable="false" />
+          <Property Name="OBJECT_HAPPY_NAME" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="COLUMN_ROW_SETTING" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="DATA_VALUE" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="LOOP_ID" Type="Decimal" Precision="38" Scale="0" />
+          <Property Name="STEPS_ID" Type="Int64" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TEST_OBJECT_VIEW">
+          <Key>
+            <PropertyRef Name="OBJECT_ID" />
+          </Key>
+          <Property Name="OBJECT_ID" Type="Int64" Nullable="false" />
+          <Property Name="OBJECT_HAPPY_NAME" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="APPLICATION_ID" Type="Int64" />
+          <Property Name="TYPE_ID" Type="Int64" />
+          <Property Name="QUICK_ACCESS" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="OBJECT_TYPE" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="COMMENT" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="ENUM_TYPE" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="APP_SHORT_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="TYPE_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="TEST_PROJECT_VIEW">
+          <Key>
+            <PropertyRef Name="PROJECT_ID" />
+            <PropertyRef Name="TEST_SUITE_ID" />
+            <PropertyRef Name="APPLICATION_ID" />
+          </Key>
+          <Property Name="PROJECT_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="PROJECT_ID" Type="Int64" Nullable="false" />
+          <Property Name="TEST_SUITE_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_SUITE_ID" Type="Int64" Nullable="false" />
+          <Property Name="APP_SHORT_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="APPLICATION_ID" Type="Int64" Nullable="false" />
+        </EntityType>
+        <EntityType Name="V_OBJECT_APPS">
+          <Key>
+            <PropertyRef Name="OBJECT_ID" />
+          </Key>
+          <Property Name="APPLICATION_ID" Type="Int64" />
+          <Property Name="OBJECT_ID" Type="Int64" Nullable="false" />
+          <Property Name="COMMENT" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="ENUM_TYPE" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="OBJECT_HAPPY_NAME" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="OBJECT_TYPE" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="QUICK_ACCESS" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="TYPE_ID" Type="Int64" />
+          <Property Name="APP_APPLICATION_ID" Type="Int64" />
+          <Property Name="APP_SHORT_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="APPLICATION_TYPE_ID" Type="Int16" />
+          <Property Name="COMMENT_APP" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="EXTRAPOPUPMENU" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="EXTRAREQUIREMENT" Type="String" MaxLength="256" FixedLength="false" Unicode="false" />
+          <Property Name="PROCESS_IDENTIFIER" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="STARTER_COMMAND" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="STARTER_PATH" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="VERSION" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="TYPE_APPLICATION_TYPE_ID" Type="Int16" />
+          <Property Name="TYPE_DESCRPTION" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="TYP_TYPE_ID" Type="Int64" />
+          <Property Name="TYPE_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="V_STORYBOARD_TEST_FULLVISION">
+          <Key>
+            <PropertyRef Name="STORYBOARD_DETAIL_ID" />
+          </Key>
+          <Property Name="STORYBOARD_DETAIL_ID" Type="Int64" Nullable="false" />
+          <Property Name="STORYBOARD_NAME" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="PROJECT_ID" Type="Int64" />
+          <Property Name="PROJECT_NAME" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="PROJECT_DESCRIPTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_CASE_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_CASE_ID" Type="Int64" />
+          <Property Name="TEST_STEP_DESCRIPTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_SUITE_ID" Type="Int64" />
+          <Property Name="TEST_SUITE_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_SUITE_DESCRIPTION" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <Property Name="RUN_ORDER" Type="Int64" />
+          <Property Name="DEPENDS_ON" Type="Int64" />
+          <Property Name="ALIAS_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="PARENT_ALIAS_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="DISPLAY_NAME" Type="String" MaxLength="64" FixedLength="false" Unicode="false" />
+          <Property Name="TEST_RUN_VALUE" Type="Int16" />
+          <Property Name="LATEST_TEST_MARK_ID" Type="Int64" />
+          <Property Name="HIST_LATEST_TEST_MARK_ID" Type="Int64" />
+          <Property Name="HIST_ID" Type="Int64" />
+          <Property Name="HIST_TEST_ID" Type="Int64" />
+          <Property Name="TEST_CASE_BEGIN_TIME" Type="DateTime" />
+          <Property Name="TEST_CASE_END_TIME" Type="DateTime" />
+          <Property Name="HIST_TEST_RESULT_IN_TEXT" Type="String" MaxLength="2048" FixedLength="false" Unicode="false" />
+          <Property Name="HIST_TEST_MODE" Type="Int16" />
+          <Property Name="HIST_RESULT" Type="Int16" />
+        </EntityType>
+        <Association Name="FK_REL_APP__REFERENCE_T_TEST_P">
+          <End Role="T_TEST_PROJECT" Type="Self.T_TEST_PROJECT" Multiplicity="0..1" />
+          <End Role="REL_APP_PROJ" Type="Self.REL_APP_PROJ" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Principal>
+            <Dependent Role="REL_APP_PROJ">
+              <PropertyRef Name="PROJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TC_D_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="REL_TC_DATA_SUMMARY" Type="Self.REL_TC_DATA_SUMMARY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="REL_TC_DATA_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TC_D_REFERENCE_T_TEST_D">
+          <End Role="T_TEST_DATA_SUMMARY" Type="Self.T_TEST_DATA_SUMMARY" Multiplicity="0..1" />
+          <End Role="REL_TC_DATA_SUMMARY" Type="Self.REL_TC_DATA_SUMMARY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_DATA_SUMMARY">
+              <PropertyRef Name="DATA_SUMMARY_ID" />
+            </Principal>
+            <Dependent Role="REL_TC_DATA_SUMMARY">
+              <PropertyRef Name="DATA_SUMMARY_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TEST_REFERENCE_T_TEST_2">
+          <End Role="T_TEST_SUITE" Type="Self.T_TEST_SUITE" Multiplicity="0..1" />
+          <End Role="REL_TEST_CASE_TEST_SUITE" Type="Self.REL_TEST_CASE_TEST_SUITE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_SUITE">
+              <PropertyRef Name="TEST_SUITE_ID" />
+            </Principal>
+            <Dependent Role="REL_TEST_CASE_TEST_SUITE">
+              <PropertyRef Name="TEST_SUITE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TEST_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="REL_TEST_CASE_TEST_SUITE" Type="Self.REL_TEST_CASE_TEST_SUITE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="REL_TEST_CASE_TEST_SUITE">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TEST_REFERENCE_T_TEST_P">
+          <End Role="T_TEST_PROJECT" Type="Self.T_TEST_PROJECT" Multiplicity="0..1" />
+          <End Role="REL_TEST_SUIT_PROJECT" Type="Self.REL_TEST_SUIT_PROJECT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Principal>
+            <Dependent Role="REL_TEST_SUIT_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REL_TEST_REFERENCE_T_TEST_S">
+          <End Role="T_TEST_SUITE" Type="Self.T_TEST_SUITE" Multiplicity="0..1" />
+          <End Role="REL_TEST_SUIT_PROJECT" Type="Self.REL_TEST_SUIT_PROJECT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_SUITE">
+              <PropertyRef Name="TEST_SUITE_ID" />
+            </Principal>
+            <Dependent Role="REL_TEST_SUIT_PROJECT">
+              <PropertyRef Name="TEST_SUITE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_PROJEC_REFERENCE_T_DATA_S">
+          <End Role="T_DATA_SOURCE" Type="Self.T_DATA_SOURCE" Multiplicity="0..1" />
+          <End Role="T_PROJECT_DATA_SOURCE" Type="Self.T_PROJECT_DATA_SOURCE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_DATA_SOURCE">
+              <PropertyRef Name="DATA_SOURCE_ID" />
+            </Principal>
+            <Dependent Role="T_PROJECT_DATA_SOURCE">
+              <PropertyRef Name="DATA_SOURCE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_DIC_RE_REFERENCE_T_GUI_CO">
+          <End Role="T_GUI_COMPONENT_TYPE_DIC" Type="Self.T_GUI_COMPONENT_TYPE_DIC" Multiplicity="0..1" />
+          <End Role="T_DIC_RELATION_KEYWORD" Type="Self.T_DIC_RELATION_KEYWORD" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_GUI_COMPONENT_TYPE_DIC">
+              <PropertyRef Name="TYPE_ID" />
+            </Principal>
+            <Dependent Role="T_DIC_RELATION_KEYWORD">
+              <PropertyRef Name="TYPE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_DIC_RE_REFERENCE_T_KEYWOR">
+          <End Role="T_KEYWORD" Type="Self.T_KEYWORD" Multiplicity="0..1" />
+          <End Role="T_DIC_RELATION_KEYWORD" Type="Self.T_DIC_RELATION_KEYWORD" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_KEYWORD">
+              <PropertyRef Name="KEY_WORD_ID" />
+            </Principal>
+            <Dependent Role="T_DIC_RELATION_KEYWORD">
+              <PropertyRef Name="KEY_WORD_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_REGIST_REFERENCE_T_GUI_CO">
+          <End Role="T_GUI_COMPONENT_TYPE_DIC" Type="Self.T_GUI_COMPONENT_TYPE_DIC" Multiplicity="0..1" />
+          <End Role="T_REGISTED_OBJECT" Type="Self.T_REGISTED_OBJECT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_GUI_COMPONENT_TYPE_DIC">
+              <PropertyRef Name="TYPE_ID" />
+            </Principal>
+            <Dependent Role="T_REGISTED_OBJECT">
+              <PropertyRef Name="TYPE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_S_REFERENCE_T_KEYWOR">
+          <End Role="T_KEYWORD" Type="Self.T_KEYWORD" Multiplicity="0..1" />
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_KEYWORD">
+              <PropertyRef Name="KEY_WORD_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_STEPS">
+              <PropertyRef Name="KEY_WORD_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_PROJ_T_REFERENCE_T_STORYB">
+          <End Role="T_STORYBOARD_SUMMARY" Type="Self.T_STORYBOARD_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_PROJ_TC_MGR" Type="Self.T_PROJ_TC_MGR" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_STORYBOARD_SUMMARY">
+              <PropertyRef Name="STORYBOARD_ID" />
+            </Principal>
+            <Dependent Role="T_PROJ_TC_MGR">
+              <PropertyRef Name="STORYBOARD_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_PROJ_T_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_PROJ_TC_MGR" Type="Self.T_PROJ_TC_MGR" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="T_PROJ_TC_MGR">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_PROJ_T_REFERENCE_T_TEST_P">
+          <End Role="T_TEST_PROJECT" Type="Self.T_TEST_PROJECT" Multiplicity="0..1" />
+          <End Role="T_PROJ_TC_MGR" Type="Self.T_PROJ_TC_MGR" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Principal>
+            <Dependent Role="T_PROJ_TC_MGR">
+              <PropertyRef Name="PROJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_PROJEC_REFERENCE_T_TEST_P">
+          <End Role="T_TEST_PROJECT" Type="Self.T_TEST_PROJECT" Multiplicity="0..1" />
+          <End Role="T_PROJECT_DATA_SOURCE" Type="Self.T_PROJECT_DATA_SOURCE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_PROJECT">
+              <PropertyRef Name="PROJECT_ID" />
+            </Principal>
+            <Dependent Role="T_PROJECT_DATA_SOURCE">
+              <PropertyRef Name="PROJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_S_REFERENCE_T_REGIST">
+          <End Role="T_REGISTED_OBJECT" Type="Self.T_REGISTED_OBJECT" Multiplicity="0..1" />
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_REGISTED_OBJECT">
+              <PropertyRef Name="OBJECT_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_STEPS">
+              <PropertyRef Name="OBJECT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_SHARED_REFERENCE_T_TEST_D">
+          <End Role="T_TEST_DATA_SUMMARY" Type="Self.T_TEST_DATA_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_SHARED_OBJECT_POOL" Type="Self.T_SHARED_OBJECT_POOL" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_DATA_SUMMARY">
+              <PropertyRef Name="DATA_SUMMARY_ID" />
+            </Principal>
+            <Dependent Role="T_SHARED_OBJECT_POOL">
+              <PropertyRef Name="DATA_SUMMARY_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_STORYB_REFERENCE_T_STORYB">
+          <End Role="T_STORYBOARD_SUMMARY" Type="Self.T_STORYBOARD_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_STORYBOARD_HISTORY" Type="Self.T_STORYBOARD_HISTORY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_STORYBOARD_SUMMARY">
+              <PropertyRef Name="STORYBOARD_ID" />
+            </Principal>
+            <Dependent Role="T_STORYBOARD_HISTORY">
+              <PropertyRef Name="STORYBOARD_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_C_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_TEST_CASE_VERSION" Type="Self.T_TEST_CASE_VERSION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_CASE_VERSION">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_R_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_TEST_REPORT" Type="Self.T_TEST_REPORT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_REPORT">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_S_REFERENCE_T_TEST_C">
+          <End Role="T_TEST_CASE_SUMMARY" Type="Self.T_TEST_CASE_SUMMARY" Multiplicity="0..1" />
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_CASE_SUMMARY">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_STEPS">
+              <PropertyRef Name="TEST_CASE_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TEST_DAT_REFERENCE_T_TEST_D">
+          <End Role="T_TEST_DATA_SUMMARY" Type="Self.T_TEST_DATA_SUMMARY" Multiplicity="0..1" />
+          <End Role="TEST_DATA_SETTING" Type="Self.TEST_DATA_SETTING" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_DATA_SUMMARY">
+              <PropertyRef Name="DATA_SUMMARY_ID" />
+            </Principal>
+            <Dependent Role="TEST_DATA_SETTING">
+              <PropertyRef Name="DATA_SUMMARY_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_R_REFERENCE_T_TEST_R">
+          <End Role="T_TEST_REPORT" Type="Self.T_TEST_REPORT" Multiplicity="0..1" />
+          <End Role="T_TEST_REPORT_STEPS" Type="Self.T_TEST_REPORT_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_REPORT">
+              <PropertyRef Name="TEST_REPORT_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_REPORT_STEPS">
+              <PropertyRef Name="TEST_REPORT_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_T_TEST_R_REFERENCE_T_TEST_S">
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="0..1" />
+          <End Role="T_TEST_REPORT_STEPS" Type="Self.T_TEST_REPORT_STEPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_STEPS">
+              <PropertyRef Name="STEPS_ID" />
+            </Principal>
+            <Dependent Role="T_TEST_REPORT_STEPS">
+              <PropertyRef Name="STEPS_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TEST_DAT_REFERENCE_T_TEST_S">
+          <End Role="T_TEST_STEPS" Type="Self.T_TEST_STEPS" Multiplicity="1" />
+          <End Role="TEST_DATA_SETTING" Type="Self.TEST_DATA_SETTING" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="T_TEST_STEPS">
+              <PropertyRef Name="STEPS_ID" />
+            </Principal>
+            <Dependent Role="TEST_DATA_SETTING">
+              <PropertyRef Name="STEPS_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="Entities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="REL_APP_PROJ" EntityType="Self.REL_APP_PROJ" />
+          <EntitySet Name="REL_APP_TESTCASE" EntityType="Self.REL_APP_TESTCASE" />
+          <EntitySet Name="REL_APP_TESTSUITE" EntityType="Self.REL_APP_TESTSUITE" />
+          <EntitySet Name="REL_TC_DATA_SUMMARY" EntityType="Self.REL_TC_DATA_SUMMARY" />
+          <EntitySet Name="REL_TEST_CASE_TEST_SUITE" EntityType="Self.REL_TEST_CASE_TEST_SUITE" />
+          <EntitySet Name="REL_TEST_SUIT_PROJECT" EntityType="Self.REL_TEST_SUIT_PROJECT" />
+          <EntitySet Name="SYSTEM_LOOKUP" EntityType="Self.SYSTEM_LOOKUP" />
+          <EntitySet Name="T_COMPARE_CONFIG" EntityType="Self.T_COMPARE_CONFIG" />
+          <EntitySet Name="T_COMPARE_CONNECTIONS" EntityType="Self.T_COMPARE_CONNECTIONS" />
+          <EntitySet Name="T_COMPARE_QUERIES" EntityType="Self.T_COMPARE_QUERIES" />
+          <EntitySet Name="T_DATA_SOURCE" EntityType="Self.T_DATA_SOURCE" />
+          <EntitySet Name="T_DIC_RELATION_KEYWORD" EntityType="Self.T_DIC_RELATION_KEYWORD" />
+          <EntitySet Name="T_GUI_COMPONENT_TYPE_DIC" EntityType="Self.T_GUI_COMPONENT_TYPE_DIC" />
+          <EntitySet Name="T_KEYWORD" EntityType="Self.T_KEYWORD" />
+          <EntitySet Name="T_PROJ_TC_MGR" EntityType="Self.T_PROJ_TC_MGR" />
+          <EntitySet Name="T_PROJ_TEST_RESULT" EntityType="Self.T_PROJ_TEST_RESULT" />
+          <EntitySet Name="T_PROJECT_DATA_SOURCE" EntityType="Self.T_PROJECT_DATA_SOURCE" />
+          <EntitySet Name="T_REGISTED_OBJECT" EntityType="Self.T_REGISTED_OBJECT" />
+          <EntitySet Name="T_REGISTERED_APPS" EntityType="Self.T_REGISTERED_APPS" />
+          <EntitySet Name="T_SHARED_OBJECT_POOL" EntityType="Self.T_SHARED_OBJECT_POOL" />
+          <EntitySet Name="T_STORYBOARD_HISTORY" EntityType="Self.T_STORYBOARD_HISTORY" />
+          <EntitySet Name="T_STORYBOARD_SUMMARY" EntityType="Self.T_STORYBOARD_SUMMARY" />
+          <EntitySet Name="T_TEST_CASE_SUMMARY" EntityType="Self.T_TEST_CASE_SUMMARY" />
+          <EntitySet Name="T_TEST_CASE_VERSION" EntityType="Self.T_TEST_CASE_VERSION" />
+          <EntitySet Name="T_TEST_DATA_SUMMARY" EntityType="Self.T_TEST_DATA_SUMMARY" />
+          <EntitySet Name="T_TEST_ENUM" EntityType="Self.T_TEST_ENUM" />
+          <EntitySet Name="T_TEST_PROJECT" EntityType="Self.T_TEST_PROJECT" />
+          <EntitySet Name="T_TEST_REPORT" EntityType="Self.T_TEST_REPORT" />
+          <EntitySet Name="T_TEST_REPORT_STEPS" EntityType="Self.T_TEST_REPORT_STEPS" />
+          <EntitySet Name="T_TEST_STEPS" EntityType="Self.T_TEST_STEPS" />
+          <EntitySet Name="T_TEST_SUITE" EntityType="Self.T_TEST_SUITE" />
+          <EntitySet Name="TEST_DATA_SETTING" EntityType="Self.TEST_DATA_SETTING" />
+          <EntitySet Name="TEST_CASE_VIEW" EntityType="Self.TEST_CASE_VIEW" />
+          <EntitySet Name="TEST_CASE_VIEW2" EntityType="Self.TEST_CASE_VIEW2" />
+          <EntitySet Name="TEST_OBJECT_VIEW" EntityType="Self.TEST_OBJECT_VIEW" />
+          <EntitySet Name="TEST_PROJECT_VIEW" EntityType="Self.TEST_PROJECT_VIEW" />
+          <EntitySet Name="V_OBJECT_APPS" EntityType="Self.V_OBJECT_APPS" />
+          <EntitySet Name="V_STORYBOARD_TEST_FULLVISION" EntityType="Self.V_STORYBOARD_TEST_FULLVISION" />
+          <AssociationSet Name="FK_REL_APP__REFERENCE_T_TEST_P" Association="Self.FK_REL_APP__REFERENCE_T_TEST_P">
+            <End Role="T_TEST_PROJECT" EntitySet="T_TEST_PROJECT" />
+            <End Role="REL_APP_PROJ" EntitySet="REL_APP_PROJ" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TC_D_REFERENCE_T_TEST_C" Association="Self.FK_REL_TC_D_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="REL_TC_DATA_SUMMARY" EntitySet="REL_TC_DATA_SUMMARY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TC_D_REFERENCE_T_TEST_D" Association="Self.FK_REL_TC_D_REFERENCE_T_TEST_D">
+            <End Role="T_TEST_DATA_SUMMARY" EntitySet="T_TEST_DATA_SUMMARY" />
+            <End Role="REL_TC_DATA_SUMMARY" EntitySet="REL_TC_DATA_SUMMARY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TEST_REFERENCE_T_TEST_2" Association="Self.FK_REL_TEST_REFERENCE_T_TEST_2">
+            <End Role="T_TEST_SUITE" EntitySet="T_TEST_SUITE" />
+            <End Role="REL_TEST_CASE_TEST_SUITE" EntitySet="REL_TEST_CASE_TEST_SUITE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TEST_REFERENCE_T_TEST_C" Association="Self.FK_REL_TEST_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="REL_TEST_CASE_TEST_SUITE" EntitySet="REL_TEST_CASE_TEST_SUITE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TEST_REFERENCE_T_TEST_P" Association="Self.FK_REL_TEST_REFERENCE_T_TEST_P">
+            <End Role="T_TEST_PROJECT" EntitySet="T_TEST_PROJECT" />
+            <End Role="REL_TEST_SUIT_PROJECT" EntitySet="REL_TEST_SUIT_PROJECT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REL_TEST_REFERENCE_T_TEST_S" Association="Self.FK_REL_TEST_REFERENCE_T_TEST_S">
+            <End Role="T_TEST_SUITE" EntitySet="T_TEST_SUITE" />
+            <End Role="REL_TEST_SUIT_PROJECT" EntitySet="REL_TEST_SUIT_PROJECT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_PROJEC_REFERENCE_T_DATA_S" Association="Self.FK_T_PROJEC_REFERENCE_T_DATA_S">
+            <End Role="T_DATA_SOURCE" EntitySet="T_DATA_SOURCE" />
+            <End Role="T_PROJECT_DATA_SOURCE" EntitySet="T_PROJECT_DATA_SOURCE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_DIC_RE_REFERENCE_T_GUI_CO" Association="Self.FK_T_DIC_RE_REFERENCE_T_GUI_CO">
+            <End Role="T_GUI_COMPONENT_TYPE_DIC" EntitySet="T_GUI_COMPONENT_TYPE_DIC" />
+            <End Role="T_DIC_RELATION_KEYWORD" EntitySet="T_DIC_RELATION_KEYWORD" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_DIC_RE_REFERENCE_T_KEYWOR" Association="Self.FK_T_DIC_RE_REFERENCE_T_KEYWOR">
+            <End Role="T_KEYWORD" EntitySet="T_KEYWORD" />
+            <End Role="T_DIC_RELATION_KEYWORD" EntitySet="T_DIC_RELATION_KEYWORD" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_REGIST_REFERENCE_T_GUI_CO" Association="Self.FK_T_REGIST_REFERENCE_T_GUI_CO">
+            <End Role="T_GUI_COMPONENT_TYPE_DIC" EntitySet="T_GUI_COMPONENT_TYPE_DIC" />
+            <End Role="T_REGISTED_OBJECT" EntitySet="T_REGISTED_OBJECT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_S_REFERENCE_T_KEYWOR" Association="Self.FK_T_TEST_S_REFERENCE_T_KEYWOR">
+            <End Role="T_KEYWORD" EntitySet="T_KEYWORD" />
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_PROJ_T_REFERENCE_T_STORYB" Association="Self.FK_T_PROJ_T_REFERENCE_T_STORYB">
+            <End Role="T_STORYBOARD_SUMMARY" EntitySet="T_STORYBOARD_SUMMARY" />
+            <End Role="T_PROJ_TC_MGR" EntitySet="T_PROJ_TC_MGR" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_PROJ_T_REFERENCE_T_TEST_C" Association="Self.FK_T_PROJ_T_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="T_PROJ_TC_MGR" EntitySet="T_PROJ_TC_MGR" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_PROJ_T_REFERENCE_T_TEST_P" Association="Self.FK_T_PROJ_T_REFERENCE_T_TEST_P">
+            <End Role="T_TEST_PROJECT" EntitySet="T_TEST_PROJECT" />
+            <End Role="T_PROJ_TC_MGR" EntitySet="T_PROJ_TC_MGR" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_PROJEC_REFERENCE_T_TEST_P" Association="Self.FK_T_PROJEC_REFERENCE_T_TEST_P">
+            <End Role="T_TEST_PROJECT" EntitySet="T_TEST_PROJECT" />
+            <End Role="T_PROJECT_DATA_SOURCE" EntitySet="T_PROJECT_DATA_SOURCE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_S_REFERENCE_T_REGIST" Association="Self.FK_T_TEST_S_REFERENCE_T_REGIST">
+            <End Role="T_REGISTED_OBJECT" EntitySet="T_REGISTED_OBJECT" />
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_SHARED_REFERENCE_T_TEST_D" Association="Self.FK_T_SHARED_REFERENCE_T_TEST_D">
+            <End Role="T_TEST_DATA_SUMMARY" EntitySet="T_TEST_DATA_SUMMARY" />
+            <End Role="T_SHARED_OBJECT_POOL" EntitySet="T_SHARED_OBJECT_POOL" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_STORYB_REFERENCE_T_STORYB" Association="Self.FK_T_STORYB_REFERENCE_T_STORYB">
+            <End Role="T_STORYBOARD_SUMMARY" EntitySet="T_STORYBOARD_SUMMARY" />
+            <End Role="T_STORYBOARD_HISTORY" EntitySet="T_STORYBOARD_HISTORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_C_REFERENCE_T_TEST_C" Association="Self.FK_T_TEST_C_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="T_TEST_CASE_VERSION" EntitySet="T_TEST_CASE_VERSION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_R_REFERENCE_T_TEST_C" Association="Self.FK_T_TEST_R_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="T_TEST_REPORT" EntitySet="T_TEST_REPORT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_S_REFERENCE_T_TEST_C" Association="Self.FK_T_TEST_S_REFERENCE_T_TEST_C">
+            <End Role="T_TEST_CASE_SUMMARY" EntitySet="T_TEST_CASE_SUMMARY" />
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TEST_DAT_REFERENCE_T_TEST_D" Association="Self.FK_TEST_DAT_REFERENCE_T_TEST_D">
+            <End Role="T_TEST_DATA_SUMMARY" EntitySet="T_TEST_DATA_SUMMARY" />
+            <End Role="TEST_DATA_SETTING" EntitySet="TEST_DATA_SETTING" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_R_REFERENCE_T_TEST_R" Association="Self.FK_T_TEST_R_REFERENCE_T_TEST_R">
+            <End Role="T_TEST_REPORT" EntitySet="T_TEST_REPORT" />
+            <End Role="T_TEST_REPORT_STEPS" EntitySet="T_TEST_REPORT_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_T_TEST_R_REFERENCE_T_TEST_S" Association="Self.FK_T_TEST_R_REFERENCE_T_TEST_S">
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+            <End Role="T_TEST_REPORT_STEPS" EntitySet="T_TEST_REPORT_STEPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TEST_DAT_REFERENCE_T_TEST_S" Association="Self.FK_TEST_DAT_REFERENCE_T_TEST_S">
+            <End Role="T_TEST_STEPS" EntitySet="T_TEST_STEPS" />
+            <End Role="TEST_DATA_SETTING" EntitySet="TEST_DATA_SETTING" />
+          </AssociationSet>
+          <FunctionImport Name="GETNEXT_VAL">
+            <Parameter Name="P_SEQUENCE_NAME" Mode="In" Type="String" />
+            <Parameter Name="V_NEXTVAL" Mode="Out" Type="Decimal" />
+          </FunctionImport>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="MarsEntitiesStoreContainer" CdmEntityContainer="Entities">
+          <EntitySetMapping Name="REL_APP_PROJ">
+            <EntityTypeMapping TypeName="MarsEntities.REL_APP_PROJ">
+              <MappingFragment StoreEntitySet="REL_APP_PROJ">
+                <ScalarProperty Name="RELATIONSHIP_ID" ColumnName="RELATIONSHIP_ID" />
+                <ScalarProperty Name="APPLICATION_ID" ColumnName="APPLICATION_ID" />
+                <ScalarProperty Name="PROJECT_ID" ColumnName="PROJECT_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="REL_APP_TESTCASE">
+            <EntityTypeMapping TypeName="MarsEntities.REL_APP_TESTCASE">
+              <MappingFragment StoreEntitySet="REL_APP_TESTCASE">
+                <ScalarProperty Name="RELATIONSHIP_ID" ColumnName="RELATIONSHIP_ID" />
+                <ScalarProperty Name="APPLICATION_ID" ColumnName="APPLICATION_ID" />
+                <ScalarProperty Name="TEST_CASE_ID" ColumnName="TEST_CASE_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="REL_APP_TESTSUITE">
+            <EntityTypeMapping TypeName="MarsEntities.REL_APP_TESTSUITE">
+              <MappingFragment StoreEntitySet="REL_APP_TESTSUITE">
+                <ScalarProperty Name="RELATIONSHIP_ID" ColumnName="RELATIONSHIP_ID" />
+                <ScalarProperty Name="APPLICATION_ID" ColumnName="APPLICATION_ID" />
+                <ScalarProperty Name="TEST_SUITE_ID" ColumnName="TEST_SUITE_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="REL_TC_DATA_SUMMARY">
+            <EntityTypeMapping TypeName="MarsEntities.REL_TC_DATA_SUMMARY">
+              <MappingFragment StoreEntitySet="REL_TC_DATA_SUMMARY">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="DATA_SUMMARY_ID" ColumnName="DATA_SUMMARY_ID" />
+                <ScalarProperty Name="TEST_CASE_ID" ColumnName="TEST_CASE_ID" />
+                <ScalarProperty Name="CREATE_TIME" ColumnName="CREATE_TIME" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="REL_TEST_CASE_TEST_SUITE">
+            <EntityTypeMapping TypeName="MarsEntities.REL_TEST_CASE_TEST_SUITE">
+              <MappingFragment StoreEntitySet="REL_TEST_CASE_TEST_SUITE">
+                <ScalarProperty Name="RELATIONSHIP_ID" ColumnName="RELATIONSHIP_ID" />
+                <ScalarProperty Name="TEST_CASE_ID" ColumnName="TEST_CASE_ID" />
+                <ScalarProperty Name="TEST_SUITE_ID" ColumnName="TEST_SUITE_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="REL_TEST_SUIT_PROJECT">
+            <EntityTypeMapping TypeName="MarsEntities.REL_TEST_SUIT_PROJECT">
+              <MappingFragment StoreEntitySet="REL_TEST_SUIT_PROJECT">
+                <ScalarProperty Name="RELATIONSHIP_ID" ColumnName="RELATIONSHIP_ID" />
+                <ScalarProperty Name="TEST_SUITE_ID" ColumnName="TEST_SUITE_ID" />
+                <ScalarProperty Name="PROJECT_ID" ColumnName="PROJECT_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SYSTEM_LOOKUP">
+            <EntityTypeMapping TypeName="MarsEntities.SYSTEM_LOOKUP">
+              <MappingFragment StoreEntitySet="SYSTEM_LOOKUP">
+                <ScalarProperty Name="LOOKUP_ID" ColumnName="LOOKUP_ID" />
+                <ScalarProperty Name="TABLE_NAME" ColumnName="TABLE_NAME" />
+                <ScalarProperty Name="FIELD_NAME" ColumnName="FIELD_NAME" />
+                <ScalarProperty Name="VALUE" ColumnName="VALUE" />
+                <ScalarProperty Name="DISPLAY_NAME" ColumnName="DISPLAY_NAME" />
+                <ScalarProperty Name="STATUS" ColumnName="STATUS" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_COMPARE_CONFIG">
+            <EntityTypeMapping TypeName="MarsEntities.T_COMPARE_CONFIG">
+              <MappingFragment StoreEntitySet="T_COMPARE_CONFIG">
+                <ScalarProperty Name="COMPARE_ID" ColumnName="COMPARE_ID" />
+                <ScalarProperty Name="COMPARE_NAME" ColumnName="COMPARE_NAME" />
+                <ScalarProperty Name="S1_TYPE" ColumnName="S1_TYPE" />
+                <ScalarProperty Name="S1_DBCONN" ColumnName="S1_DBCONN" />
+                <ScalarProperty Name="S1_QUERY" ColumnName="S1_QUERY" />
+                <ScalarProperty Name="S1_FILE_LOC" ColumnName="S1_FILE_LOC" />
+                <ScalarProperty Name="S2_TYPE" ColumnName="S2_TYPE" />
+                <ScalarProperty Name="S2_DBCONN" ColumnName="S2_DBCONN" />
+                <ScalarProperty Name="S2_QUERY" ColumnName="S2_QUERY" />
+                <ScalarProperty Name="S2_FILE_LOC" ColumnName="S2_FILE_LOC" />
+                <ScalarProperty Name="O_FILE_LOC" ColumnName="O_FILE_LOC" />
+                <ScalarProperty Name="KEY_FIELDS" ColumnName="KEY_FIELDS" />
+                <ScalarProperty Name="SHOW_FIELDS" ColumnName="SHOW_FIELDS" />
+                <ScalarProperty Name="COMPARE_FIELDS" ColumnName="COMPARE_FIELDS" />
+                <ScalarProperty Name="ROW_FIELDS" ColumnName="ROW_FIELDS" />
+                <ScalarProperty Name="COLUMN_FIELDS" ColumnName="COLUMN_FIELDS" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_COMPARE_CONNECTIONS">
+            <EntityTypeMapping TypeName="MarsEntities.T_COMPARE_CONNECTIONS">
+              <MappingFragment StoreEntitySet="T_COMPARE_CONNECTIONS">
+                <ScalarProperty Name="DBCONN_ID" ColumnName="DBCONN_ID" />
+                <ScalarProperty Name="DBCONN_NAME" ColumnName="DBCONN_NAME" />
+                <ScalarProperty Name="TYPE" ColumnName="TYPE" />
+                <ScalarProperty Name="HOST" ColumnName="HOST" />
+                <ScalarProperty Name="PORT" ColumnName="PORT" />
+                <ScalarProperty Name="PROTOCOL" ColumnName="PROTOCOL" />
+                <ScalarProperty Name="SERVICE_NAME" ColumnName="SERVICE_NAME" />
+                <ScalarProperty Name="USERID" ColumnName="USERID" />
+                <ScalarProperty Name="PASSWORD" ColumnName="PASSWORD" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_COMPARE_QUERIES">
+            <EntityTypeMapping TypeName="MarsEntities.T_COMPARE_QUERIES">
+              <MappingFragment StoreEntitySet="T_COMPARE_QUERIES">
+                <ScalarProperty Name="QUERY_ID" ColumnName="QUERY_ID" />
+                <ScalarProperty Name="QUERY_NAME" ColumnName="QUERY_NAME" />
+                <ScalarProperty Name="QUERY_VAL" ColumnName="QUERY_VAL" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_DATA_SOURCE">
+            <EntityTypeMapping TypeName="MarsEntities.T_DATA_SOURCE">
+              <MappingFragment StoreEntitySet="T_DATA_SOURCE">
+                <ScalarProperty Name="DATA_SOURCE_ID" ColumnName="DATA_SOURCE_ID" />
+                <ScalarProperty Name="DATA_SOURCE_NAME" ColumnName="DATA_SOURCE_NAME" />
+                <ScalarProperty Name="DATA_SOURCE_TYPE" ColumnName="DATA_SOURCE_TYPE" />
+                <ScalarProperty Name="DETAILS" ColumnName="DETAILS" />
+                <ScalarProperty Name="DB_CONNECTION" ColumnName="DB_CONNECTION" />
+                <ScalarProperty Name="DB_TYPE" ColumnName="DB_TYPE" />
+                <ScalarProperty Name="TEST_CONNECTION" ColumnName="TEST_CONNECTION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_DIC_RELATION_KEYWORD">
+            <EntityTypeMapping TypeName="MarsEntities.T_DIC_RELATION_KEYWORD">
+              <MappingFragment StoreEntitySet="T_DIC_RELATION_KEYWORD">
+                <ScalarProperty Name="RELATION_ID" ColumnName="RELATION_ID" />
+                <ScalarProperty Name="TYPE_ID" ColumnName="TYPE_ID" />
+                <ScalarProperty Name="KEY_WORD_ID" ColumnName="KEY_WORD_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_GUI_COMPONENT_TYPE_DIC">
+            <EntityTypeMapping TypeName="MarsEntities.T_GUI_COMPONENT_TYPE_DIC">
+              <MappingFragment StoreEntitySet="T_GUI_COMPONENT_TYPE_DIC">
+                <ScalarProperty Name="TYPE_ID" ColumnName="TYPE_ID" />
+                <ScalarProperty Name="TYPE_NAME" ColumnName="TYPE_NAME" />
+                <ScalarProperty Name="APPLICATION_TYPE_ID" ColumnName="APPLICATION_TYPE_ID" />
+                <ScalarProperty Name="DESCRIPTION" ColumnName="DESCRIPTION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_KEYWORD">
+            <EntityTypeMapping TypeName="MarsEntities.T_KEYWORD">
+              <MappingFragment StoreEntitySet="T_KEYWORD">
+                <ScalarProperty Name="KEY_WORD_ID" ColumnName="KEY_WORD_ID" />
+                <ScalarProperty Name="KEY_WORD_NAME" ColumnName="KEY_WORD_NAME" />
+                <ScalarProperty Name="DESCRIPTION" ColumnName="DESCRIPTION" />
+                <ScalarProperty Name="KEY_WORD_POSITION_ID" ColumnName="KEY_WORD_POSITION_ID" />
+                <ScalarProperty Name="ENTRY_IN_DATA_FILE" ColumnName="ENTRY_IN_DATA_FILE" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_PROJ_TC_MGR">
+            <EntityTypeMapping TypeName="MarsEntities.T_PROJ_TC_MGR">
+              <MappingFragment StoreEntitySet="T_PROJ_TC_MGR">
+                <ScalarProperty Name="STORYBOARD_DETAIL_ID" ColumnName="STORYBOARD_DETAIL_ID" />
+                <ScalarProperty Name="PROJECT_ID" ColumnName="PROJECT_ID" />
+                <ScalarProperty Name="TEST_CASE_ID" ColumnName="TEST_CASE_ID" />
+                <ScalarProperty Name="STORYBOARD_ID" ColumnName="STORYBOARD_ID" />
+                <ScalarProperty Name="RUN_TYPE" ColumnName="RUN_TYPE" />
+                <ScalarProperty Name="DEPENDS_ON" ColumnName="DEPENDS_ON" />
+                <ScalarProperty Name="RUN_ORDER" ColumnName="RUN_ORDER" />
+                <ScalarProperty Name="LATEST_TEST_MARK_ID" ColumnName="LATEST_TEST_MARK_ID" />
+                <ScalarProperty Name="RECORD_VERSION" ColumnName="RECORD_VERSION" />
+                <ScalarProperty Name="ALIAS_NAME" ColumnName="ALIAS_NAME" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_PROJ_TEST_RESULT">
+            <EntityTypeMapping TypeName="MarsEntities.T_PROJ_TEST_RESULT">
+              <MappingFragment StoreEntitySet="T_PROJ_TEST_RESULT">
+                <ScalarProperty Name="HIST_ID" ColumnName="HIST_ID" />
+                <ScalarProperty Name="TEST_CASE_ID" ColumnName="TEST_CASE_ID" />
+                <ScalarProperty Name="STORYBOARD_DETAIL_ID" ColumnName="STORYBOARD_DETAIL_ID" />
+                <ScalarProperty Name="TEST_BEGIN_TIME" ColumnName="TEST_BEGIN_TIME" />
+                <ScalarProperty Name="TEST_END_TIME" ColumnName="TEST_END_TIME" />
+                <ScalarProperty Name="TEST_RESULT_IN_TEXT" ColumnName="TEST_RESULT_IN_TEXT" />
+                <ScalarProperty Name="TEST_MODE" ColumnName="TEST_MODE" />
+                <ScalarProperty Name="TEST_RESULT" ColumnName="TEST_RESULT" />
+                <ScalarProperty Name="TESTER_ID" ColumnName="TESTER_ID" />
+                <ScalarProperty Name="CREATE_TIME" ColumnName="CREATE_TIME" />
+                <ScalarProperty Name="LATEST_TEST_MARK_ID" ColumnName="LATEST_TEST_MARK_ID" />
+                <ScalarProperty Name="RELY_TEST_CASE_ID" ColumnName="RELY_TEST_CASE_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_PROJECT_DATA_SOURCE">
+            <EntityTypeMapping TypeName="MarsEntities.T_PROJECT_DATA_SOURCE">
+              <MappingFragment StoreEntitySet="T_PROJECT_DATA_SOURCE">
+                <ScalarProperty Name="PRO_DBS_ID" ColumnName="PRO_DBS_ID" />
+                <ScalarProperty Name="PROJECT_ID" ColumnName="PROJECT_ID" />
+                <ScalarProperty Name="DATA_SOURCE_ID" ColumnName="DATA_SOURCE_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_REGISTED_OBJECT">
+            <EntityTypeMapping TypeName="MarsEntities.T_REGISTED_OBJECT">
+              <MappingFragment StoreEntitySet="T_REGISTED_OBJECT">
+                <ScalarProperty Name="OBJECT_ID" ColumnName="OBJECT_ID" />
+                <ScalarProperty Name="OBJECT_HAPPY_NAME" ColumnName="OBJECT_HAPPY_NAME" />
+                <ScalarProperty Name="APPLICATION_ID" ColumnName="APPLICATION_ID" />
+                <ScalarProperty Name="TYPE_ID" ColumnName="TYPE_ID" />
+                <ScalarProperty Name="QUICK_ACCESS" ColumnName="QUICK_ACCESS" />
+                <ScalarProperty Name="OBJECT_TYPE" ColumnName="OBJECT_TYPE" />
+                <ScalarProperty Name="COMMENT" ColumnName="COMMENT" />
+                <ScalarProperty Name="ENUM_TYPE" ColumnName="ENUM_TYPE" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_REGISTERED_APPS">
+            <EntityTypeMapping TypeName="MarsEntities.T_REGISTERED_APPS">
+              <MappingFragment StoreEntitySet="T_REGISTERED_APPS">
+                <ScalarProperty Name="APPLICATION_ID" ColumnName="APPLICATION_ID" />
+                <ScalarProperty Name="APP_SHORT_NAME" ColumnName="APP_SHORT_NAME" />
+                <ScalarProperty Name="PROCESS_IDENTIFIER" ColumnName="PROCESS_IDENTIFIER" />
+                <ScalarProperty Name="STARTER_PATH" ColumnName="STARTER_PATH" />
+                <ScalarProperty Name="STARTER_COMMAND" ColumnName="STARTER_COMMAND" />
+                <ScalarProperty Name="VERSION" ColumnName="VERSION" />
+                <ScalarProperty Name="COMMENT" ColumnName="COMMENT" />
+                <ScalarProperty Name="APPLICATION_TYPE_ID" ColumnName="APPLICATION_TYPE_ID" />
+                <ScalarProperty Name="RECORD_CREATE_PERSON" ColumnName="RECORD_CREATE_PERSON" />
+                <ScalarProperty Name="RECORD_CREATE_DATE" ColumnName="RECORD_CREATE_DATE" />
+                <ScalarProperty Name="EXTRAREQUIREMENT" ColumnName="EXTRAREQUIREMENT" />
+                <ScalarProperty Name="EXTRAPOPUPMENU" ColumnName="EXTRAPOPUPMENU" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_SHARED_OBJECT_POOL">
+            <EntityTypeMapping TypeName="MarsEntities.T_SHARED_OBJECT_POOL">
+              <MappingFragment StoreEntitySet="T_SHARED_OBJECT_POOL">
+                <ScalarProperty Name="OBJECT_POOL_ID" ColumnName="OBJECT_POOL_ID" />
+                <ScalarProperty Name="DATA_SUMMARY_ID" ColumnName="DATA_SUMMARY_ID" />
+                <ScalarProperty Name="OBJECT_NAME" ColumnName="OBJECT_NAME" />
+                <ScalarProperty Name="OBJECT_ORDER" ColumnName="OBJECT_ORDER" />
+                <ScalarProperty Name="LOOP_ID" ColumnName="LOOP_ID" />
+                <ScalarProperty Name="DATA_VALUE" ColumnName="DATA_VALUE" />
+                <ScalarProperty Name="CREATE_TIME" ColumnName="CREATE_TIME" />
+                <ScalarProperty Name="VERSION" ColumnName="VERSION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_STORYBOARD_HISTORY">
+            <EntityTypeMapping TypeName="MarsEntities.T_STORYBOARD_HISTORY">
+              <MappingFragment StoreEntitySet="T_STORYBOARD_HISTORY">
+                <ScalarProperty Name="DASHBOARD_HIST_ID" ColumnName="DASHBOARD_HIST_ID" />
+                <ScalarProperty Name="STORYBOARD_ID" ColumnName="STORYBOARD_ID" />
+                <ScalarProperty Name="VERION" ColumnName="VERION" />
+                <ScalarProperty Name="CREATE_TIME" ColumnName="CREATE_TIME" />
+                <ScalarProperty Name="CREATOR" ColumnName="CREATOR" />
+                <ScalarProperty Name="STORYBOARD_NAME" ColumnName="STORYBOARD_NAME" />
+                <ScalarProperty Name="ASSIGNED_PROJECT_ID" ColumnName="ASSIGNED_PROJECT_ID" />
+                <ScalarProperty Name="DESCRIPTION" ColumnName="DESCRIPTION" />
+                <ScalarProperty Name="HISTORY_CREATE_TIME" ColumnName="HISTORY_CREATE_TIME" />
+                <ScalarProperty Name="REASON" ColumnName="REASON" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_STORYBOARD_SUMMARY">
+            <EntityTypeMapping TypeName="MarsEntities.T_STORYBOARD_SUMMARY">
+              <MappingFragment StoreEntitySet="T_STORYBOARD_SUMMARY">
+                <ScalarProperty Name="STORYBOARD_ID" ColumnName="STORYBOARD_ID" />
+                <ScalarProperty Name="CREATE_TIME" ColumnName="CREATE_TIME" />
+                <ScalarProperty Name="LATEST_VERISON" ColumnName="LATEST_VERISON" />
+                <ScalarProperty Name="DESCRIPTION" ColumnName="DESCRIPTION" />
+                <ScalarProperty Name="CREATER" ColumnName="CREATER" />
+                <ScalarProperty Name="ASSIGNED_PROJECT_ID" ColumnName="ASSIGNED_PROJECT_ID" />
+                <ScalarProperty Name="STORYBOARD_NAME" ColumnName="STORYBOARD_NAME" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_TEST_CASE_SUMMARY">
+            <EntityTypeMapping TypeName="MarsEntities.T_TEST_CASE_SUMMARY">
+              <MappingFragment StoreEntitySet="T_TEST_CASE_SUMMARY">
+                <ScalarProperty Name="TEST_CASE_ID" ColumnName="TEST_CASE_ID" />
+                <ScalarProperty Name="TEST_CASE_NAME" ColumnName="TEST_CASE_NAME" />
+                <ScalarProperty Name="TEST_STEP_DESCRIPTION" ColumnName="TEST_STEP_DESCRIPTION" />
+                <ScalarProperty Name="TEST_STEP_CREATOR" ColumnName="TEST_STEP_CREATOR" />
+                <ScalarProperty Name="TEST_STEP_CREATE_TIME" ColumnName="TEST_STEP_CREATE_TIME" />
+                <ScalarProperty Name="USAGE_STATUS" ColumnName="USAGE_STATUS" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_TEST_CASE_VERSION">
+            <EntityTypeMapping TypeName="MarsEntities.T_TEST_CASE_VERSION">
+              <MappingFragment StoreEntitySet="T_TEST_CASE_VERSION">
+                <ScalarProperty Name="TC_VERSOIN_ID" ColumnName="TC_VERSOIN_ID" />
+                <ScalarProperty Name="TEST_CASE_ID" ColumnName="TEST_CASE_ID" />
+                <ScalarProperty Name="VERSION_NAME" ColumnName="VERSION_NAME" />
+                <ScalarProperty Name="VERSION_DESC" ColumnName="VERSION_DESC" />
+                <ScalarProperty Name="VERSION_NUMBER" ColumnName="VERSION_NUMBER" />
+                <ScalarProperty Name="AVAILABLE_MARK" ColumnName="AVAILABLE_MARK" />
+                <ScalarProperty Name="CREATE_TIME" ColumnName="CREATE_TIME" />
+                <ScalarProperty Name="CREATOR_ID" ColumnName="CREATOR_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_TEST_DATA_SUMMARY">
+            <EntityTypeMapping TypeName="MarsEntities.T_TEST_DATA_SUMMARY">
+              <MappingFragment StoreEntitySet="T_TEST_DATA_SUMMARY">
+                <ScalarProperty Name="DATA_SUMMARY_ID" ColumnName="DATA_SUMMARY_ID" />
+                <ScalarProperty Name="ALIAS_NAME" ColumnName="ALIAS_NAME" />
+                <ScalarProperty Name="DESCRIPTION_INFO" ColumnName="DESCRIPTION_INFO" />
+                <ScalarProperty Name="AVAILABLE_MARK" ColumnName="AVAILABLE_MARK" />
+                <ScalarProperty Name="VERSION" ColumnName="VERSION" />
+                <ScalarProperty Name="SHARE_MARK" ColumnName="SHARE_MARK" />
+                <ScalarProperty Name="CREATE_TIME" ColumnName="CREATE_TIME" />
+                <ScalarProperty Name="STATUS" ColumnName="STATUS" />
+                <ScalarProperty Name="DATA_SET_TYPE" ColumnName="DATA_SET_TYPE" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_TEST_ENUM">
+            <EntityTypeMapping TypeName="MarsEntities.T_TEST_ENUM">
+              <MappingFragment StoreEntitySet="T_TEST_ENUM">
+                <ScalarProperty Name="ENUM_ID" ColumnName="ENUM_ID" />
+                <ScalarProperty Name="ENUM_TYPE" ColumnName="ENUM_TYPE" />
+                <ScalarProperty Name="ENUM_VALUE" ColumnName="ENUM_VALUE" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_TEST_PROJECT">
+            <EntityTypeMapping TypeName="MarsEntities.T_TEST_PROJECT">
+              <MappingFragment StoreEntitySet="T_TEST_PROJECT">
+                <ScalarProperty Name="PROJECT_ID" ColumnName="PROJECT_ID" />
+                <ScalarProperty Name="PROJECT_NAME" ColumnName="PROJECT_NAME" />
+                <ScalarProperty Name="PROJECT_DESCRIPTION" ColumnName="PROJECT_DESCRIPTION" />
+                <ScalarProperty Name="CREATOR" ColumnName="CREATOR" />
+                <ScalarProperty Name="CREATE_DATE" ColumnName="CREATE_DATE" />
+                <ScalarProperty Name="STATUS" ColumnName="STATUS" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_TEST_REPORT">
+            <EntityTypeMapping TypeName="MarsEntities.T_TEST_REPORT">
+              <MappingFragment StoreEntitySet="T_TEST_REPORT">
+                <ScalarProperty Name="TEST_REPORT_ID" ColumnName="TEST_REPORT_ID" />
+                <ScalarProperty Name="TEST_CASE_ID" ColumnName="TEST_CASE_ID" />
+                <ScalarProperty Name="LOOP_ID" ColumnName="LOOP_ID" />
+                <ScalarProperty Name="BEGIN_TIME" ColumnName="BEGIN_TIME" />
+                <ScalarProperty Name="END_TIME" ColumnName="END_TIME" />
+                <ScalarProperty Name="RUNNING_RESULT" ColumnName="RUNNING_RESULT" />
+                <ScalarProperty Name="RETURN_VALUES" ColumnName="RETURN_VALUES" />
+                <ScalarProperty Name="RUNNING_RESULT_INFO" ColumnName="RUNNING_RESULT_INFO" />
+                <ScalarProperty Name="HIST_ID" ColumnName="HIST_ID" />
+                <ScalarProperty Name="APPLICATION_ID" ColumnName="APPLICATION_ID" />
+                <ScalarProperty Name="TEST_MODE" ColumnName="TEST_MODE" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_TEST_REPORT_STEPS">
+            <EntityTypeMapping TypeName="MarsEntities.T_TEST_REPORT_STEPS">
+              <MappingFragment StoreEntitySet="T_TEST_REPORT_STEPS">
+                <ScalarProperty Name="TEST_REPORT_STEP_ID" ColumnName="TEST_REPORT_STEP_ID" />
+                <ScalarProperty Name="TEST_REPORT_ID" ColumnName="TEST_REPORT_ID" />
+                <ScalarProperty Name="STEPS_ID" ColumnName="STEPS_ID" />
+                <ScalarProperty Name="BEGIN_TIME" ColumnName="BEGIN_TIME" />
+                <ScalarProperty Name="END_TIME" ColumnName="END_TIME" />
+                <ScalarProperty Name="RUNNING_RESULT" ColumnName="RUNNING_RESULT" />
+                <ScalarProperty Name="RETURN_VALUES" ColumnName="RETURN_VALUES" />
+                <ScalarProperty Name="RUNNING_RESULT_INFO" ColumnName="RUNNING_RESULT_INFO" />
+                <ScalarProperty Name="DATA_SUMMARY_ID" ColumnName="DATA_SUMMARY_ID" />
+                <ScalarProperty Name="INPUT_VALUE_SETTING" ColumnName="INPUT_VALUE_SETTING" />
+                <ScalarProperty Name="ACTUAL_INPUT_DATA" ColumnName="ACTUAL_INPUT_DATA" />
+                <ScalarProperty Name="DATA_ORDER" ColumnName="DATA_ORDER" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_TEST_STEPS">
+            <EntityTypeMapping TypeName="MarsEntities.T_TEST_STEPS">
+              <MappingFragment StoreEntitySet="T_TEST_STEPS">
+                <ScalarProperty Name="STEPS_ID" ColumnName="STEPS_ID" />
+                <ScalarProperty Name="RUN_ORDER" ColumnName="RUN_ORDER" />
+                <ScalarProperty Name="KEY_WORD_ID" ColumnName="KEY_WORD_ID" />
+                <ScalarProperty Name="TEST_CASE_ID" ColumnName="TEST_CASE_ID" />
+                <ScalarProperty Name="OBJECT_ID" ColumnName="OBJECT_ID" />
+                <ScalarProperty Name="COLUMN_ROW_SETTING" ColumnName="COLUMN_ROW_SETTING" />
+                <ScalarProperty Name="VALUE_SETTING" ColumnName="VALUE_SETTING" />
+                <ScalarProperty Name="COMMENT" ColumnName="COMMENT" />
+                <ScalarProperty Name="IS_RUNNABLE" ColumnName="IS_RUNNABLE" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="T_TEST_SUITE">
+            <EntityTypeMapping TypeName="MarsEntities.T_TEST_SUITE">
+              <MappingFragment StoreEntitySet="T_TEST_SUITE">
+                <ScalarProperty Name="TEST_SUITE_ID" ColumnName="TEST_SUITE_ID" />
+                <ScalarProperty Name="TEST_SUITE_NAME" ColumnName="TEST_SUITE_NAME" />
+                <ScalarProperty Name="TEST_SUITE_DESCRIPTION" ColumnName="TEST_SUITE_DESCRIPTION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TEST_DATA_SETTING">
+            <EntityTypeMapping TypeName="MarsEntities.TEST_DATA_SETTING">
+              <MappingFragment StoreEntitySet="TEST_DATA_SETTING">
+                <ScalarProperty Name="DATA_SETTING_ID" ColumnName="DATA_SETTING_ID" />
+                <ScalarProperty Name="STEPS_ID" ColumnName="STEPS_ID" />
+                <ScalarProperty Name="LOOP_ID" ColumnName="LOOP_ID" />
+                <ScalarProperty Name="DATA_VALUE" ColumnName="DATA_VALUE" />
+                <ScalarProperty Name="VALUE_OR_OBJECT" ColumnName="VALUE_OR_OBJECT" />
+                <ScalarProperty Name="DESCRIPTION" ColumnName="DESCRIPTION" />
+                <ScalarProperty Name="DATA_SUMMARY_ID" ColumnName="DATA_SUMMARY_ID" />
+                <ScalarProperty Name="DATA_DIRECTION" ColumnName="DATA_DIRECTION" />
+                <ScalarProperty Name="VERSION" ColumnName="VERSION" />
+                <ScalarProperty Name="CREATE_TIME" ColumnName="CREATE_TIME" />
+                <ScalarProperty Name="POOL_ID" ColumnName="POOL_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TEST_CASE_VIEW">
+            <EntityTypeMapping TypeName="MarsEntities.TEST_CASE_VIEW">
+              <MappingFragment StoreEntitySet="TEST_CASE_VIEW">
+                <ScalarProperty Name="PROJECT_NAME" ColumnName="PROJECT_NAME" />
+                <ScalarProperty Name="TEST_SUITE_NAME" ColumnName="TEST_SUITE_NAME" />
+                <ScalarProperty Name="TEST_CASE_NAME" ColumnName="TEST_CASE_NAME" />
+                <ScalarProperty Name="KEY_WORD_NAME" ColumnName="KEY_WORD_NAME" />
+                <ScalarProperty Name="OBJECT_ID" ColumnName="OBJECT_ID" />
+                <ScalarProperty Name="OBJECT_HAPPY_NAME" ColumnName="OBJECT_HAPPY_NAME" />
+                <ScalarProperty Name="COLUMN_ROW_SETTING" ColumnName="COLUMN_ROW_SETTING" />
+                <ScalarProperty Name="DATA_VALUE" ColumnName="DATA_VALUE" />
+                <ScalarProperty Name="LOOP_ID" ColumnName="LOOP_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TEST_CASE_VIEW2">
+            <EntityTypeMapping TypeName="MarsEntities.TEST_CASE_VIEW2">
+              <MappingFragment StoreEntitySet="TEST_CASE_VIEW2">
+                <ScalarProperty Name="PROJECT_NAME" ColumnName="PROJECT_NAME" />
+                <ScalarProperty Name="TEST_SUITE_NAME" ColumnName="TEST_SUITE_NAME" />
+                <ScalarProperty Name="TEST_CASE_NAME" ColumnName="TEST_CASE_NAME" />
+                <ScalarProperty Name="KEY_WORD_NAME" ColumnName="KEY_WORD_NAME" />
+                <ScalarProperty Name="OBJECT_ID" ColumnName="OBJECT_ID" />
+                <ScalarProperty Name="OBJECT_HAPPY_NAME" ColumnName="OBJECT_HAPPY_NAME" />
+                <ScalarProperty Name="COLUMN_ROW_SETTING" ColumnName="COLUMN_ROW_SETTING" />
+                <ScalarProperty Name="DATA_VALUE" ColumnName="DATA_VALUE" />
+                <ScalarProperty Name="LOOP_ID" ColumnName="LOOP_ID" />
+                <ScalarProperty Name="STEPS_ID" ColumnName="STEPS_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TEST_OBJECT_VIEW">
+            <EntityTypeMapping TypeName="MarsEntities.TEST_OBJECT_VIEW">
+              <MappingFragment StoreEntitySet="TEST_OBJECT_VIEW">
+                <ScalarProperty Name="OBJECT_ID" ColumnName="OBJECT_ID" />
+                <ScalarProperty Name="OBJECT_HAPPY_NAME" ColumnName="OBJECT_HAPPY_NAME" />
+                <ScalarProperty Name="APPLICATION_ID" ColumnName="APPLICATION_ID" />
+                <ScalarProperty Name="TYPE_ID" ColumnName="TYPE_ID" />
+                <ScalarProperty Name="QUICK_ACCESS" ColumnName="QUICK_ACCESS" />
+                <ScalarProperty Name="OBJECT_TYPE" ColumnName="OBJECT_TYPE" />
+                <ScalarProperty Name="COMMENT" ColumnName="COMMENT" />
+                <ScalarProperty Name="ENUM_TYPE" ColumnName="ENUM_TYPE" />
+                <ScalarProperty Name="APP_SHORT_NAME" ColumnName="APP_SHORT_NAME" />
+                <ScalarProperty Name="TYPE_NAME" ColumnName="TYPE_NAME" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TEST_PROJECT_VIEW">
+            <EntityTypeMapping TypeName="MarsEntities.TEST_PROJECT_VIEW">
+              <MappingFragment StoreEntitySet="TEST_PROJECT_VIEW">
+                <ScalarProperty Name="PROJECT_NAME" ColumnName="PROJECT_NAME" />
+                <ScalarProperty Name="PROJECT_ID" ColumnName="PROJECT_ID" />
+                <ScalarProperty Name="TEST_SUITE_NAME" ColumnName="TEST_SUITE_NAME" />
+                <ScalarProperty Name="TEST_SUITE_ID" ColumnName="TEST_SUITE_ID" />
+                <ScalarProperty Name="APP_SHORT_NAME" ColumnName="APP_SHORT_NAME" />
+                <ScalarProperty Name="APPLICATION_ID" ColumnName="APPLICATION_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="V_OBJECT_APPS">
+            <EntityTypeMapping TypeName="MarsEntities.V_OBJECT_APPS">
+              <MappingFragment StoreEntitySet="V_OBJECT_APPS">
+                <ScalarProperty Name="APPLICATION_ID" ColumnName="APPLICATION_ID" />
+                <ScalarProperty Name="OBJECT_ID" ColumnName="OBJECT_ID" />
+                <ScalarProperty Name="COMMENT" ColumnName="COMMENT" />
+                <ScalarProperty Name="ENUM_TYPE" ColumnName="ENUM_TYPE" />
+                <ScalarProperty Name="OBJECT_HAPPY_NAME" ColumnName="OBJECT_HAPPY_NAME" />
+                <ScalarProperty Name="OBJECT_TYPE" ColumnName="OBJECT_TYPE" />
+                <ScalarProperty Name="QUICK_ACCESS" ColumnName="QUICK_ACCESS" />
+                <ScalarProperty Name="TYPE_ID" ColumnName="TYPE_ID" />
+                <ScalarProperty Name="APP_APPLICATION_ID" ColumnName="APP_APPLICATION_ID" />
+                <ScalarProperty Name="APP_SHORT_NAME" ColumnName="APP_SHORT_NAME" />
+                <ScalarProperty Name="APPLICATION_TYPE_ID" ColumnName="APPLICATION_TYPE_ID" />
+                <ScalarProperty Name="COMMENT_APP" ColumnName="COMMENT_APP" />
+                <ScalarProperty Name="EXTRAPOPUPMENU" ColumnName="EXTRAPOPUPMENU" />
+                <ScalarProperty Name="EXTRAREQUIREMENT" ColumnName="EXTRAREQUIREMENT" />
+                <ScalarProperty Name="PROCESS_IDENTIFIER" ColumnName="PROCESS_IDENTIFIER" />
+                <ScalarProperty Name="STARTER_COMMAND" ColumnName="STARTER_COMMAND" />
+                <ScalarProperty Name="STARTER_PATH" ColumnName="STARTER_PATH" />
+                <ScalarProperty Name="VERSION" ColumnName="VERSION" />
+                <ScalarProperty Name="TYPE_APPLICATION_TYPE_ID" ColumnName="TYPE_APPLICATION_TYPE_ID" />
+                <ScalarProperty Name="TYPE_DESCRPTION" ColumnName="TYPE_DESCRPTION" />
+                <ScalarProperty Name="TYP_TYPE_ID" ColumnName="TYP_TYPE_ID" />
+                <ScalarProperty Name="TYPE_NAME" ColumnName="TYPE_NAME" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="V_STORYBOARD_TEST_FULLVISION">
+            <EntityTypeMapping TypeName="MarsEntities.V_STORYBOARD_TEST_FULLVISION">
+              <MappingFragment StoreEntitySet="V_STORYBOARD_TEST_FULLVISION">
+                <ScalarProperty Name="STORYBOARD_DETAIL_ID" ColumnName="STORYBOARD_DETAIL_ID" />
+                <ScalarProperty Name="STORYBOARD_NAME" ColumnName="STORYBOARD_NAME" />
+                <ScalarProperty Name="PROJECT_ID" ColumnName="PROJECT_ID" />
+                <ScalarProperty Name="PROJECT_NAME" ColumnName="PROJECT_NAME" />
+                <ScalarProperty Name="PROJECT_DESCRIPTION" ColumnName="PROJECT_DESCRIPTION" />
+                <ScalarProperty Name="TEST_CASE_NAME" ColumnName="TEST_CASE_NAME" />
+                <ScalarProperty Name="TEST_CASE_ID" ColumnName="TEST_CASE_ID" />
+                <ScalarProperty Name="TEST_STEP_DESCRIPTION" ColumnName="TEST_STEP_DESCRIPTION" />
+                <ScalarProperty Name="TEST_SUITE_ID" ColumnName="TEST_SUITE_ID" />
+                <ScalarProperty Name="TEST_SUITE_NAME" ColumnName="TEST_SUITE_NAME" />
+                <ScalarProperty Name="TEST_SUITE_DESCRIPTION" ColumnName="TEST_SUITE_DESCRIPTION" />
+                <ScalarProperty Name="RUN_ORDER" ColumnName="RUN_ORDER" />
+                <ScalarProperty Name="DEPENDS_ON" ColumnName="DEPENDS_ON" />
+                <ScalarProperty Name="ALIAS_NAME" ColumnName="ALIAS_NAME" />
+                <ScalarProperty Name="PARENT_ALIAS_NAME" ColumnName="PARENT_ALIAS_NAME" />
+                <ScalarProperty Name="DISPLAY_NAME" ColumnName="DISPLAY_NAME" />
+                <ScalarProperty Name="TEST_RUN_VALUE" ColumnName="TEST_RUN_VALUE" />
+                <ScalarProperty Name="LATEST_TEST_MARK_ID" ColumnName="LATEST_TEST_MARK_ID" />
+                <ScalarProperty Name="HIST_LATEST_TEST_MARK_ID" ColumnName="HIST_LATEST_TEST_MARK_ID" />
+                <ScalarProperty Name="HIST_ID" ColumnName="HIST_ID" />
+                <ScalarProperty Name="HIST_TEST_ID" ColumnName="HIST_TEST_ID" />
+                <ScalarProperty Name="TEST_CASE_BEGIN_TIME" ColumnName="TEST_CASE_BEGIN_TIME" />
+                <ScalarProperty Name="TEST_CASE_END_TIME" ColumnName="TEST_CASE_END_TIME" />
+                <ScalarProperty Name="HIST_TEST_RESULT_IN_TEXT" ColumnName="HIST_TEST_RESULT_IN_TEXT" />
+                <ScalarProperty Name="HIST_TEST_MODE" ColumnName="HIST_TEST_MODE" />
+                <ScalarProperty Name="HIST_RESULT" ColumnName="HIST_RESULT" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="GETNEXT_VAL" FunctionName="MarsEntities.Store.GETNEXT_VAL" />
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="true" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="无" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

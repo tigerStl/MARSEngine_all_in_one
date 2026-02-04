@@ -1,0 +1,434 @@
+═══════════════════════════════════════════════════════════════
+    MARS License 管理系统 - 集成示例代码
+═══════════════════════════════════════════════════════════════
+
+以下是如何将 License 系统集成到现有的 MARS Spy Tool 中：
+
+───────────────────────────────────────────────────────────────
+1. 修改 App.xaml.cs - 启动时验证 License
+───────────────────────────────────────────────────────────────
+
+在 Application_Startup 方法的开始处添加：
+
+```csharp
+using MarsSpyTool.Utility.License;
+
+private void Application_Startup(object sender, StartupEventArgs e)
+{
+    // ========== License 验证开始 ==========
+    logger.Info("Application_Startup\tValidating license...");
+    
+    string errorMessage = "";
+    MarsLicenseManager licenseManager = MarsLicenseManager.Instance;
+    
+    if (!licenseManager.ValidateLicense(ref errorMessage))
+    {
+        logger.Warn($"Application_Startup\tLicense invalid: {errorMessage}");
+        
+        // 显示激活窗口
+        LicenseActivationWindow licenseWindow = new LicenseActivationWindow();
+        licenseWindow.ShowDialog();
+        
+        // 再次验证
+        if (!licenseManager.ValidateLicense(ref errorMessage))
+        {
+            logger.Error("Application_Startup\tNo valid license found, shutting down");
+            MessageBox.Show(
+                "未检测到有效的 License。\n\n" +
+                "MARS Spy Tool 需要有效的 License 才能运行。\n" +
+                "请联系销售人员获取 License Key。\n\n" +
+                "销售联系方式：\n" +
+                "Email: sales@mars.com\n" +
+                "电话: 400-xxx-xxxx",
+                "License 验证失败",
+                MessageBoxButton.OK,
+                MessageBoxImage.Stop);
+            Application.Current.Shutdown();
+            return;
+        }
+    }
+    
+    // License 有效，检查是否即将过期
+    var license = licenseManager.CurrentLicense;
+    logger.Info($"Application_Startup\tLicense valid. Type: {license.Type}, Days remaining: {license.GetRemainingDays()}");
+    
+    if (license.IsExpiringSoon())
+    {
+        MessageBox.Show(
+            $"提醒：您的 {GetLicenseTypeName(license.Type)} License 即将在 {license.GetRemainingDays()} 天后过期。\n\n" +
+            $"过期日期：{license.ExpirationDate:yyyy-MM-dd}\n\n" +
+            "请及时联系销售续费以确保正常使用。",
+            "License 即将过期",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+    }
+    // ========== License 验证结束 ==========
+    
+    // 以下是原有的启动代码
+    string strP = string.Join("|", e.Args);
+    try
+    {
+        // ... 原有代码继续 ...
+    }
+}
+
+private string GetLicenseTypeName(LicenseType type)
+{
+    switch (type)
+    {
+        case LicenseType.Trial: return "试用版";
+        case LicenseType.Standard: return "标准版";
+        case LicenseType.Professional: return "专业版";
+        case LicenseType.Enterprise: return "企业版";
+        case LicenseType.Perpetual: return "永久版";
+        default: return "未知";
+    }
+}
+```
+
+───────────────────────────────────────────────────────────────
+2. 修改 MainWindow.xaml - 添加 License 菜单
+───────────────────────────────────────────────────────────────
+
+在 <Window> 标签后添加菜单栏：
+
+```xml
+<Window x:Class="MarsSpyTool.MarsObjectSpy"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MARS(Test) Object Spy" Height="130" Width="720">
+    
+    <DockPanel>
+        <!-- 添加菜单栏 -->
+        <Menu DockPanel.Dock="Top" Background="White">
+            <MenuItem Header="工具(_T)">
+                <MenuItem Header="License 管理" Click="MenuLicenseManagement_Click">
+                    <MenuItem.Icon>
+                        <Image Source="/icons/icons8-gear-32.png" Width="16"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="帮助(_H)">
+                <MenuItem Header="License 信息" Click="MenuLicenseInfo_Click"/>
+                <MenuItem Header="激活 License" Click="MenuActivateLicense_Click"/>
+                <Separator/>
+                <MenuItem Header="关于" Click="MenuAbout_Click"/>
+            </MenuItem>
+        </Menu>
+        
+        <!-- 原有的 Grid 内容 -->
+        <Grid>
+            <!-- 原有的 Grid.RowDefinitions 和内容 -->
+        </Grid>
+    </DockPanel>
+</Window>
+```
+
+───────────────────────────────────────────────────────────────
+3. 修改 MainWindow.xaml.cs - 添加菜单事件处理
+───────────────────────────────────────────────────────────────
+
+在 MainWindow.xaml.cs 类中添加以下方法：
+
+```csharp
+using MarsSpyTool.Utility.License;
+
+// License 管理菜单
+private void MenuLicenseManagement_Click(object sender, RoutedEventArgs e)
+{
+    LicenseActivationWindow licenseWindow = new LicenseActivationWindow();
+    licenseWindow.ShowDialog();
+}
+
+// License 信息菜单
+private void MenuLicenseInfo_Click(object sender, RoutedEventArgs e)
+{
+    var license = MarsLicenseManager.Instance.CurrentLicense;
+    if (license != null && license.IsValid())
+    {
+        string features = GetFeaturesList(license.Features);
+        MessageBox.Show(
+            $"═════════ MARS License 信息 ═════════\n\n" +
+            $"授权给：{license.LicensedTo}\n" +
+            $"License 类型：{GetLicenseTypeName(license.Type)}\n" +
+            $"激活状态：{(license.IsActivated ? "已激活" : "未激活")}\n" +
+            $"激活日期：{license.ActivationDate:yyyy-MM-dd HH:mm:ss}\n" +
+            $"过期日期：{(license.Type == LicenseType.Perpetual ? "永久" : license.ExpirationDate.ToString("yyyy-MM-dd"))}\n" +
+            $"剩余天数：{(license.Type == LicenseType.Perpetual ? "永久" : license.GetRemainingDays().ToString() + " 天")}\n" +
+            $"硬件ID：{MarsLicenseManager.GetHardwareId().Substring(0, 16)}...\n\n" +
+            $"功能权限：\n{features}\n\n" +
+            $"═════════════════════════════════════",
+            "License 信息",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+    }
+    else
+    {
+        MessageBox.Show(
+            "未找到有效的 License。\n\n请点击 [帮助] -> [激活 License] 进行激活。",
+            "提示",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+    }
+}
+
+// 激活 License 菜单
+private void MenuActivateLicense_Click(object sender, RoutedEventArgs e)
+{
+    LicenseActivationWindow licenseWindow = new LicenseActivationWindow();
+    licenseWindow.ShowDialog();
+}
+
+// 关于菜单
+private void MenuAbout_Click(object sender, RoutedEventArgs e)
+{
+    MessageBox.Show(
+        "MARS Spy Tool\n" +
+        "版本：1.0.0\n\n" +
+        "自动化测试对象识别工具\n\n" +
+        "Copyright © 2025 MARS Team\n" +
+        "All rights reserved.",
+        "关于 MARS Spy Tool",
+        MessageBoxButton.OK,
+        MessageBoxImage.Information);
+}
+
+private string GetLicenseTypeName(LicenseType type)
+{
+    switch (type)
+    {
+        case LicenseType.Trial: return "试用版";
+        case LicenseType.Standard: return "标准版";
+        case LicenseType.Professional: return "专业版";
+        case LicenseType.Enterprise: return "企业版";
+        case LicenseType.Perpetual: return "永久版";
+        default: return "未知";
+    }
+}
+
+private string GetFeaturesList(LicenseFeatures features)
+{
+    var list = new List<string>();
+    if ((features & LicenseFeatures.BasicObjectSpy) != 0)
+        list.Add("  ✓ 基础对象识别");
+    if ((features & LicenseFeatures.SingleObjectMode) != 0)
+        list.Add("  ✓ 单对象模式");
+    if ((features & LicenseFeatures.AutoGenerateTestCase) != 0)
+        list.Add("  ✓ 自动生成测试用例");
+    if ((features & LicenseFeatures.RecordReplay) != 0)
+        list.Add("  ✓ 录制回放");
+    if ((features & LicenseFeatures.MultiDatabase) != 0)
+        list.Add("  ✓ 多数据库支持");
+    if ((features & LicenseFeatures.AdvancedObjectRecognition) != 0)
+        list.Add("  ✓ 高级对象识别");
+    if ((features & LicenseFeatures.BatchOperation) != 0)
+        list.Add("  ✓ 批量操作");
+    if ((features & LicenseFeatures.CloudSync) != 0)
+        list.Add("  ✓ 云端同步");
+    return string.Join("\n", list);
+}
+```
+
+───────────────────────────────────────────────────────────────
+4. 功能权限检查 - 修改现有按钮事件
+───────────────────────────────────────────────────────────────
+
+在各个功能按钮的事件处理方法开始处添加权限检查：
+
+```csharp
+// 录制回放功能
+private void Button_PreviewRecordAndReplayButtonDown(object sender, MouseButtonEventArgs e)
+{
+    // ========== 权限检查 ==========
+    if (!MarsLicenseManager.Instance.HasFeature(LicenseFeatures.RecordReplay))
+    {
+        logger.Warn("RecordReplay feature not available in current license");
+        MessageBox.Show(
+            "录制回放功能不可用。\n\n" +
+            "您当前的 License 不包含此功能。\n" +
+            "请升级到专业版或企业版以使用录制回放功能。\n\n" +
+            "如需升级，请联系销售：sales@mars.com",
+            "功能受限",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+    }
+    // ========== 权限检查结束 ==========
+    
+    // 原有代码
+    logger.Info($"Button_PreviewRecordAndReplayButtonDown\t begin|{IsDragging}");
+    // ...
+}
+
+// 自动生成测试用例功能
+private void Button_PreviewTestCaseMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+{
+    // ========== 权限检查 ==========
+    if (!MarsLicenseManager.Instance.HasFeature(LicenseFeatures.AutoGenerateTestCase))
+    {
+        logger.Warn("AutoGenerateTestCase feature not available in current license");
+        MessageBox.Show(
+            "自动生成测试用例功能不可用。\n\n" +
+            "您当前的 License 不包含此功能。\n" +
+            "请升级到标准版或更高版本以使用此功能。\n\n" +
+            "如需升级，请联系销售：sales@mars.com",
+            "功能受限",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+    }
+    // ========== 权限检查结束 ==========
+    
+    // 原有代码
+    logger.Info($"Button_PreviewTestCaseMouseLeftButtonDown\t begin|{IsDragging}");
+    // ...
+}
+
+// 单对象模式 checkbox（在 checked 事件中添加）
+private void singleObjectMode_checked(object sender, RoutedEventArgs e)
+{
+    // ========== 权限检查 ==========
+    if (!MarsLicenseManager.Instance.HasFeature(LicenseFeatures.SingleObjectMode))
+    {
+        logger.Warn("SingleObjectMode feature not available in current license");
+        singleObjectMode.IsChecked = false; // 取消选中
+        MessageBox.Show(
+            "单对象模式功能不可用。\n\n" +
+            "您当前的 License 不包含此功能。\n" +
+            "请升级 License 以使用此功能。",
+            "功能受限",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+    }
+    // ========== 权限检查结束 ==========
+    
+    // 原有代码
+    logger.Info("singleObjectMode_checked\tbegin");
+    // ...
+}
+```
+
+───────────────────────────────────────────────────────────────
+5. 在项目文件中添加新文件引用
+───────────────────────────────────────────────────────────────
+
+如果使用 .NET Framework，需要在 MarsSpyTool.csproj 中添加：
+
+```xml
+<ItemGroup>
+  <!-- License 管理模块 -->
+  <Compile Include="Utility\License\MarsLicenseInfo.cs" />
+  <Compile Include="Utility\License\MarsLicenseManager.cs" />
+  <Compile Include="Utility\License\LicenseKeyGenerator.cs" />
+  <Compile Include="Utility\License\LicenseActivationWindow.xaml.cs">
+    <DependentUpon>LicenseActivationWindow.xaml</DependentUpon>
+  </Compile>
+</ItemGroup>
+
+<ItemGroup>
+  <Page Include="Utility\License\LicenseActivationWindow.xaml">
+    <SubType>Designer</SubType>
+    <Generator>MSBuild:Compile</Generator>
+  </Page>
+</ItemGroup>
+
+<ItemGroup>
+  <!-- 需要添加 System.Management 引用 -->
+  <Reference Include="System.Management" />
+</ItemGroup>
+```
+
+───────────────────────────────────────────────────────────────
+6. 生成 License Key 的工具（独立项目）
+───────────────────────────────────────────────────────────────
+
+创建一个新的控制台项目 "MarsLicenseGenerator"：
+
+Program.cs:
+```csharp
+using System;
+using MarsSpyTool.Utility.License;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine("MARS License Key Generator v1.0");
+        Console.WriteLine("================================\n");
+        
+        Console.Write("客户名称: ");
+        string name = Console.ReadLine();
+        
+        Console.WriteLine("\n选择 License 类型:");
+        Console.WriteLine("1 - 试用版 (30天)");
+        Console.WriteLine("2 - 标准版 (1年)");
+        Console.WriteLine("3 - 专业版 (1年)");
+        Console.WriteLine("4 - 企业版 (1年)");
+        Console.WriteLine("5 - 永久版");
+        Console.Write("\n请选择: ");
+        
+        int choice = int.Parse(Console.ReadLine());
+        string licenseKey = "";
+        
+        switch (choice)
+        {
+            case 1:
+                licenseKey = LicenseKeyGenerator.GenerateTrialKey(name);
+                break;
+            case 2:
+                licenseKey = LicenseKeyGenerator.GenerateStandardKey(
+                    name, DateTime.Now.AddYears(1));
+                break;
+            case 3:
+                licenseKey = LicenseKeyGenerator.GenerateProfessionalKey(
+                    name, DateTime.Now.AddYears(1));
+                break;
+            case 4:
+                licenseKey = LicenseKeyGenerator.GenerateEnterpriseKey(
+                    name, DateTime.Now.AddYears(1));
+                break;
+            case 5:
+                licenseKey = LicenseKeyGenerator.GeneratePerpetualKey(name);
+                break;
+        }
+        
+        Console.WriteLine("\n================================");
+        Console.WriteLine("License Key 生成成功！");
+        Console.WriteLine("================================");
+        Console.WriteLine($"\n{licenseKey}\n");
+        Console.WriteLine("请将此 License Key 发送给客户。");
+        Console.WriteLine("\n按任意键退出...");
+        Console.ReadKey();
+    }
+}
+```
+
+───────────────────────────────────────────────────────────────
+7. 测试流程
+───────────────────────────────────────────────────────────────
+
+1. 编译项目
+2. 删除 mars.lic 文件（如果存在）
+3. 运行应用 → 应该显示激活窗口
+4. 使用 License 生成器创建一个测试 Key
+5. 在激活窗口中输入 Key
+6. 验证激活成功
+7. 重启应用 → 应该直接启动（不再显示激活窗口）
+8. 测试功能权限控制
+
+───────────────────────────────────────────────────────────────
+8. 部署建议
+───────────────────────────────────────────────────────────────
+
+发布时：
+1. ✅ 包含 License 管理模块（MarsLicenseInfo, MarsLicenseManager, LicenseActivationWindow）
+2. ❌ 不要包含 LicenseKeyGenerator（保留在内部）
+3. ✅ 使用代码混淆工具保护程序
+4. ✅ 包含用户使用手册
+5. ✅ 提供技术支持联系方式
+
+═══════════════════════════════════════════════════════════════
+完成！现在您的应用已经具备完整的 License 管理功能。
+═══════════════════════════════════════════════════════════════
+

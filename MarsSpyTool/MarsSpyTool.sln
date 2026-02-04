@@ -1,0 +1,79 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33414.496
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarsSpyTool", "MarsSpyTool.csproj", "{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		DEBUG FOR WEBVERSION|Any CPU = DEBUG FOR WEBVERSION|Any CPU
+		DEBUG FOR WEBVERSION|x64 = DEBUG FOR WEBVERSION|x64
+		debug with qtp|Any CPU = debug with qtp|Any CPU
+		debug with qtp|x64 = debug with qtp|x64
+		debug x86|Any CPU = debug x86|Any CPU
+		debug x86|x64 = debug x86|x64
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		DebugQT|Any CPU = DebugQT|Any CPU
+		DebugQT|x64 = DebugQT|x64
+		Release For WEB|Any CPU = Release For WEB|Any CPU
+		Release For WEB|x64 = Release For WEB|x64
+		Release For Webversion|Any CPU = Release For Webversion|Any CPU
+		Release For Webversion|x64 = Release For Webversion|x64
+		release with qtp|Any CPU = release with qtp|Any CPU
+		release with qtp|x64 = release with qtp|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		ReleaseQT|Any CPU = ReleaseQT|Any CPU
+		ReleaseQT|x64 = ReleaseQT|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.DEBUG FOR WEBVERSION|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.DEBUG FOR WEBVERSION|Any CPU.Build.0 = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.DEBUG FOR WEBVERSION|x64.ActiveCfg = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.DEBUG FOR WEBVERSION|x64.Build.0 = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.debug with qtp|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.debug with qtp|Any CPU.Build.0 = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.debug with qtp|x64.ActiveCfg = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.debug with qtp|x64.Build.0 = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.debug x86|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.debug x86|Any CPU.Build.0 = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.debug x86|x64.ActiveCfg = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.debug x86|x64.Build.0 = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Debug|x64.Build.0 = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.DebugQT|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.DebugQT|Any CPU.Build.0 = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.DebugQT|x64.ActiveCfg = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.DebugQT|x64.Build.0 = Debug|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Release For WEB|Any CPU.ActiveCfg = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Release For WEB|Any CPU.Build.0 = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Release For WEB|x64.ActiveCfg = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Release For WEB|x64.Build.0 = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Release For Webversion|Any CPU.ActiveCfg = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Release For Webversion|Any CPU.Build.0 = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Release For Webversion|x64.ActiveCfg = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Release For Webversion|x64.Build.0 = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.release with qtp|Any CPU.ActiveCfg = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.release with qtp|Any CPU.Build.0 = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.release with qtp|x64.ActiveCfg = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.release with qtp|x64.Build.0 = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Release|x64.ActiveCfg = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.Release|x64.Build.0 = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.ReleaseQT|Any CPU.ActiveCfg = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.ReleaseQT|Any CPU.Build.0 = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.ReleaseQT|x64.ActiveCfg = Release|Any CPU
+		{0CC6BB04-547F-4E1C-B25C-CD7A4B0DCD75}.ReleaseQT|x64.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EC13DA06-9A57-4D07-9EFB-1970DF526188}
+	EndGlobalSection
+EndGlobal

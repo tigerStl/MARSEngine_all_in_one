@@ -1,0 +1,415 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="APP_CONFIG_ERROR_CONFIGOBJ_NULL" xml:space="preserve">
+    <value>Can't Open co-[App].config file</value>
+  </data>
+  <data name="APP_CONFIG_ERROR_NOXLSMODE_SECTOIN" xml:space="preserve">
+    <value>No XlsMode configuration node in App.config file</value>
+  </data>
+  <data name="DATA_ROW_IS_NULL" xml:space="preserve">
+    <value>Parameter,DataRow is Null</value>
+  </data>
+  <data name="ERR_CONFIG_NO_REGAPPLICATONS_SETTING_IN_CONFIG_FILE" xml:space="preserve">
+    <value>Error, there is no reg application setting in App.config.  Item like "&lt;add key="RegistedApplicationsMode" value="config"&gt;&lt;/add&gt;" should be inserted into config file.</value>
+  </data>
+  <data name="FUNTION_RETURN_VALUE" xml:space="preserve">
+    <value>Function:[{0}] returns [{1}]</value>
+  </data>
+  <data name="HINT_CANT_START_FRAMEWORK_SERVICE" xml:space="preserve">
+    <value>Can't start Framework Service, Check Log file to find details.</value>
+  </data>
+  <data name="HINT_CLASS_INITED" xml:space="preserve">
+    <value>Current Object[{0}] is initized.</value>
+  </data>
+  <data name="HINT_CONFIGREADER_NO_SUCHSECTION_AS_NAMEVALUE" xml:space="preserve">
+    <value>Can't get such section from app.config file as Name-Value collection. Section Name:[{0}]</value>
+  </data>
+  <data name="HINT_CREATE_NEW_SINGLE_INSTANCE" xml:space="preserve">
+    <value>{0} Creates a new instance.</value>
+  </data>
+  <data name="HINT_FIND_APPLICATION_SETTINGMODE_CONFIG" xml:space="preserve">
+    <value>Current regApplication setting is config file</value>
+  </data>
+  <data name="HINT_FIND_APPLICATOIN_SETTINGMODE_DATABASE" xml:space="preserve">
+    <value>Current regApplicaton setting is Database</value>
+  </data>
+  <data name="HINT_FIND_APPLICATON_SETTING_OBJECTSOURCE_DB" xml:space="preserve">
+    <value>Find application setting for ObjectSource:DataBase</value>
+  </data>
+  <data name="HINT_FIND_APPLICATON_SETTING_OBJECTSOURCE_XLS" xml:space="preserve">
+    <value>Find application setting for ObjectSource:Xls</value>
+  </data>
+  <data name="HINT_KEYWORD_VALIDATE_NO_VALIDATECLASS_RETURN_TRUE" xml:space="preserve">
+    <value>No Validate class is Set, return true.</value>
+  </data>
+  <data name="HINT_RETURN_WITH_VALUE" xml:space="preserve">
+    <value>{0} returns {1}</value>
+  </data>
+  <data name="HINT_RUNABLESCRIPT_STARTER_MARK" xml:space="preserve">
+    <value>below is runnable script with values.</value>
+  </data>
+  <data name="HINT_TEST_ACTION_DEFAULT_DESCRIPTION" xml:space="preserve">
+    <value>The default test action for Tiger Mars Automaion Testing Framework.</value>
+  </data>
+  <data name="STRFORMAT_0_FIND_XLSPATH_ROOT" xml:space="preserve">
+    <value>Find path root:[{0}]</value>
+  </data>
+  <data name="SYS_RESULT_DONE" xml:space="preserve">
+    <value>All Test Suites are done!</value>
+  </data>
+  <data name="_APP_NO_SECTION_KEWWORDS" xml:space="preserve">
+    <value>No Keywords Section in app.config file. </value>
+  </data>
+  <data name="_APP_NO_SECTION_KEY" xml:space="preserve">
+    <value>No such key exists on the section.</value>
+  </data>
+  <data name="_APP_NO_SECTION_OBJECT_FROM" xml:space="preserve">
+    <value>Error,No "ObjectSource" item in &lt;appsettings&gt;, Value shoulde be "xlsFile" or "dataBalse".</value>
+  </data>
+  <data name="_APP_NO_SECTION_SPECIAL" xml:space="preserve">
+    <value>No Special Section Exists.</value>
+  </data>
+  <data name="_APP_NO_SETTING_KEYWORD_FROM" xml:space="preserve">
+    <value>No setting for Keyword source. </value>
+  </data>
+  <data name="_APP_WRONG_VALUE_SETTING_KEYWORD_FROM" xml:space="preserve">
+    <value>No such setting ([{0}]) for Keyword from.</value>
+  </data>
+  <data name="_APP_WRONG_VALUE_SETTING_OBJECT_FROM" xml:space="preserve">
+    <value>Error, value for "ObjectSource" should be "xlsFile" or "dataBase".</value>
+  </data>
+  <data name="_BATCH_ERROR_CANT_UPDATE_PARA_4" xml:space="preserve">
+    <value>Can't Update Batch file status. Testsuite Name:[{0}]-TestCase Name:[{1}], RowNumber:[{2}], Error Information:[{3}]</value>
+  </data>
+  <data name="_BATCH_ERROR_JET_READ_EXCEPTION" xml:space="preserve">
+    <value>Exception comes out when Read Xls file by Jet</value>
+  </data>
+  <data name="_BATCH_ERROR_NO_EXECUTE_TABLE" xml:space="preserve">
+    <value>No Batch Sheet(xls Mode) or Test suite information (Database mode)</value>
+  </data>
+  <data name="_COMPILER_APPLICATON_LENTH_NOT_1" xml:space="preserve">
+    <value>Only one application currently support.</value>
+  </data>
+  <data name="_COMPILER_CANT_LOAD_OBJECTFILE" xml:space="preserve">
+    <value>Errors [{0}] come when load objects file:[{1}]</value>
+  </data>
+  <data name="_COMPILER_NOT_THE_CURRENT_TESTCASE_SERVIING_PARA_4" xml:space="preserve">
+    <value>Current TestSteps and TestSuite don't match the required.Current Serving TestSuite And TestCase:[{0}-{1}].Required TestCase Info:[{2}-{3}]</value>
+  </data>
+  <data name="_COMPILER_NO_DEFAULT_APPLICATION_INFO" xml:space="preserve">
+    <value>"DefaultApplication" desn't exist on App.config.</value>
+  </data>
+  <data name="_COMPILER_NO_OBJECT_INDENTIFY_INFO" xml:space="preserve">
+    <value>No such object Indentifier information. Object HappName:[{0}], PegWindow:[{1}]</value>
+  </data>
+  <data name="_COMPILER_NO_PEGWINDOW_FOR_TESTSTEP_FIND" xml:space="preserve">
+    <value>No pegwindow information is available when validate step settings.</value>
+  </data>
+  <data name="_COMPILER_NO_PEGWINDOW_IDENTIFIERINFO" xml:space="preserve">
+    <value>No object Identifier information found for the current Pegwindow:[{0}]</value>
+  </data>
+  <data name="_COMPILER_NO_RC" xml:space="preserve">
+    <value>RC information is required for the current Test step. [{0}]</value>
+  </data>
+  <data name="_COMPILER_NO_STEPS" xml:space="preserve">
+    <value>No Steps List is passed to Compiler. </value>
+  </data>
+  <data name="_COMPILER_NO_SUCH_APPLICATION_CONFIGED" xml:space="preserve">
+    <value>No such application [{0}] configed in Database or Config file. </value>
+  </data>
+  <data name="_COMPILER_NO_SUCH_OBJECT_FILE" xml:space="preserve">
+    <value>No such Object file exists:[{0}]</value>
+  </data>
+  <data name="_COMPILER_NO_SUCH_PEGWINDOW_INFO" xml:space="preserve">
+    <value>Can't find Pegwindow object([{0}]) from Application:[{1}]</value>
+  </data>
+  <data name="_COMPILER_OBJECT_TYPE_MISMATCH_CONFIGTEST_REQUIRED" xml:space="preserve">
+    <value>Object types mismatch, ConfigTestApplication is required. But type {0} find.</value>
+  </data>
+  <data name="_COMPILER_SETCURRENT_APPLICATION_VALUEFORMAT_ERROR" xml:space="preserve">
+    <value>Registerd applications information in app.config should be "config" or "database".</value>
+  </data>
+  <data name="_COMPILER_SUBACTION_KEYWORD_IS_NOT_A_SUBACTION_PARA_1" xml:space="preserve">
+    <value>Current keyword is not a sub-action keyword. Keyword:[{0}]</value>
+  </data>
+  <data name="_COMPILER_SUBACTION_NO_PEGININFORMATION_PARA_2" xml:space="preserve">
+    <value>No peg-window information when pre-compiler sub actions. AppcationName:[{0}], Pegwindows:[{1}]</value>
+  </data>
+  <data name="_COMPILER_SUBACTION_OBJECT_ISNULL_PARA_0" xml:space="preserve">
+    <value>Subaction test step object is NULL.</value>
+  </data>
+  <data name="_COMPILER_TEST_STEP_OBJECT_EXPECT" xml:space="preserve">
+    <value>Except a Teststep object,but other type object is found</value>
+  </data>
+  <data name="_COMPILER_UNKNOW_ERROR_GET_DEFAULT_APP" xml:space="preserve">
+    <value>Unknow error when Call GetDefaultApplication. Error Message is:[{0}]</value>
+  </data>
+  <data name="_COMPILER_UNKNOW_GETDATA_FROM_DICFILE" xml:space="preserve">
+    <value>Exception when convert data from OleDB:[{0}]</value>
+  </data>
+  <data name="_JET_DB_CMD_EXPAND_COLUMN_PARA_1" xml:space="preserve">
+    <value>Exceptions occur when expand an excel column. Exception:{0}</value>
+  </data>
+  <data name="_JET_DB_CONNECTOIN_OPEN_PARA_1" xml:space="preserve">
+    <value>Cant't Open Ject DB connections with exception:{0}</value>
+  </data>
+  <data name="_JET_DB_EXCEPTION_WHEN_RUN_NON_QUERY_PARA_2" xml:space="preserve">
+    <value>Exceptions occur, when a non-query sql executed. Sql:[{0}] Exceptions:[{1}]</value>
+  </data>
+  <data name="_JET_DB_EXCEPTION_WHEN_RUN_QUERY_PARA_2" xml:space="preserve">
+    <value>Exceptions occurred when ran Query Sql on Jet DB. Sql:[{0}], Exception:[{1}]</value>
+  </data>
+  <data name="_JET_DB_FIELDNAMES_DNTMATCH_VALUES_PARA_2" xml:space="preserve">
+    <value>Fields' Lenght doesn't match values' length before call insert into clause on Jet DB. Fields' Lenght:[{0}], Values' Length:[{1}]</value>
+  </data>
+  <data name="_JET_DB_GET_COLUMN_EXCEPTION_PARA_1" xml:space="preserve">
+    <value>Exceptions occur when get table's columns count.Exception:{0}</value>
+  </data>
+  <data name="_JET_DB_NO_EXPAND_COLUMN_SUPPORT_PARA_1" xml:space="preserve">
+    <value>Ole DB Driver doesn't support column expanding. Now, the current Loop count is greater than Data file contained. Make sure that columns of data file is more than :{0}</value>
+  </data>
+  <data name="_KEYWORDS_CALL_FORMATTER_PARA_1" xml:space="preserve">
+    <value>CallSubAction keyword should contain Testsuitename and TestCaseName. Formatter shoulde :TestSuiteName;TestCaseName. Current Value:[{0}]</value>
+  </data>
+  <data name="_KEYWORDS_IF_FORMATTER_NO_VALUE_PARA_0" xml:space="preserve">
+    <value>No value setting information for IF keyword.</value>
+  </data>
+  <data name="_KEYWORDS_IF_FORMATTER_SETTING_ERROR_PARA_1" xml:space="preserve">
+    <value>IF keyword setting is wrong.  Wrong Item of value :[{0}]</value>
+  </data>
+  <data name="_KEYWORDS_NO_SUCH_FUNCTION" xml:space="preserve">
+    <value>No such keyword name configured[{0}].</value>
+  </data>
+  <data name="_KEYWORDS_NO_SUCH_KEYWORDS_CONCEPT_FOUND" xml:space="preserve">
+    <value>No keyword concept [{0}] found.</value>
+  </data>
+  <data name="_KEYWORDS_PARSE_CONFIGED_OBJECT_TYPE_WRONG" xml:space="preserve">
+    <value>Keyword Parameter class [{0}] should be inherited from KeyWordsValidate and implement IKeyWordParse</value>
+  </data>
+  <data name="_KEYWORDS_PARSE_NO_SUCHAPPLICATION_SHORTNAME" xml:space="preserve">
+    <value>No such applicatioin short name[{0}] when parse keyword.</value>
+  </data>
+  <data name="_KEYWORDS_PARSE_NO_SUCH_OBJECT_UNDER_PEGWINDOW" xml:space="preserve">
+    <value>No such object information.ApplicationShortName:[{0}],Pegwindow:[{1}],ObjectName:[{2}]</value>
+  </data>
+  <data name="_KEYWORDS_PARSE_NO_SUCH_PEGWINDOW" xml:space="preserve">
+    <value>No such pegwindow informtion [{0}] under application [{1}] objects.</value>
+  </data>
+  <data name="_KEYWORDS_PARSE_REFLECTION" xml:space="preserve">
+    <value>Can't reflection the class [{0}], exception message is :[{1}]</value>
+  </data>
+  <data name="_KEYWORDS_PARSE_REFLECTION_NULL" xml:space="preserve">
+    <value>Can't create Parse object Instance for class name:[{0}]</value>
+  </data>
+  <data name="_KEYWORDS_SETTING_NO_SUCHAPPLICATION_SHORTNAME" xml:space="preserve">
+    <value>No such application short name [{0}] defined.</value>
+  </data>
+  <data name="_KEYWORDS_UNSUPPORT_RUN_FROM" xml:space="preserve">
+    <value>Unsupported Run-From value find. </value>
+    <comment>_KEYWORDS_UNSUPPORT_RUN_FROM</comment>
+  </data>
+  <data name="_NO_ERROR" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="_OBJECT_IS_NULL" xml:space="preserve">
+    <value>Object is Null</value>
+  </data>
+  <data name="_QTP_ERROR_CREATE_EMPTYTEST" xml:space="preserve">
+    <value>Exception find when create empty QTP/UFT test.Exception:[{0}]</value>
+  </data>
+  <data name="_QTP_ERROR_GENERAL" xml:space="preserve">
+    <value>Exceptions when call QTP functions:[{0}]</value>
+  </data>
+  <data name="_QTP_ERROR_INSTANCE_NULL" xml:space="preserve">
+    <value>QTP/UFT instance is null. </value>
+  </data>
+  <data name="_QTP_ERROR_REFRESH" xml:space="preserve">
+    <value>Exceptions when refreshs QTP:[{0}]</value>
+  </data>
+  <data name="_QTP_ERROR_SETTINGADDINS" xml:space="preserve">
+    <value>Exception ocurres, when set Test Addins. Exception:[{0}]</value>
+  </data>
+  <data name="_QTP_ERROR_VALIDATE" xml:space="preserve">
+    <value>Can't validate Runnable script with error message:[{0}]</value>
+  </data>
+  <data name="_REG_APPS_NO_SUCH_APPLICATION_SHORTNAMEORPATH" xml:space="preserve">
+    <value>No Such Registered application Info:[{0}]</value>
+  </data>
+  <data name="_TCDATA_DATA_CELL_EXCEPTION_PARA_3" xml:space="preserve">
+    <value>Exceptions occur when Get data from cell. Cell Index:[{0}], Column Index:[{1}] Exceptions:[{2}]</value>
+  </data>
+  <data name="_TCDATA_DATA_COLUMN_EXCEED" xml:space="preserve">
+    <value>Required more column than result can support.</value>
+  </data>
+  <data name="_TCDATA_DATA_INSERT_OBJECT_EXCEPTION_PARA_3" xml:space="preserve">
+    <value>Exceptions when insert object to Data File. DataFile:[{0}], ObjectName:[{1}], Exception:[{2}]</value>
+  </data>
+  <data name="_TCDATA_DATA_NO_SPECIAL_CELLDATA_PARA_2" xml:space="preserve">
+    <value>No Data return for the cell. Cell Index:[{0}], Column Index:[{1}]</value>
+  </data>
+  <data name="_TCDATA_DATA_UPDATECACHE_LOOPID_GREATER_PARA_3" xml:space="preserve">
+    <value>iLoop value is greater than current Data set lenght. iLoop:[{0}], Object Index:[{1}], CurrentLength:[{2}]</value>
+  </data>
+  <data name="_TCDATA_DATA_UPDATECACHE_LOOPID_LESS_0_PARA_2" xml:space="preserve">
+    <value>iLoop value is less than 0. iLoop:[{0}], Objext Index:[{1}]</value>
+  </data>
+  <data name="_TCDATA_DATA_UPDATECACHE_NO_OBJECTINDEX_PARA_1" xml:space="preserve">
+    <value>No Object index found on cache. Object Index:[{0}]</value>
+  </data>
+  <data name="_TCDATA_DATA_UPDATE_EXCEPTION_PARA_3" xml:space="preserve">
+    <value>Exceptions occur when Update to Cell. Cell Index:[{0}], Column Index:[{1}] Exceptions:[{2}]</value>
+  </data>
+  <data name="_TCDATA_EXCEPTION_LOADDATA" xml:space="preserve">
+    <value>None defined error when call GetSpecialTableDataToList.[{0}]</value>
+  </data>
+  <data name="_TCDATA_EXCEPTION_READFROM_ONEROW" xml:space="preserve">
+    <value>Exceptions come across when reading data from TCfile or database.[{0}]</value>
+  </data>
+  <data name="_TCDATA_LOAD_TABLENAMES" xml:space="preserve">
+    <value>Can't load Tablenames/SheetNames from DataFile.Error Code:[{0}]</value>
+  </data>
+  <data name="_TCDATA_NO_DATA_FIND" xml:space="preserve">
+    <value>No Data records found on Database or table sheet[{0}].</value>
+  </data>
+  <data name="_TCDATA_NO_DATA_SHEET" xml:space="preserve">
+    <value>No such table/Sheet [{0}] exists on Database/DataXlsFile.</value>
+  </data>
+  <data name="_TCDATA_NO_SUCH_ADAPTER" xml:space="preserve">
+    <value>No such Adapter is supported for Test script Data :[{0}]</value>
+  </data>
+  <data name="_TCDATA_NO_SUCH_DATAFILE" xml:space="preserve">
+    <value>No such Data file exists:[{0}]</value>
+  </data>
+  <data name="_TEST_KEYWORD_SETTING_CAPTUREVALUE_COMPARISON_NUMBER_PARA_1" xml:space="preserve">
+    <value>A number (1/2) should after ColIndex. Current Setting string:[0]</value>
+  </data>
+  <data name="_TEST_KEYWORD_SETTING_CAPTUREVALUE_COMPARISON_PARA_1" xml:space="preserve">
+    <value>CaptureValue settings(comparison mode) are wrong. Formatter should be -[StorageMode:Comparing;ColIndx:&lt;Number 1 or 2&gt;;ConvertMethod:&lt;string&gt;];ObjectHappName. Current Setting string:[{0}]</value>
+  </data>
+  <data name="_TEST_STEP_COMPARISON_MODE_BASELINE_PARAMETER_NOTSUPPORT_PARA_1" xml:space="preserve">
+    <value>CapturavalueAndcompare only support 'Build/Comprison'. Current parameter is:[{0}]</value>
+  </data>
+  <data name="_TEST_STEP_COMPARISON_MODE_VALUE_SETTING_NO_OBJECT_PARA_1" xml:space="preserve">
+    <value>Test Step file setting problem, no Object Name info on Value column. setting string :[{0}]</value>
+  </data>
+  <data name="_TEST_STEP_NO_SUCH_TABLE_OR_SHEET" xml:space="preserve">
+    <value>No such Test Step Info or No such Sheet Name in TC file.</value>
+  </data>
+</root>

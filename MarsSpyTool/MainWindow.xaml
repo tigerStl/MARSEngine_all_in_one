@@ -1,0 +1,118 @@
+<Window x:Class="MarsSpyTool.MarsObjectSpy"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MarsSpyTool"
+        mc:Ignorable="d"
+        Title="MARS(Test) Object Spy" Height="130" Width="720" Closing="Window_Closing" 
+       
+        ResizeMode="NoResize" Activated="Window_Activated" Icon="/eyeMars.png" Loaded="Window_Loaded" KeyDown="Window_KeyDown">
+    <!--
+    Closing="Window_Closing"
+        ResizeMode="NoResize" Activated="Window_Activated" 
+    -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"></RowDefinition>
+            <RowDefinition Height="38"></RowDefinition>
+            <RowDefinition ></RowDefinition>
+        </Grid.RowDefinitions>
+        
+        <DockPanel LastChildFill="True" Grid.Row="1">
+            <Label Content="Select MARS Database:" Margin="5" ></Label>
+            <ComboBox Width="180" Margin="0,5,0,5" ItemsSource="{Binding DatabaseNameList}"
+                      SelectedValue="{Binding CurrentMarsDBIdx}"
+                      SelectionChanged="OnMarsDBIdsSelectionChanged">
+            </ComboBox>
+
+            <Label Content="Select Process:" Margin="5" Width="88"></Label>
+            <ComboBox Width="180" Margin="0,5,5,5" 
+                      ItemsSource="{Binding ApplicationListInfo}" 
+                      SelectedItem="{Binding CurrentApplication}"
+                      >
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} | {1}">
+                                    <Binding Path="ApplicationName" />
+                                    <Binding Path="ApplicationProcess"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+           
+        </DockPanel>
+
+        <DockPanel LastChildFill="True" Grid.Row="0">
+            <ToolBarTray DockPanel.Dock="Top" >
+                <ToolBar>
+                    <Button Width="36" x:Name="FinderButton" Margin="0" PreviewMouseLeftButtonDown="Button_PreviewMouseLeftButtonDown"
+                    >
+                        <Image x:Name="MarsCrosshairsImage" Source="/icons8-my-location-32.png"></Image>
+                    </Button>
+                    <Button Width="36" x:Name="AutoGenerateTestCase"
+                    Margin="0"
+                    PreviewMouseLeftButtonDown="Button_PreviewTestCaseMouseLeftButtonDown"
+                    >
+                        <Image x:Name="MARS_GENERATE_TESTCASE" Source="/icons/icon-generate-testcase.png"></Image>
+                    </Button>
+                    <Separator></Separator>
+                    <Button Width="36" x:Name="RecordAndReplay"
+                        Margin="0"
+                        PreviewMouseLeftButtonDown="Button_PreviewRecordAndReplayButtonDown"
+                    >
+                        <Image x:Name="MARS_RECORD_REPLAY" Source="/icons/icons8-video-record-32.png"></Image>
+                    </Button>
+                    <Separator></Separator>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" >
+                        <CheckBox x:Name="singleObjectMode" Content="single Object" Margin="0,0,5,0" FontWeight="Bold"
+                          IsChecked="{Binding IsSingleObjectMode}" VerticalAlignment="Center"
+                          Checked="singleObjectMode_checked" Unchecked="TopMostCheckBox_Unchecked"/>
+                    </StackPanel>
+                    <Separator></Separator>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" >
+                        <Separator></Separator>
+                        <Label Content="Mouse Tracking:" FontWeight="Bold" Margin="0"></Label>
+                        <Separator></Separator>
+                        <Label x:Name="XPos" Content="X" Margin="0"  VerticalAlignment="Center"></Label>
+                        <Separator></Separator>
+                        <Label x:Name="YPos" Content="Y" Margin="0"  VerticalAlignment="Center"></Label>
+                        <Separator></Separator>
+                        <Label x:Name="DragStatus" Content="T/F" Margin="0"   VerticalAlignment="Center"></Label>
+                        <Separator></Separator>
+                        <Label Content="hwnd:" FontWeight="Bold" Margin="0"></Label>
+                        <Label x:Name="currentWndHandleLbl" Content="No windows" Margin="0"  VerticalAlignment="Center"></Label>
+                        <CheckBox x:Name="trackingCheckBox" Content="Tracking" Margin="5,0,0,0" VerticalAlignment="Center" IsEnabled="False" Checked="TrackingCheckBox_Checked" Unchecked="TrackingCheckBox_Unchecked"/>
+                        
+                    </StackPanel>
+                    <Separator/>
+                </ToolBar>
+                
+            </ToolBarTray>
+            
+        </DockPanel>
+        <DockPanel Grid.Row="2" LastChildFill="True" >
+            <StatusBar VerticalContentAlignment="Center" DockPanel.Dock="Bottom">
+                <StatusBarItem Margin="1" VerticalContentAlignment="Center">
+                    <DockPanel LastChildFill="True">
+                        <TextBlock x:Name="statusBarHint" Text="{Binding CurrentStatus}" MinWidth="100"
+                                   Foreground="{Binding statusForeGroundColor}" />
+
+                    </DockPanel>
+                </StatusBarItem>
+                <StatusBarItem Width="Auto">
+                    <ProgressBar Foreground="Navy" IsIndeterminate="False" x:Name="statusProgress" Width="Auto" Height="24"
+                            ></ProgressBar>
+                </StatusBarItem>
+            </StatusBar>
+        </DockPanel>
+    </Grid>
+
+</Window>
