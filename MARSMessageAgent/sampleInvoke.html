@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MARS Message Agent - Sample Invoke & ShakeHand</title>
+  <style>
+    body { font-family: Segoe UI, sans-serif; margin: 24px; max-width: 720px; }
+    h1 { font-size: 1.2rem; }
+    .section { margin: 16px 0; padding: 12px; border: 1px solid #ccc; border-radius: 6px; }
+    button { padding: 8px 16px; margin: 4px; cursor: pointer; }
+    pre { background: #f5f5f5; padding: 12px; overflow: auto; font-size: 12px; }
+    .log { max-height: 240px; overflow-y: auto; }
+    .error { color: #c00; }
+    .ok { color: #080; }
+  </style>
+</head>
+<body>
+  <h1>MARS Message Agent - Sample Invoke & ShakeHand</h1>
+  <p>本页面通过 ActiveX 调用 COM 组件并连接 WebSocket 发送握手包。需在支持 ActiveX 的环境（如 IE）中运行，且已注册 COM。</p>
+
+  <div class="section" style="background:#e8f4fd; border-color:#0d6efd;">
+    <strong>在 Edge 中如何创建 COM Object</strong>
+    <p>Edge 默认（Chromium 模式）<strong>不支持</strong> <code>ActiveXObject</code>，无法在网页里创建 COM 对象。必须使用 <strong>Edge 的 IE 模式</strong>，代码与 IE 相同：<code>new ActiveXObject("MARSMessageAgent.Agent")</code>。</p>
+    <p><strong>操作步骤：</strong></p>
+    <ol>
+      <li>打开 Edge → 右上角 <strong>…</strong> → <strong>设置</strong>。</li>
+      <li>左侧选 <strong>默认浏览器</strong>。</li>
+      <li>将「允许在 Internet Explorer 模式下重新加载站点」设为 <strong>允许</strong>。</li>
+      <li>用 Edge 打开本页面（<code>sampleInvoke.html</code>）。</li>
+      <li>在地址栏左侧或右侧点击 <strong>在 Internet Explorer 模式下重新加载</strong>（或 … 菜单里选该项）。</li>
+      <li>页面刷新后即运行在 IE 引擎下，此时可点击「1. 创建并激活 Agent」创建 COM 对象。</li>
+    </ol>
+    <p>若希望每次打开该站点自动用 IE 模式：设置 → 默认浏览器 → 「Internet Explorer 模式页面」中添加本页的站点（例如 <code>file://</code> 或你的服务器域名）。</p>
+  </div>
+
+  <div id="noActiveXBanner" class="section" style="display:none; background:#fff3cd; border-color:#ffc107;">
+    <strong>当前浏览器不支持 ActiveX</strong>
+    <p><code>ActiveXObject</code> 仅在 <strong>Internet Explorer</strong> 或 <strong>Microsoft Edge 的 IE 模式</strong> 下可用。Chrome、Firefox、Safari 等无法调用 COM。</p>
+    <p><strong>请改用以下方式之一打开本页面：</strong></p>
+    <ul>
+      <li><strong>Internet Explorer 11</strong>：直接双击本 .html 或用 IE 打开。</li>
+      <li><strong>Microsoft Edge</strong>：按上方「在 Edge 中如何创建 COM Object」的步骤切换到 IE 模式后刷新本页。</li>
+      <li><strong>非 IE 模式（Chrome / Edge 普通模式）</strong>：见下方「非 IE 模式」说明，先运行 exe 再点击获取端口并发送 ShakeHand。</li>
+    </ul>
+  </div>
+
+  <div id="nonIEModeSection" class="section" style="background:#e7f5e7; border-color:#28a745;">
+    <strong>非 IE 模式（Chrome / Edge 普通模式 / Firefox）</strong>
+    <p>无法通过网页创建 COM 对象，但可<strong>仅用 WebSocket</strong> 与已运行的 Agent 通信。</p>
+    <p><strong>步骤：</strong></p>
+    <ol>
+      <li>先<strong>运行 MARSMessageAgent.exe</strong>（双击或快捷方式），确保托盘出现且无报错。</li>
+      <li>点击下方「获取端口并发送 ShakeHand」：页面会请求 <code>http://127.0.0.1:10005/</code> 获取 WebSocket 端口，再连接并发送握手包。</li>
+      <li>若获取失败，可手动填写端口（如 10010）后点击「按端口连接并发送 ShakeHand」。</li>
+    </ol>
+    <p>
+      <button id="btnNonIEShakeHand">获取端口并发送 ShakeHand</button>
+      <label>或手动端口：<input type="number" id="manualPort" value="10010" min="10010" max="10109" style="width:70px;" /></label>
+      <button id="btnManualShakeHand">按端口连接并发送 ShakeHand</button>
+    </p>
+  </div>
+
+  <div class="section">
+    <strong>IE / Edge IE 模式</strong>
+    <button id="btnInvoke">1. 创建并激活 Agent</button>
+    <button id="btnShakeHand">2. 发送 ShakeHand</button>
+    <button id="btnClear">清空日志</button>
+  </div>
+
+  <div class="section">
+    <strong>状态</strong>
+    <div id="status">未激活</div>
+  </div>
+
+  <div class="section">
+    <strong>日志</strong>
+    <div id="log" class="log"></div>
+  </div>
+
+  <script>
+    (function () {
+      var agent = null;
+      var ws = null;
+      var sessionId = null;
+      var logEl = document.getElementById('log');
+      var statusEl = document.getElementById('status');
+
+      var hasActiveX = (typeof window.ActiveXObject !== 'undefined');
+      if (!hasActiveX) {
+        document.getElementById('noActiveXBanner').style.display = 'block';
+        document.getElementById('btnInvoke').disabled = true;
+        document.getElementById('btnInvoke').title = '请使用 IE 或 Edge IE 模式打开此页面';
+      }
+
+      function guid() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+          var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      }
+
+      function log(msg, isError) {
+        var line = document.createElement('div');
+        line.className = isError ? 'error' : '';
+        line.textContent = new Date().toLocaleTimeString() + ' ' + msg;
+        logEl.appendChild(line);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      function setStatus(text) {
+        statusEl.textContent = text;
+      }
+
+      document.getElementById('btnClear').onclick = function () {
+        logEl.innerHTML = '';
+      };
+
+      document.getElementById('btnInvoke').onclick = function () {
+        if (!hasActiveX) {
+          log('当前浏览器不支持 ActiveX，请使用 Internet Explorer 或 Edge 的 IE 模式打开此页面。', true);
+          return;
+        }
+        log('正在创建 COM 对象 MARSMessageAgent.Agent ...');
+        try {
+          agent = new ActiveXObject('MARSMessageAgent.Agent');
+        } catch (e) {
+          log('创建失败（需 IE 或支持 ActiveX 的环境，且已注册 COM）: ' + e.message, true);
+          setStatus('创建失败');
+          return;
+        }
+        sessionId = guid();
+        log('SessionId: ' + sessionId);
+        try {
+          agent.Activate(sessionId);
+          var port = agent.WebSocketPort;
+          log('Agent 已激活，WebSocket 端口: ' + port);
+          setStatus('已激活，端口 ' + port);
+        } catch (e) {
+          log('激活失败: ' + e.message, true);
+          setStatus('激活失败');
+        }
+      };
+
+      document.getElementById('btnShakeHand').onclick = function () {
+        if (!agent) {
+          log('请先点击「创建并激活 Agent」', true);
+          return;
+        }
+        var port = agent.WebSocketPort;
+        if (!port) {
+          log('无法获取 WebSocket 端口', true);
+          return;
+        }
+        doShakeHand(port);
+      };
+
+      function doShakeHand(port) {
+        var sid = sessionId || guid();
+        var shakeHandRequest = {
+          packageType: 'ShakeHandle_request',
+          sessionId: sid,
+          dateTime: new Date().toISOString()
+        };
+        var url = 'ws://127.0.0.1:' + port;
+        log('连接 WebSocket: ' + url);
+        try {
+          ws = new WebSocket(url);
+        } catch (e) {
+          log('WebSocket 创建失败: ' + e.message, true);
+          return;
+        }
+        ws.onopen = function () {
+          log('WebSocket 已连接，发送 ShakeHand 请求');
+          var json = JSON.stringify(shakeHandRequest);
+          log('发送: ' + json);
+          ws.send(json);
+        };
+        ws.onmessage = function (ev) {
+          log('收到响应: ' + ev.data);
+          try {
+            var resp = JSON.parse(ev.data);
+            if (resp.packageType === 'ShakeHandle_response') {
+              log('握手成功。sessionId=' + resp.sessionId + ', message=' + (resp.message || ''), false);
+              setStatus('已激活，端口 ' + port + '；握手成功');
+            }
+          } catch (e) {}
+          ws.close();
+          ws = null;
+        };
+        ws.onerror = function () {
+          log('WebSocket 错误', true);
+        };
+        ws.onclose = function () {
+          log('WebSocket 已关闭');
+        };
+      }
+
+      document.getElementById('btnNonIEShakeHand').onclick = function () {
+        log('请求端口发现: http://127.0.0.1:10005/');
+        fetch('http://127.0.0.1:10005/')
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var port = data.port;
+            if (!port) {
+              log('端口发现返回无 port', true);
+              return;
+            }
+            log('获取到 WebSocket 端口: ' + port);
+            setStatus('端口 ' + port + '，正在连接并发送 ShakeHand');
+            doShakeHand(port);
+          })
+          .catch(function (e) {
+            log('获取端口失败（请先运行 MARSMessageAgent.exe）: ' + (e.message || e), true);
+            setStatus('获取端口失败，请先运行 exe');
+          });
+      };
+
+      document.getElementById('btnManualShakeHand').onclick = function () {
+        var port = parseInt(document.getElementById('manualPort').value, 10);
+        if (isNaN(port) || port < 10010 || port > 10109) {
+          log('请输入 10010–10109 之间的端口', true);
+          return;
+        }
+        setStatus('端口 ' + port + '，正在连接并发送 ShakeHand');
+        doShakeHand(port);
+      };
+    })();
+  </script>
+</body>
+</html>
