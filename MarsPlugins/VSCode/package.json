@@ -16,6 +16,7 @@
     "onCommand:javaUiAutomation.generateScript",
     "onCommand:javaUiAutomation.selectProcess",
     "onCommand:javaUiAutomation.showPanel",
+    "onCommand:javaUiAutomation.stopRecord",
     "onView:javaUiAutomation.panel"
   ],
   "main": "./out/extension.js",
@@ -54,6 +55,17 @@
       {
         "command": "javaUiAutomation.showPanel",
         "title": "Java UI: Show Panel"
+      },
+      {
+        "command": "javaUiAutomation.stopRecord",
+        "title": "Java UI: Stop Record & Replay"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "javaUiAutomation.stopRecord",
+        "key": "ctrl+alt+F12",
+        "mac": "ctrl+alt+F12"
       }
     ]
   },

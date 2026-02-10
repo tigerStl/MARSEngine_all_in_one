@@ -14,5 +14,7 @@
         <module>agent-loader</module>
         <module>ui-scanner-agent</module>
         <module>highlight-agent</module>
+        <module>record-agent</module>
+        <module>unified-agent</module>
     </modules>
 </project>

@@ -2,7 +2,7 @@ using System.Drawing;
 using System.Windows.Forms;
 
 // Usage: HighlightOverlay.exe <x> <y> <width> <height>
-// x, y, width, height are screen coordinates (absolute).
+// All values in pixels. x, y = screen position (absolute); width, height = size.
 // Draws a red border at that position and flashes 3 times.
 
 namespace HighlightOverlay;
@@ -18,6 +18,8 @@ static class Program
             return;
         if (w <= 0 || h <= 0) return;
 
+        // Use physical pixels (1:1) so size matches Java AWT getLocationOnScreen/getSize.
+        Application.SetHighDpiMode(HighDpiMode.DpiUnaware);
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://d3js.org; style-src 'unsafe-inline'; img-src data:;">
   <title>Java UI Automation</title>
   <style>
     * { box-sizing: border-box; }
@@ -25,20 +25,24 @@
     .tree-node:hover { background: var(--vscode-list-hoverBackground); }
     .tree-node.selected { background: var(--vscode-list-activeSelectionBackground); }
     .tree-node.object-hidden { color: var(--vscode-errorForeground); }
-    .center-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 200px; }
-    .log-section { flex-shrink: 0; border-bottom: 1px solid var(--vscode-panel-border); }
-    .log-section h3 { margin: 0; padding: 6px 12px; font-size: 12px; background: var(--vscode-editor-inactiveSelectionBackground); }
-    .log-textarea { width: 100%; height: 100px; min-height: 100px; padding: 8px; font-size: 11px; font-family: monospace; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); border: none; resize: vertical; display: block; box-sizing: border-box; }
-    .center-row { display: flex; flex: 1; min-height: 0; overflow: hidden; }
-    .object-info-wrap { width: 33.33%; min-width: 180px; display: flex; flex-direction: column; border-right: 1px solid var(--vscode-panel-border); overflow: hidden; }
-    .object-info-wrap h3 { margin: 0; padding: 6px 12px; font-size: 12px; background: var(--vscode-editor-inactiveSelectionBackground); flex-shrink: 0; }
+    .center-panel { flex: 1; display: flex; flex-direction: row; overflow: hidden; min-width: 200px; min-height: 0; }
+    .center-panel .col-left { width: 33.333%; flex: 0 0 33.333%; min-width: 0; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--vscode-panel-border); }
+    .center-panel .col-right { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+    .tab-row { display: flex; flex-direction: column; min-height: 0; overflow: hidden; flex: 1; }
+    .tab-bar { display: flex; gap: 0; border-bottom: 1px solid var(--vscode-panel-border); flex-shrink: 0; background: var(--vscode-editor-inactiveSelectionBackground); }
+    .tab-bar .tab { padding: 6px 12px; font-size: 12px; cursor: pointer; border: none; background: transparent; color: var(--vscode-foreground); }
+    .tab-bar .tab:hover { background: var(--vscode-list-hoverBackground); }
+    .tab-bar .tab.active { background: var(--vscode-editor-background); border-bottom: 1px solid var(--vscode-editor-background); font-weight: 600; }
+    .tab-content { display: none; flex: 1; flex-direction: column; overflow: hidden; min-height: 0; padding: 0; }
+    .tab-content.active { display: flex; }
+    .log-textarea { width: 100%; flex: 1; min-height: 80px; padding: 8px; font-size: 11px; font-family: monospace; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); border: none; resize: none; box-sizing: border-box; }
     .object-info { padding: 12px; font-size: 12px; overflow: auto; min-height: 0; flex: 1; }
     .object-info table { width: 100%; border-collapse: collapse; }
     .object-info td { padding: 4px 8px 4px 0; vertical-align: top; }
     .object-info td:first-child { color: var(--vscode-descriptionForeground); width: 100px; }
-    .steps-panel { flex: 1; min-width: 200px; display: flex; flex-direction: column; overflow: hidden; }
-    .steps-panel h3 { margin: 0; padding: 6px 12px; font-size: 12px; background: var(--vscode-editor-inactiveSelectionBackground); flex-shrink: 0; }
     .steps-panel-inner { overflow: auto; flex: 1; min-height: 0; padding: 8px; }
+    #visualContainer { flex: 1; min-height: 200px; width: 100%; background: var(--vscode-editor-background); overflow: auto; }
+    #visualContainer .visual-svg { display: block; }
     .steps-table { width: 100%; border-collapse: collapse; font-size: 12px; }
     .steps-table th, .steps-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--vscode-panel-border); }
     .steps-table th { background: var(--vscode-editor-inactiveSelectionBackground); font-weight: 600; }
@@ -50,6 +54,33 @@
     .empty-msg { color: var(--vscode-descriptionForeground); padding: 12px; font-style: italic; }
     .icon { font-size: 14px; }
     .tree-root { padding-left: 0; }
+    .tree-node-inner { display: flex; align-items: center; gap: 4px; }
+    .tree-chevron { width: 14px; flex-shrink: 0; cursor: pointer; color: var(--vscode-foreground); user-select: none; font-size: 10px; }
+    .tree-chevron.expanded::before { content: '▼'; }
+    .tree-chevron.collapsed::before { content: '▶'; }
+    .tree-icon { width: 16px; height: 16px; flex-shrink: 0; }
+    .tree-children { margin-left: 0; }
+    .object-tree-search { display: flex; align-items: center; gap: 4px; padding: 6px 8px; border-bottom: 1px solid var(--vscode-panel-border); flex-shrink: 0; }
+    .object-tree-search input { flex: 1; min-width: 0; padding: 4px 8px; font-size: 12px; border: 1px solid var(--vscode-input-border); background: var(--vscode-input-background); color: var(--vscode-input-foreground); border-radius: 4px; }
+    .object-tree-search .search-arrow { width: 24px; height: 24px; padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--vscode-button-border); background: var(--vscode-button-background); color: var(--vscode-button-foreground); border-radius: 4px; font-size: 12px; }
+    .object-tree-search .search-arrow:hover { background: var(--vscode-button-hoverBackground); }
+    .object-tree-search .search-arrow:disabled { opacity: 0.5; cursor: not-allowed; }
+    .copy-btn { display: inline-flex; align-items: center; cursor: pointer; padding: 0 4px; vertical-align: middle; opacity: 0.7; }
+    .copy-btn:hover { opacity: 1; }
+    .visual-modal-overlay { position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .visual-modal-overlay.show { display: flex; }
+    .visual-modal { background: var(--vscode-editor-background); border: 1px solid var(--vscode-panel-border); border-radius: 8px; padding: 16px; min-width: 320px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .visual-modal h3 { margin: 0 0 12px 0; font-size: 14px; }
+    .visual-modal label { display: block; margin-bottom: 4px; font-size: 12px; color: var(--vscode-descriptionForeground); }
+    .visual-modal input { width: 100%; padding: 6px 8px; margin-bottom: 10px; font-size: 12px; border: 1px solid var(--vscode-input-border); background: var(--vscode-input-background); color: var(--vscode-input-foreground); border-radius: 4px; box-sizing: border-box; }
+    .visual-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+    .visual-modal-actions button { padding: 6px 14px; font-size: 12px; cursor: pointer; border-radius: 4px; border: 1px solid var(--vscode-button-border); background: var(--vscode-button-background); color: var(--vscode-button-foreground); }
+    .visual-modal-actions button:hover { background: var(--vscode-button-hoverBackground); }
+    .visual-modal-actions button.primary { background: var(--vscode-button-background); }
+    .visual-context-menu { position: fixed; z-index: 1100; min-width: 180px; background: var(--vscode-editor-background); border: 1px solid var(--vscode-panel-border); border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.2); padding: 4px 0; display: none; }
+    .visual-context-menu.show { display: block; }
+    .visual-context-menu button { display: block; width: 100%; padding: 8px 16px; border: none; background: none; color: var(--vscode-foreground); font-size: 13px; text-align: left; cursor: pointer; }
+    .visual-context-menu button:hover { background: var(--vscode-list-hoverBackground); }
   </style>
 </head>
 <body>
@@ -60,54 +91,106 @@
       <select id="processCombo" class="toolbar-combo" title="Java applications">
         <option value="">-- Select --</option>
       </select>
+      <button class="toolbar-btn img-btn" id="btnRecordReplay" title="Record &amp; Replay / Stop (Ctrl+Alt+F12)" disabled>Record&amp;Replay</button>
       <button class="toolbar-btn img-btn" id="btnGenerateSteps" title="Generate Test Steps"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='16' y1='13' x2='8' y2='13'/%3E%3Cline x1='16' y1='17' x2='8' y2='17'/%3E%3Cpolyline points='10 9 9 9 8 9'/%3E%3C/svg%3E" alt="">Generate</button>
       <button class="toolbar-btn img-btn" id="btnExecute" title="Execute"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpolygon points='5 3 19 12 5 21 5 3'/%3E%3C/svg%3E" alt="">Execute</button>
     </div>
     <div class="main">
       <div class="left-panel" id="leftPanel">
         <div class="object-list-label">---&gt;Object List</div>
+        <div class="object-tree-search">
+          <input type="text" id="objectTreeSearchInput" placeholder="Search node text..." />
+          <button type="button" class="search-arrow" id="objectTreeSearchPrev" title="Previous">&#9664;</button>
+          <button type="button" class="search-arrow" id="objectTreeSearchNext" title="Next">&#9654;</button>
+        </div>
         <div class="ui-tree" id="uiTree">
           <div class="empty-msg">Select an application from dropdown to scan UI objects</div>
         </div>
       </div>
       <div id="splitter" title="Drag to resize panels"></div>
       <div class="center-panel">
-        <div class="log-section">
-          <h3>Log (plugin actions)</h3>
-          <textarea class="log-textarea" id="logTextarea" readonly placeholder="Click Window Spy to start..."></textarea>
-        </div>
-        <div class="center-row">
-          <div class="object-info-wrap">
-            <h3>Object Info</h3>
-            <div class="object-info" id="objectInfo">
-              <div class="empty-msg">Select an object to view details</div>
+        <div class="col-left">
+          <div class="tab-bar" id="topTabBar">
+            <button class="tab active" data-tab="log">Log</button>
+            <button class="tab" data-tab="objectInfo">Object Info</button>
+          </div>
+          <div class="tab-row">
+            <div class="tab-content active" id="logTabContent">
+              <textarea class="log-textarea" id="logTextarea" readonly placeholder="Click Window Spy to start..."></textarea>
+            </div>
+            <div class="tab-content" id="objectInfoTabContent">
+              <div class="object-info" id="objectInfo">
+                <div class="empty-msg">Select an object to view details</div>
+              </div>
             </div>
           </div>
-          <div class="steps-panel">
-            <h3>Test Steps</h3>
+        </div>
+        <div class="col-right">
+          <div class="tab-bar" id="bottomTabBar">
+            <button class="tab active" data-tab="testSteps">Test Steps</button>
+            <button class="tab" data-tab="visual">Visual</button>
+          </div>
+          <div class="tab-row">
+          <div class="tab-content active" id="testStepsTabContent">
             <div class="steps-panel-inner">
-          <table class="steps-table" id="stepsTable">
-            <thead>
-              <tr>
-                <th style="width:40px">#</th>
-                <th>Keyword</th>
-                <th>Parent</th>
-                <th>Object</th>
-                <th>Para</th>
-                <th>Data</th>
-                <th>Expected</th>
-                <th style="width:100px">Action</th>
-              </tr>
-            </thead>
-            <tbody id="stepsBody">
-            </tbody>
-          </table>
+              <table class="steps-table" id="stepsTable">
+                <thead>
+                  <tr>
+                    <th style="width:40px">#</th>
+                    <th>Keyword</th>
+                    <th>Parent</th>
+                    <th>Object</th>
+                    <th>Para</th>
+                    <th>Data</th>
+                    <th>Expected</th>
+                    <th style="width:100px">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="stepsBody"></tbody>
+              </table>
             </div>
+          </div>
+          <div class="tab-content" id="visualTabContent">
+            <div id="visualContainer"></div>
+          </div>
           </div>
         </div>
       </div>
     </div>
+    <div id="visualContextMenu" class="visual-context-menu" aria-hidden="true">
+      <button type="button" data-action="clean">Clean</button>
+      <button type="button" data-action="tryExecute">Try to execute the step</button>
+      <button type="button" data-action="about">About</button>
+    </div>
+    <div id="visualCleanConfirmModal" class="visual-modal-overlay" aria-hidden="true">
+      <div class="visual-modal">
+        <h3>Clear Record &amp; Replay</h3>
+        <p style="margin:0 0 16px 0; font-size:13px; color: var(--vscode-foreground);">Are you sure you want to clear all record &amp; replay information? Visual nodes and related data will be removed.</p>
+        <div class="visual-modal-actions">
+          <button type="button" id="visualCleanConfirmCancel">Cancel</button>
+          <button type="button" id="visualCleanConfirmOk" class="primary">OK</button>
+        </div>
+      </div>
+    </div>
+    <div id="visualNodeEditModal" class="visual-modal-overlay" aria-hidden="true">
+      <div class="visual-modal">
+        <h3>Edit Visual Node</h3>
+        <label for="visualEditName">Name</label>
+        <input type="text" id="visualEditName" />
+        <label for="visualEditType">Type</label>
+        <input type="text" id="visualEditType" />
+        <label for="visualEditText">Text</label>
+        <input type="text" id="visualEditText" />
+        <label for="visualEditEvent">Event</label>
+        <input type="text" id="visualEditEvent" />
+        <div class="visual-modal-actions">
+          <button type="button" id="visualEditCancel">Cancel</button>
+          <button type="button" id="visualEditOk" class="primary">OK</button>
+        </div>
+      </div>
+    </div>
   </div>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
   <script>
     const vscode = acquireVsCodeApi();
     let processes = [];
@@ -115,28 +198,57 @@
     let objectTree = [];
     let steps = [];
     let selectedProcess = null;
+    let isRecording = false;
+    let visualNodes = [];
+    let selectedVisualNodeIndex = -1;
+
+    function switchTopTab(tabId) {
+      document.querySelectorAll('#topTabBar .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+      document.getElementById('logTabContent').classList.toggle('active', tabId === 'log');
+      document.getElementById('objectInfoTabContent').classList.toggle('active', tabId === 'objectInfo');
+    }
+    function switchBottomTab(tabId) {
+      document.querySelectorAll('#bottomTabBar .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+      document.getElementById('testStepsTabContent').classList.toggle('active', tabId === 'testSteps');
+      document.getElementById('visualTabContent').classList.toggle('active', tabId === 'visual');
+      if (tabId === 'visual') renderVisual();
+    }
+    document.getElementById('topTabBar').addEventListener('click', (e) => {
+      const t = e.target.closest('.tab');
+      if (t && t.dataset.tab) switchTopTab(t.dataset.tab);
+    });
+    document.getElementById('bottomTabBar').addEventListener('click', (e) => {
+      const t = e.target.closest('.tab');
+      if (t && t.dataset.tab) switchBottomTab(t.dataset.tab);
+    });
 
     console.log('[panel.html] Initializing event handlers...');
     document.getElementById('btnSettings').onclick = () => {
-      console.log('[btnSettings] Settings button clicked');
+      appendLog('[action] Settings clicked.\r\n');
+      switchTopTab('log');
       vscode.postMessage({ type: 'settings' });
     };
     document.getElementById('btnSpy').onclick = () => {
-      appendLog('[client] Java Applications clicked, clearing and requesting processes...\r\n');
-      const combo = document.getElementById('processCombo');
-      if (combo) { combo.innerHTML = '<option value="">-- Select --</option>'; combo.value = ''; }
       processes = [];
       objects = [];
       objectTree = [];
+      selectedProcess = null;
+      const combo = document.getElementById('processCombo');
+      if (combo) { combo.innerHTML = '<option value="">-- Select --</option>'; combo.value = ''; }
       renderUITree();
+      appendLog('[client] Java Applications clicked, cleared list and requesting processes...\r\n');
       vscode.postMessage({ type: 'getProcesses' });
     };
 
     document.getElementById('btnGenerateSteps').onclick = () => {
+      appendLog('[action] Generate Steps clicked.\r\n');
+      switchTopTab('log');
       vscode.postMessage({ type: 'generateSteps' });
     };
     document.getElementById('btnExecute').onclick = () => {
-      vscode.postMessage({ type: 'execute' });
+      appendLog('[action] Execute clicked.\r\n');
+      switchTopTab('log');
+      vscode.postMessage({ type: 'execute', pid: selectedProcess });
     };
 
     document.getElementById('processCombo').onchange = () => {
@@ -144,7 +256,22 @@
       const val = combo ? combo.value : '';
       const pid = val ? parseInt(val, 10) : null;
       selectedProcess = pid;
+      const btnRecord = document.getElementById('btnRecordReplay');
+      if (btnRecord) btnRecord.disabled = !pid;
       if (pid) vscode.postMessage({ type: 'scanProcess', pid });
+    };
+
+    document.getElementById('btnRecordReplay').onclick = () => {
+      if (!selectedProcess && !isRecording) return;
+      if (isRecording) {
+        appendLog('[action] Stop Record clicked.\r\n');
+        switchTopTab('log');
+        vscode.postMessage({ type: 'stopRecord' });
+      } else {
+        appendLog('[action] Start Record clicked (PID=' + selectedProcess + ').\r\n');
+        switchTopTab('log');
+        vscode.postMessage({ type: 'startRecord', pid: selectedProcess });
+      }
     };
 
     window.addEventListener('message', (e) => {
@@ -152,6 +279,46 @@
       console.log('[panel] message received:', msg?.type, msg);
       switch (msg.type) {
         case 'pong':
+          break;
+        case 'clearPanel':
+          processes = [];
+          objects = [];
+          objectTree = [];
+          selectedProcess = null;
+          visualNodes = [];
+          selectedVisualNodeIndex = -1;
+          const comboClear = document.getElementById('processCombo');
+          if (comboClear) { comboClear.innerHTML = '<option value="">-- Select --</option>'; comboClear.value = ''; }
+          const btnRecordClear = document.getElementById('btnRecordReplay');
+          if (btnRecordClear) { btnRecordClear.disabled = true; btnRecordClear.textContent = 'Record&Replay'; }
+          renderUITree();
+          renderVisual();
+          break;
+        case 'recordingStarted':
+          isRecording = true;
+          const btnRecordStart = document.getElementById('btnRecordReplay');
+          if (btnRecordStart) { btnRecordStart.disabled = false; btnRecordStart.textContent = 'Stop (Ctrl+Alt+F12)'; }
+          break;
+        case 'recordingStopped':
+          isRecording = false;
+          const btnRecordStop = document.getElementById('btnRecordReplay');
+          if (btnRecordStop) { btnRecordStop.disabled = !selectedProcess; btnRecordStop.textContent = 'Record&Replay'; }
+          break;
+        case 'visualNode':
+          if (msg.data && typeof msg.data === 'object') {
+            visualNodes.push({
+              name: msg.data.name != null ? String(msg.data.name) : '',
+              type: msg.data.type != null ? String(msg.data.type) : '',
+              text: msg.data.text != null ? String(msg.data.text) : '',
+              event: msg.data.event != null ? String(msg.data.event) : 'record',
+              screenX: msg.data.screenX != null ? Number(msg.data.screenX) : undefined,
+              screenY: msg.data.screenY != null ? Number(msg.data.screenY) : undefined,
+              width: msg.data.width != null ? Number(msg.data.width) : undefined,
+              height: msg.data.height != null ? Number(msg.data.height) : undefined
+            });
+            switchBottomTab('visual');
+            renderVisual();
+          }
           break;
         case 'processes':
           processes = Array.isArray(msg.data) ? msg.data : [];
@@ -185,6 +352,7 @@
           break;
         case 'log':
           appendLog(msg.data || '');
+          switchTopTab('log');
           break;
         case 'logAnalyzing':
           appendAnalyzingLine(msg.pid, msg.name);
@@ -211,8 +379,12 @@
                   const label = (p.displayName || p.mainClass || 'java').substring(0, 50) + ' | ' + p.pid;
                   return '<option value="' + p.pid + '">' + label + '</option>';
                 }).join('');
+                const val = c.value;
+                if (val) selectedProcess = parseInt(val, 10);
               }
             }
+            const btnRecordRestore = document.getElementById('btnRecordReplay');
+            if (btnRecordRestore) btnRecordRestore.disabled = !selectedProcess;
             renderUITree();
             renderSteps();
           }
@@ -254,6 +426,23 @@
       lastAnalyzingStart = -1;
     }
 
+    function getIconForType(javaType) {
+      if (!javaType) return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Crect x="2" y="2" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"/%3E%3C/svg%3E';
+      const t = javaType.toLowerCase();
+      if (t.includes('button') || t.includes('jbutton')) return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Crect x="1" y="4" width="14" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/%3E%3C/svg%3E';
+      if (t.includes('textfield') || t.includes('textarea') || t.includes('edit') || t.includes('editor')) return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Crect x="2" y="3" width="12" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/%3E%3Cline x1="4" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="1"/%3E%3C/svg%3E';
+      if (t.includes('menu') || t.includes('menubar') || t.includes('menuitem')) return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Cline x1="2" y1="4" x2="14" y2="4" stroke="currentColor" stroke-width="1.5"/%3E%3Cline x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.5"/%3E%3Cline x1="2" y1="12" x2="10" y2="12" stroke="currentColor" stroke-width="1.5"/%3E%3C/svg%3E';
+      if (t.includes('label') || t.includes('jlabel')) return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Ctext x="2" y="12" font-size="10" fill="currentColor"%3EAa%3C/text%3E%3C/svg%3E';
+      if (t.includes('combo') || t.includes('dropdown') || t.includes('select')) return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Crect x="2" y="2" width="12" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/%3E%3Cpath d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/%3E%3C/svg%3E';
+      if (t.includes('checkbox') || t.includes('jcheckbox')) return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Crect x="2" y="4" width="10" height="8" fill="none" stroke="currentColor" stroke-width="1.5"/%3E%3Cpath d="M4 8l3 3 5-6" stroke="currentColor" stroke-width="1.5" fill="none"/%3E%3C/svg%3E';
+      if (t.includes('panel') || t.includes('container') || t.includes('pane') || t.includes('layered')) return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Crect x="2" y="4" width="12" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/%3E%3Crect x="4" y="6" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1"/%3E%3C/svg%3E';
+      if (t.includes('frame') || t.includes('window') || t.includes('dialog') || t.includes('jframe')) return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Crect x="1" y="3" width="14" height="11" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/%3E%3Crect x="1" y="3" width="14" height="4" fill="var(--vscode-editor-inactiveSelectionBackground)" stroke="currentColor" stroke-width="1"/%3E%3C/svg%3E';
+      if (t.includes('scroll') || t.includes('viewport')) return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Crect x="2" y="1" width="12" height="14" fill="none" stroke="currentColor" stroke-width="1.5"/%3E%3Crect x="12" y="2" width="2" height="6" rx="1" fill="currentColor"/%3E%3Crect x="2" y="2" width="10" height="12" fill="none" stroke="currentColor" stroke-width="0.5"/%3E%3C/svg%3E';
+      if (t.includes('table') || t.includes('grid')) return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Crect x="1" y="1" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"/%3E%3Cline x1="1" y1="5" x2="15" y2="5" stroke="currentColor"/%3E%3Cline x1="5" y1="1" x2="5" y2="15" stroke="currentColor"/%3E%3Cline x1="1" y1="10" x2="15" y2="10" stroke="currentColor"/%3E%3Cline x1="10" y1="1" x2="10" y2="15" stroke="currentColor"/%3E%3C/svg%3E';
+      if (t.includes('tree') || t.includes('list')) return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Cline x1="4" y1="4" x2="4" y2="12" stroke="currentColor"/%3E%3Cline x1="4" y1="4" x2="12" y2="4" stroke="currentColor"/%3E%3Cline x1="8" y1="8" x2="12" y2="8" stroke="currentColor"/%3E%3Cline x1="4" y1="8" x2="6" y2="8" stroke="currentColor"/%3E%3Cline x1="4" y1="12" x2="12" y2="12" stroke="currentColor"/%3E%3C/svg%3E';
+      return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Crect x="2" y="2" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"/%3E%3C/svg%3E';
+    }
+
     function flattenTreeToList(nodes) {
       const out = [];
       function walk(ns) {
@@ -267,9 +456,84 @@
       return out;
     }
 
+    function getObjectListForSearch() {
+      if (objectTree && objectTree.length > 0) return flattenTreeToList(objectTree);
+      return objects && objects.length ? objects : [];
+    }
+
+    function getNodeSearchText(obj) {
+      if (!obj) return '';
+      var id = obj.identifier || {};
+      var parts = [];
+      if (obj.uniqueName) parts.push(String(obj.uniqueName));
+      if (id.name) parts.push(String(id.name));
+      if (id.javaType) parts.push(String(id.javaType));
+      if (id.text) parts.push(String(id.text));
+      if (id.toolTipText) parts.push(String(id.toolTipText));
+      return parts.join(' ').toLowerCase();
+    }
+
+    var searchMatchIndices = [];
+    var searchCurrentIdx = -1;
+    function runObjectTreeSearch() {
+      var q = (document.getElementById('objectTreeSearchInput').value || '').trim().toLowerCase();
+      var list = getObjectListForSearch();
+      searchMatchIndices = [];
+      if (q && list.length > 0) {
+        for (var i = 0; i < list.length; i++) {
+          if (getNodeSearchText(list[i]).indexOf(q) >= 0) searchMatchIndices.push(i);
+        }
+      }
+      searchCurrentIdx = searchMatchIndices.length > 0 ? 0 : -1;
+      gotoSearchMatch();
+      updateSearchArrowState();
+    }
+
+    function gotoSearchMatch() {
+      if (searchCurrentIdx < 0 || searchCurrentIdx >= searchMatchIndices.length) return;
+      var idx = searchMatchIndices[searchCurrentIdx];
+      var list = getObjectListForSearch();
+      var obj = list[idx];
+      if (!obj) return;
+      var tree = document.getElementById('uiTree');
+      if (tree) {
+        tree.querySelectorAll('.tree-node').forEach(function(x) { x.classList.remove('selected'); });
+        var nodeEl = tree.querySelector('.tree-node[data-idx="' + idx + '"]');
+        if (nodeEl) {
+          nodeEl.classList.add('selected');
+          nodeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }
+      vscode.postMessage({ type: 'selectObject', object: obj });
+    }
+
+    function updateSearchArrowState() {
+      var prev = document.getElementById('objectTreeSearchPrev');
+      var next = document.getElementById('objectTreeSearchNext');
+      if (prev) prev.disabled = searchMatchIndices.length <= 1 || searchCurrentIdx <= 0;
+      if (next) next.disabled = searchMatchIndices.length <= 1 || searchCurrentIdx >= searchMatchIndices.length - 1;
+    }
+
+    function searchPrev() {
+      if (searchMatchIndices.length === 0) return;
+      searchCurrentIdx = searchCurrentIdx <= 0 ? searchMatchIndices.length - 1 : searchCurrentIdx - 1;
+      gotoSearchMatch();
+      updateSearchArrowState();
+    }
+
+    function searchNext() {
+      if (searchMatchIndices.length === 0) return;
+      searchCurrentIdx = searchCurrentIdx >= searchMatchIndices.length - 1 ? 0 : searchCurrentIdx + 1;
+      gotoSearchMatch();
+      updateSearchArrowState();
+    }
+
     function renderUITree() {
       const tree = document.getElementById('uiTree');
       if (!tree) return;
+      searchMatchIndices = [];
+      searchCurrentIdx = -1;
+      updateSearchArrowState();
 
       if (objectTree.length > 0) {
         let flatList = [];
@@ -279,24 +543,59 @@
           const name = node.uniqueName || node.identifier?.javaType || '?';
           const hidden = node.identifier && node.identifier.visible === false;
           const cls = 'tree-node' + (depth === 0 ? ' tree-root' : '') + (hidden ? ' object-hidden' : '');
-          const pad = depth * 14;
-          let html = '<div class="' + cls + '" data-idx="' + i + '" style="padding-left:' + pad + 'px">' + name + '</div>';
-          if (node.children && node.children.length)
+          const pad = depth * 18;
+          const hasChildren = node.children && node.children.length > 0;
+          const chevronCls = hasChildren ? 'tree-chevron expanded' : 'tree-chevron collapsed';
+          const icon = getIconForType(node.identifier?.javaType);
+          let html = '<div class="' + cls + '" data-idx="' + i + '" style="padding-left:' + pad + 'px">';
+          html += '<div class="tree-node-inner">';
+          html += '<span class="' + chevronCls + '" data-idx="' + i + '" aria-hidden="true"></span>';
+          html += '<img class="tree-icon" src="' + icon + '" alt="" />';
+          html += '<span class="tree-node-label">' + name + '</span>';
+          html += '</div>';
+          html += '</div>';
+          if (hasChildren) {
+            html += '<div class="tree-children" data-parent-idx="' + i + '">';
             for (let k = 0; k < node.children.length; k++) html += renderNode(node.children[k], depth + 1);
+            html += '</div>';
+          }
           return html;
         }
-        let html = '<div class="empty-msg">Select object to view info; double-click to highlight</div>';
+        let html = '<div class="empty-msg">Select object to view info; double-click to highlight. Click ▶ to expand/collapse.</div>';
         for (let r = 0; r < objectTree.length; r++) html += renderNode(objectTree[r], 0);
         tree.innerHTML = html;
         const listForClick = flatList;
+        tree.querySelectorAll('.tree-chevron').forEach(chevron => {
+          chevron.onclick = (e) => {
+            e.stopPropagation();
+            const idx = parseInt(chevron.dataset.idx);
+            if (isNaN(idx)) return;
+            const childrenEl = tree.querySelector('.tree-children[data-parent-idx="' + idx + '"]');
+            if (!childrenEl) return;
+            const isExpanded = chevron.classList.contains('expanded');
+            if (isExpanded) {
+              chevron.classList.remove('expanded');
+              chevron.classList.add('collapsed');
+              childrenEl.style.display = 'none';
+            } else {
+              chevron.classList.remove('collapsed');
+              chevron.classList.add('expanded');
+              childrenEl.style.display = '';
+            }
+          };
+        });
         tree.querySelectorAll('.tree-node').forEach(el => {
-          el.onclick = () => {
+          el.onclick = (e) => {
+            if (e.target.closest('.tree-chevron')) return;
             tree.querySelectorAll('.tree-node').forEach(x => x.classList.remove('selected'));
             el.classList.add('selected');
             const idx = parseInt(el.dataset.idx);
-            if (!isNaN(idx) && listForClick[idx]) vscode.postMessage({ type: 'selectObject', object: listForClick[idx] });
+            if (!isNaN(idx) && listForClick[idx]) {
+              vscode.postMessage({ type: 'selectObject', object: listForClick[idx] });
+            }
           };
-          el.ondblclick = () => {
+          el.ondblclick = (e) => {
+            if (e.target.closest('.tree-chevron')) return;
             const idx = parseInt(el.dataset.idx);
             if (!isNaN(idx) && listForClick[idx] && selectedProcess != null) {
               vscode.postMessage({ type: 'highlight', pid: selectedProcess, object: listForClick[idx] });
@@ -314,7 +613,8 @@
         const name = obj.uniqueName || obj.identifier?.javaType || '?';
         const hidden = obj.identifier && obj.identifier.visible === false;
         const cls = 'tree-node tree-root' + (hidden ? ' object-hidden' : '');
-        return '<div class="' + cls + '" data-idx="' + idx + '">' + name + '</div>';
+        const icon = getIconForType(obj.identifier?.javaType);
+        return '<div class="' + cls + '" data-idx="' + idx + '"><div class="tree-node-inner"><span class="tree-chevron collapsed"></span><img class="tree-icon" src="' + icon + '" alt="" /><span class="tree-node-label">' + name + '</span></div></div>';
       }
       tree.innerHTML = '<div class="empty-msg">Select object to view info; double-click to highlight</div>' + objects.map((o, i) => mkNode(o, i)).join('');
       tree.querySelectorAll('.tree-node').forEach(el => {
@@ -322,7 +622,9 @@
           tree.querySelectorAll('.tree-node').forEach(x => x.classList.remove('selected'));
           el.classList.add('selected');
           const idx = parseInt(el.dataset.idx);
-          if (!isNaN(idx) && objects[idx]) vscode.postMessage({ type: 'selectObject', object: objects[idx] });
+          if (!isNaN(idx) && objects[idx]) {
+            vscode.postMessage({ type: 'selectObject', object: objects[idx] });
+          }
         };
         el.ondblclick = () => {
           const idx = parseInt(el.dataset.idx);
@@ -333,14 +635,379 @@
       });
     }
 
+    function fmtBounds(b) {
+      if (!b) return '-';
+      return (b.x != null ? b.x : '-') + ', ' + (b.y != null ? b.y : '-') + ', ' + (b.width != null ? b.width : '-') + ', ' + (b.height != null ? b.height : '-');
+    }
+    const copyIconSvg = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14"%3E%3Crect x="4" y="4" width="9" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/%3E%3Cpath d="M2 11V5a1 1 0 011-1h4" fill="none" stroke="currentColor" stroke-width="1.5"/%3E%3C/svg%3E';
+    let lastBaseTypesForCopy = '';
     function renderObjectInfo(obj) {
       if (!obj) return;
       const div = document.getElementById('objectInfo');
       const id = obj.identifier || {};
-      const b = id.bounds || {};
-      const xyw = (b.x != null ? b.x : '-') + ', ' + (b.y != null ? b.y : '-') + ', ' + (b.width != null ? b.width : '-') + ', ' + (b.height != null ? b.height : '-');
+      const rel = fmtBounds(id.bounds);
+      const abs = fmtBounds(id.screenBounds);
       const vis = id.visible !== undefined ? (id.visible ? 'true' : 'false') : '-';
-      div.innerHTML = '<table><tr><td>Name</td><td>' + (obj.uniqueName || '-') + '</td></tr><tr><td>Type</td><td>' + (id.javaType || '-') + '</td></tr><tr><td>Text</td><td>' + (id.text || '-') + '</td></tr><tr><td>Name</td><td>' + (id.name || '-') + '</td></tr><tr><td>Caption</td><td>' + (id.caption || '-') + '</td></tr><tr><td>x, y, w, h</td><td>' + xyw + '</td></tr><tr><td>Visible</td><td>' + vis + '</td></tr><tr><td>Index</td><td>' + (obj.index ?? '-') + '</td></tr></table>';
+      const baseTypes = id.baseTypes && id.baseTypes.length ? id.baseTypes.join(' \u2192 ') : '-';
+      lastBaseTypesForCopy = baseTypes !== '-' ? baseTypes : '';
+      const copyBtn = lastBaseTypesForCopy ? '<span class="copy-btn" title="Copy BaseTypes to clipboard"><img src="' + copyIconSvg + '" alt="Copy"/></span>' : '';
+      var isToolButton = (id.javaType || '').toLowerCase().indexOf('toolbutton') >= 0;
+      var displayText = id.text || (isToolButton && id.toolTipText ? id.toolTipText : null) || '-';
+      var displayCaption = id.caption || (isToolButton && id.toolTipText ? id.toolTipText : null) || '-';
+      let t = '<table><tr><td>Name</td><td>' + (obj.uniqueName || '-') + '</td></tr>';
+      t += '<tr><td>Type</td><td>' + (id.javaType || '-') + '</td></tr>';
+      t += '<tr><td>BaseTypes</td><td>' + baseTypes + ' ' + copyBtn + '</td></tr>';
+      t += '<tr><td>Text</td><td>' + displayText + '</td></tr>';
+      t += '<tr><td>Value</td><td>' + (id.value != null && id.value !== '' ? id.value : '-') + '</td></tr>';
+      t += '<tr><td>Name</td><td>' + (id.name || '-') + '</td></tr>';
+      t += '<tr><td>Caption</td><td>' + displayCaption + '</td></tr>';
+      var toolTipVal = (id.toolTipText != null && id.toolTipText !== '') ? id.toolTipText : '-';
+      t += '<tr><td>ToolTip</td><td title="' + (id.toolTipText ? String(id.toolTipText).replace(/"/g, '&quot;') : '') + '">' + toolTipVal + '</td></tr>';
+      t += '<tr><td>Title</td><td>' + (id.title || '-') + '</td></tr>';
+      t += '<tr><td>bounds (relative)</td><td>' + rel + '</td></tr>';
+      t += '<tr><td>screenBounds (absolute)</td><td>' + abs + '</td></tr>';
+      t += '<tr><td>Visible</td><td>' + vis + '</td></tr>';
+      t += '<tr><td>Index</td><td>' + (obj.index ?? '-') + '</td></tr></table>';
+      div.innerHTML = t;
+      div.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.onclick = () => {
+          if (lastBaseTypesForCopy) vscode.postMessage({ type: 'copyToClipboard', text: lastBaseTypesForCopy });
+        };
+      });
+    }
+
+    var TYPE_COLORS = { button: '#e15759', textfield: '#76b7b2', label: '#59a14f', combo: '#edc948', checkbox: '#b07aa1', panel: '#4e79a7', frame: '#f28e2b', menu: '#ff9da7', list: '#9c755f', tree: '#bab0ac' };
+    function colorForType(t) {
+      if (!t) return '#6b8e9f';
+      var s = (t + '').toLowerCase();
+      if (s.indexOf('button') >= 0) return TYPE_COLORS.button;
+      if (s.indexOf('textfield') >= 0 || s.indexOf('textarea') >= 0 || s.indexOf('edit') >= 0) return TYPE_COLORS.textfield;
+      if (s.indexOf('label') >= 0) return TYPE_COLORS.label;
+      if (s.indexOf('combo') >= 0 || s.indexOf('dropdown') >= 0) return TYPE_COLORS.combo;
+      if (s.indexOf('checkbox') >= 0 || s.indexOf('radio') >= 0) return TYPE_COLORS.checkbox;
+      if (s.indexOf('panel') >= 0 || s.indexOf('pane') >= 0 || s.indexOf('container') >= 0) return TYPE_COLORS.panel;
+      if (s.indexOf('frame') >= 0 || s.indexOf('window') >= 0 || s.indexOf('dialog') >= 0) return TYPE_COLORS.frame;
+      if (s.indexOf('menu') >= 0) return TYPE_COLORS.menu;
+      if (s.indexOf('list') >= 0) return TYPE_COLORS.list;
+      if (s.indexOf('tree') >= 0) return TYPE_COLORS.tree;
+      return '#6b8e9f';
+    }
+    function nearestEdgePoints(ax, ay, bx, by, w, h) {
+      var acx = ax + w / 2, acy = ay + h / 2, bcx = bx + w / 2, bcy = by + h / 2;
+      var dx = bcx - acx, dy = bcy - acy;
+      var p1x, p1y, p2x, p2y;
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        p1x = dx >= 0 ? ax + w : ax;
+        p1y = acy;
+        p2x = dx >= 0 ? bx : bx + w;
+        p2y = bcy;
+      } else {
+        p1x = acx;
+        p1y = dy >= 0 ? ay + h : ay;
+        p2x = bcx;
+        p2y = dy >= 0 ? by : by + h;
+      }
+      return { x1: p1x, y1: p1y, x2: p2x, y2: p2y };
+    }
+    function curvedPath(x1, y1, x2, y2) {
+      var mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      var dx = x2 - x1, dy = y2 - y1;
+      var len = Math.sqrt(dx * dx + dy * dy) || 1;
+      var perpx = -dy / len * 40, perpy = dx / len * 40;
+      var cx = mx + perpx, cy = my + perpy;
+      return 'M' + x1 + ',' + y1 + ' Q' + cx + ',' + cy + ' ' + x2 + ',' + y2;
+    }
+
+    function getObjectListForMatching() {
+      if (objectTree && objectTree.length > 0) return flattenTreeToList(objectTree);
+      return objects && objects.length ? objects : [];
+    }
+
+    function findObjectIndexForVisualNode(vNode) {
+      var list = getObjectListForMatching();
+      if (!list.length) return null;
+      var name = (vNode.name || '').trim();
+      var type = (vNode.type || '').trim();
+      var text = (vNode.text || '').trim();
+      for (var i = 0; i < list.length; i++) {
+        var o = list[i];
+        var id = o.identifier || {};
+        var oName = (id.name != null ? String(id.name) : (o.uniqueName != null ? String(o.uniqueName) : '')).trim();
+        var oType = (id.javaType != null ? String(id.javaType) : '').trim();
+        var oText = (id.text != null ? String(id.text) : '').trim();
+        var nameMatch = !name || oName === name || (name.length && oName.indexOf(name) >= 0);
+        var typeMatch = !type || oType === type || (type.length && oType.indexOf(type) >= 0);
+        var textMatch = !text || oText === text || (text.length && oText.indexOf(text) >= 0);
+        if (nameMatch && typeMatch && textMatch) return { object: o, index: i };
+      }
+      for (var j = 0; j < list.length; j++) {
+        var o2 = list[j];
+        var id2 = o2.identifier || {};
+        var ot = (id2.javaType != null ? String(id2.javaType) : '').trim();
+        var on = (id2.name != null ? String(id2.name) : (o2.uniqueName != null ? String(o2.uniqueName) : '')).trim();
+        if (type && ot.indexOf(type) >= 0) return { object: o2, index: j };
+        if (name && on.indexOf(name) >= 0) return { object: o2, index: j };
+      }
+      return null;
+    }
+
+    function syncTreeSelectionToIndex(index) {
+      var tree = document.getElementById('uiTree');
+      if (!tree) return;
+      tree.querySelectorAll('.tree-node').forEach(function(x) { x.classList.remove('selected'); });
+      var nodeEl = tree.querySelector('.tree-node[data-idx="' + index + '"]');
+      if (nodeEl) {
+        nodeEl.classList.add('selected');
+        nodeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+
+    function handleVisualNodeClick(nodeIndex) {
+      var vNode = visualNodes[nodeIndex];
+      if (!vNode) return;
+      selectedVisualNodeIndex = nodeIndex;
+      renderVisual();
+      var highlightObj = null;
+      var found = findObjectIndexForVisualNode(vNode);
+      if (found) {
+        highlightObj = found.object;
+        vscode.postMessage({ type: 'selectObject', object: found.object });
+        syncTreeSelectionToIndex(found.index);
+      } else if (vNode.screenX != null && vNode.screenY != null) {
+        var w = (vNode.width != null && vNode.width > 0) ? vNode.width : 10;
+        var h = (vNode.height != null && vNode.height > 0) ? vNode.height : 10;
+        highlightObj = { identifier: { screenBounds: { x: vNode.screenX, y: vNode.screenY, width: w, height: h } } };
+      }
+      if (selectedProcess != null && highlightObj) {
+        appendLog('[action] Highlight visual node at PID=' + selectedProcess + '.\r\n');
+        switchTopTab('log');
+        vscode.postMessage({ type: 'highlight', pid: selectedProcess, object: highlightObj });
+      } else if (selectedProcess == null) {
+        appendLog('[action] Select an application first to highlight.\r\n');
+        switchTopTab('log');
+      }
+    }
+
+    var visualEditNodeIndex = -1;
+    function showEditVisualNodeModal(nodeIndex) {
+      var n = visualNodes[nodeIndex];
+      if (!n) return;
+      visualEditNodeIndex = nodeIndex;
+      document.getElementById('visualEditName').value = n.name || '';
+      document.getElementById('visualEditType').value = n.type || '';
+      document.getElementById('visualEditText').value = n.text || '';
+      document.getElementById('visualEditEvent').value = n.event || '';
+      document.getElementById('visualNodeEditModal').classList.add('show');
+      document.getElementById('visualNodeEditModal').setAttribute('aria-hidden', 'false');
+    }
+    function hideEditVisualNodeModal() {
+      document.getElementById('visualNodeEditModal').classList.remove('show');
+      document.getElementById('visualNodeEditModal').setAttribute('aria-hidden', 'true');
+      visualEditNodeIndex = -1;
+    }
+    function applyEditVisualNodeModal() {
+      if (visualEditNodeIndex < 0) return;
+      var n = visualNodes[visualEditNodeIndex];
+      if (n) {
+        n.name = document.getElementById('visualEditName').value.trim();
+        n.type = document.getElementById('visualEditType').value.trim();
+        n.text = document.getElementById('visualEditText').value.trim();
+        n.event = document.getElementById('visualEditEvent').value.trim();
+        renderVisual();
+      }
+      hideEditVisualNodeModal();
+    }
+
+    function renderVisual() {
+      const container = document.getElementById('visualContainer');
+      if (!container) return;
+      container.innerHTML = '';
+      if (visualNodes.length === 0) {
+        container.innerHTML = '<div class="empty-msg" style="padding:12px">During Record &amp; Replay, click objects in the tree to add them here. Nodes will show name, type, text and event with links.</div>';
+        return;
+      }
+      const nodeW = 180;
+      const nodeH = 72;
+      const pad = 24;
+      const gap = 28;
+      const cols = Math.min(3, Math.max(2, Math.floor((container.clientWidth || 500) / (nodeW + gap))));
+      const rows = Math.ceil(visualNodes.length / cols);
+      function gridPos(i) {
+        var col = i % cols, row = Math.floor(i / cols);
+        return { x: pad + col * (nodeW + gap), y: pad + row * (nodeH + gap) };
+      }
+      const nodeData = visualNodes.map((n, i) => {
+        var pos = typeof n.x === 'number' ? { x: n.x, y: n.y } : gridPos(i);
+        return { ...n, index: i, x: pos.x, y: pos.y };
+      });
+      for (var i = 0; i < nodeData.length; i++) {
+        if (typeof visualNodes[i].x !== 'number') visualNodes[i].x = nodeData[i].x;
+        if (typeof visualNodes[i].y !== 'number') visualNodes[i].y = nodeData[i].y;
+        nodeData[i].x = visualNodes[i].x;
+        nodeData[i].y = visualNodes[i].y;
+      }
+      const minW = Math.max(container.clientWidth || 400, 400);
+      const minH = Math.max(container.clientHeight || 300, 300);
+      const contentW = cols * (nodeW + gap) - gap + pad * 2;
+      const contentH = rows * (nodeH + gap) - gap + pad * 2;
+      const width = Math.max(minW, contentW);
+      const height = Math.max(minH, contentH);
+
+      if (typeof d3 !== 'undefined') {
+        const svg = d3.select(container).append('svg').attr('class', 'visual-svg').attr('width', width).attr('height', height).attr('viewBox', '0 0 ' + width + ' ' + height);
+        const g = svg.append('g');
+        g.append('defs').append('marker').attr('id', 'arrowhead').attr('viewBox', '0 -5 10 10').attr('refX', 10).attr('refY', 0).attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto').append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', 'var(--vscode-foreground)').attr('stroke', 'none');
+        const linkData = nodeData.filter((_, i) => i > 0).map((n, i) => ({ source: nodeData[i], target: nodeData[i + 1] }));
+        function linkPath(d) {
+          var pts = nearestEdgePoints(d.source.x, d.source.y, d.target.x, d.target.y, nodeW, nodeH);
+          return curvedPath(pts.x1, pts.y1, pts.x2, pts.y2);
+        }
+        const link = g.selectAll('.link').data(linkData).join('path').attr('class', 'link').attr('d', linkPath).attr('fill', 'none').attr('stroke', 'var(--vscode-foreground)').attr('stroke-width', 2).attr('stroke-opacity', 0.6).attr('marker-end', 'url(#arrowhead)');
+        const node = g.selectAll('.node').data(nodeData).join('g').attr('class', 'node').attr('transform', d => 'translate(' + d.x + ',' + d.y + ')').style('cursor', 'pointer');
+        node.append('rect').attr('width', nodeW).attr('height', nodeH).attr('rx', 10).attr('ry', 10).attr('fill', d => colorForType(d.type)).attr('stroke', d => (d.index === selectedVisualNodeIndex) ? 'var(--vscode-focusBorder)' : 'var(--vscode-foreground)').attr('stroke-width', d => (d.index === selectedVisualNodeIndex) ? 3 : 1).attr('fill-opacity', 0.85);
+        node.append('text').attr('x', 10).attr('y', 16).attr('font-size', 11).attr('font-weight', 'bold').attr('fill', 'var(--vscode-foreground)').text(d => (d.name || '—').substring(0, 22));
+        node.append('text').attr('x', 10).attr('y', 32).attr('font-size', 10).attr('fill', 'var(--vscode-descriptionForeground)').text(d => (d.type || '—').substring(0, 24));
+        node.append('text').attr('x', 10).attr('y', 48).attr('font-size', 10).attr('fill', 'var(--vscode-foreground)').text(d => (d.text || '—').substring(0, 24));
+        node.append('text').attr('x', 10).attr('y', 64).attr('font-size', 9).attr('fill', 'var(--vscode-descriptionForeground)').text(d => 'event: ' + (d.event || '—'));
+        var visualNodeDragStarted = false;
+        const drag = d3.drag()
+          .on('start', function() {})
+          .on('drag', function(event, d) {
+            visualNodeDragStarted = true;
+            document.body.style.cursor = 'move';
+            d.x = Math.max(0, event.x);
+            d.y = Math.max(0, event.y);
+            visualNodes[d.index].x = d.x;
+            visualNodes[d.index].y = d.y;
+            d3.select(this).attr('transform', 'translate(' + d.x + ',' + d.y + ')');
+            link.attr('d', linkPath);
+          })
+          .on('end', function() {
+            document.body.style.cursor = '';
+            setTimeout(function() { visualNodeDragStarted = false; }, 0);
+          });
+        node.call(drag);
+        node.on('click', function(event, d) {
+          if (visualNodeDragStarted) return;
+          handleVisualNodeClick(d.index);
+        });
+        node.on('dblclick', function(event, d) {
+          event.stopPropagation();
+          showEditVisualNodeModal(d.index);
+        });
+        return;
+      }
+      var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'visual-svg');
+      svg.setAttribute('width', width);
+      svg.setAttribute('height', height);
+      svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+      var defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      var marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+      marker.setAttribute('id', 'arrowhead-v');
+      marker.setAttribute('viewBox', '0 -5 10 10');
+      marker.setAttribute('refX', 10);
+      marker.setAttribute('refY', 0);
+      marker.setAttribute('markerWidth', 6);
+      marker.setAttribute('markerHeight', 6);
+      marker.setAttribute('orient', 'auto');
+      var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M0,-5L10,0L0,5');
+      path.setAttribute('fill', 'var(--vscode-foreground)');
+      marker.appendChild(path);
+      defs.appendChild(marker);
+      svg.appendChild(defs);
+      var lines = [];
+      for (var i = 1; i < nodeData.length; i++) {
+        var a = nodeData[i - 1], b = nodeData[i];
+        var pts = nearestEdgePoints(a.x, a.y, b.x, b.y, nodeW, nodeH);
+        var pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        pathEl.setAttribute('d', curvedPath(pts.x1, pts.y1, pts.x2, pts.y2));
+        pathEl.setAttribute('fill', 'none');
+        pathEl.setAttribute('stroke', 'var(--vscode-foreground)');
+        pathEl.setAttribute('stroke-width', '2');
+        pathEl.setAttribute('stroke-opacity', '0.6');
+        pathEl.setAttribute('marker-end', 'url(#arrowhead-v)');
+        svg.appendChild(pathEl);
+        lines.push({ el: pathEl, si: i - 1, ti: i });
+      }
+      var visualMousedownIndex = -1;
+      for (var i = 0; i < nodeData.length; i++) {
+        var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('transform', 'translate(' + nodeData[i].x + ',' + nodeData[i].y + ')');
+        g.setAttribute('data-idx', i);
+        g.style.cursor = 'pointer';
+        var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('width', nodeW);
+        rect.setAttribute('height', nodeH);
+        rect.setAttribute('rx', 10);
+        rect.setAttribute('ry', 10);
+        rect.setAttribute('fill', colorForType(nodeData[i].type));
+        rect.setAttribute('fill-opacity', '0.85');
+        rect.setAttribute('stroke', (i === selectedVisualNodeIndex) ? 'var(--vscode-focusBorder)' : 'var(--vscode-foreground)');
+        rect.setAttribute('stroke-width', (i === selectedVisualNodeIndex) ? '3' : '1');
+        g.appendChild(rect);
+        var t1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        t1.setAttribute('x', 10); t1.setAttribute('y', 16); t1.setAttribute('font-size', 11); t1.setAttribute('font-weight', 'bold'); t1.setAttribute('fill', 'var(--vscode-foreground)'); t1.textContent = (nodeData[i].name || '—').substring(0, 22); g.appendChild(t1);
+        var t2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        t2.setAttribute('x', 10); t2.setAttribute('y', 32); t2.setAttribute('font-size', 10); t2.setAttribute('fill', 'var(--vscode-descriptionForeground)'); t2.textContent = (nodeData[i].type || '—').substring(0, 24); g.appendChild(t2);
+        var t3 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        t3.setAttribute('x', 10); t3.setAttribute('y', 48); t3.setAttribute('font-size', 10); t3.setAttribute('fill', 'var(--vscode-foreground)'); t3.textContent = (nodeData[i].text || '—').substring(0, 24); g.appendChild(t3);
+        var t4 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        t4.setAttribute('x', 10); t4.setAttribute('y', 64); t4.setAttribute('font-size', 9); t4.setAttribute('fill', 'var(--vscode-descriptionForeground)'); t4.textContent = 'event: ' + (nodeData[i].event || '—'); g.appendChild(t4);
+        (function(grp, idx, svgEl) {
+          var drag = false, startX = 0, startY = 0, baseX = 0, baseY = 0;
+          var dragThreshold = 5;
+          function toSvg(cx, cy) {
+            var pt = svgEl.createSVGPoint();
+            pt.x = cx;
+            pt.y = cy;
+            var m = svgEl.getScreenCTM();
+            if (m) pt = pt.matrixTransform(m.inverse());
+            return { x: pt.x, y: pt.y };
+          }
+          grp.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            visualMousedownIndex = idx;
+            drag = false;
+            var p = toSvg(e.clientX, e.clientY);
+            startX = p.x;
+            startY = p.y;
+            baseX = visualNodes[idx].x || 0;
+            baseY = visualNodes[idx].y || 0;
+          });
+          window.addEventListener('mousemove', function mv(e) {
+            if (drag) {
+              document.body.style.cursor = 'move';
+              var p = toSvg(e.clientX, e.clientY);
+              visualNodes[idx].x = Math.max(0, baseX + (p.x - startX));
+              visualNodes[idx].y = Math.max(0, baseY + (p.y - startY));
+              grp.setAttribute('transform', 'translate(' + visualNodes[idx].x + ',' + visualNodes[idx].y + ')');
+              for (var j = 0; j < lines.length; j++) {
+                var L = lines[j], a = visualNodes[L.si], b = visualNodes[L.ti];
+                var pts = nearestEdgePoints(a.x || 0, a.y || 0, b.x || 0, b.y || 0, nodeW, nodeH);
+                L.el.setAttribute('d', curvedPath(pts.x1, pts.y1, pts.x2, pts.y2));
+              }
+            } else {
+              var p = toSvg(e.clientX, e.clientY);
+              if (Math.abs(p.x - startX) > dragThreshold || Math.abs(p.y - startY) > dragThreshold) drag = true;
+            }
+          });
+          window.addEventListener('mouseup', function() {
+            document.body.style.cursor = '';
+            if (visualMousedownIndex === idx && !drag) handleVisualNodeClick(idx);
+            if (visualMousedownIndex === idx) visualMousedownIndex = -1;
+            drag = false;
+          });
+          grp.addEventListener('dblclick', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            showEditVisualNodeModal(idx);
+          });
+        })(g, i, svg);
+        svg.appendChild(g);
+      }
+      container.appendChild(svg);
     }
 
     function renderSteps() {
@@ -359,6 +1026,88 @@
         btn.onclick = () => vscode.postMessage({ type: 'skipStep', index: parseInt(btn.dataset.i) });
       });
     }
+
+    document.getElementById('visualEditOk').onclick = function() { applyEditVisualNodeModal(); };
+    document.getElementById('visualEditCancel').onclick = function() { hideEditVisualNodeModal(); };
+    document.getElementById('visualNodeEditModal').onclick = function(e) {
+      if (e.target === document.getElementById('visualNodeEditModal')) hideEditVisualNodeModal();
+    };
+
+    document.getElementById('objectTreeSearchInput').addEventListener('input', runObjectTreeSearch);
+    document.getElementById('objectTreeSearchInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') runObjectTreeSearch();
+    });
+    document.getElementById('objectTreeSearchPrev').onclick = searchPrev;
+    document.getElementById('objectTreeSearchNext').onclick = searchNext;
+    updateSearchArrowState();
+
+    var visualContextMenuEl = document.getElementById('visualContextMenu');
+    function showVisualContextMenu(x, y) {
+      if (visualContextMenuEl) {
+        visualContextMenuEl.style.left = x + 'px';
+        visualContextMenuEl.style.top = y + 'px';
+        visualContextMenuEl.classList.add('show');
+        visualContextMenuEl.setAttribute('aria-hidden', 'false');
+      }
+    }
+    function hideVisualContextMenu() {
+      if (visualContextMenuEl) {
+        visualContextMenuEl.classList.remove('show');
+        visualContextMenuEl.setAttribute('aria-hidden', 'true');
+      }
+    }
+    document.getElementById('visualTabContent').addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      showVisualContextMenu(e.clientX, e.clientY);
+    });
+    document.addEventListener('click', function(e) {
+      if (visualContextMenuEl && visualContextMenuEl.classList.contains('show') && !visualContextMenuEl.contains(e.target)) {
+        hideVisualContextMenu();
+      }
+    });
+    function showCleanConfirmModal() {
+      document.getElementById('visualCleanConfirmModal').classList.add('show');
+      document.getElementById('visualCleanConfirmModal').setAttribute('aria-hidden', 'false');
+    }
+    function hideCleanConfirmModal() {
+      document.getElementById('visualCleanConfirmModal').classList.remove('show');
+      document.getElementById('visualCleanConfirmModal').setAttribute('aria-hidden', 'true');
+    }
+    function applyCleanConfirm() {
+      visualNodes = [];
+      selectedVisualNodeIndex = -1;
+      renderVisual();
+      appendLog('[action] All record & replay information cleared.\r\n');
+      switchTopTab('log');
+      hideCleanConfirmModal();
+    }
+    document.getElementById('visualCleanConfirmOk').onclick = function() { applyCleanConfirm(); };
+    document.getElementById('visualCleanConfirmCancel').onclick = function() { hideCleanConfirmModal(); };
+    document.getElementById('visualCleanConfirmModal').onclick = function(e) {
+      if (e.target === document.getElementById('visualCleanConfirmModal')) hideCleanConfirmModal();
+    };
+    visualContextMenuEl && visualContextMenuEl.querySelectorAll('button').forEach(function(btn) {
+      btn.onmousedown = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var action = btn.dataset.action;
+        hideVisualContextMenu();
+        if (action === 'clean') {
+          setTimeout(showCleanConfirmModal, 0);
+        } else if (action === 'tryExecute') {
+          if (selectedVisualNodeIndex >= 0 && selectedProcess != null) {
+            vscode.postMessage({ type: 'executeVisualStep', index: selectedVisualNodeIndex, pid: selectedProcess });
+            appendLog('[action] Try execute visual step ' + (selectedVisualNodeIndex + 1) + '.\r\n');
+            switchTopTab('log');
+          } else {
+            appendLog('[action] Select a visual node and application first.\r\n');
+            switchTopTab('log');
+          }
+        } else if (action === 'about') {
+          vscode.postMessage({ type: 'showVisualAbout' });
+        }
+      };
+    });
 
     console.log('[panel.html] Sending ping and loading data...');
     appendLog('Java UI Automation panel ready. Click Java Applications to scan processes.\r\n');

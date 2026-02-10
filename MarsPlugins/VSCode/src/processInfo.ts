@@ -12,10 +12,11 @@ const isWindows = process.platform === 'win32';
 
 export type ProgressEvent = { kind: 'checking'; pid: number; name: string } | { kind: 'found'; pid: number; display: string } | { kind: 'skip'; pid: number };
 
-function findProcessInfoExe(extensionPath: string): string | null {
+/** Resolve ProcessInfo.exe path (used for process list and for -highlight). */
+export function findProcessInfoExe(extensionPath: string): string | null {
   const base = path.join(extensionPath, 'ProcessInfo', 'bin');
   const configs = ['Release', 'Debug'];
-  const frameworks = ['net8.0', 'net9.0', 'net7.0'];
+  const frameworks = ['net8.0', 'net8.0-windows', 'net9.0', 'net7.0'];
   const ext = isWindows ? 'ProcessInfo.exe' : 'ProcessInfo';
   for (const cfg of configs) {
     for (const fx of frameworks) {
@@ -26,7 +27,7 @@ function findProcessInfoExe(extensionPath: string): string | null {
   return null;
 }
 
-async function createWebSocketServer(): Promise<{ wss: WebSocketServer; port: number }> {
+export async function createWebSocketServer(): Promise<{ wss: WebSocketServer; port: number }> {
   const startPort = 10000;
   const endPort = 11000;
 

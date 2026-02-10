@@ -1,7 +1,7 @@
 /*
- * ProcessInfo - Lists running Java processes
- * Outputs JSON for VS Code extension to parse
+ * ProcessInfo - Lists running Java processes / Highlight overlay
  * Usage: ProcessInfo [--json] [--stream]
+ *        ProcessInfo -highlight <x> <y> <width> <height>  (pixels, screen position; borderless topmost form, flash 3x then close)
  * --stream: output progress to stderr: CHECKING:pid:name | FOUND:pid:display | SKIP:pid
  */
 
@@ -10,6 +10,79 @@ using System.Net.WebSockets;
 using System.Text;
 using System.IO;
 using System.Text.Json;
+using System.Windows.Forms;
+using System.Drawing;
+
+Log($"ProcessInfo started, args.Length={args?.Length ?? 0}: [{string.Join(" | ", args ?? Array.Empty<string>())}]");
+
+// -highlight a b c d: show borderless topmost form, red border, then set x,y,w,h, flash 3 times, close
+for (int i = 0; i < args.Length; i++)
+{
+    if (string.Equals(args[i], "-highlight", StringComparison.OrdinalIgnoreCase) && i + 4 <= args.Length)
+    {
+        try
+        {
+            Log("highlight: args parsed, entering block");
+            if (int.TryParse(args[i + 1], out int hx) && int.TryParse(args[i + 2], out int hy) &&
+                int.TryParse(args[i + 3], out int hw) && int.TryParse(args[i + 4], out int hh))
+            {
+                if (hw <= 0) hw = 8; if (hh <= 0) hh = 8;
+                Log($"highlight: x y w h = {hx} {hy} {hw} {hh}");
+                Application.SetHighDpiMode(HighDpiMode.DpiUnaware);
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Log("highlight: creating Form");
+                var form = new Form
+                {
+                    FormBorderStyle = FormBorderStyle.None,
+                    StartPosition = FormStartPosition.Manual,
+                    TopMost = true,
+                    ShowInTaskbar = false,
+                    BackColor = Color.Lime,
+                    TransparencyKey = Color.Lime
+                };
+                form.Paint += (s, e) =>
+                {
+                    using var pen = new Pen(Color.Red, 2);
+                    e.Graphics.DrawRectangle(pen, 0, 0, form.ClientSize.Width - 1, form.ClientSize.Height - 1);
+                };
+                form.Show();
+                form.Location = new Point(hx, hy);
+                form.Size = new Size(hw, hh);
+                Log("highlight: form Show + Location/Size set, starting timer");
+                int flashCount = 0;
+                var timer = new System.Windows.Forms.Timer { Interval = 250 };
+                timer.Tick += (s, e) =>
+                {
+                    if (flashCount < 6)
+                    {
+                        form.Visible = (flashCount % 2) == 0;
+                        flashCount++;
+                        timer.Interval = form.Visible ? 250 : 180;
+                    }
+                    else
+                    {
+                        timer.Stop();
+                        form.Visible = true;
+                        var closeTimer = new System.Windows.Forms.Timer { Interval = 400 };
+                        closeTimer.Tick += (_, _) => { closeTimer.Stop(); form.Close(); };
+                        closeTimer.Start();
+                    }
+                };
+                form.Shown += (s, e) => { form.Visible = true; flashCount = 0; };
+                timer.Start();
+                Application.Run(form);
+                Log("highlight: Application.Run returned (form closed)");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log($"highlight: EXCEPTION {ex.Message}");
+            Log($"highlight: StackTrace {ex.StackTrace}");
+        }
+        return;
+    }
+}
 
 var jsonMode = args.Contains("--json", StringComparer.OrdinalIgnoreCase);
 var streamMode = args.Contains("--stream", StringComparer.OrdinalIgnoreCase);

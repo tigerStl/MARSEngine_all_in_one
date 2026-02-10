@@ -13,7 +13,7 @@
 7. **进程信息**：通过同目录下的 ProcessInfo（C# .NET Core）获取
 8. **面板**：底部可停靠面板，含「Java Applications」按钮、进程下拉框、对象列表、Object Info（含 x,y,w,h、visible）、测试步骤表；支持状态持久化（切换 tab 后恢复）
 9. **高亮**：双击对象列表中的对象，在目标进程窗口对应位置绘制红色框闪烁 3 次
-10. **Java Agent 日志**：agent-loader 与 ui-scanner-agent 的日志写入各 JAR 同目录下的 `javaagentLog/`
+10. **Java Agent 日志**：agent-loader 的日志在其 JAR 同目录的 `javaagentLog/`；**unified-agent**（扫描+录制合一）被加载后，扫描日志在运行时 JAR 所在目录的 `javaagentLog/`，录制日志在**录制目录**（recordDir）的 `record-debug.log`、`toolbutton-tooltips.log`
 
 ## 项目结构
 
@@ -21,12 +21,14 @@
 VSCode/
 ├── src/                    # VS Code 扩展源码
 │   ├── panelProvider.ts    # 面板（进程列表、对象树、Object Info、测试步骤）
-│   ├── agentLoader.ts     # 加载 Scanner / Highlight Agent（使用 JAVA_HOME/bin/java）
+│   ├── agentLoader.ts      # 加载 Agent（加载 unified-agent）
 ├── schemas/                # JSON Schema
 ├── java/
-│   ├── agent-loader/       # Attach 并加载各类 Agent
-│   ├── ui-scanner-agent/   # JVM Agent，扫描 AWT/Swing（输出 bounds、screenBounds、visible）
-│   └── highlight-agent/    # JVM Agent，在屏幕坐标绘制红框闪烁 3 次
+│   ├── agent-loader/       # Attach 并加载 unified-agent
+│   ├── unified-agent/      # 扫描+录制合一 JAR
+│   ├── ui-scanner-agent/   # 扫描逻辑（unified-agent 依赖）
+│   ├── record-agent/       # 录制逻辑（unified-agent 依赖）
+│   └── highlight-agent/    # JVM Agent，红框闪烁高亮
 ├── ProcessInfo/            # C# .NET Core，列举 Java 进程
 └── package.json
 ```
@@ -35,8 +37,9 @@ VSCode/
 
 - **扫描与脚本**：统一存放在**插件安装目录**下的 `scanedfiles/`（不依赖工作区）
   - 扫描结果、`objects.json`、`constants.json`、`script.json` / `script-*.json` 均在此目录
-- **Java Agent 日志**：各 JAR 同目录下的 `javaagentLog/`
-  - 例如：`java/agent-loader/target/javaagentLog/agent-loader.log`、`java/ui-scanner-agent/target/javaagentLog/ui-scanner-agent.log`
+- **Java Agent 日志**：
+  - **agent-loader**：其 JAR 同目录下的 `javaagentLog/`
+  - **unified-agent**：扫描时在运行时 JAR 同目录的 `javaagentLog/`，录制时在**录制目录**（recordDir）的 `record-debug.log`、`toolbutton-tooltips.log`
 
 ## 构建
 

@@ -126,6 +126,12 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand('javaUiAutomation.stopRecord', () => {
+      panelProvider.stopRecordAndShowDialog();
+    })
+  );
+
+  context.subscriptions.push(
     vscode.commands.registerCommand('javaUiAutomation.generateScript', async () => {
       const scanDir = getScanDir(context);
       const objectsPath = path.join(scanDir, 'objects.json');

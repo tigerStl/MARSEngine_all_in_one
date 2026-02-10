@@ -13,7 +13,7 @@
 7. **进程信息**：通过同目录下的 ProcessInfo（C# .NET Core）获取
 8. **面板**：底部可停靠面板，含「Java Applications」按钮、进程下拉框、对象列表、Object Info（含 x,y,w,h、visible）、测试步骤表；支持状态持久化（切换 tab 后恢复）
 9. **高亮**：双击对象列表中的对象，在目标进程窗口对应位置绘制红色框闪烁 3 次
-10. **Java Agent 日志**：agent-loader 与 ui-scanner-agent 的日志写入各 JAR 同目录下的 `javaagentLog/`
+10. **Java Agent 日志**：agent-loader 的日志在其 JAR 同目录下的 `javaagentLog/`；**marsJavaAgent**（扫描+录制合一 JAR）被加载后，扫描时日志写入运行时 JAR 所在目录的 `javaagentLog/`，录制时日志写入**录制目录**（recordDir）下的 `record-debug.log`、`toolbutton-tooltips.log`
 
 ## 项目结构
 
@@ -22,14 +22,14 @@ VSCode/
 ├── src/                      # VS Code 扩展
 │   ├── extension.ts          # 主入口与命令
 │   ├── panelProvider.ts      # 面板（进程列表、对象树、Object Info、测试步骤）
-│   ├── agentLoader.ts        # 加载 Scanner / Highlight Agent（使用 JAVA_HOME/bin/java）
+│   ├── agentLoader.ts        # 加载 Agent（使用 JAVA_HOME/bin/java，加载 marsJavaAgent）
 │   ├── processInfo.ts        # 调用 ProcessInfo 获取 Java 进程
 │   ├── objectConverter.ts    # 将扫描结果转为 UIObject（含 bounds、screenBounds、visible）
 │   └── scriptGenerator.ts    # 生成测试脚本
 ├── schemas/                  # JSON Schema
 ├── java/
-│   ├── agent-loader/         # 使用 Attach API 加载各类 Agent
-│   ├── ui-scanner-agent/     # JVM Agent，扫描 AWT/Swing（输出 bounds、screenBounds、visible）
+│   ├── agent-loader/         # 使用 Attach API 加载 Agent（加载 marsJavaAgent）
+│   ├── marsJavaAgent/        # 扫描+录制合一 JAR（内部调度 UIScannerAgent / RecordAgent）
 │   └── highlight-agent/      # JVM Agent，在屏幕坐标绘制红框闪烁 3 次
 ├── ProcessInfo/              # C# .NET Core 工具，列举 Java 进程
 └── package.json
@@ -38,7 +38,9 @@ VSCode/
 ## 数据与输出路径
 
 - **扫描与脚本**：统一存放在**插件安装目录**下的 `scanedfiles/`（不依赖工作区）
-- **Java Agent 日志**：各 JAR 同目录下的 `javaagentLog/`（如 `agent-loader/target/javaagentLog/agent-loader.log`）
+- **Java Agent 日志**：
+  - **agent-loader**：其 JAR 同目录下的 `javaagentLog/`（如 `java/agent-loader/target/javaagentLog/agent-loader.log`）
+  - **marsJavaAgent**：扩展会将 JAR 复制到临时目录再加载；扫描时日志在该**临时 JAR 同目录**的 `javaagentLog/`，录制时日志在**录制目录**（recordDir，通常位于 `scanedfiles/` 下）的 `record-debug.log`、`toolbutton-tooltips.log`
 
 ## 需求与实现对照
 
@@ -84,7 +86,7 @@ VSCode/
 ## 构建与运行
 
 1. **安装依赖并编译扩展**：`npm install`、`npm run compile`
-2. **构建 Java**：`cd java && mvn package`（含 agent-loader、ui-scanner-agent、highlight-agent）
+2. **构建 Java**：`cd java && mvn package`（含 agent-loader、**marsJavaAgent**（扫描+录制合一）、highlight-agent；或仅构建 marsJavaAgent：`mvn package -pl marsJavaAgent -am -DskipTests`）
 3. **构建 ProcessInfo**：`npm run build:processinfo` 或 `dotnet publish -c Release`
 4. **运行**：按 F5 启动 Extension Development Host；打开底部面板「Java UI Automation」，点击 **Java Applications** 获取进程，双击进程扫描，双击对象高亮；或使用命令面板 `Java UI: Select Java Process and Scan` / `Java UI: Generate Test Script`
 

@@ -99,11 +99,19 @@ public class UIScannerAgent {
         String javaType = c.getClass().getName();
         node.put("javaType", javaType);
 
+        List<String> baseTypes = getBaseTypes(c.getClass());
+        node.put("baseTypes", baseTypes);
+
         LOG.fine("scanComponent id=" + id + " parentId=" + parentId + " javaType=" + javaType);
 
-        String text = getText(c);
+        String text = invokeStringGetter(c, "getText");
         if (text != null && !text.isEmpty()) {
             node.put("text", text);
+        }
+
+        String value = getValue(c);
+        if (value != null) {
+            node.put("value", value);
         }
 
         String name = c.getName();
@@ -111,9 +119,30 @@ public class UIScannerAgent {
             node.put("name", name);
         }
 
-        String caption = getCaption(c);
+        String caption = invokeStringGetter(c, "getCaption");
         if (caption != null && !caption.isEmpty()) {
             node.put("caption", caption);
+        }
+
+        String title = invokeStringGetter(c, "getTitle");
+        if (title != null && !title.isEmpty()) {
+            node.put("title", title);
+        }
+
+        // Log component info: type, name, etc.
+        logComponentInfo(c, javaType, name);
+        // If ToolButton, log all properties
+        if (javaType != null && javaType.toLowerCase(Locale.ROOT).contains("toolbutton")) {
+            logAllProperties(c, javaType);
+        }
+
+        String toolTipText = getToolTipText(c);
+        if (toolTipText != null && !toolTipText.isEmpty()) {
+            node.put("toolTipText", toolTipText);
+            if (isToolButtonLike(c) && (text == null || text.isEmpty()) && (caption == null || caption.isEmpty())) {
+                node.put("text", toolTipText);
+                node.put("caption", toolTipText);
+            }
         }
 
         Rectangle rect = c.getBounds();
@@ -154,22 +183,145 @@ public class UIScannerAgent {
         return node;
     }
 
-    private static String getText(Component c) {
+    /** Get tooltip text: try getToolTipText() (with robust reflection), then for AbstractButton try Action.SHORT_DESCRIPTION. */
+    private static String getToolTipText(Component c) {
+        String s = invokeToolTipTextGetter(c);
+        if (s != null && !s.isEmpty()) return s;
+        if (c instanceof AbstractButton) {
+            Action a = ((AbstractButton) c).getAction();
+            if (a != null) {
+                Object v = a.getValue(Action.SHORT_DESCRIPTION);
+                if (v != null) {
+                    String t = v.toString().trim();
+                    if (!t.isEmpty()) return t;
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Invoke getToolTipText / getTooltipText by traversing class hierarchy and trying getMethods(). */
+    private static String invokeToolTipTextGetter(Component c) {
+        if (c == null) return null;
+        Class<?> clz = c.getClass();
+        while (clz != null && clz != Object.class) {
+            try {
+                Method m = clz.getMethod("getToolTipText");
+                if (m != null && m.getReturnType() == String.class) {
+                    Object v = m.invoke(c);
+                    if (v != null) {
+                        String s = v.toString().trim();
+                        if (!s.isEmpty()) return s;
+                    }
+                }
+            } catch (NoSuchMethodException ignored) {
+                // try next class or alternate name
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                LOG.fine("getToolTipText invoke failed on " + clz.getName() + ": " + e.getMessage());
+            }
+            try {
+                Method m = clz.getMethod("getTooltipText");
+                if (m != null && m.getReturnType() == String.class) {
+                    Object v = m.invoke(c);
+                    if (v != null) {
+                        String s = v.toString().trim();
+                        if (!s.isEmpty()) return s;
+                    }
+                }
+            } catch (NoSuchMethodException ignored) {
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                LOG.fine("getTooltipText invoke failed on " + clz.getName() + ": " + e.getMessage());
+            }
+            clz = clz.getSuperclass();
+        }
+        for (Method m : c.getClass().getMethods()) {
+            String name = m.getName();
+            if (("getToolTipText".equals(name) || "getTooltipText".equals(name))
+                    && m.getParameterCount() == 0 && m.getReturnType() == String.class) {
+                try {
+                    Object v = m.invoke(c);
+                    if (v != null) {
+                        String s = v.toString().trim();
+                        if (!s.isEmpty()) return s;
+                    }
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    LOG.fine(name + " invoke failed: " + e.getMessage());
+                }
+            }
+        }
+        return null;
+    }
+
+    /** True if component's class name contains "ToolButton" (case-insensitive). */
+    private static boolean isToolButtonLike(Component c) {
+        if (c == null) return false;
+        Class<?> clz = c.getClass();
+        while (clz != null) {
+            if (clz.getName().toLowerCase(Locale.ROOT).contains("toolbutton")) {
+                return true;
+            }
+            clz = clz.getSuperclass();
+        }
+        return false;
+    }
+
+    /** Use reflection to invoke a no-arg getter (e.g. getText, getCaption, getTitle, getToolTipText) and return trimmed string or null. */
+    private static String invokeStringGetter(Component c, String methodName) {
         try {
-            Method m = c.getClass().getMethod("getText");
+            Method m = c.getClass().getMethod(methodName);
             Object v = m.invoke(c);
-            return v != null ? v.toString() : null;
+            if (v == null) return null;
+            String s = v.toString().trim();
+            return s.isEmpty() ? null : s;
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             return null;
         }
     }
 
-    private static String getCaption(Component c) {
-        if (c instanceof Frame) {
-            return ((Frame) c).getTitle();
+    /** Inheritance chain from concrete class down to (and including) first base whose name starts with java. or javax. */
+    private static List<String> getBaseTypes(Class<?> clazz) {
+        List<String> list = new ArrayList<>();
+        try {
+            Class<?> c = clazz;
+            while (c != null && c != Object.class) {
+                String name = c.getName();
+                list.add(name);
+                if (name.startsWith("java.") || name.startsWith("javax.")) {
+                    break;
+                }
+                c = c.getSuperclass();
+            }
+            if (list.isEmpty() && clazz != null) {
+                list.add(clazz.getName());
+            }
+        } catch (Exception e) {
+            LOG.fine("getBaseTypes failed for " + clazz + ": " + e.getMessage());
+            if (clazz != null) list.add(clazz.getName());
         }
-        if (c instanceof Dialog) {
-            return ((Dialog) c).getTitle();
+        return list;
+    }
+
+    /** Component display value: getText(), getLabel(), getSelectedItem(), getValue(), etc. */
+    private static String getValue(Component c) {
+        String s = invokeStringGetter(c, "getText");
+        if (s != null) return s;
+        if (c instanceof AbstractButton) {
+            String label = ((AbstractButton) c).getText();
+            if (label != null && !label.trim().isEmpty()) return label;
+        }
+        try {
+            Method m = c.getClass().getMethod("getSelectedItem");
+            Object v = m.invoke(c);
+            if (v != null) return v.toString();
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            // ignore
+        }
+        try {
+            Method m = c.getClass().getMethod("getValue");
+            Object v = m.invoke(c);
+            if (v != null) return v.toString();
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            // ignore
         }
         return null;
     }
@@ -179,9 +331,58 @@ public class UIScannerAgent {
         sb.append("{\"roots\":");
         sb.append(toJson(roots));
         sb.append("}");
+        String json = sb.toString();
         try (Writer w = new OutputStreamWriter(new FileOutputStream(path), "UTF-8")) {
-            w.write(sb.toString());
+            w.write(json);
         }
+        logTransmitSummary(path, roots, json.length());
+    }
+
+    /** Log summary of transmitted data for debugging. */
+    private static void logTransmitSummary(String path, List<Map<String, Object>> roots, int jsonLen) {
+        int[] counts = countNodes(roots);
+        LOG.info("[agent->extension] path=" + path + " roots=" + roots.size()
+                + " totalNodes=" + counts[0] + " withToolTipText=" + counts[1] + " jsonLen=" + jsonLen);
+        int[] remaining = { 3 };
+        logNodeToolTipsSample(roots, remaining);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void logNodeToolTipsSample(List<Map<String, Object>> nodes, int[] remaining) {
+        if (remaining[0] <= 0) return;
+        for (Map<String, Object> n : nodes) {
+            Object tt = n.get("toolTipText");
+            if (tt != null && !tt.toString().trim().isEmpty()) {
+                String javaType = String.valueOf(n.get("javaType"));
+                String val = tt.toString();
+                LOG.info("  [toolTipText] javaType=" + javaType + " toolTipText="
+                        + (val.length() > 60 ? val.substring(0, 60) + "..." : val));
+                if (--remaining[0] <= 0) return;
+            }
+            Object ch = n.get("children");
+            if (ch instanceof List) {
+                logNodeToolTipsSample((List<Map<String, Object>>) ch, remaining);
+                if (remaining[0] <= 0) return;
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static int[] countNodes(List<Map<String, Object>> nodes) {
+        int total = 0, withToolTip = 0;
+        for (Map<String, Object> n : nodes) {
+            total++;
+            if (n.get("toolTipText") != null && !n.get("toolTipText").toString().trim().isEmpty()) {
+                withToolTip++;
+            }
+            Object ch = n.get("children");
+            if (ch instanceof List) {
+                int[] sub = countNodes((List<Map<String, Object>>) ch);
+                total += sub[0];
+                withToolTip += sub[1];
+            }
+        }
+        return new int[] { total, withToolTip };
     }
 
     private static String toJson(Object o) {
@@ -222,5 +423,48 @@ public class UIScannerAgent {
                 .replace("\n", "\\n")
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
+    }
+
+    /** Log component basic info: type, name, etc. */
+    private static void logComponentInfo(Component c, String javaType, String name) {
+        LOG.info("[component] type=" + (javaType != null ? javaType : "null")
+                + " name=" + (name != null && !name.isEmpty() ? name : "null")
+                + " id=c-" + System.identityHashCode(c));
+    }
+
+    /** Log all properties of a ToolButton component using reflection. */
+    private static void logAllProperties(Component c, String javaType) {
+        if (c == null) return;
+        LOG.info("[ToolButton properties] type=" + javaType + " id=c-" + System.identityHashCode(c));
+        try {
+            Class<?> clz = c.getClass();
+            Method[] methods = clz.getMethods();
+            Map<String, Object> props = new LinkedHashMap<>();
+            for (Method m : methods) {
+                String name = m.getName();
+                if (name.startsWith("get") && m.getParameterCount() == 0 && !name.equals("getClass")) {
+                    try {
+                        Object val = m.invoke(c);
+                        String propName = name.substring(3);
+                        if (propName.length() > 0) {
+                            propName = Character.toLowerCase(propName.charAt(0)) + propName.substring(1);
+                            props.put(propName, val);
+                        }
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        // skip methods that throw
+                    }
+                }
+            }
+            for (Map.Entry<String, Object> e : props.entrySet()) {
+                Object val = e.getValue();
+                String valStr = val == null ? "null" : val.toString();
+                if (valStr.length() > 100) {
+                    valStr = valStr.substring(0, 100) + "...";
+                }
+                LOG.info("  " + e.getKey() + " = " + valStr);
+            }
+        } catch (Exception e) {
+            LOG.warning("[ToolButton properties] failed to get properties: " + e.getMessage());
+        }
     }
 }

@@ -12,11 +12,15 @@ export interface Bounds {
 
 export interface ElementIdentifier {
   text?: string;
+  value?: string;
   caption?: string;
+  title?: string;
+  toolTipText?: string;
   name?: string;
   namePath?: string[];
   javaType?: string;
   objectTypePath?: string[];
+  baseTypes?: string[];
   bounds?: Bounds;
   screenBounds?: Bounds;
   visible?: boolean;

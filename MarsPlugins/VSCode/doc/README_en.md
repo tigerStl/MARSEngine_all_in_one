@@ -13,7 +13,7 @@ VS Code extension for Java application UI automation testing. It uses a JVM Agen
 7. **Process info**: Provided by the ProcessInfo tool (C# .NET Core) in the same repo
 8. **Panel**: Dockable bottom panel with **Java Applications** button, process combo, object list, Object Info (x, y, w, h, visible), test steps; state persists when switching tabs
 9. **Highlight**: Double-click an object in the list to draw a red flashing box (3 times) at the corresponding position in the target process window
-10. **Java Agent logs**: agent-loader and ui-scanner-agent logs go to `javaagentLog/` next to each JAR
+10. **Java Agent logs**: agent-loader logs go to `javaagentLog/` next to its JAR; **unified-agent** (scan+record in one JAR) logs: scan to `javaagentLog/` next to the runtime JAR, record to the **record directory** (recordDir): `record-debug.log`, `toolbutton-tooltips.log`
 
 ## Project Structure
 
@@ -21,16 +21,18 @@ VS Code extension for Java application UI automation testing. It uses a JVM Agen
 VSCode/
 ├── src/                      # VS Code extension
 │   ├── extension.ts          # Entry point and commands
-│   ├── panelProvider.ts      # Panel (process list, object tree, Object Info, test steps)
-│   ├── agentLoader.ts        # Loads Scanner / Highlight Agent (uses JAVA_HOME/bin/java)
+│   ├── panelProvider.ts     # Panel (process list, object tree, Object Info, test steps)
+│   ├── agentLoader.ts        # Loads unified-agent (uses JAVA_HOME/bin/java)
 │   ├── processInfo.ts        # Invokes ProcessInfo for Java processes
 │   ├── objectConverter.ts   # Converts scan output to UIObject (bounds, screenBounds, visible)
-│   └── scriptGenerator.ts    # Generates test scripts
+│   └── scriptGenerator.ts   # Generates test scripts
 ├── schemas/                  # JSON schemas
 ├── java/
-│   ├── agent-loader/         # Loads agents via Attach API
-│   ├── ui-scanner-agent/     # JVM Agent, scans AWT/Swing (bounds, screenBounds, visible)
-│   └── highlight-agent/      # JVM Agent, draws red flashing box at screen coordinates
+│   ├── agent-loader/         # Loads unified-agent via Attach API
+│   ├── unified-agent/        # Scan + record in one JAR (dispatches to UIScannerAgent / RecordAgent)
+│   ├── ui-scanner-agent/     # Scan logic (unified-agent dependency)
+│   ├── record-agent/         # Record logic (unified-agent dependency)
+│   └── highlight-agent/      # JVM Agent, red flashing box at screen coordinates
 ├── ProcessInfo/              # C# .NET Core tool to list Java processes
 └── package.json
 ```
@@ -38,7 +40,9 @@ VSCode/
 ## Data and Output Paths
 
 - **Scan and scripts**: Stored under the **extension install directory** in `scanedfiles/` (no workspace required)
-- **Java Agent logs**: Under `javaagentLog/` next to each JAR (e.g. `agent-loader/target/javaagentLog/agent-loader.log`)
+- **Java Agent logs**:
+  - **agent-loader**: Under `javaagentLog/` next to its JAR (e.g. `java/agent-loader/target/javaagentLog/agent-loader.log`)
+  - **unified-agent**: Extension copies the JAR to a temp dir before load; scan logs under `javaagentLog/` next to that JAR, record logs in the **record directory** (recordDir): `record-debug.log`, `toolbutton-tooltips.log`
 
 ## Requirements vs Implementation
 
