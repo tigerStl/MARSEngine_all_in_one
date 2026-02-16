@@ -43,13 +43,23 @@
     .steps-panel-inner { overflow: auto; flex: 1; min-height: 0; padding: 8px; }
     #visualContainer { flex: 1; min-height: 200px; width: 100%; background: var(--vscode-editor-background); overflow: auto; }
     #visualContainer .visual-svg { display: block; }
-    .steps-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .steps-table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
     .steps-table th, .steps-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--vscode-panel-border); }
-    .steps-table th { background: var(--vscode-editor-inactiveSelectionBackground); font-weight: 600; }
+    .steps-table th { background: var(--vscode-editor-inactiveSelectionBackground); font-weight: 600; position: relative; }
+    .steps-table th .col-resize { position: absolute; right: 0; top: 0; bottom: 0; width: 6px; cursor: col-resize; }
+    .steps-table th .col-resize:hover { background: var(--vscode-focusBorder); opacity: 0.3; }
     .steps-table tr:hover { background: var(--vscode-list-hoverBackground); }
+    .steps-table tr.step-error { background: var(--vscode-inputValidation-errorBackground); color: var(--vscode-errorForeground); }
+    .steps-table tr.step-error .step-error-msg { font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .action-btn { padding: 2px 6px; margin: 0 2px; font-size: 11px; cursor: pointer; border-radius: 3px; border: 1px solid; }
+    .action-btn.execute { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border-color: var(--vscode-button-border); }
+    .action-btn.execute:hover { background: var(--vscode-button-hoverBackground); }
     .action-btn.delete { background: var(--vscode-errorForeground); color: white; border-color: var(--vscode-errorForeground); }
     .action-btn.skip { background: var(--vscode-editorWarning-foreground); color: white; }
+    .action-btn.icon-only { padding: 4px; margin: 0 1px; }
+    .action-btn.icon-only img { width: 14px; height: 14px; display: block; }
+    .step-param-cell { min-width: 60px; }
+    .step-locator-cell { white-space: pre-wrap; word-break: break-word; font-size: 11px; min-width: 80px; vertical-align: top; }
     tr.skipped { opacity: 0.6; text-decoration: line-through; }
     .empty-msg { color: var(--vscode-descriptionForeground); padding: 12px; font-style: italic; }
     .icon { font-size: 14px; }
@@ -79,8 +89,10 @@
     .visual-modal-actions button.primary { background: var(--vscode-button-background); }
     .visual-context-menu { position: fixed; z-index: 1100; min-width: 180px; background: var(--vscode-editor-background); border: 1px solid var(--vscode-panel-border); border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.2); padding: 4px 0; display: none; }
     .visual-context-menu.show { display: block; }
-    .visual-context-menu button { display: block; width: 100%; padding: 8px 16px; border: none; background: none; color: var(--vscode-foreground); font-size: 13px; text-align: left; cursor: pointer; }
+    .visual-context-menu button { display: flex; align-items: center; width: 100%; padding: 8px 16px; border: none; background: none; color: var(--vscode-foreground); font-size: 13px; text-align: left; cursor: pointer; gap: 8px; }
     .visual-context-menu button:hover { background: var(--vscode-list-hoverBackground); }
+    .visual-context-menu-sep { height: 1px; margin: 4px 8px; background: var(--vscode-panel-border); }
+    .visual-context-menu button .menu-icon { width: 16px; height: 16px; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -136,14 +148,15 @@
               <table class="steps-table" id="stepsTable">
                 <thead>
                   <tr>
-                    <th style="width:40px">#</th>
-                    <th>Keyword</th>
-                    <th>Parent</th>
-                    <th>Object</th>
-                    <th>Para</th>
-                    <th>Data</th>
-                    <th>Expected</th>
-                    <th style="width:100px">Action</th>
+                    <th data-col="0" style="width:40px">#<span class="col-resize" data-col="0"></span></th>
+                    <th data-col="1" style="width:80px">Keyword<span class="col-resize" data-col="1"></span></th>
+                    <th data-col="2" style="width:15%">Parent<span class="col-resize" data-col="2"></span></th>
+                    <th data-col="3" style="width:18%">Object<span class="col-resize" data-col="3"></span></th>
+                    <th data-col="4" style="width:70px">Para<span class="col-resize" data-col="4"></span></th>
+                    <th data-col="5" style="width:12%">Data<span class="col-resize" data-col="5"></span></th>
+                    <th data-col="6" style="width:10%">Expected<span class="col-resize" data-col="6"></span></th>
+                    <th data-col="7" style="width:12%">Error<span class="col-resize" data-col="7"></span></th>
+                    <th data-col="8" style="width:140px">Action<span class="col-resize" data-col="8"></span></th>
                   </tr>
                 </thead>
                 <tbody id="stepsBody"></tbody>
@@ -161,6 +174,9 @@
       <button type="button" data-action="clean">Clean</button>
       <button type="button" data-action="tryExecute">Try to execute the step</button>
       <button type="button" data-action="about">About</button>
+      <div class="visual-context-menu-sep"></div>
+      <button type="button" data-action="deleteNode"><img class="menu-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M3 4h10v9a1 1 0 01-1 1H4a1 1 0 01-1-1V4z'/%3E%3Cpath d='M2 4h12M6 4V2a1 1 0 011-1h2a1 1 0 011 1v2'/%3E%3Cline x1='6' y1='8' x2='6' y2='12'/%3E%3Cline x1='10' y1='8' x2='10' y2='12'/%3E%3C/svg%3E" alt="">删除（节点）</button>
+      <button type="button" data-action="deleteChain"><img class="menu-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M8 4v8M4 8h8'/%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='M5 5l6 6M11 5l-6 6'/%3E%3C/svg%3E" alt="">删除（链）</button>
     </div>
     <div id="visualCleanConfirmModal" class="visual-modal-overlay" aria-hidden="true">
       <div class="visual-modal">
@@ -201,6 +217,8 @@
     let isRecording = false;
     let visualNodes = [];
     let selectedVisualNodeIndex = -1;
+    /** Timer for delayed add-to-steps on object list single-click; cleared on dblclick so double-click only highlights. */
+    let objectListAddStepTimer = null;
 
     function switchTopTab(tabId) {
       document.querySelectorAll('#topTabBar .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
@@ -247,8 +265,16 @@
     };
     document.getElementById('btnExecute').onclick = () => {
       appendLog('[action] Execute clicked.\r\n');
+      if (!steps || steps.length === 0) {
+        appendLog('[action] Test Steps \u4e3a\u7a7a\uff0c\u8bf7\u5148\u6dfb\u52a0\u6b65\u9aa4\u3002\r\n');
+        switchTopTab('log');
+        if (typeof alert !== 'undefined') alert('Test Steps \u4e3a\u7a7a\uff0c\u8bf7\u5148\u6dfb\u52a0\u6b65\u9aa4\u3002');
+        return;
+      }
+      steps.forEach(function(s) { delete s.errorMessage; });
+      renderSteps();
       switchTopTab('log');
-      vscode.postMessage({ type: 'execute', pid: selectedProcess });
+      vscode.postMessage({ type: 'execute', pid: selectedProcess, steps: steps });
     };
 
     document.getElementById('processCombo').onchange = () => {
@@ -287,12 +313,20 @@
           selectedProcess = null;
           visualNodes = [];
           selectedVisualNodeIndex = -1;
+          steps = [];
           const comboClear = document.getElementById('processCombo');
           if (comboClear) { comboClear.innerHTML = '<option value="">-- Select --</option>'; comboClear.value = ''; }
           const btnRecordClear = document.getElementById('btnRecordReplay');
           if (btnRecordClear) { btnRecordClear.disabled = true; btnRecordClear.textContent = 'Record&Replay'; }
           renderUITree();
           renderVisual();
+          renderSteps();
+          vscode.postMessage({ type: 'syncSteps', data: steps });
+          break;
+        case 'clearObjectList':
+          objects = [];
+          objectTree = [];
+          renderUITree();
           break;
         case 'recordingStarted':
           isRecording = true;
@@ -342,9 +376,30 @@
         case 'objectSelected':
           renderObjectInfo(msg.data);
           break;
+        case 'step':
+          if (msg.data) {
+            steps.push(msg.data);
+            visualNodes = stepsToVisualNodes(steps);
+            renderSteps();
+            if (document.getElementById('visualTabContent').classList.contains('active')) renderVisual();
+          }
+          break;
         case 'steps':
           steps = msg.data || [];
+          visualNodes = stepsToVisualNodes(steps);
           renderSteps();
+          if (document.getElementById('visualTabContent').classList.contains('active')) renderVisual();
+          break;
+        case 'executeResult':
+          if (typeof msg.failedIndex === 'number' && steps[msg.failedIndex]) {
+            steps[msg.failedIndex].errorMessage = msg.error || 'Unknown error';
+            renderSteps();
+            switchBottomTab('testSteps');
+          }
+          if (msg.fromActionColumn) {
+            var resMsg = msg.success ? 'Step executed successfully.' : (msg.error || 'Step failed.');
+            vscode.postMessage({ type: 'showExecuteResultDialog', success: msg.success, message: resMsg });
+          }
           break;
         case 'error':
           appendLog('[error] ' + msg.message + '\r\n');
@@ -366,9 +421,10 @@
         case 'restoreState':
           if (msg.state) {
             processes = Array.isArray(msg.state.processes) ? msg.state.processes : [];
-            objects = Array.isArray(msg.state.objects) ? msg.state.objects : [];
+            objects = [];
             objectTree = [];
             steps = Array.isArray(msg.state.steps) ? msg.state.steps : [];
+            visualNodes = stepsToVisualNodes(steps);
             const logText = typeof msg.state.logText === 'string' ? msg.state.logText : '';
             const ta = document.getElementById('logTextarea');
             if (ta) ta.value = logText;
@@ -591,11 +647,21 @@
             el.classList.add('selected');
             const idx = parseInt(el.dataset.idx);
             if (!isNaN(idx) && listForClick[idx]) {
-              vscode.postMessage({ type: 'selectObject', object: listForClick[idx] });
+              const object = listForClick[idx];
+              vscode.postMessage({ type: 'selectObject', object: object });
+              if (objectListAddStepTimer != null) clearTimeout(objectListAddStepTimer);
+              objectListAddStepTimer = setTimeout(function() {
+                objectListAddStepTimer = null;
+                addSelectListItemVisualNode(object);
+              }, 250);
             }
           };
           el.ondblclick = (e) => {
             if (e.target.closest('.tree-chevron')) return;
+            if (objectListAddStepTimer != null) {
+              clearTimeout(objectListAddStepTimer);
+              objectListAddStepTimer = null;
+            }
             const idx = parseInt(el.dataset.idx);
             if (!isNaN(idx) && listForClick[idx] && selectedProcess != null) {
               vscode.postMessage({ type: 'highlight', pid: selectedProcess, object: listForClick[idx] });
@@ -623,10 +689,20 @@
           el.classList.add('selected');
           const idx = parseInt(el.dataset.idx);
           if (!isNaN(idx) && objects[idx]) {
-            vscode.postMessage({ type: 'selectObject', object: objects[idx] });
+            const object = objects[idx];
+            vscode.postMessage({ type: 'selectObject', object: object });
+            if (objectListAddStepTimer != null) clearTimeout(objectListAddStepTimer);
+            objectListAddStepTimer = setTimeout(function() {
+              objectListAddStepTimer = null;
+              addSelectListItemVisualNode(object);
+            }, 250);
           }
         };
         el.ondblclick = () => {
+          if (objectListAddStepTimer != null) {
+            clearTimeout(objectListAddStepTimer);
+            objectListAddStepTimer = null;
+          }
           const idx = parseInt(el.dataset.idx);
           if (!isNaN(idx) && objects[idx] && selectedProcess != null) {
             vscode.postMessage({ type: 'highlight', pid: selectedProcess, object: objects[idx] });
@@ -816,6 +892,41 @@
         renderVisual();
       }
       hideEditVisualNodeModal();
+    }
+
+    function visualNodesToSteps() {
+      return visualNodes.map(function(n) {
+        var o = n.objectIdentifier || { javaType: n.type, text: n.text, caption: n.text };
+        var kw = (n.event === 'SelectListItem') ? 'SelectListItem' : (n.event === 'FillEdit') ? 'FillEdit' : (n.event === 'click') ? 'Click' : (n.event || 'SelectListItem');
+        return { keyword: kw, parentIdentifier: {}, objectIdentifier: o, parameter: '', data: n.data || '', assertValue: '', skipped: false };
+      });
+    }
+    function stepsToVisualNodes(stepList) {
+      if (!Array.isArray(stepList)) return [];
+      return stepList.map(function(s) {
+        var o = s.objectIdentifier || {};
+        return { name: o.uniqueName || o.javaType || '', type: o.javaType || '', text: (o.caption != null ? o.caption : o.text) || '', event: s.keyword || 'SelectListItem', objectIdentifier: o, data: s.data };
+      });
+    }
+    function syncStepsToExtension() {
+      steps = visualNodesToSteps();
+      renderSteps();
+      vscode.postMessage({ type: 'syncSteps', data: steps });
+    }
+    function addSelectListItemVisualNode(obj) {
+      if (!obj || !obj.identifier) return;
+      const id = obj.identifier;
+      const text = (id.caption != null && id.caption !== '') ? String(id.caption) : (id.text != null ? String(id.text) : '');
+      visualNodes.push({
+        name: obj.uniqueName || id.javaType || '',
+        type: id.javaType != null ? String(id.javaType) : '',
+        text: text,
+        event: 'SelectListItem',
+        objectIdentifier: id
+      });
+      switchBottomTab('visual');
+      renderVisual();
+      syncStepsToExtension();
     }
 
     function renderVisual() {
@@ -1010,20 +1121,109 @@
       container.appendChild(svg);
     }
 
+    var iconExecuteSvg = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'currentColor\'%3E%3Cpolygon points=\'5 3 19 12 5 21 5 3\'/%3E%3C/svg%3E';
+    var iconDeleteSvg = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\'%3E%3Cpath d=\'M3 4h10v9a1 1 0 01-1 1H4a1 1 0 01-1-1V4z\'/%3E%3Cpath d=\'M2 4h12M6 4V2a1 1 0 011-1h2a1 1 0 011 1v2\'/%3E%3Cline x1=\'6\' y1=\'8\' x2=\'6\' y2=\'12\'/%3E%3Cline x1=\'10\' y1=\'8\' x2=\'10\' y2=\'12\'/%3E%3C/svg%3E';
+    var iconSkipSvg = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\'%3E%3Cpolygon points=\'5 4 15 12 5 20 5 4\'/%3E%3Cpolygon points=\'13 4 23 12 13 20 13 4\'/%3E%3C/svg%3E';
+    var iconUnskipSvg = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\'%3E%3Cpath d=\'M3 12h18M12 3v18\'/%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'9\'/%3E%3C/svg%3E';
+    function formatIdentifierLocator(id) {
+      if (!id || typeof id !== 'object') return '-';
+      var parts = [];
+      if (id.javaType) parts.push('javaType:=' + String(id.javaType).replace(/</g, '&lt;').replace(/"/g, '&quot;'));
+      if (id.text != null && id.text !== '') parts.push('Text:=^' + String(id.text).replace(/</g, '&lt;').replace(/"/g, '&quot;'));
+      if (id.name != null && id.name !== '') parts.push('name:=' + String(id.name).replace(/</g, '&lt;').replace(/"/g, '&quot;'));
+      if (id.caption != null && id.caption !== '') parts.push('caption:=' + String(id.caption).replace(/</g, '&lt;').replace(/"/g, '&quot;'));
+      if (id.index !== undefined && id.index !== null) parts.push('index:=' + id.index);
+      if (id.javaNamePath && id.javaNamePath.length) parts.push('javaNamePath:=' + id.javaNamePath.join('/'));
+      if (id.javaTypePath && id.javaTypePath.length) parts.push('javaTypePath:=' + id.javaTypePath.join('/'));
+      if (id.bounds) {
+        if (id.bounds.x !== undefined) parts.push('x=' + id.bounds.x);
+        if (id.bounds.y !== undefined) parts.push('y=' + id.bounds.y);
+        if (id.bounds.width !== undefined) parts.push('w=' + id.bounds.width);
+        if (id.bounds.height !== undefined) parts.push('h=' + id.bounds.height);
+      }
+      if (id.screenBounds) {
+        if (id.screenBounds.x !== undefined) parts.push('screenX=' + id.screenBounds.x);
+        if (id.screenBounds.y !== undefined) parts.push('screenY=' + id.screenBounds.y);
+      }
+      return parts.length ? parts.join(' ') : '-';
+    }
+    function formatIdentifierLocatorMultiline(id) {
+      if (!id || typeof id !== 'object') return '-';
+      var parts = [];
+      if (id.javaType) parts.push('javaType: ' + String(id.javaType).replace(/</g, '&lt;').replace(/"/g, '&quot;'));
+      if (id.text != null && id.text !== '') parts.push('text: ' + String(id.text).replace(/</g, '&lt;').replace(/"/g, '&quot;'));
+      if (id.name != null && id.name !== '') parts.push('name: ' + String(id.name).replace(/</g, '&lt;').replace(/"/g, '&quot;'));
+      if (id.caption != null && id.caption !== '') parts.push('caption: ' + String(id.caption).replace(/</g, '&lt;').replace(/"/g, '&quot;'));
+      if (id.index !== undefined && id.index !== null) parts.push('index: ' + id.index);
+      if (id.javaNamePath && id.javaNamePath.length) parts.push('javaNamePath: ' + id.javaNamePath.join('/'));
+      if (id.javaTypePath && id.javaTypePath.length) parts.push('javaTypePath: ' + id.javaTypePath.join('/'));
+      if (id.bounds) {
+        var b = [];
+        if (id.bounds.x !== undefined) b.push('x=' + id.bounds.x);
+        if (id.bounds.y !== undefined) b.push('y=' + id.bounds.y);
+        if (id.bounds.width !== undefined) b.push('w=' + id.bounds.width);
+        if (id.bounds.height !== undefined) b.push('h=' + id.bounds.height);
+        if (b.length) parts.push('bounds: ' + b.join(' '));
+      }
+      if (id.screenBounds) {
+        var s = [];
+        if (id.screenBounds.x !== undefined) s.push('screenX=' + id.screenBounds.x);
+        if (id.screenBounds.y !== undefined) s.push('screenY=' + id.screenBounds.y);
+        if (s.length) parts.push('screen: ' + s.join(' '));
+      }
+      return parts.length ? parts.join('\n') : '-';
+    }
     function renderSteps() {
       const tbody = document.getElementById('stepsBody');
       tbody.innerHTML = steps.map((s, i) => {
         const p = s.parentIdentifier || {};
         const o = s.objectIdentifier || {};
-        const rowClass = s.skipped ? 'skipped' : '';
-        const skipLabel = s.skipped ? 'Unskip' : 'Skip';
-        return '<tr class="' + rowClass + '"><td>' + (i + 1) + '</td><td>' + (s.keyword || '') + '</td><td>' + (p.javaType || p.name || '-') + '</td><td>' + (o.javaType || o.name || '-') + '</td><td>' + (s.parameter || '-') + '</td><td>' + (s.data || '-') + '</td><td>' + (s.assertValue || '-') + '</td><td><button class="action-btn delete" data-i="' + i + '">Delete</button><button class="action-btn skip" data-i="' + i + '">' + skipLabel + '</button></td></tr>';
+        const rowClass = (s.skipped ? 'skipped ' : '') + (s.errorMessage ? 'step-error' : '');
+        const skipTitle = s.skipped ? 'Unskip' : 'Skip';
+        const skipIcon = s.skipped ? iconUnskipSvg : iconSkipSvg;
+        const errCell = s.errorMessage ? ('<td class="step-error-msg" title="' + (s.errorMessage || '').replace(/"/g, '&quot;') + '">' + (s.errorMessage || '').replace(/</g, '&lt;') + '</td>') : '<td></td>';
+        const paraVal = (s.parameter != null && s.parameter !== '') ? String(s.parameter).replace(/</g, '&lt;').replace(/"/g, '&quot;') : '';
+        const parentCell = formatIdentifierLocator(p);
+        const objectCell = formatIdentifierLocator(o);
+        const parentCellMultiline = formatIdentifierLocatorMultiline(p);
+        const objectCellMultiline = formatIdentifierLocatorMultiline(o);
+        return '<tr class="' + rowClass + '"><td>' + (i + 1) + '</td><td>' + (s.keyword || '') + '</td><td class="step-locator-cell" title="' + parentCell.replace(/"/g, '&quot;') + '">' + parentCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-locator-cell" title="' + objectCell.replace(/"/g, '&quot;') + '">' + objectCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-param-cell" contenteditable="true" data-i="' + i + '" data-field="parameter">' + paraVal + '</td><td>' + (s.data || '-') + '</td><td>' + (s.assertValue || '-') + '</td>' + errCell + '<td><button class="action-btn icon-only execute" data-i="' + i + '" title="Execute this step"><img src="' + iconExecuteSvg + '" alt="Execute"/></button><button class="action-btn icon-only delete" data-i="' + i + '" title="Delete"><img src="' + iconDeleteSvg + '" alt="Delete"/></button><button class="action-btn icon-only skip" data-i="' + i + '" title="' + skipTitle + '"><img src="' + skipIcon + '" alt="' + skipTitle + '"/></button></td></tr>';
       }).join('');
       tbody.querySelectorAll('.action-btn.delete').forEach(btn => {
-        btn.onclick = () => vscode.postMessage({ type: 'deleteStep', index: parseInt(btn.dataset.i) });
+        btn.onclick = function() {
+          const idx = parseInt(btn.dataset.i, 10);
+          if (idx >= 0 && idx < visualNodes.length) {
+            visualNodes.splice(idx, 1);
+            steps = visualNodesToSteps();
+            renderSteps();
+            renderVisual();
+            vscode.postMessage({ type: 'syncSteps', data: steps });
+          }
+        };
       });
       tbody.querySelectorAll('.action-btn.skip').forEach(btn => {
-        btn.onclick = () => vscode.postMessage({ type: 'skipStep', index: parseInt(btn.dataset.i) });
+        btn.onclick = () => vscode.postMessage({ type: 'skipStep', index: parseInt(btn.dataset.i, 10) });
+      });
+      tbody.querySelectorAll('.action-btn.execute').forEach(btn => {
+        btn.onclick = function() {
+          const idx = parseInt(btn.dataset.i, 10);
+          if (idx < 0 || idx >= steps.length) return;
+          if (!selectedProcess) {
+            appendLog('[action] Execute step: select an application first.\r\n');
+            return;
+          }
+          vscode.postMessage({ type: 'executeStepAtIndex', index: idx, pid: selectedProcess, steps: steps });
+        };
+      });
+      tbody.querySelectorAll('.step-param-cell').forEach(cell => {
+        cell.onblur = function() {
+          const idx = parseInt(cell.dataset.i, 10);
+          if (idx >= 0 && idx < steps.length && steps[idx]) {
+            var v = (cell.textContent || '').trim();
+            steps[idx].parameter = v;
+            vscode.postMessage({ type: 'syncSteps', data: steps });
+          }
+        };
       });
     }
 
@@ -1040,6 +1240,40 @@
     document.getElementById('objectTreeSearchPrev').onclick = searchPrev;
     document.getElementById('objectTreeSearchNext').onclick = searchNext;
     updateSearchArrowState();
+
+    (function setupStepsTableResize() {
+      var table = document.getElementById('stepsTable');
+      if (!table || !table.querySelector('thead tr')) return;
+      var thead = table.querySelector('thead tr');
+      var resizing = null;
+      function onMouseMove(e) {
+        if (!resizing) return;
+        var th = thead.querySelector('th[data-col="' + resizing.colIndex + '"]');
+        if (!th) return;
+        var left = th.getBoundingClientRect().left;
+        var w = e.clientX - left;
+        if (w < 24) w = 24;
+        th.style.width = w + 'px';
+        th.style.minWidth = w + 'px';
+      }
+      function onMouseUp() {
+        resizing = null;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      }
+      thead.querySelectorAll('.col-resize').forEach(function(span) {
+        span.addEventListener('mousedown', function(e) {
+          e.preventDefault();
+          resizing = { colIndex: parseInt(span.dataset.col, 10) };
+          document.body.style.cursor = 'col-resize';
+          document.body.style.userSelect = 'none';
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+      });
+    })();
 
     var visualContextMenuEl = document.getElementById('visualContextMenu');
     function showVisualContextMenu(x, y) {
@@ -1077,6 +1311,7 @@
       visualNodes = [];
       selectedVisualNodeIndex = -1;
       renderVisual();
+      syncStepsToExtension();
       appendLog('[action] All record & replay information cleared.\r\n');
       switchTopTab('log');
       hideCleanConfirmModal();
@@ -1105,6 +1340,20 @@
           }
         } else if (action === 'about') {
           vscode.postMessage({ type: 'showVisualAbout' });
+        } else if (action === 'deleteNode') {
+          if (selectedVisualNodeIndex >= 0 && selectedVisualNodeIndex < visualNodes.length) {
+            visualNodes.splice(selectedVisualNodeIndex, 1);
+            selectedVisualNodeIndex = visualNodes.length > 0 ? Math.min(selectedVisualNodeIndex, visualNodes.length - 1) : -1;
+            renderVisual();
+            syncStepsToExtension();
+          }
+        } else if (action === 'deleteChain') {
+          if (selectedVisualNodeIndex >= 0 && selectedVisualNodeIndex < visualNodes.length) {
+            visualNodes.splice(selectedVisualNodeIndex, visualNodes.length - selectedVisualNodeIndex);
+            selectedVisualNodeIndex = visualNodes.length > 0 ? visualNodes.length - 1 : -1;
+            renderVisual();
+            syncStepsToExtension();
+          }
         }
       };
     });

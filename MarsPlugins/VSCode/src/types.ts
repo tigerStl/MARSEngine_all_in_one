@@ -17,13 +17,21 @@ export interface ElementIdentifier {
   title?: string;
   toolTipText?: string;
   name?: string;
+  /** Object name (for display); may differ from name when caption/text used. */
+  objectName?: string;
   namePath?: string[];
   javaType?: string;
   objectTypePath?: string[];
+  /** JavaType path from root to this node (for disambiguation). */
+  javaTypePath?: string[];
+  /** JavaName path from root to this node (for disambiguation). */
+  javaNamePath?: string[];
   baseTypes?: string[];
   bounds?: Bounds;
   screenBounds?: Bounds;
   visible?: boolean;
+  /** Index when name+javaType+path still duplicate (0,1,2... top-to-bottom, left-to-right). */
+  index?: number;
 }
 
 export interface UIObject {
@@ -39,10 +47,18 @@ export interface UIObjectTree extends UIObject {
 }
 
 export type ScriptKeyword =
+  | 'Click'
+  | 'ClickButton'
+  | 'DoubleClickButton'
+  | 'ClickMenuIcon'
   | 'FillEdit'
   | 'SelectDropDown'
-  | 'Click'
+  | 'SelectDropList'
+  | 'SelectListItem'
   | 'SelectMenuItem'
+  | 'SelectTreeList'
+  | 'SelectTab'
+  | 'SelectMenuIcon'
   | 'Check'
   | 'Uncheck';
 

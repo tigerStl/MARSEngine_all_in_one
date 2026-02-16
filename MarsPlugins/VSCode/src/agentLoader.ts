@@ -44,6 +44,8 @@ export interface RecordAgentResult {
   error?: string;
   /** Call to send stopRecordAndReplay and close the connection. */
   stop?: () => void;
+  /** Send a message to the agent (e.g. pauseRecordAndReplay / resumeRecordAndReplay during highlight). */
+  send?: (msg: Record<string, unknown>) => void;
 }
 
 export async function loadAgentAndScan(
@@ -58,18 +60,18 @@ export async function loadAgentAndScan(
     'target',
     'agent-loader-1.0.jar'
   );
-  const unifiedAgentJar = path.join(
+  const marsJavaAgentJar = path.join(
     extensionPath,
     'java',
-    'unified-agent',
+    'marsJavaAgent',
     'target',
-    'unified-agent-1.0.jar'
+    'marsJavaAgent-1.0.jar'
   );
 
-  if (!fs.existsSync(agentLoaderJar) || !fs.existsSync(unifiedAgentJar)) {
+  if (!fs.existsSync(agentLoaderJar) || !fs.existsSync(marsJavaAgentJar)) {
     const missing = [
       !fs.existsSync(agentLoaderJar) && agentLoaderJar,
-      !fs.existsSync(unifiedAgentJar) && unifiedAgentJar,
+      !fs.existsSync(marsJavaAgentJar) && marsJavaAgentJar,
     ].filter(Boolean);
     writeLog(`[loadAgentAndScan] branch: JARs missing pid=${pid} missing=${JSON.stringify(missing)}`);
     return {
@@ -83,10 +85,10 @@ export async function loadAgentAndScan(
   // Copy agent JAR to a temp path so each load uses a different path (avoids "agent already loaded" when re-scanning same process)
   const tempAgentJar = path.join(
     os.tmpdir(),
-    `unified-agent-scan-${pid}-${Date.now()}.jar`
+    `marsJavaAgent-scan-${pid}-${Date.now()}.jar`
   );
   try {
-    fs.copyFileSync(unifiedAgentJar, tempAgentJar);
+    fs.copyFileSync(marsJavaAgentJar, tempAgentJar);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     writeLog(`[loadAgentAndScan] branch: copy JAR failed pid=${pid} error=${msg}`);
@@ -153,12 +155,12 @@ export async function startRecordAgent(
     'target',
     'agent-loader-1.0.jar'
   );
-  const unifiedAgentJar = path.join(
+  const marsJavaAgentJar = path.join(
     extensionPath,
     'java',
-    'unified-agent',
+    'marsJavaAgent',
     'target',
-    'unified-agent-1.0.jar'
+    'marsJavaAgent-1.0.jar'
   );
 
   const recordDir = path.join(outputDir, `record-${pid}`);
@@ -168,10 +170,10 @@ export async function startRecordAgent(
 
   const agentArgs = `${recordDir}|${pid}`;
 
-  if (!fs.existsSync(agentLoaderJar) || !fs.existsSync(unifiedAgentJar)) {
+  if (!fs.existsSync(agentLoaderJar) || !fs.existsSync(marsJavaAgentJar)) {
     const missing = [
       !fs.existsSync(agentLoaderJar) && agentLoaderJar,
-      !fs.existsSync(unifiedAgentJar) && unifiedAgentJar,
+      !fs.existsSync(marsJavaAgentJar) && marsJavaAgentJar,
     ].filter(Boolean);
     writeLog(`[startRecordAgent] JARs missing pid=${pid} missing=${JSON.stringify(missing)}`);
     return {
@@ -180,9 +182,9 @@ export async function startRecordAgent(
     };
   }
 
-  const tempAgentJar = path.join(os.tmpdir(), `unified-agent-record-${pid}-${Date.now()}.jar`);
+  const tempAgentJar = path.join(os.tmpdir(), `marsJavaAgent-record-${pid}-${Date.now()}.jar`);
   try {
-    fs.copyFileSync(unifiedAgentJar, tempAgentJar);
+    fs.copyFileSync(marsJavaAgentJar, tempAgentJar);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     writeLog(`[startRecordAgent] copy JAR failed pid=${pid} error=${msg}`);
@@ -283,6 +285,16 @@ export async function startRecordAgent(
       }
     };
 
+    const send = (msg: Record<string, unknown>) => {
+      try {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify(msg));
+        }
+      } catch (e) {
+        writeLog(`[startRecordAgent] send error: ${String(e)}`);
+      }
+    };
+
     ws.on('open', () => {
       ws.send(JSON.stringify({ type: 'handshake', pid }));
     });
@@ -296,11 +308,11 @@ export async function startRecordAgent(
             clearTimeout(handshakeTimeout);
             handshakeDone = true;
             ws.send(JSON.stringify({ type: 'startRecordAndReplay' }));
-            finish({ success: true, stop });
+            finish({ success: true, stop, send });
           }
           return;
         }
-        if (msg.event === 'click' || msg.event === 'focusLost' || msg.event === 'componentProperties' || msg.event === 'fillEdit' || msg.event === 'pressKey' || msg.event === 'keyChordAction' || msg.event === 'textInputAction' || msg.event === 'rawKeyEventAction') {
+        if (msg.event === 'click' || msg.event === 'focusLost' || msg.event === 'componentProperties' || msg.event === 'fillEdit' || msg.event === 'pressKey' || msg.event === 'keyChordAction' || msg.event === 'textInputAction' || msg.event === 'rawKeyEventAction' || msg.event === 'selectDropDown' || msg.event === 'expandTreeNode' || msg.event === 'collapseTreeNode') {
           onEvent(msg);
         }
       } catch (e) {
@@ -326,7 +338,7 @@ export async function replaySteps(
   pid: number,
   outputDir: string,
   steps: Record<string, unknown>[]
-): Promise<{ success: boolean; count?: number; error?: string }> {
+): Promise<{ success: boolean; count?: number; error?: string; failedIndex?: number }> {
   const extensionPath = path.join(__dirname, '..');
   const agentLoaderJar = path.join(
     extensionPath,
@@ -335,12 +347,12 @@ export async function replaySteps(
     'target',
     'agent-loader-1.0.jar'
   );
-  const unifiedAgentJar = path.join(
+  const marsJavaAgentJar = path.join(
     extensionPath,
     'java',
-    'unified-agent',
+    'marsJavaAgent',
     'target',
-    'unified-agent-1.0.jar'
+    'marsJavaAgent-1.0.jar'
   );
 
   const recordDir = path.join(outputDir, `record-${pid}`);
@@ -350,10 +362,10 @@ export async function replaySteps(
 
   const agentArgs = `${recordDir}|${pid}`;
 
-  if (!fs.existsSync(agentLoaderJar) || !fs.existsSync(unifiedAgentJar)) {
+  if (!fs.existsSync(agentLoaderJar) || !fs.existsSync(marsJavaAgentJar)) {
     const missing = [
       !fs.existsSync(agentLoaderJar) && agentLoaderJar,
-      !fs.existsSync(unifiedAgentJar) && unifiedAgentJar,
+      !fs.existsSync(marsJavaAgentJar) && marsJavaAgentJar,
     ].filter(Boolean);
     writeLog(`[replaySteps] JARs missing pid=${pid} missing=${JSON.stringify(missing)}`);
     return {
@@ -362,9 +374,9 @@ export async function replaySteps(
     };
   }
 
-  const tempAgentJar = path.join(os.tmpdir(), `unified-agent-replay-${pid}-${Date.now()}.jar`);
+  const tempAgentJar = path.join(os.tmpdir(), `marsJavaAgent-replay-${pid}-${Date.now()}.jar`);
   try {
-    fs.copyFileSync(unifiedAgentJar, tempAgentJar);
+    fs.copyFileSync(marsJavaAgentJar, tempAgentJar);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     writeLog(`[replaySteps] copy JAR failed pid=${pid} error=${msg}`);
@@ -440,7 +452,7 @@ export async function replaySteps(
     let handshakeDone = false;
     let resolved = false;
 
-    const finish = (result: { success: boolean; count?: number; error?: string }) => {
+    const finish = (result: { success: boolean; count?: number; error?: string; failedIndex?: number }) => {
       if (resolved) return;
       resolved = true;
       try {
@@ -486,7 +498,8 @@ export async function replaySteps(
           clearTimeout(replayTimeout);
           const err = msg.error as string | undefined;
           const count = typeof msg.count === 'number' ? msg.count : steps.length;
-          finish(err ? { success: false, error: err, count } : { success: true, count });
+          const failedIndex = typeof msg.failedIndex === 'number' ? msg.failedIndex : undefined;
+          finish(err ? { success: false, error: err, count, failedIndex } : { success: true, count });
         }
       } catch (e) {
         writeLog(`[replaySteps] message parse error: ${String(e)}`);

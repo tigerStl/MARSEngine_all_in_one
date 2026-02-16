@@ -6,10 +6,13 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { getJavaProcesses } from './processInfo';
+import { spawn } from 'child_process';
+import { getJavaProcesses, findProcessInfoExe } from './processInfo';
 import { loadAgentAndScan, runHighlightOverlay, replaySteps, startRecordAgent, stopRecordAgent } from './agentLoader';
 import { convertScanToUIObjects, convertScanToUIObjectTree, ScanOutput } from './objectConverter';
-import { JavaProcess, UIObject, TestScriptStep } from './types';
+import { JavaProcess, UIObject, TestScriptStep, ScriptKeyword } from './types';
+import { RecordingEngine } from './recording/recorder';
+import { recordedStepToTestScriptStep } from './recording/stepAdapter';
 
 const PANEL_STATE_KEY = 'javaUiAutomation.panelState';
 const SCANED_FILES_DIR = 'scanedfiles';
@@ -31,6 +34,9 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
   private _recordingPid: number | null = null;
   private _recordingWebview: vscode.Webview | null = null;
   private _recordStop: (() => void) | null = null;
+  private _recordSend: ((msg: Record<string, unknown>) => void) | null = null;
+  private _recordingEngine: RecordingEngine | null = null;
+  private _recordingSteps: TestScriptStep[] = [];
 
   constructor(
     private readonly _extensionUri: vscode.Uri,
@@ -78,6 +84,23 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     return dir;
   }
 
+  /** Remove cached object list files so loadObjects (sent on panel load) does not repopulate the tree after restart. */
+  private _clearObjectListCache(): void {
+    try {
+      const scanDir = this._getScanDir();
+      const objectsPath = path.join(scanDir, 'objects.json');
+      if (fs.existsSync(objectsPath)) fs.unlinkSync(objectsPath);
+      const files = fs.readdirSync(scanDir);
+      for (const f of files) {
+        if (f.startsWith('objects-') && f.endsWith('.json')) {
+          fs.unlinkSync(path.join(scanDir, f));
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   resolveWebviewView(
     webviewView: vscode.WebviewView,
     _context: vscode.WebviewViewResolveContext,
@@ -90,7 +113,19 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     };
 
     webviewView.webview.html = this._getHtml(webviewView.webview);
-    
+
+    webviewView.onDidChangeVisibility(() => {
+      if (webviewView.visible && this._panelLoadedOnce) {
+        this._currentObjects = [];
+        this._persistState();
+        setTimeout(() => {
+          if (webviewView.visible) {
+            this._safePost(webviewView.webview, { type: 'clearObjectList' });
+          }
+        }, 350);
+      }
+    });
+
     webviewView.webview.onDidReceiveMessage(async (msg) => {
       this._outputChannel.appendLine(`[Java UI] onDidReceiveMessage: ${JSON.stringify(msg)}`);
       switch (msg.type) {
@@ -99,12 +134,19 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
           this._safePost(webviewView.webview, { type: 'pong' });
           if (!this._panelLoadedOnce) {
             this._panelLoadedOnce = true;
+            this._currentProcesses = [];
+            this._currentObjects = [];
+            this._currentSteps = [];
+            this._lastLogText = '';
+            this._persistState();
+            this._clearObjectListCache();
             this._safePost(webviewView.webview, { type: 'clearPanel' });
           } else {
             const state = this._getState();
             if (state.processes.length > 0 || state.objects.length > 0 || state.steps.length > 0 || state.logText) {
               this._safePost(webviewView.webview, { type: 'restoreState', state });
             }
+            this._safePost(webviewView.webview, { type: 'clearObjectList' });
           }
           break;
         case 'getProcesses':
@@ -122,6 +164,9 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
           break;
         case 'loadSteps':
           this._handleLoadSteps(webviewView.webview);
+          break;
+        case 'syncSteps':
+          this._handleSyncSteps(webviewView.webview, msg.data);
           break;
         case 'deleteStep':
           this._handleDeleteStep(webviewView.webview, msg.index);
@@ -147,13 +192,23 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
           this._handleGenerateSteps(webviewView.webview);
           break;
         case 'execute':
-          this._handleExecute(webviewView.webview, msg.pid);
+          this._handleExecute(webviewView.webview, msg.pid, msg.steps);
           break;
         case 'executeVisualStep':
           this._handleExecuteVisualStep(webviewView.webview, msg.pid, msg.index);
           break;
+        case 'executeStepAtIndex':
+          this._handleExecuteStepAtIndex(webviewView.webview, msg.pid, msg.index, msg.steps);
+          break;
         case 'showVisualAbout':
           this._handleShowVisualAbout(webviewView.webview);
+          break;
+        case 'showExecuteResultDialog':
+          if (msg.success) {
+            vscode.window.showInformationMessage(msg.message ?? 'Step executed successfully.');
+          } else {
+            vscode.window.showErrorMessage(msg.message ?? 'Step failed.');
+          }
           break;
         case 'settings':
           webviewView.webview.postMessage({ type: 'log', data: '[action] Settings button is clicked.\r\n' });
@@ -347,6 +402,22 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     }
   }
 
+  private _handleSyncSteps(webview: vscode.Webview, steps: unknown): void {
+    const arr = Array.isArray(steps) ? steps : [];
+    this._currentSteps = arr as TestScriptStep[];
+    const scriptPath = this._getScriptPath();
+    if (scriptPath) {
+      try {
+        const dir = path.dirname(scriptPath);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(scriptPath, JSON.stringify({ steps: arr }, null, 2), 'utf-8');
+      } catch (e) {
+        this._outputChannel.appendLine(`[Java UI] syncSteps write failed: ${e}`);
+      }
+    }
+    this._persistState();
+  }
+
   private _getScriptPath(): string | null {
     const dir = this._getScanDir();
     let scriptPath = path.join(dir, 'script.json');
@@ -424,15 +495,21 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
       this._log(webview, `[action] Highlight at (${x},${y}) ${w}x${h} pixels (ProcessInfo -highlight).\r\n`);
     }
     try {
-      const result = await runHighlightOverlay(this._extensionUri.fsPath, x, y, w, h);
-      if (!result.success) {
-        this._log(webview, `[end] highlight error: ${result.error ?? 'unknown'}\r\n`);
-        this._safePost(webview, { type: 'error', message: result.error ?? 'Highlight failed.' });
+      this._recordSend?.({ type: 'pauseRecordAndReplay' });
+      try {
+        const result = await runHighlightOverlay(this._extensionUri.fsPath, x, y, w, h);
+        if (!result.success) {
+          this._log(webview, `[end] highlight error: ${result.error ?? 'unknown'}\r\n`);
+          this._safePost(webview, { type: 'error', message: result.error ?? 'Highlight failed.' });
+        }
+      } finally {
+        this._recordSend?.({ type: 'resumeRecordAndReplay' });
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       this._log(webview, `[end] highlight error: ${msg}\r\n`);
       this._safePost(webview, { type: 'error', message: msg });
+      this._recordSend?.({ type: 'resumeRecordAndReplay' });
     }
   }
 
@@ -483,48 +560,89 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     }
   }
 
+  /** Execute a single test step from the grid by index using current panel steps. */
+  private async _handleExecuteStepAtIndex(webview: vscode.Webview, pid?: number, index?: number, stepsFromPanel?: unknown): Promise<void> {
+    if (pid == null || pid <= 0) {
+      this._log(webview, '[action] Execute step: select an application first.\r\n');
+      return;
+    }
+    if (index == null || index < 0) {
+      this._log(webview, '[action] Execute step: invalid index.\r\n');
+      return;
+    }
+    const steps = Array.isArray(stepsFromPanel) ? stepsFromPanel : [];
+    const step = steps[index];
+    if (!step || typeof step !== 'object') {
+      this._log(webview, `[action] Execute step: step ${index + 1} not found.\r\n`);
+      return;
+    }
+    this._log(webview, `[begin] Replaying step ${index + 1} on PID=${pid}...\r\n`);
+    const outDir = this._getScanDir();
+    try {
+      const result = await replaySteps(pid, outDir, [step as Record<string, unknown>]);
+      if (result.success) {
+        this._log(webview, `[end] Step ${index + 1} executed.\r\n`);
+      } else {
+        this._log(webview, `[end] Step ${index + 1} failed: ${result.error ?? 'unknown'}.\r\n`);
+      }
+      this._safePost(webview, {
+        type: 'executeResult',
+        fromActionColumn: true,
+        success: result.success,
+        error: result.error ?? '',
+        failedIndex: result.failedIndex,
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this._log(webview, `[end] Step ${index + 1} error: ${msg}\r\n`);
+      this._safePost(webview, {
+        type: 'executeResult',
+        fromActionColumn: true,
+        success: false,
+        error: msg,
+        failedIndex: index,
+      });
+    }
+  }
+
   private _handleShowVisualAbout(webview: vscode.Webview): void {
     const text = 'Java UI Automation - Visual flowchart for Record & Replay. Record UI events, view them in Visual tab, and replay with Execute.';
     vscode.window.showInformationMessage(text);
     this._log(webview, '[info] About: Java UI Automation - Record & Replay.\r\n');
   }
 
-  private async _handleExecute(webview: vscode.Webview, pid?: number): Promise<void> {
+  private async _handleExecute(webview: vscode.Webview, pid?: number, stepsFromPanel?: unknown): Promise<void> {
     if (pid == null || pid <= 0) {
       this._log(webview, '[action] Execute: please select a Java application first.\r\n');
       this._safePost(webview, { type: 'log', data: '[info] Select an application from the dropdown before Execute.\r\n' });
       return;
     }
-    const outputPath = path.join('c:', 'temp', 'marsjavarecordreplay.json');
-    if (!fs.existsSync(outputPath)) {
-      this._log(webview, '[action] Execute: no replay file. Record first, then Execute.\r\n');
-      this._safePost(webview, { type: 'log', data: '[info] No marsjavarecordreplay.json. Record UI events first, then Execute.\r\n' });
-      return;
-    }
-    let steps: unknown[] = [];
-    try {
-      const data = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
-      steps = Array.isArray(data.steps) ? data.steps : [];
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this._log(webview, `[action] Execute: failed to load replay file: ${msg}\r\n`);
-      this._safePost(webview, { type: 'error', message: `Load replay file failed: ${msg}` });
-      return;
-    }
-    if (steps.length === 0) {
-      this._log(webview, '[action] Execute: no steps to replay. Record first.\r\n');
-      this._safePost(webview, { type: 'log', data: '[info] No steps in replay file. Record UI events first.\r\n' });
+    let steps: Record<string, unknown>[] = [];
+    if (Array.isArray(stepsFromPanel) && stepsFromPanel.length > 0) {
+      steps = stepsFromPanel as Record<string, unknown>[];
+    } else {
+      this._log(webview, '[action] Execute: Test Steps \u4e3a\u7a7a\uff0c\u8bf7\u5148\u6dfb\u52a0\u6b65\u9aa4\u3002\r\n');
+      this._safePost(webview, { type: 'log', data: '[info] Test Steps \u4e3a\u7a7a\uff0c\u8bf7\u5148\u5728 Visual \u6807\u7b7e\u70b9\u51fb\u6811\u8282\u70b9\u6dfb\u52a0\u6b65\u9aa4\u3002\r\n' });
+      vscode.window.showWarningMessage('Test Steps \u4e3a\u7a7a\uff0c\u8bf7\u5148\u6dfb\u52a0\u6b65\u9aa4\u3002');
       return;
     }
     this._log(webview, `[begin] Replaying ${steps.length} step(s) on PID=${pid}...\r\n`);
+    try {
+      await this._bringProcessWindowToFront(pid);
+    } catch {
+      // ignore; replay continues
+    }
     const outDir = this._getScanDir();
     try {
-      const result = await replaySteps(pid, outDir, steps as Record<string, unknown>[]);
+      const result = await replaySteps(pid, outDir, steps);
       if (result.success) {
         this._log(webview, `[end] Replay completed. ${result.count ?? steps.length} step(s) executed.\r\n`);
       } else {
         this._log(webview, `[end] Replay failed: ${result.error ?? 'unknown'}.\r\n`);
         this._safePost(webview, { type: 'error', message: result.error ?? 'Replay failed.' });
+        if (typeof result.failedIndex === 'number') {
+          this._safePost(webview, { type: 'executeResult', failedIndex: result.failedIndex, error: result.error ?? '' });
+        }
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -542,9 +660,22 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     this._recordingPid = pid;
     this._recordingWebview = webview;
 
+    this._recordingSteps = [];
+    this._recordingEngine = new RecordingEngine({
+      onStep: (step) => {
+        const testStep = recordedStepToTestScriptStep(step);
+        this._recordingSteps.push(testStep);
+        const webviewRef = this._recordingWebview;
+        if (webviewRef) {
+          this._safePost(webviewRef, { type: 'step', data: testStep });
+        }
+      },
+    });
+
     try {
       this._log(webview, `[begin] Injecting record agent and connecting (PID=${pid}).\r\n`);
       const result = await startRecordAgent(pid, outDir, (ev) => {
+        this._recordingEngine?.onAgentEvent(ev as Record<string, unknown>);
         const webviewRef = this._recordingWebview;
         if (ev.event === 'componentProperties' && webviewRef) {
           const componentClass = ev.componentClass ?? 'unknown';
@@ -587,12 +718,16 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
         return;
       }
       this._recordStop = result.stop ?? null;
+      this._recordSend = result.send ?? null;
       this._log(webview, '[end] Recording started. Events will appear in Visual tab. Use Ctrl+Alt+F12 to stop.\r\n');
       this._safePost(webview, { type: 'recordingStarted' });
     } catch (e) {
       this._recordingPid = null;
       this._recordingWebview = null;
       this._recordStop = null;
+      this._recordSend = null;
+      this._recordingEngine = null;
+      this._recordingSteps = [];
       const msg = e instanceof Error ? e.message : String(e);
       this._log(webview, `[end] error: ${msg}\r\n`);
       this._safePost(webview, { type: 'error', message: msg });
@@ -612,8 +747,13 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     const recordFile = path.join(recordDir, 'record.jsonl');
     const stopFile = path.join(recordDir, 'record-stop.txt');
 
+    this._recordingEngine?.flush();
+    const stepsFromRecorder = [...this._recordingSteps];
+    this._recordingEngine = null;
+    this._recordingSteps = [];
     this._recordingPid = null;
     this._recordingWebview = null;
+    this._recordSend = null;
 
     try {
       if (this._recordStop) {
@@ -633,16 +773,16 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     await new Promise((r) => setTimeout(r, 1500));
 
     const outputPath = path.join('c:', 'temp', 'marsjavarecordreplay.json');
-    let eventCount = 0;
-    const steps: unknown[] = [];
+    let steps: TestScriptStep[] = stepsFromRecorder;
 
-    if (fs.existsSync(recordFile)) {
+    if (steps.length === 0 && fs.existsSync(recordFile)) {
       const content = fs.readFileSync(recordFile, 'utf-8');
       const lines = content.split('\n').filter((line) => line.trim().length > 0);
-      eventCount = lines.length;
       for (const line of lines) {
         try {
-          steps.push(JSON.parse(line));
+          const obj = JSON.parse(line) as Record<string, unknown>;
+          const step = this._normalizeRecordLineToStep(obj);
+          if (step) steps.push(step);
         } catch {
           // skip malformed lines
         }
@@ -661,12 +801,90 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
       vscode.window.showWarningMessage(`Recording stopped but save failed: ${outputPath}`);
     }
 
-    const message = `Recording stopped. Events: ${eventCount}. Saved to ${outputPath}`;
+    this._currentSteps = steps;
+    const scriptPath = this._getScriptPath();
+    if (scriptPath) {
+      try {
+        const scriptDir = path.dirname(scriptPath);
+        if (!fs.existsSync(scriptDir)) fs.mkdirSync(scriptDir, { recursive: true });
+        fs.writeFileSync(scriptPath, JSON.stringify({ steps }, null, 2), 'utf-8');
+      } catch (e) {
+        this._outputChannel.appendLine(`[Java UI] sync steps to script.json failed: ${e}`);
+      }
+    }
+    this._persistState();
+
+    const message = `Recording stopped. Steps: ${steps.length}. Saved to ${outputPath}`;
     vscode.window.showInformationMessage(message);
 
     if (webview) {
+      this._safePost(webview, { type: 'steps', data: steps });
       this._safePost(webview, { type: 'recordingStopped' });
     }
+  }
+
+  /** Bring target process main window to foreground (single-screen observation). */
+  private _bringProcessWindowToFront(pid: number): Promise<void> {
+    const exe = findProcessInfoExe(this._extensionUri.fsPath);
+    if (!exe) return Promise.resolve();
+    return new Promise((resolve) => {
+      const proc = spawn(exe, ['-bringToFront', String(pid)], { stdio: 'ignore' });
+      proc.on('close', () => resolve());
+      proc.on('error', () => resolve());
+      setTimeout(() => resolve(), 2000);
+    });
+  }
+
+  /** Normalize a record.jsonl line (keyword step or legacy event) to TestScriptStep. */
+  private _normalizeRecordLineToStep(obj: Record<string, unknown>): TestScriptStep | null {
+    const emptyId = {};
+    if (obj.keyword && obj.objectIdentifier && typeof obj.objectIdentifier === 'object') {
+      const kw = obj.keyword as string;
+      const validKw: ScriptKeyword[] = ['Click', 'ClickButton', 'DoubleClickButton', 'ClickMenuIcon', 'FillEdit', 'SelectDropDown', 'SelectDropList', 'SelectListItem', 'SelectMenuItem', 'SelectTreeList', 'SelectTab', 'SelectMenuIcon', 'Check', 'Uncheck'];
+      return {
+        keyword: validKw.includes(kw as ScriptKeyword) ? (kw as ScriptKeyword) : 'Click',
+        parentIdentifier: (obj.parentIdentifier as object) || emptyId,
+        objectIdentifier: obj.objectIdentifier as import('./types').ElementIdentifier,
+        parameter: typeof obj.parameter === 'string' ? obj.parameter : '',
+        data: typeof obj.data === 'string' ? obj.data : '',
+        assertValue: typeof obj.assertValue === 'string' ? obj.assertValue : '',
+        skipped: false,
+      };
+    }
+    if (obj.event === 'click') {
+      const o = obj as Record<string, unknown>;
+      const javaType = (o.componentClass as string) || '';
+      const objectIdentifier: import('./types').ElementIdentifier = { javaType };
+      if (o.componentName) objectIdentifier.name = String(o.componentName);
+      if (o.text) objectIdentifier.text = String(o.text);
+      if (o.screenX != null && o.screenY != null) {
+        objectIdentifier.screenBounds = {
+          x: Number(o.screenX),
+          y: Number(o.screenY),
+          width: Number(o.width) || 0,
+          height: Number(o.height) || 0,
+        };
+      }
+      return { keyword: 'Click', parentIdentifier: emptyId, objectIdentifier, parameter: '', data: '', assertValue: '', skipped: false };
+    }
+    if (obj.event === 'fillEdit') {
+      const o = obj as Record<string, unknown>;
+      const javaType = (o.componentClass as string) || '';
+      const objectIdentifier: import('./types').ElementIdentifier = { javaType };
+      if (o.componentName) objectIdentifier.name = String(o.componentName);
+      if (o.text) objectIdentifier.text = String(o.text);
+      if (o.screenX != null && o.screenY != null) {
+        objectIdentifier.screenBounds = {
+          x: Number(o.screenX),
+          y: Number(o.screenY),
+          width: Number(o.width) || 0,
+          height: Number(o.height) || 0,
+        };
+      }
+      const data = (o.content as string) ?? (o.data as string) ?? '';
+      return { keyword: 'FillEdit', parentIdentifier: emptyId, objectIdentifier, parameter: '', data, assertValue: '', skipped: false };
+    }
+    return null;
   }
 
   private _getHtml(webview: vscode.Webview): string {
