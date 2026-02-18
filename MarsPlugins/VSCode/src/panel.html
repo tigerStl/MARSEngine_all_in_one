@@ -58,6 +58,8 @@
     .action-btn.skip { background: var(--vscode-editorWarning-foreground); color: white; }
     .action-btn.icon-only { padding: 4px; margin: 0 1px; }
     .action-btn.icon-only img { width: 14px; height: 14px; display: block; }
+    .action-btn.highlight { background: var(--vscode-badge-background); color: var(--vscode-badge-foreground); border-color: var(--vscode-badge-background); }
+    .action-btn.highlight:hover { filter: brightness(1.05); }
     .step-param-cell { min-width: 60px; }
     .step-locator-cell { white-space: pre-wrap; word-break: break-word; font-size: 11px; min-width: 80px; vertical-align: top; }
     tr.skipped { opacity: 0.6; text-decoration: line-through; }
@@ -752,7 +754,7 @@
       });
     }
 
-    var TYPE_COLORS = { button: '#e15759', textfield: '#76b7b2', label: '#59a14f', combo: '#edc948', checkbox: '#b07aa1', panel: '#4e79a7', frame: '#f28e2b', menu: '#ff9da7', list: '#9c755f', tree: '#bab0ac' };
+    var TYPE_COLORS = { button: '#b91c1c', textfield: '#0f766e', label: '#166534', combo: '#b45309', checkbox: '#6d28d9', panel: '#1e3a8a', frame: '#9a3412', menu: '#be185d', list: '#4b5563', tree: '#374151' };
     function colorForType(t) {
       if (!t) return '#6b8e9f';
       var s = (t + '').toLowerCase();
@@ -767,6 +769,16 @@
       if (s.indexOf('list') >= 0) return TYPE_COLORS.list;
       if (s.indexOf('tree') >= 0) return TYPE_COLORS.tree;
       return '#6b8e9f';
+    }
+    function textColorForFill(hex) {
+      if (!hex || typeof hex !== 'string' || hex[0] !== '#' || (hex.length !== 7 && hex.length !== 4)) return { main: 'var(--vscode-editor-foreground)', muted: 'var(--vscode-descriptionForeground)' };
+      var h = hex.length === 4 ? '#' + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3] : hex;
+      var r = parseInt(h.substr(1, 2), 16);
+      var g = parseInt(h.substr(3, 2), 16);
+      var b = parseInt(h.substr(5, 2), 16);
+      var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      var isDark = luminance < 0.55;
+      return { main: isDark ? '#ffffff' : '#111111', muted: isDark ? 'rgba(255,255,255,0.78)' : 'rgba(0,0,0,0.7)' };
     }
     function nearestEdgePoints(ax, ay, bx, by, w, h) {
       var acx = ax + w / 2, acy = ay + h / 2, bcx = bx + w / 2, bcy = by + h / 2;
@@ -856,6 +868,31 @@
       }
       if (selectedProcess != null && highlightObj) {
         appendLog('[action] Highlight visual node at PID=' + selectedProcess + '.\r\n');
+        switchTopTab('log');
+        vscode.postMessage({ type: 'highlight', pid: selectedProcess, object: highlightObj });
+      } else if (selectedProcess == null) {
+        appendLog('[action] Select an application first to highlight.\r\n');
+        switchTopTab('log');
+      }
+    }
+
+    function highlightStepAtIndex(stepIndex) {
+      var s = steps[stepIndex];
+      if (!s) return;
+      var o = s.objectIdentifier || {};
+      var text = (o.caption != null && o.caption !== '') ? String(o.caption) : (o.text != null ? String(o.text) : '');
+      var vNode = { name: o.uniqueName || o.javaType || '', type: o.javaType || '', text: text };
+      var highlightObj = null;
+      var found = findObjectIndexForVisualNode(vNode);
+      if (found) {
+        highlightObj = found.object;
+        vscode.postMessage({ type: 'selectObject', object: found.object });
+        syncTreeSelectionToIndex(found.index);
+      } else if (o.screenBounds) {
+        highlightObj = { identifier: { screenBounds: o.screenBounds } };
+      }
+      if (selectedProcess != null && highlightObj) {
+        appendLog('[action] Highlight step at PID=' + selectedProcess + '.\r\n');
         switchTopTab('log');
         vscode.postMessage({ type: 'highlight', pid: selectedProcess, object: highlightObj });
       } else if (selectedProcess == null) {
@@ -967,19 +1004,22 @@
       if (typeof d3 !== 'undefined') {
         const svg = d3.select(container).append('svg').attr('class', 'visual-svg').attr('width', width).attr('height', height).attr('viewBox', '0 0 ' + width + ' ' + height);
         const g = svg.append('g');
-        g.append('defs').append('marker').attr('id', 'arrowhead').attr('viewBox', '0 -5 10 10').attr('refX', 10).attr('refY', 0).attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto').append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', 'var(--vscode-foreground)').attr('stroke', 'none');
+        const defs = g.append('defs');
+        defs.append('marker').attr('id', 'arrowhead').attr('viewBox', '0 -5 10 10').attr('refX', 10).attr('refY', 0).attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto').append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', 'var(--vscode-foreground)').attr('stroke', 'none');
+        const shadow = defs.append('filter').attr('id', 'nodeShadow').attr('x', '-20%').attr('y', '-20%').attr('width', '140%').attr('height', '140%');
+        shadow.append('feDropShadow').attr('dx', 0).attr('dy', 2).attr('stdDeviation', 2).attr('flood-color', 'rgba(0,0,0,0.25)');
         const linkData = nodeData.filter((_, i) => i > 0).map((n, i) => ({ source: nodeData[i], target: nodeData[i + 1] }));
         function linkPath(d) {
           var pts = nearestEdgePoints(d.source.x, d.source.y, d.target.x, d.target.y, nodeW, nodeH);
           return curvedPath(pts.x1, pts.y1, pts.x2, pts.y2);
         }
-        const link = g.selectAll('.link').data(linkData).join('path').attr('class', 'link').attr('d', linkPath).attr('fill', 'none').attr('stroke', 'var(--vscode-foreground)').attr('stroke-width', 2).attr('stroke-opacity', 0.6).attr('marker-end', 'url(#arrowhead)');
+        const link = g.selectAll('.link').data(linkData).join('path').attr('class', 'link').attr('d', linkPath).attr('fill', 'none').attr('stroke', 'var(--vscode-foreground)').attr('stroke-width', 2.5).attr('stroke-opacity', 0.85).attr('marker-end', 'url(#arrowhead)');
         const node = g.selectAll('.node').data(nodeData).join('g').attr('class', 'node').attr('transform', d => 'translate(' + d.x + ',' + d.y + ')').style('cursor', 'pointer');
-        node.append('rect').attr('width', nodeW).attr('height', nodeH).attr('rx', 10).attr('ry', 10).attr('fill', d => colorForType(d.type)).attr('stroke', d => (d.index === selectedVisualNodeIndex) ? 'var(--vscode-focusBorder)' : 'var(--vscode-foreground)').attr('stroke-width', d => (d.index === selectedVisualNodeIndex) ? 3 : 1).attr('fill-opacity', 0.85);
-        node.append('text').attr('x', 10).attr('y', 16).attr('font-size', 11).attr('font-weight', 'bold').attr('fill', 'var(--vscode-foreground)').text(d => (d.name || '—').substring(0, 22));
-        node.append('text').attr('x', 10).attr('y', 32).attr('font-size', 10).attr('fill', 'var(--vscode-descriptionForeground)').text(d => (d.type || '—').substring(0, 24));
-        node.append('text').attr('x', 10).attr('y', 48).attr('font-size', 10).attr('fill', 'var(--vscode-foreground)').text(d => (d.text || '—').substring(0, 24));
-        node.append('text').attr('x', 10).attr('y', 64).attr('font-size', 9).attr('fill', 'var(--vscode-descriptionForeground)').text(d => 'event: ' + (d.event || '—'));
+        node.append('rect').attr('width', nodeW).attr('height', nodeH).attr('rx', 10).attr('ry', 10).attr('fill', d => colorForType(d.type)).attr('stroke', d => (d.index === selectedVisualNodeIndex) ? 'var(--vscode-focusBorder)' : 'var(--vscode-foreground)').attr('stroke-width', d => (d.index === selectedVisualNodeIndex) ? 3 : 1.5).attr('fill-opacity', 0.95).attr('filter', 'url(#nodeShadow)');
+        node.append('text').attr('x', 10).attr('y', 16).attr('font-size', 11).attr('font-weight', 'bold').attr('fill', d => textColorForFill(colorForType(d.type)).main).text(d => (d.name || '—').substring(0, 22));
+        node.append('text').attr('x', 10).attr('y', 32).attr('font-size', 10).attr('fill', d => textColorForFill(colorForType(d.type)).muted).text(d => (d.type || '—').substring(0, 24));
+        node.append('text').attr('x', 10).attr('y', 48).attr('font-size', 10).attr('fill', d => textColorForFill(colorForType(d.type)).main).text(d => (d.text || '—').substring(0, 24));
+        node.append('text').attr('x', 10).attr('y', 64).attr('font-size', 9).attr('fill', d => textColorForFill(colorForType(d.type)).muted).text(d => 'event: ' + (d.event || '—'));
         var visualNodeDragStarted = false;
         const drag = d3.drag()
           .on('start', function() {})
@@ -1036,8 +1076,8 @@
         pathEl.setAttribute('d', curvedPath(pts.x1, pts.y1, pts.x2, pts.y2));
         pathEl.setAttribute('fill', 'none');
         pathEl.setAttribute('stroke', 'var(--vscode-foreground)');
-        pathEl.setAttribute('stroke-width', '2');
-        pathEl.setAttribute('stroke-opacity', '0.6');
+        pathEl.setAttribute('stroke-width', '2.5');
+        pathEl.setAttribute('stroke-opacity', '0.85');
         pathEl.setAttribute('marker-end', 'url(#arrowhead-v)');
         svg.appendChild(pathEl);
         lines.push({ el: pathEl, si: i - 1, ti: i });
@@ -1054,18 +1094,19 @@
         rect.setAttribute('rx', 10);
         rect.setAttribute('ry', 10);
         rect.setAttribute('fill', colorForType(nodeData[i].type));
-        rect.setAttribute('fill-opacity', '0.85');
+        rect.setAttribute('fill-opacity', '0.95');
         rect.setAttribute('stroke', (i === selectedVisualNodeIndex) ? 'var(--vscode-focusBorder)' : 'var(--vscode-foreground)');
-        rect.setAttribute('stroke-width', (i === selectedVisualNodeIndex) ? '3' : '1');
+        rect.setAttribute('stroke-width', (i === selectedVisualNodeIndex) ? '3' : '1.5');
         g.appendChild(rect);
         var t1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        t1.setAttribute('x', 10); t1.setAttribute('y', 16); t1.setAttribute('font-size', 11); t1.setAttribute('font-weight', 'bold'); t1.setAttribute('fill', 'var(--vscode-foreground)'); t1.textContent = (nodeData[i].name || '—').substring(0, 22); g.appendChild(t1);
+        var c = textColorForFill(colorForType(nodeData[i].type));
+        t1.setAttribute('x', 10); t1.setAttribute('y', 16); t1.setAttribute('font-size', 11); t1.setAttribute('font-weight', 'bold'); t1.setAttribute('fill', c.main); t1.textContent = (nodeData[i].name || '—').substring(0, 22); g.appendChild(t1);
         var t2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        t2.setAttribute('x', 10); t2.setAttribute('y', 32); t2.setAttribute('font-size', 10); t2.setAttribute('fill', 'var(--vscode-descriptionForeground)'); t2.textContent = (nodeData[i].type || '—').substring(0, 24); g.appendChild(t2);
+        t2.setAttribute('x', 10); t2.setAttribute('y', 32); t2.setAttribute('font-size', 10); t2.setAttribute('fill', c.muted); t2.textContent = (nodeData[i].type || '—').substring(0, 24); g.appendChild(t2);
         var t3 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        t3.setAttribute('x', 10); t3.setAttribute('y', 48); t3.setAttribute('font-size', 10); t3.setAttribute('fill', 'var(--vscode-foreground)'); t3.textContent = (nodeData[i].text || '—').substring(0, 24); g.appendChild(t3);
+        t3.setAttribute('x', 10); t3.setAttribute('y', 48); t3.setAttribute('font-size', 10); t3.setAttribute('fill', c.main); t3.textContent = (nodeData[i].text || '—').substring(0, 24); g.appendChild(t3);
         var t4 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        t4.setAttribute('x', 10); t4.setAttribute('y', 64); t4.setAttribute('font-size', 9); t4.setAttribute('fill', 'var(--vscode-descriptionForeground)'); t4.textContent = 'event: ' + (nodeData[i].event || '—'); g.appendChild(t4);
+        t4.setAttribute('x', 10); t4.setAttribute('y', 64); t4.setAttribute('font-size', 9); t4.setAttribute('fill', c.muted); t4.textContent = 'event: ' + (nodeData[i].event || '—'); g.appendChild(t4);
         (function(grp, idx, svgEl) {
           var drag = false, startX = 0, startY = 0, baseX = 0, baseY = 0;
           var dragThreshold = 5;
@@ -1125,6 +1166,7 @@
     var iconDeleteSvg = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\'%3E%3Cpath d=\'M3 4h10v9a1 1 0 01-1 1H4a1 1 0 01-1-1V4z\'/%3E%3Cpath d=\'M2 4h12M6 4V2a1 1 0 011-1h2a1 1 0 011 1v2\'/%3E%3Cline x1=\'6\' y1=\'8\' x2=\'6\' y2=\'12\'/%3E%3Cline x1=\'10\' y1=\'8\' x2=\'10\' y2=\'12\'/%3E%3C/svg%3E';
     var iconSkipSvg = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\'%3E%3Cpolygon points=\'5 4 15 12 5 20 5 4\'/%3E%3Cpolygon points=\'13 4 23 12 13 20 13 4\'/%3E%3C/svg%3E';
     var iconUnskipSvg = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\'%3E%3Cpath d=\'M3 12h18M12 3v18\'/%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'9\'/%3E%3C/svg%3E';
+    var iconHighlightSvg = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\'%3E%3Cpath d=\'M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z\'/%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'3\'/%3E%3C/svg%3E';
     function formatIdentifierLocator(id) {
       if (!id || typeof id !== 'object') return '-';
       var parts = [];
@@ -1173,6 +1215,14 @@
       }
       return parts.length ? parts.join('\n') : '-';
     }
+    /** For FillEdit, strip {HOME} and {DEL}*30 from data for display only; do not show those tokens in UI. */
+    function fillEditDataForDisplay(data) {
+      if (data == null || typeof data !== 'string') return data || '-';
+      var d = data;
+      if (d.indexOf('{HOME}') === 0) d = d.slice(6);
+      for (var n = 0; n < 30 && d.indexOf('{DEL}') === 0; n++) d = d.slice(5);
+      return d || '-';
+    }
     function renderSteps() {
       const tbody = document.getElementById('stepsBody');
       tbody.innerHTML = steps.map((s, i) => {
@@ -1187,7 +1237,9 @@
         const objectCell = formatIdentifierLocator(o);
         const parentCellMultiline = formatIdentifierLocatorMultiline(p);
         const objectCellMultiline = formatIdentifierLocatorMultiline(o);
-        return '<tr class="' + rowClass + '"><td>' + (i + 1) + '</td><td>' + (s.keyword || '') + '</td><td class="step-locator-cell" title="' + parentCell.replace(/"/g, '&quot;') + '">' + parentCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-locator-cell" title="' + objectCell.replace(/"/g, '&quot;') + '">' + objectCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-param-cell" contenteditable="true" data-i="' + i + '" data-field="parameter">' + paraVal + '</td><td>' + (s.data || '-') + '</td><td>' + (s.assertValue || '-') + '</td>' + errCell + '<td><button class="action-btn icon-only execute" data-i="' + i + '" title="Execute this step"><img src="' + iconExecuteSvg + '" alt="Execute"/></button><button class="action-btn icon-only delete" data-i="' + i + '" title="Delete"><img src="' + iconDeleteSvg + '" alt="Delete"/></button><button class="action-btn icon-only skip" data-i="' + i + '" title="' + skipTitle + '"><img src="' + skipIcon + '" alt="' + skipTitle + '"/></button></td></tr>';
+        const dataDisplay = (s.keyword === 'FillEdit') ? fillEditDataForDisplay(s.data) : (s.data || '-');
+        const dataEscaped = String(dataDisplay).replace(/</g, '&lt;').replace(/"/g, '&quot;');
+        return '<tr class="' + rowClass + '"><td>' + (i + 1) + '</td><td>' + (s.keyword || '') + '</td><td class="step-locator-cell" title="' + parentCell.replace(/"/g, '&quot;') + '">' + parentCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-locator-cell" title="' + objectCell.replace(/"/g, '&quot;') + '">' + objectCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-param-cell" contenteditable="true" data-i="' + i + '" data-field="parameter">' + paraVal + '</td><td>' + dataEscaped + '</td><td>' + (s.assertValue || '-') + '</td>' + errCell + '<td><button class="action-btn icon-only execute" data-i="' + i + '" title="Execute this step"><img src="' + iconExecuteSvg + '" alt="Execute"/></button><button class="action-btn icon-only highlight" data-i="' + i + '" title="Highlight"><img src="' + iconHighlightSvg + '" alt="Highlight"/></button><button class="action-btn icon-only delete" data-i="' + i + '" title="Delete"><img src="' + iconDeleteSvg + '" alt="Delete"/></button><button class="action-btn icon-only skip" data-i="' + i + '" title="' + skipTitle + '"><img src="' + skipIcon + '" alt="' + skipTitle + '"/></button></td></tr>';
       }).join('');
       tbody.querySelectorAll('.action-btn.delete').forEach(btn => {
         btn.onclick = function() {
@@ -1213,6 +1265,13 @@
             return;
           }
           vscode.postMessage({ type: 'executeStepAtIndex', index: idx, pid: selectedProcess, steps: steps });
+        };
+      });
+      tbody.querySelectorAll('.action-btn.highlight').forEach(btn => {
+        btn.onclick = function() {
+          const idx = parseInt(btn.dataset.i, 10);
+          if (idx < 0 || idx >= steps.length) return;
+          highlightStepAtIndex(idx);
         };
       });
       tbody.querySelectorAll('.step-param-cell').forEach(cell => {

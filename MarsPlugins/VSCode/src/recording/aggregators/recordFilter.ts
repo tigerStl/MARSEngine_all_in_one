@@ -33,7 +33,6 @@ const ALLOWLIST_TYPES = new Set([
   'JTree',
   'MenuItem',
   'JMenuItem',
-  'JMenu',
   'Tab',
   'JButton',
   'JToggleButton',
@@ -41,7 +40,6 @@ const ALLOWLIST_TYPES = new Set([
   'JTextArea',
   'JComboBox',
   'JMenuItem',
-  'JMenu',
   'JTabbedPane',
 ]);
 
@@ -53,7 +51,7 @@ function typeMatchesAllowlist(javaType: string): boolean {
   if (t.includes('TextField') || t.includes('TextArea')) return true;
   if (t.includes('ComboBox')) return true;
   if (t.includes('Tree') && !t.includes('Renderer')) return true;
-  if (t.includes('MenuItem') || t.includes('Menu') && !t.includes('Bar')) return true;
+  if (t.includes('MenuItem')) return true;
   if (t.includes('Tab')) return true;
   return false;
 }
@@ -66,6 +64,7 @@ function typeMatchesBlocklist(javaType: string): boolean {
   if (t.includes('Panel') || t.includes('GroupBox') || t.includes('ScrollPane') || t.includes('SplitPane')) return true;
   if (t.includes('Renderer')) return true;
   if (t.includes('Separator') || t.includes('StatusBar')) return true;
+  if (t.includes('Menu') && !t.includes('MenuItem') && !t.includes('JMenuItem') && !t.includes('MenuBar')) return true;
   if (t === 'JToolBar') return true; // toolbar itself not recorded
   return false;
 }
@@ -114,6 +113,11 @@ export function isToolButton(target: ObjectRef | undefined): boolean {
 export function isToolBar(target: ObjectRef | undefined): boolean {
   const t = (target?.self?.javaType ?? '') as string;
   return t.includes('ToolBar') || t.includes('JToolBar');
+}
+
+export function isTab(target: ObjectRef | undefined): boolean {
+  const t = (target?.self?.javaType ?? '') as string;
+  return t.includes('TabbedPane') || t.includes('Tab');
 }
 
 export function isEditControl(target: ObjectRef | undefined): boolean {

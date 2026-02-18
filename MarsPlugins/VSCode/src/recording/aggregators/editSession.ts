@@ -15,7 +15,7 @@ export interface EditSessionCallbacks {
 }
 
 export class EditSession {
-  private session: { targetRef: ObjectRef; startTs: number; keyCount: number } | null = null;
+  private session: { targetRef: ObjectRef; startTs: number; keyCount: number; initialText: string } | null = null;
   private callbacks: EditSessionCallbacks;
 
   constructor(callbacks: EditSessionCallbacks) {
@@ -24,7 +24,12 @@ export class EditSession {
 
   onFocusGained(ts: number, targetRef: ObjectRef): void {
     if (!targetRef?.self || !isEditControl(targetRef)) return;
-    this.session = { targetRef, startTs: ts, keyCount: 0 };
+    this.session = { targetRef, startTs: ts, keyCount: 0, initialText: '' };
+    if (this.callbacks.readControlValue) {
+      this.callbacks.readControlValue(targetRef).then((v) => {
+        if (this.session && sameTargetRef(this.session.targetRef, targetRef)) this.session.initialText = v ?? '';
+      });
+    }
   }
 
   onKey(_ts: number, _targetRef: ObjectRef | undefined): void {
@@ -57,7 +62,7 @@ export class EditSession {
       }
     }
 
-    if (s.keyCount === 0 && !finalText) return;
+    if (s.keyCount === 0 && finalText === s.initialText) return;
 
     this.callbacks.onStep({
       keyword: 'FillEdit',
@@ -72,6 +77,10 @@ export class EditSession {
   commitFinalText(ts: number, targetRef: ObjectRef | undefined, finalText: string): void {
     if (!this.session) return;
     if (targetRef && !sameTargetRef(this.session.targetRef, targetRef)) return;
+    if (this.session.keyCount === 0 && finalText === this.session.initialText) {
+      this.session = null;
+      return;
+    }
     this.callbacks.onStep({
       keyword: 'FillEdit',
       objectRef: toStrictRef(this.session.targetRef),

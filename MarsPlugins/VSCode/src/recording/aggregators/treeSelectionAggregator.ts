@@ -49,8 +49,8 @@ export class TreeSelectionAggregator {
         this.pending = null;
         try {
           const path = await this.callbacks.readTreeSelection!(treeRef);
-          const pathStr = Array.isArray(path) ? path.join(';') : '';
-          if (pathStr) doEmit(pathStr);
+          const pathStr = Array.isArray(path) ? path.slice().reverse().join(';') : '';
+          doEmit(pathStr);
         } catch {
           doEmit('');
         }

@@ -7,7 +7,7 @@
 import type { ObjectRef } from '../../protocol/javaAgentProtocol';
 import { toStrictRef, sameTargetRef, type SemanticStep } from '../types';
 import { schedule, cancel } from './timerQueue';
-import { shouldRecordClick, isComboBox, isTreeView, isMenuItem, isToolButton } from './recordFilter';
+import { shouldRecordClick, isComboBox, isTreeView, isMenuItem, isToolButton, isTab } from './recordFilter';
 
 const DBLCLICK_MS = 450;
 const DIST_PX = 6;
@@ -47,6 +47,15 @@ export class ClickAggregator {
   onMouseClick(ts: number, x: number, y: number, targetRef: ObjectRef | undefined): void {
     if (!shouldRecordClick(targetRef)) return;
     if (isComboBox(targetRef) || isTreeView(targetRef) || isMenuItem(targetRef) || isToolButton(targetRef)) return;
+    if (isTab(targetRef)) {
+      this.callbacks.onStep({
+        keyword: 'SelectTab',
+        objectRef: toStrictRef(targetRef),
+        data: targetRef?.self?.javaName ?? '',
+        ts,
+      });
+      return;
+    }
 
     const prev = this.pending;
     if (prev?.targetRef && sameTargetRef(prev.targetRef, targetRef)) {

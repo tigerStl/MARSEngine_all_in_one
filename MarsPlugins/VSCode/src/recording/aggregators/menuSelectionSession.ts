@@ -19,17 +19,34 @@ export class MenuSelectionSession {
     this.callbacks = callbacks;
   }
 
-  onMenuItemClick(ts: number, itemRef: ObjectRef, menuBarOrRootRef: ObjectRef, pathItems: string[]): void {
+  onMenuItemClick(
+    ts: number,
+    itemRef: ObjectRef,
+    menuBarOrRootRef: ObjectRef,
+    pathItems: string[],
+    clickType: 'Click' | 'DoubleClick' = 'Click'
+  ): void {
     if (!itemRef?.self || !isMenuItem(itemRef)) return;
-
+    const emit = (data: string) => {
+      this.callbacks.onStep({
+        keyword: 'SelectMenuItem',
+        objectRef: toStrictRef(menuBarOrRootRef),
+        data,
+        ts,
+        meta: clickType === 'DoubleClick' ? { clickType } : undefined,
+      });
+    };
+    if (this.callbacks.readMenuPath) {
+      this.callbacks.readMenuPath(itemRef)
+        .then((path) => {
+          const data = Array.isArray(path) && path.length ? path.join(';') : (itemRef.self?.javaName ?? '');
+          emit(data);
+        })
+        .catch(() => emit(itemRef.self?.javaName ?? ''));
+      return;
+    }
     const data = Array.isArray(pathItems) && pathItems.length ? pathItems.join(';') : (itemRef.self?.javaName ?? '');
-    this.callbacks.onStep({
-      keyword: 'SelectMenuItem',
-      objectRef: toStrictRef(menuBarOrRootRef),
-      data,
-      ts,
-      meta: { clickType: 'Click' },
-    });
+    emit(data);
   }
 
   /** When agent sends menu path (e.g. from Java). */

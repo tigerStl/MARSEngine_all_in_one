@@ -8,7 +8,7 @@ import type { RecordedStep } from '../protocol/javaAgentProtocol';
 import type { CanonicalEvent, SemanticStep } from './types';
 import { toStrictKey, toStrictRef } from './types';
 import { cancelAll } from './aggregators/timerQueue';
-import { shouldRecordClick, isComboBox, isTreeView, isMenuItem, isToolButton, isEditControl } from './aggregators/recordFilter';
+import { shouldRecordClick, isComboBox, isTreeView, isMenuItem, isToolButton, isEditControl, isTab } from './aggregators/recordFilter';
 import { ClickAggregator } from './aggregators/clickAggregator';
 import { EditSession } from './aggregators/editSession';
 import { ComboBoxSession } from './aggregators/comboBoxSession';
@@ -136,7 +136,13 @@ export class RecordingEngine {
         const targetRef = ev.target;
         if (!shouldRecordClick(targetRef)) return;
         if (isMenuItem(targetRef)) {
-          this.menuSession.onMenuItemClick(ev.ts, targetRef!, targetRef!, [targetRef?.self?.javaName ?? '']);
+          this.menuSession.onMenuItemClick(
+            ev.ts,
+            targetRef!,
+            targetRef!,
+            [targetRef?.self?.javaName ?? ''],
+            ev.type === 'dblclick' ? 'DoubleClick' : 'Click'
+          );
           return;
         }
         if (isToolButton(targetRef) && targetRef?.parent) {
@@ -181,8 +187,10 @@ export class RecordingEngine {
     const ts = (msg.timestamp ?? Date.now()) as number;
 
     switch (msg.event) {
-      case 'click': {
-        const clickCount = (msg.clickCount ?? 1) as number;
+      case 'click':
+      case 'clickButton': {
+        const metaClickCount = (msg as { meta?: { clickCount?: number } }).meta?.clickCount;
+        const clickCount = (metaClickCount ?? msg.clickCount ?? 1) as number;
         const kw = (msg.keyword ?? '') as string;
 
         if (kw === 'SelectMenuItem') {
@@ -206,6 +214,21 @@ export class RecordingEngine {
         if (isComboBox(ref)) return;
         if (isTreeView(ref)) {
           this.treeAggregator.commitPath(ts, ref, (msg.data as string) ?? '');
+          return;
+        }
+        if (isTab(ref)) {
+          this.stepId += 1;
+          this.callbacks.onStep(
+            semanticToRecordedStep(
+              {
+                keyword: 'SelectTab',
+                objectRef: toStrictRef(ref),
+                data: (msg.data ?? msg.content ?? ref.self?.javaName ?? '') as string,
+                ts,
+              },
+              'step-' + this.stepId
+            )
+          );
           return;
         }
         if (!shouldRecordClick(ref)) return;
@@ -233,6 +256,24 @@ export class RecordingEngine {
             'step-' + this.stepId
           )
         );
+        return;
+      }
+      case 'selectMenuItem': {
+        this.menuSession.commitMenuPath(ts, ref, (msg.data as string) ?? '');
+        return;
+      }
+      case 'selectMenuIcon': {
+        const toolbarRef = ref.parent ? { parent: null, self: ref.parent } : ref;
+        this.toolButtonAggregator.onToolButtonClick(ts, ref, toolbarRef, {
+          text: msg.objectIdentifier?.text as string,
+          caption: msg.objectIdentifier?.caption as string,
+          tooltip: msg.objectIdentifier?.toolTipText as string,
+          name: msg.objectIdentifier?.name as string,
+        });
+        return;
+      }
+      case 'selectTreeList': {
+        this.treeAggregator.commitPath(ts, ref, (msg.data as string) ?? '');
         return;
       }
       case 'fillEdit': {

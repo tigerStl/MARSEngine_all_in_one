@@ -80,13 +80,16 @@ export async function loadAgentAndScan(
     };
   }
 
-  const outputPath = path.join(outputDir, `ui-scan-${pid}-${Date.now()}.json`);
+  const ts = Date.now();
+  const outputPath = path.join(outputDir, `ui-scan-${pid}-${ts}.json`);
+  // Pass a directory to the agent (not the file path), so it does not create a directory named ui-scan-xxx.json
+  const scanRecordDir = path.join(outputDir, `scan-${pid}-${ts}`);
+  if (!fs.existsSync(scanRecordDir)) {
+    fs.mkdirSync(scanRecordDir, { recursive: true });
+  }
 
   // Copy agent JAR to a temp path so each load uses a different path (avoids "agent already loaded" when re-scanning same process)
-  const tempAgentJar = path.join(
-    os.tmpdir(),
-    `marsJavaAgent-scan-${pid}-${Date.now()}.jar`
-  );
+  const tempAgentJar = path.join(os.tmpdir(), `marsJavaAgent-scan-${pid}-${ts}.jar`);
   try {
     fs.copyFileSync(marsJavaAgentJar, tempAgentJar);
   } catch (e) {
@@ -95,44 +98,103 @@ export async function loadAgentAndScan(
     return { success: false, error: `Failed to copy agent JAR: ${msg}` };
   }
 
-  writeLog(`[loadAgentAndScan] spawn pid=${pid} outputPath=${outputPath} tempJar=${tempAgentJar}`);
+  writeLog(`[loadAgentAndScan] spawn pid=${pid} scanRecordDir=${scanRecordDir} tempJar=${tempAgentJar}`);
   return new Promise((resolve) => {
     const javaExe = getJavaExecutable();
     const proc = spawn(
       javaExe,
-      [
-        '-jar',
-        agentLoaderJar,
-        String(pid),
-        tempAgentJar,
-        outputPath,
-      ],
-      {
-        stdio: ['pipe', 'pipe', 'pipe'],
-      }
+      ['-jar', agentLoaderJar, String(pid), tempAgentJar, scanRecordDir],
+      { stdio: ['pipe', 'pipe', 'pipe'] }
     );
 
     let stderr = '';
     proc.stderr?.on('data', (d) => (stderr += d.toString()));
-    proc.on('close', (code) => {
+    proc.on('close', async (code) => {
       try {
         if (fs.existsSync(tempAgentJar)) fs.unlinkSync(tempAgentJar);
       } catch {
-        // ignore cleanup error
+        // ignore
       }
-      if (code === 0 && fs.existsSync(outputPath)) {
-        writeLog(`[loadAgentAndScan] close: success pid=${pid} code=${code} outputPath=${outputPath}`);
-        resolve({ success: true, outputPath });
-      } else {
+      if (code !== 0) {
         writeLog(`[loadAgentAndScan] close: failure pid=${pid} code=${code} stderr=${stderr.trim().slice(0, 300)}`);
-        resolve({
-          success: false,
-          error: stderr || `Process exited with code ${code}`,
-        });
+        resolve({ success: false, error: stderr || `Process exited with code ${code}` });
+        return;
       }
+      // Agent receives directory and starts WebSocket server; get object tree via JSON-RPC and write to outputPath
+      const infoPath = path.join(scanRecordDir, MARS_AGENT_INFO_FILE);
+      const deadline = Date.now() + INFO_FILE_TIMEOUT_MS;
+      let port: number | undefined;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        if (fs.existsSync(infoPath)) {
+          try {
+            const raw = fs.readFileSync(infoPath, 'utf-8');
+            const info = JSON.parse(raw) as { port?: number };
+            if (typeof info.port === 'number') {
+              port = info.port;
+              break;
+            }
+          } catch {
+            // retry
+          }
+        }
+      }
+      if (port == null) {
+        writeLog(`[loadAgentAndScan] timeout waiting for ${MARS_AGENT_INFO_FILE}`);
+        resolve({ success: false, error: 'Agent did not write marsJavaAgentInfo.json in time.' });
+        return;
+      }
+      let resolved = false;
+      const finish = (result: ScanResult) => {
+        if (resolved) return;
+        resolved = true;
+        resolve(result);
+      };
+      const ws = new WebSocket(`ws://127.0.0.1:${port}`);
+      const rpcId = 1;
+      const timeoutHandle = setTimeout(() => {
+        if (ws.readyState === WebSocket.OPEN) ws.close();
+        finish({ success: false, error: 'Timeout waiting for agent.getObjectTree response.' });
+      }, 10000);
+      ws.on('open', () => {
+        ws.send(JSON.stringify({ method: 'agent.getObjectTree', id: rpcId, params: {} }));
+      });
+      ws.on('message', (data: Buffer | ArrayBuffer | Buffer[]) => {
+        const text = (typeof data === 'string' ? data : data.toString()) as string;
+        try {
+          const msg = JSON.parse(text) as { id?: number; result?: unknown; error?: string };
+          if (msg.id === rpcId) {
+            clearTimeout(timeoutHandle);
+            ws.close();
+            if (msg.error) {
+              finish({ success: false, error: msg.error });
+              return;
+            }
+            const tree = msg.result;
+            const roots = tree && typeof tree === 'object' && 'roots' in tree ? (tree as { roots: unknown }).roots : [];
+            const scanOutput = JSON.stringify({ roots });
+            fs.writeFileSync(outputPath, scanOutput, 'utf-8');
+            writeLog(`[loadAgentAndScan] got object tree and wrote ${outputPath}`);
+            finish({ success: true, outputPath });
+          }
+        } catch (e) {
+          writeLog(`[loadAgentAndScan] message parse error: ${String(e)}`);
+        }
+      });
+      ws.on('error', (err) => {
+        clearTimeout(timeoutHandle);
+        finish({ success: false, error: err.message });
+      });
+      ws.on('close', () => {
+        if (!resolved) {
+          clearTimeout(timeoutHandle);
+          finish({ success: false, error: 'WebSocket closed before receiving object tree.' });
+        }
+      });
     });
     proc.on('error', (err) => {
       writeLog(`[loadAgentAndScan] spawn error pid=${pid} message=${err.message}`);
+      resolve({ success: false, error: err.message });
     });
   });
 }
@@ -312,7 +374,7 @@ export async function startRecordAgent(
           }
           return;
         }
-        if (msg.event === 'click' || msg.event === 'focusLost' || msg.event === 'componentProperties' || msg.event === 'fillEdit' || msg.event === 'pressKey' || msg.event === 'keyChordAction' || msg.event === 'textInputAction' || msg.event === 'rawKeyEventAction' || msg.event === 'selectDropDown' || msg.event === 'expandTreeNode' || msg.event === 'collapseTreeNode') {
+        if (msg.event === 'click' || msg.event === 'clickButton' || msg.event === 'focusLost' || msg.event === 'componentProperties' || msg.event === 'fillEdit' || msg.event === 'pressKey' || msg.event === 'keyChordAction' || msg.event === 'textInputAction' || msg.event === 'rawKeyEventAction' || msg.event === 'selectDropDown' || msg.event === 'selectDropList' || msg.event === 'selectMenuItem' || msg.event === 'selectMenuIcon' || msg.event === 'selectTreeList' || msg.event === 'expandTreeNode' || msg.event === 'collapseTreeNode') {
           onEvent(msg);
         }
       } catch (e) {

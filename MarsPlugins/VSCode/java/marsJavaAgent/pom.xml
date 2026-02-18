@@ -11,11 +11,11 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>unified-agent</artifactId>
+    <artifactId>marsJavaAgent</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
-    <name>Unified Agent (Scan + Record)</name>
-    <description>Single JAR combining UI Scanner Agent and Record Agent</description>
+    <name>Mars Java Agent (Unified)</name>
+    <description>Unified Java Agent combining UI Scanner and Record/Replay functionality via WebSocket</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -25,14 +25,14 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.mars.javaui</groupId>
-            <artifactId>ui-scanner-agent</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.4</version>
         </dependency>
         <dependency>
-            <groupId>com.mars.javaui</groupId>
-            <artifactId>record-agent</artifactId>
-            <version>${project.version}</version>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
         </dependency>
     </dependencies>
 
@@ -54,6 +54,8 @@
                                     <manifestEntries>
                                         <Agent-Class>com.mars.javaui.unified.UnifiedAgent</Agent-Class>
                                         <Premain-Class>com.mars.javaui.unified.UnifiedAgent</Premain-Class>
+                                        <Can-Redefine-Classes>true</Can-Redefine-Classes>
+                                        <Can-Retransform-Classes>true</Can-Retransform-Classes>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>

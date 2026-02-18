@@ -689,6 +689,22 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
           this._log(webviewRef, logLine);
           return;
         }
+        // Events that produce a step are already synced via onStep -> type 'step'; webview derives visual from steps.
+        // Do not post a separate visualNode for these to avoid duplicate nodes. For text field we only get fillEdit
+        // on lost focus / Enter / Tab (no per-key events), so no intermediate nodes.
+        const stepEvent = ev.event as string | undefined;
+        const isStepEvent =
+          stepEvent === 'fillEdit' ||
+          stepEvent === 'clickButton' ||
+          stepEvent === 'selectMenuItem' ||
+          stepEvent === 'selectTreeList' ||
+          stepEvent === 'selectMenuIcon' ||
+          stepEvent === 'selectDropList' ||
+          stepEvent === 'selectDropDown' ||
+          stepEvent === 'expandTreeNode' ||
+          stepEvent === 'collapseTreeNode';
+        if (isStepEvent) return;
+
         const name = ev.componentName ?? ev.name ?? '';
         const type = ev.componentClass ?? ev.javaType ?? ev.type ?? '';
         const event = ev.event ?? 'record';

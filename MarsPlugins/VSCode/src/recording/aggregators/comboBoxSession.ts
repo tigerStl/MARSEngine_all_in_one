@@ -48,7 +48,11 @@ export class ComboBoxSession {
   }
 
   private findComboBoxParent(_ref: ObjectRef): ObjectRef | null {
-    return null;
+    const parent = _ref.parent;
+    if (!parent) return null;
+    const javaType = (parent.javaType ?? '') as string;
+    if (!javaType.includes('ComboBox')) return null;
+    return { parent: null, self: parent };
   }
 
   async onFocusLost(ts: number, currentTarget: ObjectRef | undefined): Promise<void> {
@@ -113,14 +117,26 @@ export class ComboBoxSession {
   }
 
   flush(): void {
-    if (this.session) {
+    if (!this.session) return;
+    const s = this.session;
+    this.session = null;
+    if (this.callbacks.readControlValue) {
+      this.callbacks.readControlValue(s.targetRef).then((v) => {
+        if (!s.interacted && v === s.initialValue) return;
+        this.callbacks.onStep({
+          keyword: 'SelectDropList',
+          objectRef: toStrictRef(s.targetRef),
+          data: v ?? '',
+          ts: s.startTs,
+        });
+      });
+    } else if (s.interacted) {
       this.callbacks.onStep({
         keyword: 'SelectDropList',
-        objectRef: toStrictRef(this.session.targetRef),
-        data: this.session.initialValue,
-        ts: this.session.startTs,
+        objectRef: toStrictRef(s.targetRef),
+        data: s.initialValue,
+        ts: s.startTs,
       });
-      this.session = null;
     }
   }
 }
