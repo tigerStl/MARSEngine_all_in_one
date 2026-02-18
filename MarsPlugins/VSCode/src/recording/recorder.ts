@@ -278,11 +278,10 @@ export class RecordingEngine {
       }
       case 'fillEdit': {
         const content = (msg.data ?? msg.content ?? '') as string;
-        const fillEditData = '{HOME}' + '{DEL}'.repeat(30) + content;
         this.stepId += 1;
         this.callbacks.onStep(
           semanticToRecordedStep(
-            { keyword: 'FillEdit', objectRef: toStrictRef(ref), data: fillEditData, ts },
+            { keyword: 'FillEdit', objectRef: toStrictRef(ref), data: content, ts },
             'step-' + this.stepId
           )
         );

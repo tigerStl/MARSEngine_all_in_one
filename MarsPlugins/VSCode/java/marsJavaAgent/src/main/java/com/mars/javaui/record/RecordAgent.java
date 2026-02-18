@@ -683,6 +683,22 @@ public class RecordAgent {
                             else if ("FillEdit".equals(keyword)) action = "SetText";
                             else if ("SelectTab".equals(keyword)) action = "SelectTab";
                             final String data = getJsonStr(step, "data");
+                            if ("SelectDropList".equals(keyword) || "SelectDropDown".equals(keyword)) {
+                                if (comp instanceof JComboBox) {
+                                    JComboBox<?> cb = (JComboBox<?>) comp;
+                                    EventQueue.invokeAndWait(() -> selectComboValue(cb, data));
+                                    robot.delay(150);
+                                }
+                                continue;
+                            }
+                            if ("SelectTreeList".equals(keyword)) {
+                                if (comp instanceof JTree) {
+                                    JTree tree = (JTree) comp;
+                                    EventQueue.invokeAndWait(() -> selectTreeByPath(tree, data));
+                                    robot.delay(150);
+                                }
+                                continue;
+                            }
                             int[] b = getScreenBounds(comp);
                             if (b == null || b[2] <= 0 || b[3] <= 0) {
                                 int idx = i;
@@ -743,6 +759,65 @@ public class RecordAgent {
         }
     }
 
+    private static void selectComboValue(JComboBox<?> cb, String value) {
+        if (cb == null || value == null) return;
+        String target = value.trim();
+        if (target.isEmpty()) return;
+        int count = cb.getItemCount();
+        for (int i = 0; i < count; i++) {
+            Object item = cb.getItemAt(i);
+            if (item != null && target.equals(String.valueOf(item))) {
+                cb.setSelectedIndex(i);
+                return;
+            }
+        }
+        if (cb.isEditable()) {
+            cb.setSelectedItem(target);
+        }
+    }
+
+    private static void selectTreeByPath(JTree tree, String data) {
+        if (tree == null || data == null) return;
+        String raw = data.trim();
+        if (raw.isEmpty()) return;
+        String[] parts = raw.split(";");
+        java.util.List<String> list = new ArrayList<>();
+        for (String p : parts) {
+            String s = p.trim();
+            if (!s.isEmpty()) list.add(s);
+        }
+        if (list.isEmpty()) return;
+        Collections.reverse(list); // root -> leaf
+
+        TreeModel model = tree.getModel();
+        Object node = model.getRoot();
+        java.util.List<Object> path = new ArrayList<>();
+        path.add(node);
+        int idx = 0;
+        if (node != null && String.valueOf(node).equals(list.get(0))) {
+            idx = 1;
+        }
+        for (; idx < list.size(); idx++) {
+            Object child = findChildByName(model, node, list.get(idx));
+            if (child == null) return;
+            node = child;
+            path.add(node);
+        }
+        TreePath tp = new TreePath(path.toArray());
+        tree.setSelectionPath(tp);
+        tree.scrollPathToVisible(tp);
+    }
+
+    private static Object findChildByName(TreeModel model, Object parent, String name) {
+        if (model == null || parent == null || name == null) return null;
+        int count = model.getChildCount(parent);
+        for (int i = 0; i < count; i++) {
+            Object child = model.getChild(parent, i);
+            if (child != null && name.equals(String.valueOf(child))) return child;
+        }
+        return null;
+    }
+
 
 
 public static void putComponentInfo(Map<String, Object> step, Component comp) {
@@ -772,7 +847,7 @@ public static boolean shouldRecordClickTarget(Component c) {
     if (simple.contains("Renderer") || t.contains("Renderer")) return false;
     if (simple.contains("StatusBar")) return false;
     if (c instanceof AbstractButton) return true;
-    if (c instanceof JTextComponent) return true;
+    if (c instanceof JTextComponent) return false;
     if (c instanceof JComboBox) return true;
     if (c instanceof JTree) return true;
     if (c instanceof JMenuItem) return true;

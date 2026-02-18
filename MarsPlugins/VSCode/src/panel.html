@@ -10,11 +10,14 @@
     body { margin: 0; padding: 0; font-family: var(--vscode-font-family); font-size: 13px; color: var(--vscode-foreground); }
     .container { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
     .toolbar { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--vscode-panel-border); background: var(--vscode-editor-background); }
+    .toolbar-spacer { flex: 1; }
     .toolbar-btn { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--vscode-button-border); background: var(--vscode-button-background); color: var(--vscode-button-foreground); cursor: pointer; border-radius: 4px; }
     .toolbar-btn:hover { background: var(--vscode-button-hoverBackground); }
     .toolbar-btn.spy { width: auto; padding: 0 10px; }
     .toolbar-btn.img-btn { width: auto; min-width: 32px; height: 28px; padding: 0 8px; }
     .toolbar-btn.img-btn img { width: 16px; height: 16px; margin-right: 4px; vertical-align: middle; }
+    .toolbar-btn.icon-only { width: 28px; height: 28px; padding: 0; }
+    .toolbar-btn.icon-only img { width: 16px; height: 16px; display: block; }
     .toolbar-combo { min-width: 200px; padding: 4px 8px; font-size: 12px; border: 1px solid var(--vscode-input-border); background: var(--vscode-input-background); color: var(--vscode-input-foreground); border-radius: 4px; }
     .main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
     .left-panel { width: 280px; min-width: 200px; display: flex; flex-direction: column; border-right: 1px solid var(--vscode-panel-border); overflow: hidden; flex-shrink: 0; }
@@ -30,6 +33,7 @@
     .center-panel .col-right { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
     .tab-row { display: flex; flex-direction: column; min-height: 0; overflow: hidden; flex: 1; }
     .tab-bar { display: flex; gap: 0; border-bottom: 1px solid var(--vscode-panel-border); flex-shrink: 0; background: var(--vscode-editor-inactiveSelectionBackground); }
+    #topTabBar .tab[data-tab="log"] { display: none; }
     .tab-bar .tab { padding: 6px 12px; font-size: 12px; cursor: pointer; border: none; background: transparent; color: var(--vscode-foreground); }
     .tab-bar .tab:hover { background: var(--vscode-list-hoverBackground); }
     .tab-bar .tab.active { background: var(--vscode-editor-background); border-bottom: 1px solid var(--vscode-editor-background); font-weight: 600; }
@@ -45,7 +49,7 @@
     #visualContainer .visual-svg { display: block; }
     .steps-table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
     .steps-table th, .steps-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--vscode-panel-border); }
-    .steps-table th { background: var(--vscode-editor-inactiveSelectionBackground); font-weight: 600; position: relative; }
+    .steps-table th { background: var(--vscode-editor-inactiveSelectionBackground); font-weight: 600; position: sticky; top: 0; z-index: 3; }
     .steps-table th .col-resize { position: absolute; right: 0; top: 0; bottom: 0; width: 6px; cursor: col-resize; }
     .steps-table th .col-resize:hover { background: var(--vscode-focusBorder); opacity: 0.3; }
     .steps-table tr:hover { background: var(--vscode-list-hoverBackground); }
@@ -81,7 +85,7 @@
     .copy-btn:hover { opacity: 1; }
     .visual-modal-overlay { position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000; }
     .visual-modal-overlay.show { display: flex; }
-    .visual-modal { background: var(--vscode-editor-background); border: 1px solid var(--vscode-panel-border); border-radius: 8px; padding: 16px; min-width: 320px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .visual-modal { background: var(--vscode-editor-background); border: 1px solid var(--vscode-panel-border); border-radius: 8px; padding: 16px; min-width: 320px; max-height: 70vh; overflow: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
     .visual-modal h3 { margin: 0 0 12px 0; font-size: 14px; }
     .visual-modal label { display: block; margin-bottom: 4px; font-size: 12px; color: var(--vscode-descriptionForeground); }
     .visual-modal input { width: 100%; padding: 6px 8px; margin-bottom: 10px; font-size: 12px; border: 1px solid var(--vscode-input-border); background: var(--vscode-input-background); color: var(--vscode-input-foreground); border-radius: 4px; box-sizing: border-box; }
@@ -100,18 +104,19 @@
 <body>
   <div class="container">
     <div class="toolbar">
-      <button class="toolbar-btn" id="btnSettings" title="Settings">&#9881;</button>
-      <button class="toolbar-btn spy" id="btnSpy" title="Refresh Java applications">Java Applications</button>
+      <button class="toolbar-btn icon-only" id="btnSpy" title="Java Applications"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Crect x='3' y='4' width='18' height='16' rx='2'/%3E%3Cline x1='7' y1='8' x2='17' y2='8'/%3E%3Cline x1='7' y1='12' x2='17' y2='12'/%3E%3Cline x1='7' y1='16' x2='13' y2='16'/%3E%3C/svg%3E" alt="Java Applications"/></button>
       <select id="processCombo" class="toolbar-combo" title="Java applications">
         <option value="">-- Select --</option>
       </select>
-      <button class="toolbar-btn img-btn" id="btnRecordReplay" title="Record &amp; Replay / Stop (Ctrl+Alt+F12)" disabled>Record&amp;Replay</button>
-      <button class="toolbar-btn img-btn" id="btnGenerateSteps" title="Generate Test Steps"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='16' y1='13' x2='8' y2='13'/%3E%3Cline x1='16' y1='17' x2='8' y2='17'/%3E%3Cpolyline points='10 9 9 9 8 9'/%3E%3C/svg%3E" alt="">Generate</button>
-      <button class="toolbar-btn img-btn" id="btnExecute" title="Execute"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpolygon points='5 3 19 12 5 21 5 3'/%3E%3C/svg%3E" alt="">Execute</button>
+      <button class="toolbar-btn icon-only" id="btnRecordReplay" title="Record &amp; Replay / Stop (Ctrl+Alt+F12)" disabled><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='8'/%3E%3Ccircle cx='12' cy='12' r='3' fill='currentColor' stroke='none'/%3E%3C/svg%3E" alt="Record &amp; Replay"/></button>
+      <button class="toolbar-btn icon-only" id="btnExecute" title="Execute"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpolygon points='5 3 19 12 5 21 5 3'/%3E%3C/svg%3E" alt="Execute"/></button>
+      <button class="toolbar-btn icon-only" id="btnRefreshObjects" title="Refresh Object List"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M21 12a9 9 0 1 1-3-6.7'/%3E%3Cpolyline points='21 3 21 9 15 9'/%3E%3C/svg%3E" alt="Refresh"/></button>
+      <div class="toolbar-spacer"></div>
+      <button class="toolbar-btn icon-only" id="btnToggleLog" title="Log"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M12 2v6'/%3E%3Cpath d='M12 16v6'/%3E%3Cpath d='M4.93 4.93l4.24 4.24'/%3E%3Cpath d='M14.83 14.83l4.24 4.24'/%3E%3Cpath d='M2 12h6'/%3E%3Cpath d='M16 12h6'/%3E%3Cpath d='M4.93 19.07l4.24-4.24'/%3E%3Cpath d='M14.83 9.17l4.24-4.24'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E" alt="Log"/></button>
     </div>
     <div class="main">
       <div class="left-panel" id="leftPanel">
-        <div class="object-list-label">---&gt;Object List</div>
+        <div class="object-list-label">Object List</div>
         <div class="object-tree-search">
           <input type="text" id="objectTreeSearchInput" placeholder="Search node text..." />
           <button type="button" class="search-arrow" id="objectTreeSearchPrev" title="Previous">&#9664;</button>
@@ -125,14 +130,14 @@
       <div class="center-panel">
         <div class="col-left">
           <div class="tab-bar" id="topTabBar">
-            <button class="tab active" data-tab="log">Log</button>
-            <button class="tab" data-tab="objectInfo">Object Info</button>
+            <button class="tab" data-tab="log">Log</button>
+            <button class="tab active" data-tab="objectInfo">Object Info</button>
           </div>
           <div class="tab-row">
-            <div class="tab-content active" id="logTabContent">
+            <div class="tab-content" id="logTabContent">
               <textarea class="log-textarea" id="logTextarea" readonly placeholder="Click Window Spy to start..."></textarea>
             </div>
-            <div class="tab-content" id="objectInfoTabContent">
+            <div class="tab-content active" id="objectInfoTabContent">
               <div class="object-info" id="objectInfo">
                 <div class="empty-msg">Select an object to view details</div>
               </div>
@@ -177,8 +182,8 @@
       <button type="button" data-action="tryExecute">Try to execute the step</button>
       <button type="button" data-action="about">About</button>
       <div class="visual-context-menu-sep"></div>
-      <button type="button" data-action="deleteNode"><img class="menu-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M3 4h10v9a1 1 0 01-1 1H4a1 1 0 01-1-1V4z'/%3E%3Cpath d='M2 4h12M6 4V2a1 1 0 011-1h2a1 1 0 011 1v2'/%3E%3Cline x1='6' y1='8' x2='6' y2='12'/%3E%3Cline x1='10' y1='8' x2='10' y2='12'/%3E%3C/svg%3E" alt="">删除（节点）</button>
-      <button type="button" data-action="deleteChain"><img class="menu-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M8 4v8M4 8h8'/%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='M5 5l6 6M11 5l-6 6'/%3E%3C/svg%3E" alt="">删除（链）</button>
+      <button type="button" data-action="deleteNode"><img class="menu-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M3 4h10v9a1 1 0 01-1 1H4a1 1 0 01-1-1V4z'/%3E%3Cpath d='M2 4h12M6 4V2a1 1 0 011-1h2a1 1 0 011 1v2'/%3E%3Cline x1='6' y1='8' x2='6' y2='12'/%3E%3Cline x1='10' y1='8' x2='10' y2='12'/%3E%3C/svg%3E" alt="">Delete (Node)</button>
+      <button type="button" data-action="deleteChain"><img class="menu-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M8 4v8M4 8h8'/%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='M5 5l6 6M11 5l-6 6'/%3E%3C/svg%3E" alt="">Delete (Chain)</button>
     </div>
     <div id="visualCleanConfirmModal" class="visual-modal-overlay" aria-hidden="true">
       <div class="visual-modal">
@@ -193,14 +198,22 @@
     <div id="visualNodeEditModal" class="visual-modal-overlay" aria-hidden="true">
       <div class="visual-modal">
         <h3>Edit Visual Node</h3>
-        <label for="visualEditName">Name</label>
-        <input type="text" id="visualEditName" />
+        <label for="visualEditKeyword">Keyword</label>
+        <input type="text" id="visualEditKeyword" />
         <label for="visualEditType">Type</label>
         <input type="text" id="visualEditType" />
+        <label for="visualEditName">Name</label>
+        <input type="text" id="visualEditName" />
+        <label for="visualEditData">Data</label>
+        <input type="text" id="visualEditData" />
         <label for="visualEditText">Text</label>
         <input type="text" id="visualEditText" />
-        <label for="visualEditEvent">Event</label>
-        <input type="text" id="visualEditEvent" />
+        <label for="visualEditJavaNamePath">javaNamePath</label>
+        <input type="text" id="visualEditJavaNamePath" readonly />
+        <label for="visualEditJavaTypePath">javaTypePath</label>
+        <input type="text" id="visualEditJavaTypePath" readonly />
+        <label for="visualEditBounds">Bounds (x,y,w,h)</label>
+        <input type="text" id="visualEditBounds" readonly />
         <div class="visual-modal-actions">
           <button type="button" id="visualEditCancel">Cancel</button>
           <button type="button" id="visualEditOk" class="primary">OK</button>
@@ -219,10 +232,12 @@
     let isRecording = false;
     let visualNodes = [];
     let selectedVisualNodeIndex = -1;
+    let logVisible = false;
     /** Timer for delayed add-to-steps on object list single-click; cleared on dblclick so double-click only highlights. */
     let objectListAddStepTimer = null;
 
     function switchTopTab(tabId) {
+      if (tabId === 'log' && !logVisible) return;
       document.querySelectorAll('#topTabBar .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
       document.getElementById('logTabContent').classList.toggle('active', tabId === 'log');
       document.getElementById('objectInfoTabContent').classList.toggle('active', tabId === 'objectInfo');
@@ -243,11 +258,6 @@
     });
 
     console.log('[panel.html] Initializing event handlers...');
-    document.getElementById('btnSettings').onclick = () => {
-      appendLog('[action] Settings clicked.\r\n');
-      switchTopTab('log');
-      vscode.postMessage({ type: 'settings' });
-    };
     document.getElementById('btnSpy').onclick = () => {
       processes = [];
       objects = [];
@@ -259,11 +269,25 @@
       appendLog('[client] Java Applications clicked, cleared list and requesting processes...\r\n');
       vscode.postMessage({ type: 'getProcesses' });
     };
-
-    document.getElementById('btnGenerateSteps').onclick = () => {
-      appendLog('[action] Generate Steps clicked.\r\n');
+    document.getElementById('btnRefreshObjects').onclick = () => {
+      if (!selectedProcess) {
+        appendLog('[action] Refresh object list: select an application first.\r\n');
+        switchTopTab('log');
+        return;
+      }
+      appendLog('[action] Refresh object list (PID=' + selectedProcess + ').\r\n');
       switchTopTab('log');
-      vscode.postMessage({ type: 'generateSteps' });
+      vscode.postMessage({ type: 'scanProcess', pid: selectedProcess });
+    };
+    document.getElementById('btnToggleLog').onclick = () => {
+      const logTab = document.getElementById('logTabContent');
+      if (logTab && logTab.classList.contains('active')) {
+        logVisible = false;
+        switchTopTab('objectInfo');
+      } else {
+        logVisible = true;
+        switchTopTab('log');
+      }
     };
     document.getElementById('btnExecute').onclick = () => {
       appendLog('[action] Execute clicked.\r\n');
@@ -319,7 +343,13 @@
           const comboClear = document.getElementById('processCombo');
           if (comboClear) { comboClear.innerHTML = '<option value="">-- Select --</option>'; comboClear.value = ''; }
           const btnRecordClear = document.getElementById('btnRecordReplay');
-          if (btnRecordClear) { btnRecordClear.disabled = true; btnRecordClear.textContent = 'Record&Replay'; }
+          if (btnRecordClear) { btnRecordClear.disabled = true; btnRecordClear.title = 'Record & Replay / Stop (Ctrl+Alt+F12)'; }
+          const btnExecuteClear = document.getElementById('btnExecute');
+          if (btnExecuteClear) btnExecuteClear.disabled = false;
+          const btnSpyClear = document.getElementById('btnSpy');
+          if (btnSpyClear) btnSpyClear.disabled = false;
+          const comboClearDisabled = document.getElementById('processCombo');
+          if (comboClearDisabled) comboClearDisabled.disabled = false;
           renderUITree();
           renderVisual();
           renderSteps();
@@ -333,12 +363,42 @@
         case 'recordingStarted':
           isRecording = true;
           const btnRecordStart = document.getElementById('btnRecordReplay');
-          if (btnRecordStart) { btnRecordStart.disabled = false; btnRecordStart.textContent = 'Stop (Ctrl+Alt+F12)'; }
+          if (btnRecordStart) {
+            btnRecordStart.disabled = false;
+            btnRecordStart.title = 'Stop (Ctrl+Alt+F12)';
+            const img = btnRecordStart.querySelector('img');
+            if (img) img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Crect x='6' y='6' width='12' height='12' rx='2'/%3E%3C/svg%3E";
+          }
+          const btnExecuteStart = document.getElementById('btnExecute');
+          if (btnExecuteStart) btnExecuteStart.disabled = true;
+          const btnSpyStart = document.getElementById('btnSpy');
+          if (btnSpyStart) btnSpyStart.disabled = true;
+          const btnRefreshStart = document.getElementById('btnRefreshObjects');
+          if (btnRefreshStart) btnRefreshStart.disabled = true;
+          const btnLogStart = document.getElementById('btnToggleLog');
+          if (btnLogStart) btnLogStart.disabled = true;
+          const comboStart = document.getElementById('processCombo');
+          if (comboStart) comboStart.disabled = true;
           break;
         case 'recordingStopped':
           isRecording = false;
           const btnRecordStop = document.getElementById('btnRecordReplay');
-          if (btnRecordStop) { btnRecordStop.disabled = !selectedProcess; btnRecordStop.textContent = 'Record&Replay'; }
+          if (btnRecordStop) {
+            btnRecordStop.disabled = !selectedProcess;
+            btnRecordStop.title = 'Record & Replay / Stop (Ctrl+Alt+F12)';
+            const img = btnRecordStop.querySelector('img');
+            if (img) img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='8'/%3E%3Ccircle cx='12' cy='12' r='3' fill='currentColor' stroke='none'/%3E%3C/svg%3E";
+          }
+          const btnExecuteStop = document.getElementById('btnExecute');
+          if (btnExecuteStop) btnExecuteStop.disabled = false;
+          const btnSpyStop = document.getElementById('btnSpy');
+          if (btnSpyStop) btnSpyStop.disabled = false;
+          const btnRefreshStop = document.getElementById('btnRefreshObjects');
+          if (btnRefreshStop) btnRefreshStop.disabled = false;
+          const btnLogStop = document.getElementById('btnToggleLog');
+          if (btnLogStop) btnLogStop.disabled = false;
+          const comboStop = document.getElementById('processCombo');
+          if (comboStop) comboStop.disabled = false;
           break;
         case 'visualNode':
           if (msg.data && typeof msg.data === 'object') {
@@ -346,6 +406,7 @@
               name: msg.data.name != null ? String(msg.data.name) : '',
               type: msg.data.type != null ? String(msg.data.type) : '',
               text: msg.data.text != null ? String(msg.data.text) : '',
+              keyword: msg.data.event != null ? String(msg.data.event) : 'record',
               event: msg.data.event != null ? String(msg.data.event) : 'record',
               screenX: msg.data.screenX != null ? Number(msg.data.screenX) : undefined,
               screenY: msg.data.screenY != null ? Number(msg.data.screenY) : undefined,
@@ -443,6 +504,12 @@
             }
             const btnRecordRestore = document.getElementById('btnRecordReplay');
             if (btnRecordRestore) btnRecordRestore.disabled = !selectedProcess;
+            const btnExecuteRestore = document.getElementById('btnExecute');
+            if (btnExecuteRestore) btnExecuteRestore.disabled = false;
+            const btnSpyRestore = document.getElementById('btnSpy');
+            if (btnSpyRestore) btnSpyRestore.disabled = false;
+            const comboRestore = document.getElementById('processCombo');
+            if (comboRestore) comboRestore.disabled = false;
             renderUITree();
             renderSteps();
           }
@@ -619,7 +686,7 @@
           }
           return html;
         }
-        let html = '<div class="empty-msg">Select object to view info; double-click to highlight. Click ▶ to expand/collapse.</div>';
+        let html = '<div class="empty-msg">Select object to view info; click to highlight. Click ▶ to expand/collapse.</div>';
         for (let r = 0; r < objectTree.length; r++) html += renderNode(objectTree[r], 0);
         tree.innerHTML = html;
         const listForClick = flatList;
@@ -651,6 +718,7 @@
             if (!isNaN(idx) && listForClick[idx]) {
               const object = listForClick[idx];
               vscode.postMessage({ type: 'selectObject', object: object });
+              if (selectedProcess != null) vscode.postMessage({ type: 'highlight', pid: selectedProcess, object: object });
               if (objectListAddStepTimer != null) clearTimeout(objectListAddStepTimer);
               objectListAddStepTimer = setTimeout(function() {
                 objectListAddStepTimer = null;
@@ -684,7 +752,7 @@
         const icon = getIconForType(obj.identifier?.javaType);
         return '<div class="' + cls + '" data-idx="' + idx + '"><div class="tree-node-inner"><span class="tree-chevron collapsed"></span><img class="tree-icon" src="' + icon + '" alt="" /><span class="tree-node-label">' + name + '</span></div></div>';
       }
-      tree.innerHTML = '<div class="empty-msg">Select object to view info; double-click to highlight</div>' + objects.map((o, i) => mkNode(o, i)).join('');
+      tree.innerHTML = '<div class="empty-msg">Select object to view info; click to highlight</div>' + objects.map((o, i) => mkNode(o, i)).join('');
       tree.querySelectorAll('.tree-node').forEach(el => {
         el.onclick = () => {
           tree.querySelectorAll('.tree-node').forEach(x => x.classList.remove('selected'));
@@ -693,6 +761,7 @@
           if (!isNaN(idx) && objects[idx]) {
             const object = objects[idx];
             vscode.postMessage({ type: 'selectObject', object: object });
+            if (selectedProcess != null) vscode.postMessage({ type: 'highlight', pid: selectedProcess, object: object });
             if (objectListAddStepTimer != null) clearTimeout(objectListAddStepTimer);
             objectListAddStepTimer = setTimeout(function() {
               objectListAddStepTimer = null;
@@ -754,7 +823,8 @@
       });
     }
 
-    var TYPE_COLORS = { button: '#b91c1c', textfield: '#0f766e', label: '#166534', combo: '#b45309', checkbox: '#6d28d9', panel: '#1e3a8a', frame: '#9a3412', menu: '#be185d', list: '#4b5563', tree: '#374151' };
+    var TYPE_COLORS = { button: '#ED7D31', textfield: '#5B9BD5', label: '#70AD47', combo: '#FFC000', checkbox: '#A5A5A5', panel: '#4472C4', frame: '#9DC3E6', menu: '#C0504D', list: '#8FAADC', tree: '#A9D18E' };
+    var KEYWORD_COLOR = '#C0504D';
     function colorForType(t) {
       if (!t) return '#6b8e9f';
       var s = (t + '').toLowerCase();
@@ -906,10 +976,20 @@
       var n = visualNodes[nodeIndex];
       if (!n) return;
       visualEditNodeIndex = nodeIndex;
-      document.getElementById('visualEditName').value = n.name || '';
+      document.getElementById('visualEditKeyword').value = n.keyword || n.event || '';
       document.getElementById('visualEditType').value = n.type || '';
+      document.getElementById('visualEditName').value = n.name || '';
+      document.getElementById('visualEditData').value = n.data || '';
       document.getElementById('visualEditText').value = n.text || '';
-      document.getElementById('visualEditEvent').value = n.event || '';
+      var namePath = Array.isArray(n.javaNamePath) ? n.javaNamePath.join('/') : (n.javaNamePath || '');
+      var typePath = Array.isArray(n.javaTypePath) ? n.javaTypePath.join('/') : (n.javaTypePath || '');
+      document.getElementById('visualEditJavaNamePath').value = namePath;
+      document.getElementById('visualEditJavaTypePath').value = typePath;
+      var bx = (n.screenX != null ? n.screenX : '');
+      var by = (n.screenY != null ? n.screenY : '');
+      var bw = (n.width != null ? n.width : '');
+      var bh = (n.height != null ? n.height : '');
+      document.getElementById('visualEditBounds').value = [bx, by, bw, bh].join(',');
       document.getElementById('visualNodeEditModal').classList.add('show');
       document.getElementById('visualNodeEditModal').setAttribute('aria-hidden', 'false');
     }
@@ -922,10 +1002,11 @@
       if (visualEditNodeIndex < 0) return;
       var n = visualNodes[visualEditNodeIndex];
       if (n) {
-        n.name = document.getElementById('visualEditName').value.trim();
+        n.keyword = document.getElementById('visualEditKeyword').value.trim();
         n.type = document.getElementById('visualEditType').value.trim();
+        n.name = document.getElementById('visualEditName').value.trim();
+        n.data = document.getElementById('visualEditData').value.trim();
         n.text = document.getElementById('visualEditText').value.trim();
-        n.event = document.getElementById('visualEditEvent').value.trim();
         renderVisual();
       }
       hideEditVisualNodeModal();
@@ -934,7 +1015,7 @@
     function visualNodesToSteps() {
       return visualNodes.map(function(n) {
         var o = n.objectIdentifier || { javaType: n.type, text: n.text, caption: n.text };
-        var kw = (n.event === 'SelectListItem') ? 'SelectListItem' : (n.event === 'FillEdit') ? 'FillEdit' : (n.event === 'click') ? 'Click' : (n.event || 'SelectListItem');
+        var kw = (n.keyword === 'SelectListItem') ? 'SelectListItem' : (n.keyword === 'FillEdit') ? 'FillEdit' : (n.keyword === 'Click') ? 'Click' : (n.keyword || n.event || 'SelectListItem');
         return { keyword: kw, parentIdentifier: {}, objectIdentifier: o, parameter: '', data: n.data || '', assertValue: '', skipped: false };
       });
     }
@@ -942,7 +1023,20 @@
       if (!Array.isArray(stepList)) return [];
       return stepList.map(function(s) {
         var o = s.objectIdentifier || {};
-        return { name: o.uniqueName || o.javaType || '', type: o.javaType || '', text: (o.caption != null ? o.caption : o.text) || '', event: s.keyword || 'SelectListItem', objectIdentifier: o, data: s.data };
+        return {
+          name: o.uniqueName || o.javaType || '',
+          type: o.javaType || '',
+          text: (o.caption != null ? o.caption : o.text) || '',
+          keyword: s.keyword || 'SelectListItem',
+          objectIdentifier: o,
+          data: s.data,
+          javaNamePath: o.javaNamePath,
+          javaTypePath: o.javaTypePath,
+          screenX: o.screenBounds ? o.screenBounds.x : undefined,
+          screenY: o.screenBounds ? o.screenBounds.y : undefined,
+          width: o.screenBounds ? o.screenBounds.width : undefined,
+          height: o.screenBounds ? o.screenBounds.height : undefined
+        };
       });
     }
     function syncStepsToExtension() {
@@ -958,7 +1052,7 @@
         name: obj.uniqueName || id.javaType || '',
         type: id.javaType != null ? String(id.javaType) : '',
         text: text,
-        event: 'SelectListItem',
+        keyword: 'SelectListItem',
         objectIdentifier: id
       });
       switchBottomTab('visual');
@@ -974,11 +1068,12 @@
         container.innerHTML = '<div class="empty-msg" style="padding:12px">During Record &amp; Replay, click objects in the tree to add them here. Nodes will show name, type, text and event with links.</div>';
         return;
       }
-      const nodeW = 180;
-      const nodeH = 72;
-      const pad = 24;
-      const gap = 28;
-      const cols = Math.min(3, Math.max(2, Math.floor((container.clientWidth || 500) / (nodeW + gap))));
+      const nodeW = 150;
+      const nodeH = 56;
+      const pad = 16;
+      const gap = 18;
+      const rawCols = Math.floor((container.clientWidth || 500) / (nodeW + gap));
+      const cols = Math.max(3, Math.min(5, rawCols || 3, visualNodes.length || 3));
       const rows = Math.ceil(visualNodes.length / cols);
       function gridPos(i) {
         var col = i % cols, row = Math.floor(i / cols);
@@ -1007,7 +1102,7 @@
         const defs = g.append('defs');
         defs.append('marker').attr('id', 'arrowhead').attr('viewBox', '0 -5 10 10').attr('refX', 10).attr('refY', 0).attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto').append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', 'var(--vscode-foreground)').attr('stroke', 'none');
         const shadow = defs.append('filter').attr('id', 'nodeShadow').attr('x', '-20%').attr('y', '-20%').attr('width', '140%').attr('height', '140%');
-        shadow.append('feDropShadow').attr('dx', 0).attr('dy', 2).attr('stdDeviation', 2).attr('flood-color', 'rgba(0,0,0,0.25)');
+        shadow.append('feDropShadow').attr('dx', 0).attr('dy', 2).attr('stdDeviation', 3).attr('flood-color', 'rgba(0,0,0,0.28)');
         const linkData = nodeData.filter((_, i) => i > 0).map((n, i) => ({ source: nodeData[i], target: nodeData[i + 1] }));
         function linkPath(d) {
           var pts = nearestEdgePoints(d.source.x, d.source.y, d.target.x, d.target.y, nodeW, nodeH);
@@ -1015,11 +1110,10 @@
         }
         const link = g.selectAll('.link').data(linkData).join('path').attr('class', 'link').attr('d', linkPath).attr('fill', 'none').attr('stroke', 'var(--vscode-foreground)').attr('stroke-width', 2.5).attr('stroke-opacity', 0.85).attr('marker-end', 'url(#arrowhead)');
         const node = g.selectAll('.node').data(nodeData).join('g').attr('class', 'node').attr('transform', d => 'translate(' + d.x + ',' + d.y + ')').style('cursor', 'pointer');
-        node.append('rect').attr('width', nodeW).attr('height', nodeH).attr('rx', 10).attr('ry', 10).attr('fill', d => colorForType(d.type)).attr('stroke', d => (d.index === selectedVisualNodeIndex) ? 'var(--vscode-focusBorder)' : 'var(--vscode-foreground)').attr('stroke-width', d => (d.index === selectedVisualNodeIndex) ? 3 : 1.5).attr('fill-opacity', 0.95).attr('filter', 'url(#nodeShadow)');
-        node.append('text').attr('x', 10).attr('y', 16).attr('font-size', 11).attr('font-weight', 'bold').attr('fill', d => textColorForFill(colorForType(d.type)).main).text(d => (d.name || '—').substring(0, 22));
-        node.append('text').attr('x', 10).attr('y', 32).attr('font-size', 10).attr('fill', d => textColorForFill(colorForType(d.type)).muted).text(d => (d.type || '—').substring(0, 24));
-        node.append('text').attr('x', 10).attr('y', 48).attr('font-size', 10).attr('fill', d => textColorForFill(colorForType(d.type)).main).text(d => (d.text || '—').substring(0, 24));
-        node.append('text').attr('x', 10).attr('y', 64).attr('font-size', 9).attr('fill', d => textColorForFill(colorForType(d.type)).muted).text(d => 'event: ' + (d.event || '—'));
+        node.append('rect').attr('width', nodeW).attr('height', nodeH).attr('rx', 8).attr('ry', 8).attr('fill', d => colorForType(d.type)).attr('stroke', d => (d.index === selectedVisualNodeIndex) ? 'var(--vscode-focusBorder)' : 'rgba(0,0,0,0.25)').attr('stroke-width', d => (d.index === selectedVisualNodeIndex) ? 2.5 : 1).attr('fill-opacity', 0.96).attr('filter', 'url(#nodeShadow)');
+        node.append('text').attr('x', 8).attr('y', 16).attr('font-size', 10.5).attr('font-weight', 'bold').attr('fill', KEYWORD_COLOR).text(d => (d.keyword || d.event || '—').substring(0, 20));
+        node.append('text').attr('x', 8).attr('y', 34).attr('font-size', 9.5).attr('fill', d => textColorForFill(colorForType(d.type)).muted).text(d => (d.type || '—').substring(0, 22));
+        node.append('text').attr('x', 8).attr('y', 50).attr('font-size', 9.5).attr('fill', d => textColorForFill(colorForType(d.type)).main).text(d => (d.data || '—').substring(0, 22));
         var visualNodeDragStarted = false;
         const drag = d3.drag()
           .on('start', function() {})
@@ -1091,22 +1185,20 @@
         var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         rect.setAttribute('width', nodeW);
         rect.setAttribute('height', nodeH);
-        rect.setAttribute('rx', 10);
-        rect.setAttribute('ry', 10);
+        rect.setAttribute('rx', 8);
+        rect.setAttribute('ry', 8);
         rect.setAttribute('fill', colorForType(nodeData[i].type));
-        rect.setAttribute('fill-opacity', '0.95');
-        rect.setAttribute('stroke', (i === selectedVisualNodeIndex) ? 'var(--vscode-focusBorder)' : 'var(--vscode-foreground)');
-        rect.setAttribute('stroke-width', (i === selectedVisualNodeIndex) ? '3' : '1.5');
+        rect.setAttribute('fill-opacity', '0.96');
+        rect.setAttribute('stroke', (i === selectedVisualNodeIndex) ? 'var(--vscode-focusBorder)' : 'rgba(0,0,0,0.25)');
+        rect.setAttribute('stroke-width', (i === selectedVisualNodeIndex) ? '2.5' : '1');
         g.appendChild(rect);
         var t1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         var c = textColorForFill(colorForType(nodeData[i].type));
-        t1.setAttribute('x', 10); t1.setAttribute('y', 16); t1.setAttribute('font-size', 11); t1.setAttribute('font-weight', 'bold'); t1.setAttribute('fill', c.main); t1.textContent = (nodeData[i].name || '—').substring(0, 22); g.appendChild(t1);
+        t1.setAttribute('x', 8); t1.setAttribute('y', 16); t1.setAttribute('font-size', 10.5); t1.setAttribute('font-weight', 'bold'); t1.setAttribute('fill', KEYWORD_COLOR); t1.textContent = (nodeData[i].keyword || nodeData[i].event || '—').substring(0, 20); g.appendChild(t1);
         var t2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        t2.setAttribute('x', 10); t2.setAttribute('y', 32); t2.setAttribute('font-size', 10); t2.setAttribute('fill', c.muted); t2.textContent = (nodeData[i].type || '—').substring(0, 24); g.appendChild(t2);
+        t2.setAttribute('x', 8); t2.setAttribute('y', 34); t2.setAttribute('font-size', 9.5); t2.setAttribute('fill', c.muted); t2.textContent = (nodeData[i].type || '—').substring(0, 22); g.appendChild(t2);
         var t3 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        t3.setAttribute('x', 10); t3.setAttribute('y', 48); t3.setAttribute('font-size', 10); t3.setAttribute('fill', c.main); t3.textContent = (nodeData[i].text || '—').substring(0, 24); g.appendChild(t3);
-        var t4 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        t4.setAttribute('x', 10); t4.setAttribute('y', 64); t4.setAttribute('font-size', 9); t4.setAttribute('fill', c.muted); t4.textContent = 'event: ' + (nodeData[i].event || '—'); g.appendChild(t4);
+        t3.setAttribute('x', 8); t3.setAttribute('y', 50); t3.setAttribute('font-size', 9.5); t3.setAttribute('fill', c.main); t3.textContent = (nodeData[i].data || '—').substring(0, 22); g.appendChild(t3);
         (function(grp, idx, svgEl) {
           var drag = false, startX = 0, startY = 0, baseX = 0, baseY = 0;
           var dragThreshold = 5;
