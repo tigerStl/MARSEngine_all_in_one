@@ -1,6 +1,8 @@
 package com.mars.javaui.record;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -13,6 +15,7 @@ import java.util.logging.SimpleFormatter;
 public class AgentLogger {
 
     private static volatile boolean initialized = false;
+    private static final DateTimeFormatter LOG_TS_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd-HHmm");
 
     public static synchronized void setup(File logsDir) {
         if (initialized) return;
@@ -21,8 +24,15 @@ public class AgentLogger {
             if (!logsDir.exists()) {
                 logsDir.mkdirs();
             }
-            File logFile = new File(logsDir, "marsJavaAgent.log");
-            FileHandler fh = new FileHandler(logFile.getAbsolutePath(), true);
+            String suffix = LocalDateTime.now().format(LOG_TS_FORMAT);
+            File logFile = new File(logsDir, "marsJavaagent-" + suffix + ".log");
+            int seq = 1;
+            while (logFile.exists()) {
+                logFile = new File(logsDir, "marsJavaagent-" + suffix + "-" + String.format("%02d", seq) + ".log");
+                seq++;
+            }
+
+            FileHandler fh = new FileHandler(logFile.getAbsolutePath(), false);
             fh.setFormatter(new SimpleFormatter());
             fh.setLevel(Level.ALL);
 

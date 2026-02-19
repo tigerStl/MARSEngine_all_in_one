@@ -59,6 +59,9 @@ export type ScriptKeyword =
   | 'SelectTreeList'
   | 'SelectTab'
   | 'SelectMenuIcon'
+  | 'SelectPopupMenu'
+  | 'SearchAndClick'
+  | 'SearchAndUpdate'
   | 'Check'
   | 'Uncheck';
 

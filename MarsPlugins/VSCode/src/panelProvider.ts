@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as crypto from 'crypto';
 import { spawn } from 'child_process';
 import { getJavaProcesses, findProcessInfoExe } from './processInfo';
 import { loadAgentAndScan, runHighlightOverlay, replaySteps, startRecordAgent, stopRecordAgent } from './agentLoader';
@@ -16,12 +17,30 @@ import { recordedStepToTestScriptStep } from './recording/stepAdapter';
 
 const PANEL_STATE_KEY = 'javaUiAutomation.panelState';
 const SCANED_FILES_DIR = 'scanedfiles';
+const MARS_STEPS_MARKER = 'MARS_TEST_STEPS_FILE';
+const MARS_STEPS_COPYRIGHT = 'Copyright (c) MARS. All rights reserved.';
+const MARS_STEPS_PURPOSE = 'Java UI Automation Test Steps storage and exchange.';
+const MARS_STEPS_VERSION = '1.0.0';
+const MARS_STEPS_MD5_SALT = 'MARS::JavaUI::Steps::Integrity::v1';
 
 interface PanelState {
   processes: JavaProcess[];
   objects: UIObject[];
   steps: TestScriptStep[];
   logText: string;
+}
+
+interface MarsStepsFilePayload {
+  marker: string;
+  copyright: string;
+  purpose: string;
+  version: string;
+  generatedAt: string;
+  steps: TestScriptStep[];
+}
+
+interface MarsStepsFile extends MarsStepsFilePayload {
+  md5: string;
 }
 
 export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
@@ -165,6 +184,12 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
         case 'loadSteps':
           this._handleLoadSteps(webviewView.webview);
           break;
+        case 'saveStepsFile':
+          await this._handleSaveStepsFile(webviewView.webview, msg.steps);
+          break;
+        case 'loadStepsFile':
+          await this._handleLoadStepsFile(webviewView.webview);
+          break;
         case 'syncSteps':
           this._handleSyncSteps(webviewView.webview, msg.data);
           break;
@@ -250,6 +275,18 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     } catch (err) {
       this._outputChannel.appendLine(`[Java UI] postMessage error: ${String(err)}`);
     }
+  }
+
+  private _isRecordingStepDebugEnabled(): boolean {
+    return vscode.workspace.getConfiguration('loaniq').get<boolean>('recordingStepDebugLog', false);
+  }
+
+  private _logRecordingStep(step: TestScriptStep): void {
+    if (!this._isRecordingStepDebugEnabled()) return;
+    const keyword = step.keyword ?? '';
+    const parameter = step.parameter ?? '';
+    const data = step.data ?? '';
+    this._outputChannel.appendLine(`[StepDebug] keyword=${keyword}, parameter=${parameter}, data=${data}`);
   }
 
   private async _handleGetProcesses(webview: vscode.Webview): Promise<void> {
@@ -416,6 +453,134 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
       }
     }
     this._persistState();
+  }
+
+  private _createMarsStepsPayload(steps: TestScriptStep[]): MarsStepsFilePayload {
+    return {
+      marker: MARS_STEPS_MARKER,
+      copyright: MARS_STEPS_COPYRIGHT,
+      purpose: MARS_STEPS_PURPOSE,
+      version: MARS_STEPS_VERSION,
+      generatedAt: new Date().toISOString(),
+      steps,
+    };
+  }
+
+  private _computeStepsPayloadMd5(payload: MarsStepsFilePayload): string {
+    const text = JSON.stringify(payload) + '|' + MARS_STEPS_MD5_SALT;
+    return crypto.createHash('md5').update(text, 'utf8').digest('hex');
+  }
+
+  private async _handleSaveStepsFile(webview: vscode.Webview, stepsFromPanel: unknown): Promise<void> {
+    const steps = Array.isArray(stepsFromPanel) ? (stepsFromPanel as TestScriptStep[]) : this._currentSteps;
+    const defaultUri = vscode.Uri.file(path.join(this._getScanDir(), `mars-test-steps-${Date.now()}.json`));
+    const targetUri = await vscode.window.showSaveDialog({
+      title: 'Save Test Steps (MARS)',
+      defaultUri,
+      filters: { 'JSON Files': ['json'] },
+      saveLabel: 'Save',
+    });
+    if (!targetUri) {
+      this._log(webview, '[action] Save Test Steps canceled.\r\n');
+      return;
+    }
+
+    try {
+      const payload = this._createMarsStepsPayload(steps);
+      const fileContent: MarsStepsFile = {
+        ...payload,
+        md5: this._computeStepsPayloadMd5(payload),
+      };
+      fs.writeFileSync(targetUri.fsPath, JSON.stringify(fileContent, null, 2), 'utf-8');
+      this._log(webview, `[end] Save Test Steps success: ${targetUri.fsPath}\r\n`);
+      vscode.window.showInformationMessage('Test steps saved successfully.');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this._log(webview, `[end] Save Test Steps failed: ${msg}\r\n`);
+      vscode.window.showErrorMessage(`Save failed: ${msg}`);
+    }
+  }
+
+  private async _handleLoadStepsFile(webview: vscode.Webview): Promise<void> {
+    if (this._currentSteps.length > 0) {
+      const confirm = await vscode.window.showWarningMessage(
+        'Load will clear current test step content. Continue?',
+        { modal: true },
+        'Continue'
+      );
+      if (confirm !== 'Continue') {
+        this._log(webview, '[action] Load Test Steps canceled by user.\r\n');
+        return;
+      }
+    }
+
+    const uris = await vscode.window.showOpenDialog({
+      title: 'Load Test Steps (MARS)',
+      canSelectFiles: true,
+      canSelectFolders: false,
+      canSelectMany: false,
+      filters: { 'JSON Files': ['json'] },
+      openLabel: 'Load',
+    });
+    if (!uris || uris.length === 0) {
+      this._log(webview, '[action] Load Test Steps canceled.\r\n');
+      return;
+    }
+
+    const filePath = uris[0].fsPath;
+    try {
+      const raw = fs.readFileSync(filePath, 'utf-8');
+      const parsed = JSON.parse(raw) as Partial<MarsStepsFile>;
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('Invalid JSON structure.');
+      }
+      if (
+        parsed.marker !== MARS_STEPS_MARKER ||
+        parsed.copyright !== MARS_STEPS_COPYRIGHT ||
+        parsed.purpose !== MARS_STEPS_PURPOSE ||
+        typeof parsed.version !== 'string' ||
+        typeof parsed.generatedAt !== 'string' ||
+        typeof parsed.md5 !== 'string' ||
+        !Array.isArray(parsed.steps)
+      ) {
+        throw new Error('Required MARS metadata fields are missing or invalid.');
+      }
+
+      const payload: MarsStepsFilePayload = {
+        marker: parsed.marker,
+        copyright: parsed.copyright,
+        purpose: parsed.purpose,
+        version: parsed.version,
+        generatedAt: parsed.generatedAt,
+        steps: parsed.steps as TestScriptStep[],
+      };
+      if (!payload || !Array.isArray(payload.steps)) {
+        throw new Error('Invalid steps payload.');
+      }
+
+      const loadedSteps = parsed.steps as TestScriptStep[];
+      this._currentSteps = loadedSteps;
+      this._safePost(webview, { type: 'loadedSteps', data: loadedSteps });
+
+      const scriptPath = this._getScriptPath();
+      if (scriptPath) {
+        try {
+          const dir = path.dirname(scriptPath);
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+          fs.writeFileSync(scriptPath, JSON.stringify({ steps: loadedSteps }, null, 2), 'utf-8');
+        } catch (writeErr) {
+          this._outputChannel.appendLine(`[Java UI] sync loaded steps to script.json failed: ${writeErr}`);
+        }
+      }
+
+      this._persistState();
+      this._log(webview, `[end] Load Test Steps success: ${filePath}, steps=${loadedSteps.length}\r\n`);
+      vscode.window.showInformationMessage(`Test steps loaded successfully (${loadedSteps.length}).`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this._log(webview, `[end] Load Test Steps failed: ${msg}\r\n`);
+      vscode.window.showErrorMessage(`Load failed: ${msg}`);
+    }
   }
 
   private _getScriptPath(): string | null {
@@ -664,6 +829,7 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     this._recordingEngine = new RecordingEngine({
       onStep: (step) => {
         const testStep = recordedStepToTestScriptStep(step);
+        this._logRecordingStep(testStep);
         this._recordingSteps.push(testStep);
         const webviewRef = this._recordingWebview;
         if (webviewRef) {
@@ -697,10 +863,13 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
           stepEvent === 'fillEdit' ||
           stepEvent === 'clickButton' ||
           stepEvent === 'selectMenuItem' ||
+          stepEvent === 'selectPopupMenu' ||
           stepEvent === 'selectTreeList' ||
           stepEvent === 'selectMenuIcon' ||
           stepEvent === 'selectDropList' ||
           stepEvent === 'selectDropDown' ||
+          stepEvent === 'searchAndClick' ||
+          stepEvent === 'searchAndUpdate' ||
           stepEvent === 'expandTreeNode' ||
           stepEvent === 'collapseTreeNode';
         if (isStepEvent) return;
@@ -856,7 +1025,12 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     const emptyId = {};
     if (obj.keyword && obj.objectIdentifier && typeof obj.objectIdentifier === 'object') {
       const kw = obj.keyword as string;
-      const validKw: ScriptKeyword[] = ['Click', 'ClickButton', 'DoubleClickButton', 'ClickMenuIcon', 'FillEdit', 'SelectDropDown', 'SelectDropList', 'SelectListItem', 'SelectMenuItem', 'SelectTreeList', 'SelectTab', 'SelectMenuIcon', 'Check', 'Uncheck'];
+      const validKw: ScriptKeyword[] = [
+        'Click', 'ClickButton', 'DoubleClickButton', 'ClickMenuIcon', 'FillEdit',
+        'SelectDropDown', 'SelectDropList', 'SelectListItem', 'SelectMenuItem',
+        'SelectTreeList', 'SelectTab', 'SelectMenuIcon', 'SelectPopupMenu',
+        'SearchAndClick', 'SearchAndUpdate', 'Check', 'Uncheck'
+      ];
       return {
         keyword: validKw.includes(kw as ScriptKeyword) ? (kw as ScriptKeyword) : 'Click',
         parentIdentifier: (obj.parentIdentifier as object) || emptyId,

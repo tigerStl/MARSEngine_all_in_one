@@ -1,53 +1,90 @@
 package com.mars.javaui.record;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.awt.*;
+import java.awt.AWTEvent;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Frame;
+import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.awt.event.AWTEventListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
-import javax.swing.tree.TreePath;
-import javax.swing.event.TreeExpansionListener;
-import javax.swing.event.TreeExpansionEvent;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+import javax.swing.AbstractButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.JTree;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
+
+import org.java_websocket.WebSocket;
+import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.WebSocketServer;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mars.javaui.record.config.EventFilterConfig;
-import com.mars.javaui.record.eventoperation.KeyboardEventHandler;
+import com.mars.javaui.protocol.AgentProtocol;
 import com.mars.javaui.record.eventoperation.ItemEventHandler;
+import com.mars.javaui.record.eventoperation.KeyboardEventHandler;
 import com.mars.javaui.record.eventoperation.MouseEventHandler;
 import com.mars.javaui.record.eventoperation.RecordingContext;
 import com.mars.javaui.record.keyword.MarsKeyword;
-import com.mars.javaui.protocol.AgentProtocol;
-import org.java_websocket.WebSocket;
-import org.java_websocket.handshake.ClientHandshake;
-import org.java_websocket.server.WebSocketServer;
 
 /**
  * Record agent: runs as WebSocket server inside target JVM.
@@ -63,6 +100,15 @@ public class RecordAgent {
     private static final String INFO_FILE = "marsJavaAgentInfo.json";
     private static final String TOOLBUTTON_LOG_FILE = "toolbutton-tooltips.log";
     private static final String RECORD_DEBUG_LOG = "record-debug.log";
+
+    private static final class SearchAndUpdateReplaySpec {
+        String mode;
+        String targetColumn;
+        String sourceValue;
+        String targetValue;
+        java.util.List<String> conditionColumns = new ArrayList<>();
+        java.util.List<String> conditionValues = new ArrayList<>();
+    }
 
     public static void agentmain(String agentArgs, Instrumentation inst) {
         try {
@@ -151,6 +197,26 @@ public class RecordAgent {
         // Track current menu component and accumulated key sequence
         final Component[] currentMenuComponentRef = new Component[1];
         final StringBuilder[] currentMenuKeysRef = new StringBuilder[1];
+        // Table state
+        final JTable[] currentTableRef = new JTable[1];
+        final int[] currentTableRowRef = new int[] { -1 };
+        final int[] currentTableColRef = new int[] { -1 };
+        final String[] currentTableColumnNameRef = new String[1];
+        final String[] currentTableInitialValueRef = new String[1];
+        final boolean[] currentTableHadKeyRef = new boolean[1];
+        final boolean[] currentTableValueChangedRef = new boolean[1];
+        final boolean[] currentTableEmittedRef = new boolean[1];
+        final String[][] currentTableConditionColumnsRef = new String[1][];
+        final String[][] currentTableConditionValuesRef = new String[1][];
+        final long[] lastTableInteractionTimeRef = new long[1];
+        final JTable[] lastTableRightClickRef = new JTable[1];
+        final int[] lastTableRightClickRowRef = new int[] { -1 };
+        final int[] lastTableRightClickColRef = new int[] { -1 };
+        final String[] lastTableRightClickColumnNameRef = new String[1];
+        final String[] lastTableRightClickCellValueRef = new String[1];
+        final String[][] lastTableRightClickConditionColumnsRef = new String[1][];
+        final String[][] lastTableRightClickConditionValuesRef = new String[1][];
+        final long[] lastTableRightClickTimeRef = new long[1];
         final int DEDUPE_MS = 200;
         final int DEDUPE_POS_TOLERANCE = 8;
         // Press→Release click: valid window 50–400ms; double-click: same object, same button, distance <= 6px, time <= DBLCLICK_MS
@@ -265,6 +331,12 @@ public class RecordAgent {
                                 pendingClickXRef, pendingClickYRef, pendingClickReleaseTimeRef,
                                 currentComboBoxRef, currentComboInitialRef, currentComboSelectedRef, currentComboInteractedRef, currentComboEmittedRef,
                                 currentEditComponentRef, currentEditInitialTextRef, currentEditHadKeyRef,
+                                currentTableRef, currentTableRowRef, currentTableColRef, currentTableColumnNameRef,
+                                currentTableInitialValueRef, currentTableHadKeyRef, currentTableValueChangedRef,
+                                currentTableEmittedRef, currentTableConditionColumnsRef, currentTableConditionValuesRef,
+                                lastTableInteractionTimeRef, lastTableRightClickRef, lastTableRightClickRowRef,
+                                lastTableRightClickColRef, lastTableRightClickColumnNameRef, lastTableRightClickCellValueRef,
+                                lastTableRightClickConditionColumnsRef, lastTableRightClickConditionValuesRef, lastTableRightClickTimeRef,
                                 lastKeyDedupWhenRef, lastKeyDedupIdRef, lastKeyDedupCodeRef,
                                 lastKeyDedupModifiersRef, lastKeyDedupSourceRef,
                                 pressedKeyCodes, typedBuffer, lastTypedTimeRef, KEY_DEDUP_MS,
@@ -300,6 +372,34 @@ public class RecordAgent {
                                         } else if (comp != null) {
                                             Component edit = resolveEditComponent(comp);
                                             if (edit != null) {
+                                                if (isTableEditorComponent(edit)) {
+                                                    JTable table = resolveJTable(edit);
+                                                    if (table == null) table = currentTableRef[0];
+                                                    if (table != null) {
+                                                        int row = table.getEditingRow();
+                                                        int col = table.getEditingColumn();
+                                                        if (row < 0 || col < 0) {
+                                                            row = table.getSelectedRow();
+                                                            col = table.getSelectedColumn();
+                                                        }
+                                                        ensureCurrentTableCell(ctx, table, row, col, System.currentTimeMillis(), true);
+                                                    }
+                                                    currentEditComponentRef[0] = null;
+                                                    currentEditInitialTextRef[0] = null;
+                                                    currentEditHadKeyRef[0] = false;
+                                                    return;
+                                                }
+                                                JTable table = resolveJTable(edit);
+                                                if (table != null) {
+                                                    int row = table.getEditingRow();
+                                                    int col = table.getEditingColumn();
+                                                    if (row < 0 || col < 0) {
+                                                        row = table.getSelectedRow();
+                                                        col = table.getSelectedColumn();
+                                                    }
+                                                    ensureCurrentTableCell(ctx, table, row, col, System.currentTimeMillis(), true);
+                                                    return;
+                                                }
                                                 currentEditComponentRef[0] = edit;
                                                 currentEditInitialTextRef[0] = getEditText(edit);
                                                 currentEditHadKeyRef[0] = false;
@@ -353,6 +453,41 @@ public class RecordAgent {
                                         // Edit finalize: create one FillEdit step on focus lost (no step on each key)
                                         Component edit = resolveEditComponent(comp);
                                         if (edit != null) {
+                                            if (isTableEditorComponent(edit)) {
+                                                JTable table = resolveJTable(edit);
+                                                if (table == null) table = currentTableRef[0];
+                                                if (table != null) {
+                                                    int er = table.getEditingRow();
+                                                    int ec = table.getEditingColumn();
+                                                    if (er < 0 || ec < 0) {
+                                                        er = table.getSelectedRow();
+                                                        ec = table.getSelectedColumn();
+                                                    }
+                                                    ensureCurrentTableCell(ctx, table, er, ec, nowFocus, false);
+                                                    lastTableInteractionTimeRef[0] = nowFocus;
+                                                }
+                                                currentEditComponentRef[0] = null;
+                                                currentEditHadKeyRef[0] = false;
+                                                currentEditInitialTextRef[0] = null;
+                                                typedBuffer.setLength(0);
+                                                lastTypedTimeRef[0] = 0L;
+                                                return;
+                                            }
+                                            JTable editTable = resolveJTable(edit);
+                                            if (editTable != null) {
+                                                int er = editTable.getEditingRow();
+                                                int ec = editTable.getEditingColumn();
+                                                if (er < 0 || ec < 0) {
+                                                    er = editTable.getSelectedRow();
+                                                    ec = editTable.getSelectedColumn();
+                                                }
+                                                ensureCurrentTableCell(ctx, editTable, er, ec, nowFocus, false);
+                                                lastTableInteractionTimeRef[0] = nowFocus;
+                                                currentEditComponentRef[0] = null;
+                                                currentEditHadKeyRef[0] = false;
+                                                currentEditInitialTextRef[0] = null;
+                                                return;
+                                            }
                                             if (edit == lastFillEditComponentRef[0] && (nowFocus - lastFillEditTimeRef[0]) < FILLEDIT_DEDUPE_MS) {
                                                 lastFillEditComponentRef[0] = null;
                                                 lastFillEditTimeRef[0] = 0L;
@@ -682,6 +817,20 @@ public class RecordAgent {
                             if ("DoubleClickButton".equals(keyword) || "DoubleClick".equals(keyword)) action = "DoubleClick";
                             else if ("FillEdit".equals(keyword)) action = "SetText";
                             else if ("SelectTab".equals(keyword)) action = "SelectTab";
+                            if ("SearchAndUpdate".equals(keyword)) {
+                                if (!(comp instanceof JTable)) {
+                                    int idx = i;
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, "SearchAndUpdate target is not JTable"));
+                                    return;
+                                }
+                                String replayErr = replaySearchAndUpdate((JTable) comp, step, robot);
+                                if (replayErr != null) {
+                                    int idx = i;
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, replayErr));
+                                    return;
+                                }
+                                continue;
+                            }
                             final String data = getJsonStr(step, "data");
                             if ("SelectDropList".equals(keyword) || "SelectDropDown".equals(keyword)) {
                                 if (comp instanceof JComboBox) {
@@ -756,6 +905,238 @@ public class RecordAgent {
         } catch (Exception e) {
             AgentLogger.logException(LOG, Level.WARNING, "Replay parse failed", e);
             sendReplayDone(conn, 0, null, e.getMessage());
+        }
+    }
+
+    private static String replaySearchAndUpdate(JTable table, JsonObject step, Robot robot) {
+        final String method = "replaySearchAndUpdate";
+        AgentLogger.begin(LOG, "[" + method + ":L900] begin");
+        try {
+            if (table == null) {
+                AgentLogger.info(LOG, "[" + method + ":L903] table is null");
+                return "SearchAndUpdate target table is null";
+            }
+
+            String para = getJsonStr(step, "parameter");
+            if (para == null || para.trim().isEmpty()) {
+                AgentLogger.info(LOG, "[" + method + ":L909] para missing");
+                return "No para found. Table columnName is not set, please set para.";
+            }
+            String data = getJsonStr(step, "data");
+            SearchAndUpdateReplaySpec spec = parseSearchAndUpdateSpec(para, data);
+            if (spec == null) {
+                AgentLogger.info(LOG, "[" + method + ":L915] parse spec failed, para=" + para + ", data=" + data);
+                return "SearchAndUpdate para/data format is invalid";
+            }
+            AgentLogger.info(LOG, "[" + method + ":L918] mode=" + spec.mode + ", targetColumn=" + spec.targetColumn
+                    + ", condColumns=" + spec.conditionColumns + ", source=" + spec.sourceValue + ", target=" + spec.targetValue
+                    + ", condValues=" + spec.conditionValues);
+
+            int targetCol = findTableColumnIndexByName(table, spec.targetColumn);
+            if (targetCol < 0) {
+                AgentLogger.info(LOG, "[" + method + ":L924] target column not found: " + spec.targetColumn);
+                return "Column not found in table header: " + spec.targetColumn;
+            }
+            java.util.List<Integer> condColIndexes = new ArrayList<>();
+            if ("conditionColumns".equals(spec.mode)) {
+                for (String condCol : spec.conditionColumns) {
+                    int idx = findTableColumnIndexByName(table, condCol);
+                    if (idx < 0) {
+                        AgentLogger.info(LOG, "[" + method + ":L932] condition column not found: " + condCol);
+                        return "Column not found in table header: " + condCol;
+                    }
+                    condColIndexes.add(idx);
+                }
+            }
+
+            int rows = table.getRowCount();
+            AgentLogger.info(LOG, "[" + method + ":L940] rowCount=" + rows);
+            if (rows <= 0) {
+                return "No data in table";
+            }
+
+            int matchedRow = -1;
+            if ("singleColumn".equals(spec.mode)) {
+                for (int r = 0; r < rows; r++) {
+                    String cell = getTableCellValue(table, r, targetCol);
+                    if (matchesByEqualOrRegex(cell, spec.sourceValue)) {
+                        matchedRow = r;
+                        break;
+                    }
+                }
+            } else {
+                for (int r = 0; r < rows; r++) {
+                    boolean ok = true;
+                    for (int i = 0; i < condColIndexes.size(); i++) {
+                        String cell = getTableCellValue(table, r, condColIndexes.get(i));
+                        if (!matchesByEqualOrRegex(cell, spec.conditionValues.get(i))) {
+                            ok = false;
+                            break;
+                        }
+                    }
+                    if (ok) {
+                        matchedRow = r;
+                        break;
+                    }
+                }
+            }
+
+            if (matchedRow < 0) {
+                AgentLogger.info(LOG, "[" + method + ":L968] no matched row");
+                return "Unable to locate target table cell by para/data";
+            }
+            AgentLogger.info(LOG, "[" + method + ":L971] matchedRow=" + matchedRow + ", targetCol=" + targetCol);
+
+            String setErr = updateTableCellByUserSimulation(table, matchedRow, targetCol, spec.targetValue, robot);
+            if (setErr != null) {
+                AgentLogger.info(LOG, "[" + method + ":L975] update failed: " + setErr);
+                return setErr;
+            }
+
+            AgentLogger.info(LOG, "[" + method + ":L979] SearchAndUpdate replay success");
+            return null;
+        } catch (Exception e) {
+            AgentLogger.logException(LOG, Level.WARNING, "[" + method + ":L982] exception", e);
+            return "SearchAndUpdate replay exception: " + e.getMessage();
+        } finally {
+            AgentLogger.end(LOG, "[" + method + ":L985] end");
+        }
+    }
+
+    private static SearchAndUpdateReplaySpec parseSearchAndUpdateSpec(String para, String data) {
+        final String method = "parseSearchAndUpdateSpec";
+        AgentLogger.begin(LOG, "[" + method + ":L990] para=" + para + ", data=" + data);
+        try {
+            if (para == null || para.trim().isEmpty() || data == null) {
+                AgentLogger.info(LOG, "[" + method + ":L993] para/data null or empty");
+                return null;
+            }
+            SearchAndUpdateReplaySpec spec = new SearchAndUpdateReplaySpec();
+            String p = para.trim();
+            if (p.contains(":[") && p.endsWith("]")) {
+                int split = p.indexOf(':');
+                String targetColumn = p.substring(0, split).trim();
+                String colsPart = p.substring(split + 1).trim();
+                if (!colsPart.startsWith("[") || !colsPart.endsWith("]") || targetColumn.isEmpty()) return null;
+                String inside = colsPart.substring(1, colsPart.length() - 1).trim();
+                if (inside.isEmpty()) return null;
+                String[] parts = inside.split(",");
+                for (String part : parts) {
+                    String c = part.trim();
+                    if (!c.isEmpty()) spec.conditionColumns.add(c);
+                }
+                if (spec.conditionColumns.isEmpty()) return null;
+                spec.mode = "conditionColumns";
+                spec.targetColumn = targetColumn;
+
+                String d = data.trim();
+                if (!d.startsWith("[") || d.indexOf(']') < 0) {
+                    AgentLogger.info(LOG, "[" + method + ":L1014] condition mode data not starts with []");
+                    return null;
+                }
+                int right = d.indexOf(']');
+                String valPart = d.substring(1, right).trim();
+                String remain = d.substring(right + 1).trim();
+                if (!remain.startsWith(";")) {
+                    AgentLogger.info(LOG, "[" + method + ":L1021] condition mode data missing ';' separator");
+                    return null;
+                }
+                String target = remain.substring(1).trim();
+                if (target.isEmpty()) return null;
+                String[] vals = valPart.isEmpty() ? new String[0] : valPart.split(":");
+                for (String val : vals) spec.conditionValues.add(val.trim());
+                if (spec.conditionValues.size() != spec.conditionColumns.size()) {
+                    AgentLogger.info(LOG, "[" + method + ":L1029] condition values count mismatch, cols="
+                            + spec.conditionColumns.size() + ", vals=" + spec.conditionValues.size());
+                    return null;
+                }
+                spec.targetValue = target;
+            } else {
+                spec.mode = "singleColumn";
+                spec.targetColumn = p;
+                String d = data.trim();
+                int split = d.indexOf(':');
+                if (split <= 0 || split >= d.length() - 1) {
+                    AgentLogger.info(LOG, "[" + method + ":L1040] single mode data invalid, expected source:target");
+                    return null;
+                }
+                spec.sourceValue = d.substring(0, split).trim();
+                spec.targetValue = d.substring(split + 1).trim();
+                if (spec.sourceValue.isEmpty() || spec.targetValue.isEmpty()) return null;
+            }
+            AgentLogger.info(LOG, "[" + method + ":L1047] parsed mode=" + spec.mode + ", targetColumn=" + spec.targetColumn);
+            return spec;
+        } catch (Exception e) {
+            AgentLogger.logException(LOG, Level.WARNING, "[" + method + ":L1050] parse failed", e);
+            return null;
+        } finally {
+            AgentLogger.end(LOG, "[" + method + ":L1053] end");
+        }
+    }
+
+    private static boolean matchesByEqualOrRegex(String actual, String expected) {
+        final String method = "matchesByEqualOrRegex";
+        String a = actual != null ? actual : "";
+        String e = expected != null ? expected : "";
+        if (Objects.equals(a, e)) return true;
+        try {
+            boolean matched = Pattern.matches(e, a);
+            AgentLogger.info(LOG, "[" + method + ":L1062] regexMatch expected=" + e + ", actual=" + a + ", result=" + matched);
+            return matched;
+        } catch (PatternSyntaxException ex) {
+            AgentLogger.logException(LOG, Level.FINE, "[" + method + ":L1065] invalid regex: " + e, ex);
+            return false;
+        }
+    }
+
+    private static String updateTableCellByUserSimulation(JTable table, int row, int col, String targetValue, Robot robot) {
+        final String method = "updateTableCellByUserSimulation";
+        AgentLogger.begin(LOG, "[" + method + ":L1071] row=" + row + ", col=" + col + ", targetValue=" + targetValue);
+        try {
+            Rectangle rect = table.getCellRect(row, col, true);
+            Point loc = table.getLocationOnScreen();
+            if (rect == null || loc == null) {
+                AgentLogger.info(LOG, "[" + method + ":L1076] cell rect or location is null");
+                return "Target table cell bounds unavailable";
+            }
+            int cx = loc.x + rect.x + Math.max(1, rect.width / 2);
+            int cy = loc.y + rect.y + Math.max(1, rect.height / 2);
+            AgentLogger.info(LOG, "[" + method + ":L1081] click center x=" + cx + ", y=" + cy + ", w=" + rect.width + ", h=" + rect.height);
+
+            robot.mouseMove(cx, cy);
+            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+            robot.delay(80);
+
+            robot.keyPress(KeyEvent.VK_HOME);
+            robot.keyRelease(KeyEvent.VK_HOME);
+            robot.delay(20);
+            for (int i = 0; i < 30; i++) {
+                robot.keyPress(KeyEvent.VK_DELETE);
+                robot.keyRelease(KeyEvent.VK_DELETE);
+                robot.delay(10);
+            }
+
+            if (targetValue != null && !targetValue.isEmpty()) {
+                pasteViaClipboard(robot, targetValue);
+            }
+            robot.delay(50);
+
+            robot.mouseMove(cx, cy);
+            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+            robot.delay(20);
+            robot.keyPress(KeyEvent.VK_ENTER);
+            robot.keyRelease(KeyEvent.VK_ENTER);
+            robot.delay(80);
+
+            AgentLogger.info(LOG, "[" + method + ":L1107] update finished");
+            return null;
+        } catch (Exception e) {
+            AgentLogger.logException(LOG, Level.WARNING, "[" + method + ":L1110] update failed", e);
+            return "Failed to update table cell: " + e.getMessage();
+        } finally {
+            AgentLogger.end(LOG, "[" + method + ":L1113] end");
         }
     }
 
@@ -838,6 +1219,25 @@ public static void putComponentInfo(Map<String, Object> step, Component comp) {
     if (!meta.isEmpty()) step.put("meta", meta);
 }
 
+public static void putTableCellBounds(Map<String, Object> step, JTable table, int row, int col) {
+    if (step == null || table == null || row < 0 || col < 0) return;
+    try {
+        Rectangle rect = table.getCellRect(row, col, true);
+        Point loc = table.getLocationOnScreen();
+        if (rect == null || loc == null) return;
+        Map<String, Object> bounds = new LinkedHashMap<>();
+        bounds.put("x", loc.x + rect.x);
+        bounds.put("y", loc.y + rect.y);
+        bounds.put("w", rect.width);
+        bounds.put("h", rect.height);
+        Object metaObj = step.get("meta");
+        Map<String, Object> meta = metaObj instanceof Map ? (Map<String, Object>) metaObj : new LinkedHashMap<>();
+        meta.put("cellBounds", bounds);
+        meta.put("debugBounds", bounds);
+        step.put("meta", meta);
+    } catch (Exception ignored) { }
+}
+
 public static boolean shouldRecordClickTarget(Component c) {
     if (c == null) return false;
     String t = c.getClass().getName();
@@ -881,12 +1281,350 @@ public static Component resolveEditComponent(Component c) {
     return null;
 }
 
+public static boolean isTableEditorComponent(Component c) {
+    if (c == null) return false;
+    if (resolveJTable(c) != null) return true;
+    String name = c.getName();
+    if ("Table.editor".equals(name)) return true;
+    Component edit = resolveEditComponent(c);
+    return edit != null && "Table.editor".equals(edit.getName());
+}
+
 public static JTree resolveJTree(Component c) {
     if (c == null) return null;
     for (Component p = c; p != null; p = p.getParent()) {
         if (p instanceof JTree) return (JTree) p;
     }
     return null;
+}
+
+public static JTable resolveJTable(Component c) {
+    if (c == null) return null;
+    for (Component p = c; p != null; p = p.getParent()) {
+        if (p instanceof JTable) return (JTable) p;
+    }
+    return null;
+}
+
+public static void ensureCurrentTableCell(RecordingContext ctx, JTable table, int row, int col, long now, boolean forceResetInitial) {
+    if (ctx == null || table == null || row < 0 || col < 0) return;
+    boolean same = (ctx.currentTableRef[0] == table && ctx.currentTableRowRef[0] == row && ctx.currentTableColRef[0] == col);
+    if (same && !forceResetInitial && ctx.currentTableInitialValueRef[0] != null) return;
+    ctx.currentTableRef[0] = table;
+    ctx.currentTableRowRef[0] = row;
+    ctx.currentTableColRef[0] = col;
+    ctx.currentTableColumnNameRef[0] = getTableColumnName(table, col);
+    ctx.currentTableInitialValueRef[0] = getTableCellValue(table, row, col);
+    ctx.currentTableHadKeyRef[0] = false;
+    ctx.currentTableValueChangedRef[0] = false;
+    ctx.currentTableEmittedRef[0] = false;
+    String[] condCols = getTableConditionColumns(table);
+    ctx.currentTableConditionColumnsRef[0] = condCols;
+    ctx.currentTableConditionValuesRef[0] = getTableConditionValues(table, row, condCols);
+    ctx.lastTableInteractionTimeRef[0] = now;
+    attachTableModelListener(table, ctx);
+}
+
+public static boolean emitTableSearchAndUpdate(RecordingContext ctx, long timestamp) {
+    final String method = "emitTableSearchAndUpdate";
+    AgentLogger.begin(LOG, "[" + method + ":L1077] timestamp=" + timestamp);
+    try {
+        if (ctx == null) {
+            AgentLogger.info(LOG, "[" + method + ":L1080] ctx is null, skip");
+            return false;
+        }
+        JTable table = ctx.currentTableRef[0];
+        if (table == null) {
+            AgentLogger.info(LOG, "[" + method + ":L1084] table is null, skip");
+            return false;
+        }
+        if (ctx.currentTableEmittedRef[0]) {
+            AgentLogger.info(LOG, "[" + method + ":L1088] already emitted, skip");
+            return false;
+        }
+        if (!ctx.currentTableHadKeyRef[0] && !ctx.currentTableValueChangedRef[0]) {
+            AgentLogger.info(LOG, "[" + method + ":L1092] no key/value change, skip");
+            return false;
+        }
+
+        String trigger = ctx.currentTableHadKeyRef[0] && ctx.currentTableValueChangedRef[0]
+                ? "keyboard+valuechange"
+                : (ctx.currentTableHadKeyRef[0] ? "keyboard" : "valuechange");
+        int row = ctx.currentTableRowRef[0];
+        int col = ctx.currentTableColRef[0];
+        int editingCol = -1;
+        try {
+            editingCol = table.getEditingColumn();
+            AgentLogger.info(LOG, "[" + method + ":L1103] editingCol=" + editingCol + ", currentCol=" + col);
+        } catch (Exception e) {
+            AgentLogger.logException(LOG, Level.WARNING, "[" + method + ":L1105] getEditingColumn failed", e);
+        }
+        if (editingCol >= 0) col = editingCol;
+        if (row < 0 || col < 0) {
+            AgentLogger.info(LOG, "[" + method + ":L1110] invalid row/col, row=" + row + ", col=" + col);
+            return false;
+        }
+
+        String targetColumn = getTableColumnHeaderByReflection(table, col);
+        if (targetColumn == null || targetColumn.trim().isEmpty()) {
+            String trackedColumn = ctx.currentTableColumnNameRef[0];
+            if (trackedColumn != null && !trackedColumn.trim().isEmpty()) {
+                targetColumn = trackedColumn;
+            } else {
+                targetColumn = getTableColumnName(table, col);
+            }
+        }
+        if (targetColumn == null || targetColumn.trim().isEmpty()) {
+            targetColumn = "Column" + col;
+        }
+        String source = ctx.currentTableInitialValueRef[0] != null ? ctx.currentTableInitialValueRef[0] : getTableCellValue(table, row, col);
+        String target = getTableCellValue(table, row, col);
+        String[] condCols = ctx.currentTableConditionColumnsRef[0];
+        if (condCols == null) condCols = getTableConditionColumns(table);
+        String[] condVals = ctx.currentTableConditionValuesRef[0];
+        if (condVals == null) condVals = getTableConditionValues(table, row, condCols);
+        String param = buildTableParameter(targetColumn, condCols);
+        String data = buildTableSearchAndUpdateData(condVals, source, target);
+        AgentLogger.info(LOG, "[" + method + ":L1128] trigger=" + trigger + ", row=" + row + ", col=" + col
+                + ", parameter=" + param + ", data=" + data);
+
+        Map<String, Object> step = MarsKeyword.buildScriptStep("SearchAndUpdate", table, param, data, "");
+        step.put("event", "searchAndUpdate");
+        step.put("timestamp", timestamp);
+        putComponentInfo(step, table);
+        putTableCellBounds(step, table, row, col);
+        step.put("content", data);
+        AgentLogger.info(LOG, "[" + method + ":L1138] stepPayload=" + toJson(step));
+        String emitMsg = "StepEmit keyword=SearchAndUpdate, event=searchAndUpdate, trigger=" + trigger
+                + ", row=" + row + ", col=" + col
+                + ", parameter=" + param
+                + ", data=" + data;
+        AgentLogger.info(LOG, emitMsg);
+        appendDebugLog(ctx.outputDir, emitMsg);
+        try {
+            Writer w = ctx.writerRef.get();
+            if (w != null) writeLine(w, step);
+        } catch (Exception e) {
+            AgentLogger.logException(LOG, Level.WARNING, "[" + method + ":L1148] writeLine failed", e);
+        }
+        WebSocket c = ctx.clientConn.get();
+        if (c != null && c.isOpen()) c.send(toJson(step));
+        ctx.currentTableEmittedRef[0] = true;
+        ctx.currentTableInitialValueRef[0] = target;
+        ctx.currentTableHadKeyRef[0] = false;
+        ctx.currentTableValueChangedRef[0] = false;
+        return true;
+    } finally {
+        AgentLogger.end(LOG, "[" + method + ":L1158] end");
+    }
+}
+
+public static String getTableColumnName(JTable table, int col) {
+    if (table == null || col < 0) return "";
+    String reflected = getTableColumnHeaderByReflection(table, col);
+    if (reflected != null && !reflected.trim().isEmpty()) return reflected.trim();
+    try {
+        String name = table.getColumnName(col);
+        if (name != null && !name.trim().isEmpty()) return name.trim();
+    } catch (Exception ignored) { }
+    try {
+        Object header = table.getColumnModel().getColumn(col).getHeaderValue();
+        return header != null ? String.valueOf(header) : "";
+    } catch (Exception ignored) { }
+    return "Column" + col;
+}
+
+public static String getTableColumnHeaderByReflection(JTable table, int fallbackCol) {
+    final String method = "getTableColumnHeaderByReflection";
+    AgentLogger.begin(LOG, "[" + method + ":L1144] table=" + (table == null ? "null" : table.getClass().getName())
+            + ", fallbackCol=" + fallbackCol);
+    try {
+        if (table == null) {
+            AgentLogger.info(LOG, "[" + method + ":L1149] table is null, return empty header");
+            return "";
+        }
+
+        int col = fallbackCol;
+        try {
+            Method getEditingColumnMethod = table.getClass().getMethod("getEditingColumn");
+            Object editingColObj = getEditingColumnMethod.invoke(table);
+            AgentLogger.info(LOG, "[" + method + ":L1151] getEditingColumn result=" + editingColObj);
+            if (editingColObj instanceof Number) {
+                int editingCol = ((Number) editingColObj).intValue();
+                if (editingCol >= 0) col = editingCol;
+            }
+        } catch (Exception e) {
+            AgentLogger.logException(LOG, Level.WARNING, "[" + method + ":L1154] getEditingColumn reflection failed", e);
+        }
+
+        if (col < 0) {
+            try {
+                col = table.getSelectedColumn();
+                AgentLogger.info(LOG, "[" + method + ":L1160] fallback selectedColumn=" + col);
+            } catch (Exception e) {
+                AgentLogger.logException(LOG, Level.WARNING, "[" + method + ":L1161] getSelectedColumn failed", e);
+            }
+        }
+        if (col < 0) {
+            AgentLogger.info(LOG, "[" + method + ":L1166] no valid column, return empty header");
+            return "";
+        }
+
+        try {
+            AgentLogger.info(LOG, "[" + method + ":L1168] resolve tableHeader/columnModel for col=" + col);
+            Method getTableHeaderMethod = table.getClass().getMethod("getTableHeader");
+            Object tableHeader = getTableHeaderMethod.invoke(table);
+            if (tableHeader == null) {
+                AgentLogger.info(LOG, "[" + method + ":L1172] tableHeader is null");
+                return "";
+            }
+
+            Method getColumnModelMethod = tableHeader.getClass().getMethod("getColumnModel");
+            Object columnModel = getColumnModelMethod.invoke(tableHeader);
+            if (columnModel == null) {
+                AgentLogger.info(LOG, "[" + method + ":L1178] columnModel is null");
+                return "";
+            }
+
+            Method getColumnCountMethod = columnModel.getClass().getMethod("getColumnCount");
+            Object countObj = getColumnCountMethod.invoke(columnModel);
+            int count = countObj instanceof Number ? ((Number) countObj).intValue() : -1;
+            AgentLogger.info(LOG, "[" + method + ":L1184] columnCount=" + count + ", targetCol=" + col);
+            if (count <= 0 || col >= count) return "";
+
+            Method getColumnMethod = columnModel.getClass().getMethod("getColumn", int.class);
+            Object tableColumn = getColumnMethod.invoke(columnModel, col);
+            if (tableColumn == null) {
+                AgentLogger.info(LOG, "[" + method + ":L1188] tableColumn is null");
+                return "";
+            }
+
+            Method getHeaderValueMethod = tableColumn.getClass().getMethod("getHeaderValue");
+            Object headerValue = getHeaderValueMethod.invoke(tableColumn);
+            String header = headerValue != null ? String.valueOf(headerValue).trim() : "";
+            AgentLogger.info(LOG, "[" + method + ":L1194] headerValue=" + header);
+            return header;
+        } catch (Exception e) {
+            AgentLogger.logException(LOG, Level.WARNING, "[" + method + ":L1197] resolve header by reflection failed", e);
+            return "";
+        }
+    } finally {
+        AgentLogger.end(LOG, "[" + method + ":L1201] end");
+    }
+}
+
+public static String getTableCellValue(JTable table, int row, int col) {
+    if (table == null || row < 0 || col < 0) return "";
+    try {
+        Object v = table.getValueAt(row, col);
+        return v != null ? String.valueOf(v) : "";
+    } catch (Exception ignored) { }
+    return "";
+}
+
+public static String[] getTableConditionColumns(JTable table) {
+    if (table == null) return new String[0];
+    Object v = table.getClientProperty("mars.keyColumns");
+    if (v == null) v = table.getClientProperty("mars.conditionColumns");
+    if (v instanceof String) {
+        String s = ((String) v).trim();
+        if (s.isEmpty()) return new String[0];
+        String[] parts = s.split("[;,]");
+        java.util.List<String> list = new ArrayList<>();
+        for (String p : parts) {
+            String t = p != null ? p.trim() : "";
+            if (!t.isEmpty()) list.add(t);
+        }
+        return list.toArray(new String[0]);
+    }
+    if (v instanceof String[]) return (String[]) v;
+    if (v instanceof java.util.List) {
+        java.util.List<?> list = (java.util.List<?>) v;
+        java.util.List<String> out = new ArrayList<>();
+        for (Object o : list) {
+            if (o == null) continue;
+            String t = String.valueOf(o).trim();
+            if (!t.isEmpty()) out.add(t);
+        }
+        return out.toArray(new String[0]);
+    }
+    return new String[0];
+}
+
+public static String[] getTableConditionValues(JTable table, int row, String[] condCols) {
+    if (table == null || row < 0 || condCols == null || condCols.length == 0) return new String[0];
+    java.util.List<String> values = new ArrayList<>();
+    for (String colName : condCols) {
+        int idx = findTableColumnIndexByName(table, colName);
+        if (idx < 0) continue;
+        values.add(getTableCellValue(table, row, idx));
+    }
+    return values.toArray(new String[0]);
+}
+
+private static int findTableColumnIndexByName(JTable table, String name) {
+    if (table == null || name == null) return -1;
+    String n = name.trim();
+    if (n.isEmpty()) return -1;
+    int count = table.getColumnCount();
+    for (int i = 0; i < count; i++) {
+        String colName = "";
+        try { colName = table.getColumnName(i); } catch (Exception ignored) { }
+        if (n.equals(colName)) return i;
+        if (!colName.isEmpty() && n.equalsIgnoreCase(colName)) return i;
+        try {
+            Object header = table.getColumnModel().getColumn(i).getHeaderValue();
+            if (header != null) {
+                String hv = String.valueOf(header);
+                if (n.equals(hv) || n.equalsIgnoreCase(hv)) return i;
+            }
+        } catch (Exception ignored) { }
+    }
+    return -1;
+}
+
+public static String buildTableParameter(String targetColumn, String[] condCols) {
+    String base = targetColumn != null ? targetColumn : "";
+    if (condCols == null || condCols.length == 0) return base;
+    String cond = String.join(";", condCols);
+    return base + ";[" + cond + "]";
+}
+
+public static String buildTableDataWithConditions(String[] condVals, String baseData) {
+    String prefix = "";
+    if (condVals != null && condVals.length > 0) {
+        prefix = "[" + String.join(";", condVals) + "]";
+    }
+    String data = baseData != null ? baseData : "";
+    return prefix + data;
+}
+
+public static String buildTableSearchAndUpdateData(String[] condVals, String source, String target) {
+    String src = source != null ? source : "";
+    String tgt = target != null ? target : "";
+    return buildTableDataWithConditions(condVals, src + ":" + tgt);
+}
+
+private static void attachTableModelListener(JTable table, RecordingContext ctx) {
+    if (table == null || ctx == null) return;
+    final String key = "mars.tableModelListenerAttached";
+    Object existing = table.getClientProperty(key);
+    if (existing instanceof TableModelListener) return;
+    TableModelListener listener = e -> {
+        if (!ctx.recording[0]) return;
+        if (e.getType() != TableModelEvent.UPDATE) return;
+        int row = e.getFirstRow();
+        int col = e.getColumn();
+        if (row < 0 || col < 0) return;
+        long now = System.currentTimeMillis();
+        long lastInteract = ctx.lastTableInteractionTimeRef[0];
+        if (lastInteract > 0 && (now - lastInteract) > 5000) return;
+        if (ctx.currentTableRef[0] == table && ctx.currentTableRowRef[0] == row && ctx.currentTableColRef[0] == col) {
+            ctx.currentTableValueChangedRef[0] = true;
+        }
+    };
+    table.getModel().addTableModelListener(listener);
+    table.putClientProperty(key, listener);
 }
 
 private static void collectJTrees(Container root, java.util.List<JTree> out) {

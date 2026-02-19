@@ -117,6 +117,7 @@ export interface RecordedStep {
   id: string;
   keyword: string;
   object: StepObject;
+  parameter?: string;
   data?: string;
   meta?: { ts?: number; confidence?: number; bounds?: BoundsRect; debugBounds?: BoundsRect; clickType?: string; emitEnter?: boolean; clickedTool?: ObjectKeyStrict };
 }

@@ -7,12 +7,13 @@ import java.io.Writer;
 import java.util.Map;
 
 import javax.swing.JComboBox;
+import javax.swing.JTable;
+
+import org.java_websocket.WebSocket;
 
 import com.mars.javaui.record.RecordAgent;
 import com.mars.javaui.record.config.EventFilterConfig;
 import com.mars.javaui.record.keyword.MarsKeyword;
-
-import org.java_websocket.WebSocket;
 
 /**
  * Handles key events for recording.
@@ -21,6 +22,37 @@ import org.java_websocket.WebSocket;
  * KEY_TYPED and normal KEY_PRESSED only update session state; no step is sent.
  */
 public final class KeyboardEventHandler {
+
+    private static final class TableFocusState {
+        final JTable table;
+        final int row;
+        final int col;
+
+        TableFocusState(JTable table, int row, int col) {
+            this.table = table;
+            this.row = row;
+            this.col = col;
+        }
+    }
+
+    private static TableFocusState resolveTableFocusState(Component keyTarget, Component eventComponent) {
+        JTable table = RecordAgent.resolveJTable(keyTarget != null ? keyTarget : eventComponent);
+        if (table == null) return null;
+        int row = table.getEditingRow();
+        int col = table.getEditingColumn();
+        if (row < 0 || col < 0) {
+            row = table.getSelectedRow();
+            col = table.getSelectedColumn();
+        }
+        if (row < 0 || col < 0) return null;
+        return new TableFocusState(table, row, col);
+    }
+
+    private static boolean isCurrentCell(RecordingContext ctx, JTable table, int row, int col) {
+        return ctx.currentTableRef[0] == table
+                && ctx.currentTableRowRef[0] == row
+                && ctx.currentTableColRef[0] == col;
+    }
 
     public static void handle(KeyEvent ke, RecordingContext ctx) {
         Component keyTarget = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
@@ -48,6 +80,16 @@ public final class KeyboardEventHandler {
             if (ctx.pressedKeyCodes.contains(keyCode)) return;
             ctx.pressedKeyCodes.add(keyCode);
 
+            TableFocusState tableState = resolveTableFocusState(keyTarget, ke.getComponent());
+            if (tableState != null) {
+                if (!isCurrentCell(ctx, tableState.table, tableState.row, tableState.col)) {
+                    RecordAgent.ensureCurrentTableCell(ctx, tableState.table, tableState.row, tableState.col, now, true);
+                }
+                ctx.currentTableHadKeyRef[0] = true;
+                ctx.lastTableInteractionTimeRef[0] = now;
+                return;
+            }
+
             if (keyCode == KeyEvent.VK_ENTER && ctx.currentComboBoxRef[0] != null) {
                 JComboBox<?> cb = ctx.currentComboBoxRef[0];
                 if (ctx.currentComboInitialRef[0] == null) {
@@ -72,6 +114,44 @@ public final class KeyboardEventHandler {
             if (comp == null) comp = RecordAgent.resolveEditComponent(ke.getComponent());
 
             if (comp != null) {
+                if (RecordAgent.isTableEditorComponent(comp)) {
+                    JTable tableFromCtx = ctx.currentTableRef[0];
+                    if (tableFromCtx == null) {
+                        tableFromCtx = RecordAgent.resolveJTable(keyTarget != null ? keyTarget : ke.getComponent());
+                    }
+                    if (tableFromCtx != null) {
+                        int row = tableFromCtx.getEditingRow();
+                        int col = tableFromCtx.getEditingColumn();
+                        if (row < 0 || col < 0) {
+                            row = tableFromCtx.getSelectedRow();
+                            col = tableFromCtx.getSelectedColumn();
+                        }
+                        if (row >= 0 && col >= 0) {
+                            RecordAgent.ensureCurrentTableCell(ctx, tableFromCtx, row, col, now, false);
+                        }
+                        ctx.currentTableHadKeyRef[0] = true;
+                        ctx.lastTableInteractionTimeRef[0] = now;
+                    }
+                    ctx.currentEditComponentRef[0] = null;
+                    ctx.currentEditHadKeyRef[0] = false;
+                    ctx.currentEditInitialTextRef[0] = null;
+                    return;
+                }
+                JTable editTable = RecordAgent.resolveJTable(comp);
+                if (editTable != null) {
+                    int row = editTable.getEditingRow();
+                    int col = editTable.getEditingColumn();
+                    if (row < 0 || col < 0) {
+                        row = editTable.getSelectedRow();
+                        col = editTable.getSelectedColumn();
+                    }
+                    if (row >= 0 && col >= 0) {
+                        RecordAgent.ensureCurrentTableCell(ctx, editTable, row, col, now, false);
+                        ctx.currentTableHadKeyRef[0] = true;
+                        ctx.lastTableInteractionTimeRef[0] = now;
+                        return;
+                    }
+                }
                 ctx.currentEditComponentRef[0] = comp;
                 boolean isTab = (keyCode == KeyEvent.VK_TAB);
                 boolean isEnter = (keyCode == KeyEvent.VK_ENTER);
@@ -98,6 +178,31 @@ public final class KeyboardEventHandler {
                 }
             }
         } else if (id == KeyEvent.KEY_RELEASED) {
+            TableFocusState tableState = resolveTableFocusState(keyTarget, ke.getComponent());
+            if (tableState != null) {
+                boolean sameCell = isCurrentCell(ctx, tableState.table, tableState.row, tableState.col);
+                boolean isTab = (keyCode == KeyEvent.VK_TAB);
+                boolean isEnter = (keyCode == KeyEvent.VK_ENTER);
+
+                if (!sameCell && ctx.currentTableRef[0] != null && !isTab && !isEnter) {
+                    RecordAgent.emitTableSearchAndUpdate(ctx, now);
+                    RecordAgent.ensureCurrentTableCell(ctx, tableState.table, tableState.row, tableState.col, now, true);
+                    sameCell = true;
+                }
+
+                if (!sameCell) {
+                    RecordAgent.ensureCurrentTableCell(ctx, tableState.table, tableState.row, tableState.col, now, true);
+                }
+
+                if (isTab || isEnter) {
+                    ctx.currentTableHadKeyRef[0] = true;
+                    ctx.lastTableInteractionTimeRef[0] = now;
+                    RecordAgent.emitTableSearchAndUpdate(ctx, now);
+                } else {
+                    ctx.currentTableHadKeyRef[0] = true;
+                    ctx.lastTableInteractionTimeRef[0] = now;
+                }
+            }
             ctx.pressedKeyCodes.remove(keyCode);
         } else if (id == KeyEvent.KEY_TYPED) {
             // Do not send any step on KEY_TYPED; only buffer for session (step created on blur/Enter/Tab)

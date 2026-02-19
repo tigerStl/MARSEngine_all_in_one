@@ -18,6 +18,10 @@
     .toolbar-btn.img-btn img { width: 16px; height: 16px; margin-right: 4px; vertical-align: middle; }
     .toolbar-btn.icon-only { width: 28px; height: 28px; padding: 0; }
     .toolbar-btn.icon-only img { width: 16px; height: 16px; display: block; }
+    .toolbar-btn.save-special { width: auto; min-width: 52px; padding: 0 10px; background: linear-gradient(135deg, #6a1b9a, #4527a0); color: #ffffff; border-color: #311b92; font-weight: 600; }
+    .toolbar-btn.save-special:hover { background: linear-gradient(135deg, #7b1fa2, #512da8); }
+    .toolbar-btn.load-special { width: auto; min-width: 52px; padding: 0 10px; background: linear-gradient(135deg, #00695c, #00897b); color: #ffffff; border-color: #004d40; font-weight: 600; }
+    .toolbar-btn.load-special:hover { background: linear-gradient(135deg, #00796b, #009688); }
     .toolbar-combo { min-width: 200px; padding: 4px 8px; font-size: 12px; border: 1px solid var(--vscode-input-border); background: var(--vscode-input-background); color: var(--vscode-input-foreground); border-radius: 4px; }
     .main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
     .left-panel { width: 280px; min-width: 200px; display: flex; flex-direction: column; border-right: 1px solid var(--vscode-panel-border); overflow: hidden; flex-shrink: 0; }
@@ -110,6 +114,8 @@
       </select>
       <button class="toolbar-btn icon-only" id="btnRecordReplay" title="Record &amp; Replay / Stop (Ctrl+Alt+F12)" disabled><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='8'/%3E%3Ccircle cx='12' cy='12' r='3' fill='currentColor' stroke='none'/%3E%3C/svg%3E" alt="Record &amp; Replay"/></button>
       <button class="toolbar-btn icon-only" id="btnExecute" title="Execute"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpolygon points='5 3 19 12 5 21 5 3'/%3E%3C/svg%3E" alt="Execute"/></button>
+      <button class="toolbar-btn save-special" id="btnSaveSteps" title="Save test steps to JSON file">Save</button>
+      <button class="toolbar-btn load-special" id="btnLoadSteps" title="Load test steps from JSON file">Load</button>
       <button class="toolbar-btn icon-only" id="btnRefreshObjects" title="Refresh Object List"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M21 12a9 9 0 1 1-3-6.7'/%3E%3Cpolyline points='21 3 21 9 15 9'/%3E%3C/svg%3E" alt="Refresh"/></button>
       <div class="toolbar-spacer"></div>
       <button class="toolbar-btn icon-only" id="btnToggleLog" title="Log"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M12 2v6'/%3E%3Cpath d='M12 16v6'/%3E%3Cpath d='M4.93 4.93l4.24 4.24'/%3E%3Cpath d='M14.83 14.83l4.24 4.24'/%3E%3Cpath d='M2 12h6'/%3E%3Cpath d='M16 12h6'/%3E%3Cpath d='M4.93 19.07l4.24-4.24'/%3E%3Cpath d='M14.83 9.17l4.24-4.24'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E" alt="Log"/></button>
@@ -303,6 +309,18 @@
       vscode.postMessage({ type: 'execute', pid: selectedProcess, steps: steps });
     };
 
+    document.getElementById('btnSaveSteps').onclick = () => {
+      appendLog('[action] Save Test Steps clicked.\r\n');
+      switchTopTab('log');
+      vscode.postMessage({ type: 'saveStepsFile', steps: steps });
+    };
+
+    document.getElementById('btnLoadSteps').onclick = () => {
+      appendLog('[action] Load Test Steps clicked.\r\n');
+      switchTopTab('log');
+      vscode.postMessage({ type: 'loadStepsFile' });
+    };
+
     document.getElementById('processCombo').onchange = () => {
       const combo = document.getElementById('processCombo');
       const val = combo ? combo.value : '';
@@ -375,6 +393,10 @@
           if (btnSpyStart) btnSpyStart.disabled = true;
           const btnRefreshStart = document.getElementById('btnRefreshObjects');
           if (btnRefreshStart) btnRefreshStart.disabled = true;
+          const btnSaveStart = document.getElementById('btnSaveSteps');
+          if (btnSaveStart) btnSaveStart.disabled = true;
+          const btnLoadStart = document.getElementById('btnLoadSteps');
+          if (btnLoadStart) btnLoadStart.disabled = true;
           const btnLogStart = document.getElementById('btnToggleLog');
           if (btnLogStart) btnLogStart.disabled = true;
           const comboStart = document.getElementById('processCombo');
@@ -395,6 +417,10 @@
           if (btnSpyStop) btnSpyStop.disabled = false;
           const btnRefreshStop = document.getElementById('btnRefreshObjects');
           if (btnRefreshStop) btnRefreshStop.disabled = false;
+          const btnSaveStop = document.getElementById('btnSaveSteps');
+          if (btnSaveStop) btnSaveStop.disabled = false;
+          const btnLoadStop = document.getElementById('btnLoadSteps');
+          if (btnLoadStop) btnLoadStop.disabled = false;
           const btnLogStop = document.getElementById('btnToggleLog');
           if (btnLogStop) btnLogStop.disabled = false;
           const comboStop = document.getElementById('processCombo');
@@ -452,6 +478,18 @@
           visualNodes = stepsToVisualNodes(steps);
           renderSteps();
           if (document.getElementById('visualTabContent').classList.contains('active')) renderVisual();
+          break;
+        case 'loadedSteps':
+          steps = [];
+          visualNodes = [];
+          selectedVisualNodeIndex = -1;
+          renderSteps();
+          renderVisual();
+          steps = Array.isArray(msg.data) ? msg.data : [];
+          visualNodes = stepsToVisualNodes(steps);
+          renderSteps();
+          switchBottomTab('visual');
+          renderVisual();
           break;
         case 'executeResult':
           if (typeof msg.failedIndex === 'number' && steps[msg.failedIndex]) {

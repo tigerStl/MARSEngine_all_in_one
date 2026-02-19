@@ -32,6 +32,7 @@ export interface LegacyRecordMessage {
   keyword?: string;
   parentIdentifier?: Record<string, unknown>;
   objectIdentifier?: Record<string, unknown>;
+  parameter?: string;
   data?: string;
   content?: string;
   timestamp?: number;
@@ -63,6 +64,7 @@ function semanticToRecordedStep(step: SemanticStep, id: string): RecordedStepOut
       parentKey: step.objectRef.parent,
       objectKey: step.objectRef.self,
     },
+    parameter: step.parameter,
     data: step.data,
     meta: {
       ts: step.ts,
@@ -274,6 +276,48 @@ export class RecordingEngine {
       }
       case 'selectTreeList': {
         this.treeAggregator.commitPath(ts, ref, (msg.data as string) ?? '');
+        return;
+      }
+      case 'searchAndUpdate': {
+        this.stepId += 1;
+        this.callbacks.onStep(
+          semanticToRecordedStep(
+            {
+              keyword: 'SearchAndUpdate',
+              objectRef: toStrictRef(ref),
+              parameter: (msg.parameter ?? '') as string,
+              data: (msg.data ?? msg.content ?? '') as string,
+              ts,
+            },
+            'step-' + this.stepId
+          )
+        );
+        return;
+      }
+      case 'searchAndClick': {
+        this.stepId += 1;
+        this.callbacks.onStep(
+          semanticToRecordedStep(
+            {
+              keyword: 'SearchAndClick',
+              objectRef: toStrictRef(ref),
+              parameter: (msg.parameter ?? '') as string,
+              data: (msg.data ?? msg.content ?? '') as string,
+              ts,
+            },
+            'step-' + this.stepId
+          )
+        );
+        return;
+      }
+      case 'selectPopupMenu': {
+        this.stepId += 1;
+        this.callbacks.onStep(
+          semanticToRecordedStep(
+            { keyword: 'SelectPopupMenu', objectRef: toStrictRef(ref), data: (msg.data ?? msg.content ?? '') as string, ts },
+            'step-' + this.stepId
+          )
+        );
         return;
       }
       case 'fillEdit': {

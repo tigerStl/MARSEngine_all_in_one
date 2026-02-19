@@ -41,6 +41,7 @@ VSCode/
 - **Java Agent 日志**：
   - **agent-loader**：其 JAR 同目录下的 `javaagentLog/`（如 `java/agent-loader/target/javaagentLog/agent-loader.log`）
   - **marsJavaAgent**：扩展会将 JAR 复制到临时目录再加载；扫描时日志在该**临时 JAR 同目录**的 `javaagentLog/`，录制时日志在**录制目录**（recordDir，通常位于 `scanedfiles/` 下）的 `record-debug.log`、`toolbutton-tooltips.log`
+    - 鼠标点击临时跟踪开关（坐标/对象类/父类）：`-Dmars.record.mouse.click.trace.enabled=true|false`（默认 `true`，设为 `false` 可关闭这类临时日志）
 
 ## 需求与实现对照
 

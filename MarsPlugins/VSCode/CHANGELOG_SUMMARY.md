@@ -1,5 +1,25 @@
 # Java UI Automation - 修改摘要 (Summary of Changes)
 
+## 2026-02-19 增量总结
+
+### 核心能力增强
+- JTable 录制增强：新增 `SearchAndClick`、`SearchAndUpdate`、`SelectPopupMenu` 录制链路，支持单元格级参数与条件列数据生成。
+- JTable 回放增强：`SearchAndUpdate` 按 para/data 解析后执行定位、匹配、更新、提交（回车），并在失败时返回明确错误。
+- 事件链路打通：Java Agent → Recorder → Adapter → Panel 全链路支持 `parameter` 字段，避免步骤参数丢失。
+
+### 面板与可维护性
+- 新增 Save/Load 按钮（独立配色），支持步骤导出/导入 JSON。
+- Load 前增加“清空当前步骤”确认；加载后会清空并重绘可视化流程。
+- 保存文件写入 MARS 元信息（marker/copyright/purpose/version/generatedAt/md5）；加载阶段按最新要求不再校验 md5。
+
+### 诊断与稳定性
+- 增加可配置录制步骤调试日志：`loaniq.recordingStepDebugLog`（默认 `false`），输出 keyword/parameter/data。
+- 修复关键词降级风险：补齐 fallback 白名单，避免 `SearchAndUpdate`/`SearchAndClick`/`SelectPopupMenu` 被错误回退为 `Click`。
+
+### 构建验证
+- Extension：`npm run compile` 通过。
+- Java：`mvn clean package` / `mvn -pl marsJavaAgent -DskipTests package` 通过。
+
 ## 1. 数据与输出路径
 - **scanedfiles**：扫描与脚本统一存放在插件安装目录下的 `scanedfiles/`，不再依赖工作区文件夹
 - **按进程缓存**：扫描结果同时写入 `objects.json` 与 `objects-<pid>.json`，便于按应用切换加载

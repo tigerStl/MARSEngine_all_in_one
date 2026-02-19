@@ -5,6 +5,7 @@ import java.io.Writer;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JComboBox;
+import javax.swing.JTable;
 import javax.swing.Timer;
 import javax.swing.event.TreeExpansionListener;
 import org.java_websocket.WebSocket;
@@ -49,6 +50,27 @@ public final class RecordingContext {
     public final Component[] currentEditComponentRef;
     public final String[] currentEditInitialTextRef;
     public final boolean[] currentEditHadKeyRef;
+
+    // Table state
+    public final JTable[] currentTableRef;
+    public final int[] currentTableRowRef;
+    public final int[] currentTableColRef;
+    public final String[] currentTableColumnNameRef;
+    public final String[] currentTableInitialValueRef;
+    public final boolean[] currentTableHadKeyRef;
+    public final boolean[] currentTableValueChangedRef;
+    public final boolean[] currentTableEmittedRef;
+    public final String[][] currentTableConditionColumnsRef;
+    public final String[][] currentTableConditionValuesRef;
+    public final long[] lastTableInteractionTimeRef;
+    public final JTable[] lastTableRightClickRef;
+    public final int[] lastTableRightClickRowRef;
+    public final int[] lastTableRightClickColRef;
+    public final String[] lastTableRightClickColumnNameRef;
+    public final String[] lastTableRightClickCellValueRef;
+    public final String[][] lastTableRightClickConditionColumnsRef;
+    public final String[][] lastTableRightClickConditionValuesRef;
+    public final long[] lastTableRightClickTimeRef;
 
     // Key state
     public final long[] lastKeyDedupWhenRef;
@@ -98,6 +120,25 @@ public final class RecordingContext {
             Component[] currentEditComponentRef,
             String[] currentEditInitialTextRef,
             boolean[] currentEditHadKeyRef,
+            JTable[] currentTableRef,
+            int[] currentTableRowRef,
+            int[] currentTableColRef,
+            String[] currentTableColumnNameRef,
+            String[] currentTableInitialValueRef,
+            boolean[] currentTableHadKeyRef,
+            boolean[] currentTableValueChangedRef,
+            boolean[] currentTableEmittedRef,
+            String[][] currentTableConditionColumnsRef,
+            String[][] currentTableConditionValuesRef,
+            long[] lastTableInteractionTimeRef,
+            JTable[] lastTableRightClickRef,
+            int[] lastTableRightClickRowRef,
+            int[] lastTableRightClickColRef,
+            String[] lastTableRightClickColumnNameRef,
+            String[] lastTableRightClickCellValueRef,
+            String[][] lastTableRightClickConditionColumnsRef,
+            String[][] lastTableRightClickConditionValuesRef,
+            long[] lastTableRightClickTimeRef,
             long[] lastKeyDedupWhenRef,
             int[] lastKeyDedupIdRef,
             int[] lastKeyDedupCodeRef,
@@ -143,6 +184,25 @@ public final class RecordingContext {
         this.currentEditComponentRef = currentEditComponentRef;
         this.currentEditInitialTextRef = currentEditInitialTextRef;
         this.currentEditHadKeyRef = currentEditHadKeyRef;
+        this.currentTableRef = currentTableRef;
+        this.currentTableRowRef = currentTableRowRef;
+        this.currentTableColRef = currentTableColRef;
+        this.currentTableColumnNameRef = currentTableColumnNameRef;
+        this.currentTableInitialValueRef = currentTableInitialValueRef;
+        this.currentTableHadKeyRef = currentTableHadKeyRef;
+        this.currentTableValueChangedRef = currentTableValueChangedRef;
+        this.currentTableEmittedRef = currentTableEmittedRef;
+        this.currentTableConditionColumnsRef = currentTableConditionColumnsRef;
+        this.currentTableConditionValuesRef = currentTableConditionValuesRef;
+        this.lastTableInteractionTimeRef = lastTableInteractionTimeRef;
+        this.lastTableRightClickRef = lastTableRightClickRef;
+        this.lastTableRightClickRowRef = lastTableRightClickRowRef;
+        this.lastTableRightClickColRef = lastTableRightClickColRef;
+        this.lastTableRightClickColumnNameRef = lastTableRightClickColumnNameRef;
+        this.lastTableRightClickCellValueRef = lastTableRightClickCellValueRef;
+        this.lastTableRightClickConditionColumnsRef = lastTableRightClickConditionColumnsRef;
+        this.lastTableRightClickConditionValuesRef = lastTableRightClickConditionValuesRef;
+        this.lastTableRightClickTimeRef = lastTableRightClickTimeRef;
         this.lastKeyDedupWhenRef = lastKeyDedupWhenRef;
         this.lastKeyDedupIdRef = lastKeyDedupIdRef;
         this.lastKeyDedupCodeRef = lastKeyDedupCodeRef;

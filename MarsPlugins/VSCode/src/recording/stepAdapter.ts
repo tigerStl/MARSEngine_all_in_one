@@ -9,7 +9,8 @@ import type { TestScriptStep, ElementIdentifier, ScriptKeyword } from '../types'
 const KEYWORDS: ScriptKeyword[] = [
   'Click', 'ClickButton', 'DoubleClickButton', 'ClickMenuIcon', 'FillEdit',
   'SelectDropDown', 'SelectDropList', 'SelectListItem', 'SelectMenuItem',
-  'SelectTreeList', 'SelectTab', 'SelectMenuIcon', 'Check', 'Uncheck',
+  'SelectTreeList', 'SelectTab', 'SelectMenuIcon', 'SelectPopupMenu',
+  'SearchAndClick', 'SearchAndUpdate', 'Check', 'Uncheck',
 ];
 
 function keyToElementId(p: { javaName: string; javaType: string; javaNamePath?: string[]; index: number }): ElementIdentifier {
@@ -28,7 +29,7 @@ export function recordedStepToTestScriptStep(step: RecordedStep): TestScriptStep
     keyword,
     parentIdentifier: step.object.parentKey ? keyToElementId(step.object.parentKey) : {},
     objectIdentifier: keyToElementId(step.object.objectKey),
-    parameter: '',
+    parameter: step.parameter ?? '',
     data: step.data ?? '',
     assertValue: '',
     skipped: false,

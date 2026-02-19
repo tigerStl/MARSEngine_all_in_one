@@ -374,7 +374,7 @@ export async function startRecordAgent(
           }
           return;
         }
-        if (msg.event === 'click' || msg.event === 'clickButton' || msg.event === 'focusLost' || msg.event === 'componentProperties' || msg.event === 'fillEdit' || msg.event === 'pressKey' || msg.event === 'keyChordAction' || msg.event === 'textInputAction' || msg.event === 'rawKeyEventAction' || msg.event === 'selectDropDown' || msg.event === 'selectDropList' || msg.event === 'selectMenuItem' || msg.event === 'selectMenuIcon' || msg.event === 'selectTreeList' || msg.event === 'expandTreeNode' || msg.event === 'collapseTreeNode') {
+        if (msg.event === 'click' || msg.event === 'clickButton' || msg.event === 'focusLost' || msg.event === 'componentProperties' || msg.event === 'fillEdit' || msg.event === 'pressKey' || msg.event === 'keyChordAction' || msg.event === 'textInputAction' || msg.event === 'rawKeyEventAction' || msg.event === 'selectDropDown' || msg.event === 'selectDropList' || msg.event === 'selectMenuItem' || msg.event === 'selectMenuIcon' || msg.event === 'selectTreeList' || msg.event === 'expandTreeNode' || msg.event === 'collapseTreeNode' || msg.event === 'searchAndUpdate' || msg.event === 'searchAndClick' || msg.event === 'selectPopupMenu') {
           onEvent(msg);
         }
       } catch (e) {

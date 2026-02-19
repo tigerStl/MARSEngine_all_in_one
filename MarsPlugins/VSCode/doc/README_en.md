@@ -43,6 +43,7 @@ VSCode/
 - **Java Agent logs**:
   - **agent-loader**: Under `javaagentLog/` next to its JAR (e.g. `java/agent-loader/target/javaagentLog/agent-loader.log`)
   - **unified-agent**: Extension copies the JAR to a temp dir before load; scan logs under `javaagentLog/` next to that JAR, record logs in the **record directory** (recordDir): `record-debug.log`, `toolbutton-tooltips.log`
+    - Temporary mouse-click trace switch (position/object class/parent class): `-Dmars.record.mouse.click.trace.enabled=true|false` (default `true`; set to `false` to disable this temporary trace)
 
 ## Requirements vs Implementation
 

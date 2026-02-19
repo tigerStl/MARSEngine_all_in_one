@@ -20,6 +20,7 @@ export interface ObjectRefStrict {
 export interface SemanticStep {
   keyword: string;
   objectRef: ObjectRefStrict;
+  parameter?: string;
   data?: string;
   ts: number;
   meta?: {

@@ -9,10 +9,15 @@ import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
+
 import javax.swing.JComboBox;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JTable;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
+
 import org.java_websocket.WebSocket;
 
 import com.mars.javaui.record.AgentLogger;
@@ -24,12 +29,21 @@ import com.mars.javaui.record.keyword.MarsKeyword;
 public final class MouseEventHandler {
 
     private static final java.util.logging.Logger LOG = java.util.logging.Logger.getLogger(MouseEventHandler.class.getName());
+    private static final boolean MOUSE_CLICK_TRACE_ENABLED = Boolean.parseBoolean(
+            System.getProperty("mars.record.mouse.click.trace.enabled", "true"));
 
     public static void handle(MouseEvent me, RecordingContext ctx) {
         int id = me.getID();
         if (id == MouseEvent.MOUSE_CLICKED) return;
 
-        Component clickTarget = RecordAgent.resolveClickTarget(me.getComponent());
+        Component rawComp = me.getComponent();
+        JTable table = RecordAgent.resolveJTable(rawComp);
+        if (table != null) {
+            handleTableMouseEvent(me, ctx, table);
+            return;
+        }
+
+        Component clickTarget = RecordAgent.resolveClickTarget(rawComp);
         if (clickTarget == null) return;
         if (EventFilterConfig.shouldSkipMouseKeyboard(clickTarget)) return;
         if (!clickTarget.isShowing() || !clickTarget.isEnabled()) return;
@@ -52,15 +66,20 @@ public final class MouseEventHandler {
 
         Rectangle rect = clickTarget.getBounds();
         String objectType = clickTarget.getClass().getName();
+        String parentType = clickTarget.getParent() != null ? clickTarget.getParent().getClass().getName() : "";
         String eventKind = (id == MouseEvent.MOUSE_PRESSED) ? "Pressed" : (id == MouseEvent.MOUSE_RELEASED) ? "Released" : "Other";
-        if (id == MouseEvent.MOUSE_PRESSED || id == MouseEvent.MOUSE_RELEASED) {
-            String objectName = RecordAgent.getComponentNameForLog(clickTarget);
-            AgentLogger.info(LOG, "ClickEvent time=" + now + ", name=" + objectName + ", type=" + objectType
+        if (MOUSE_CLICK_TRACE_ENABLED) {
+            if (id == MouseEvent.MOUSE_PRESSED || id == MouseEvent.MOUSE_RELEASED) {
+                String objectName = RecordAgent.getComponentNameForLog(clickTarget);
+                AgentLogger.info(LOG, "ClickEvent time=" + now + ", name=" + objectName + ", type=" + objectType
+                    + ", parentType=" + parentType
                     + ", phase=" + eventKind + ", x=" + x + ", y=" + y + ", screenX=" + screenX + ", screenY=" + screenY);
+            }
+            RecordAgent.appendDebugLog(ctx.outputDir, "MouseEvent_[" + eventKind + "], " + now + ", " + objectType
+                + ", parentType=" + parentType
+                    + ", x=" + x + ",y=" + y + ", screenX=" + screenX + ",screenY=" + screenY
+                    + ", rect=" + rect.x + "," + rect.y + "," + rect.width + "," + rect.height);
         }
-        RecordAgent.appendDebugLog(ctx.outputDir, "MouseEvent_[" + eventKind + "], " + now + ", " + objectType
-                + ", x=" + x + ",y=" + y + ", screenX=" + screenX + ",screenY=" + screenY
-                + ", rect=" + rect.x + "," + rect.y + "," + rect.width + "," + rect.height);
 
         if (clickTarget instanceof JComboBox) {
             if (id == MouseEvent.MOUSE_PRESSED) {
@@ -77,13 +96,26 @@ public final class MouseEventHandler {
         if (clickTarget instanceof JMenuItem && !(clickTarget instanceof JMenu)) {
             if (id == MouseEvent.MOUSE_RELEASED) {
                 JMenuItem mi = (JMenuItem) clickTarget;
-                String data = RecordAgent.buildMenuPathString(mi);
-                Map<String, Object> step = MarsKeyword.buildScriptStep("SelectMenuItem", mi, "", data, "");
-                step.put("event", "selectMenuItem");
-                step.put("timestamp", now);
-                RecordAgent.putComponentInfo(step, mi);
-                step.put("content", data);
-                emitStep(ctx, step);
+                boolean isPopup = isPopupMenuItem(mi);
+                if (isPopup && isRecentTableRightClick(ctx, now)) {
+                    String data = mi.getText() != null ? mi.getText() : "";
+                    Map<String, Object> step = MarsKeyword.buildScriptStep("SelectPopupMenu", mi, "", data, "");
+                    step.put("event", "selectPopupMenu");
+                    step.put("timestamp", now);
+                    RecordAgent.putComponentInfo(step, mi);
+                    step.put("content", data);
+                    emitStep(ctx, step);
+                    ctx.lastTableRightClickRef[0] = null;
+                    ctx.lastTableRightClickTimeRef[0] = 0L;
+                } else {
+                    String data = RecordAgent.buildMenuPathString(mi);
+                    Map<String, Object> step = MarsKeyword.buildScriptStep("SelectMenuItem", mi, "", data, "");
+                    step.put("event", "selectMenuItem");
+                    step.put("timestamp", now);
+                    RecordAgent.putComponentInfo(step, mi);
+                    step.put("content", data);
+                    emitStep(ctx, step);
+                }
             }
             return;
         }
@@ -215,6 +247,102 @@ public final class MouseEventHandler {
         timer.setRepeats(false);
         timer.start();
         ctx.pendingClickTimerRef.set(timer);
+    }
+
+    private static void handleTableMouseEvent(MouseEvent me, RecordingContext ctx, JTable table) {
+        int id = me.getID();
+        if (id != MouseEvent.MOUSE_PRESSED && id != MouseEvent.MOUSE_RELEASED) return;
+        if (EventFilterConfig.shouldSkipMouseKeyboard(table)) return;
+        if (!table.isShowing() || !table.isEnabled()) return;
+
+        long now = System.currentTimeMillis();
+        int button = me.getButton();
+        Point p = SwingUtilities.convertPoint(me.getComponent(), me.getPoint(), table);
+        int row = table.rowAtPoint(p);
+        int col = table.columnAtPoint(p);
+
+        boolean headerActivated = (row < 0 && col >= 0);
+        boolean cellActivated = (row >= 0 && col >= 0);
+        if (!headerActivated && !cellActivated) return;
+
+        if (headerActivated) {
+            ctx.lastTableInteractionTimeRef[0] = now;
+            return;
+        }
+
+        if (id == MouseEvent.MOUSE_PRESSED) {
+            try {
+                Rectangle rect = table.getCellRect(row, col, true);
+                Point loc = table.getLocationOnScreen();
+                int sx = loc != null ? loc.x + rect.x : 0;
+                int sy = loc != null ? loc.y + rect.y : 0;
+                String parentType = table.getParent() != null ? table.getParent().getClass().getName() : "";
+                String msg = "ActivateTableCell time=" + now + ", cellType=TableCell, parentType=" + parentType
+                        + ", row=" + row + ", col=" + col
+                        + ", x=" + sx + ", y=" + sy + ", w=" + rect.width + ", h=" + rect.height;
+                AgentLogger.info(LOG, msg);
+                RecordAgent.appendDebugLog(ctx.outputDir, msg);
+            } catch (Exception e) {
+                AgentLogger.logException(LOG, Level.FINE, "table cell bounds", e);
+            }
+        }
+
+        ctx.lastTableInteractionTimeRef[0] = now;
+
+        if (button == MouseEvent.BUTTON3 && id == MouseEvent.MOUSE_RELEASED) {
+            String targetColumn = RecordAgent.getTableColumnName(table, col);
+            if (targetColumn == null || targetColumn.trim().isEmpty()) {
+                targetColumn = String.valueOf(col);
+            }
+            String cellValue = RecordAgent.getTableCellValue(table, row, col);
+            String[] condCols = RecordAgent.getTableConditionColumns(table);
+            String[] condVals = RecordAgent.getTableConditionValues(table, row, condCols);
+            String param = "RightClick;" + RecordAgent.buildTableParameter(targetColumn, condCols);
+            String data = RecordAgent.buildTableDataWithConditions(condVals, cellValue);
+            Map<String, Object> step = MarsKeyword.buildScriptStep("SearchAndClick", table, param, data, "");
+            step.put("event", "searchAndClick");
+            step.put("timestamp", now);
+            RecordAgent.putComponentInfo(step, table);
+            RecordAgent.putTableCellBounds(step, table, row, col);
+            step.put("content", data);
+            emitStep(ctx, step);
+            String emitMsg = "StepEmit keyword=SearchAndClick, event=searchAndClick, trigger=mouse-right, row=" + row + ", col=" + col;
+            AgentLogger.info(LOG, emitMsg);
+            RecordAgent.appendDebugLog(ctx.outputDir, emitMsg);
+
+            ctx.lastTableRightClickRef[0] = table;
+            ctx.lastTableRightClickRowRef[0] = row;
+            ctx.lastTableRightClickColRef[0] = col;
+            ctx.lastTableRightClickColumnNameRef[0] = targetColumn;
+            ctx.lastTableRightClickCellValueRef[0] = cellValue;
+            ctx.lastTableRightClickConditionColumnsRef[0] = condCols;
+            ctx.lastTableRightClickConditionValuesRef[0] = condVals;
+            ctx.lastTableRightClickTimeRef[0] = now;
+            return;
+        }
+
+        if (button == MouseEvent.BUTTON1 && id == MouseEvent.MOUSE_PRESSED) {
+            boolean changedCell = ctx.currentTableRef[0] != table
+                    || ctx.currentTableRowRef[0] != row
+                    || ctx.currentTableColRef[0] != col;
+            if (!changedCell) return;
+            RecordAgent.ensureCurrentTableCell(ctx, table, row, col, now, changedCell);
+        }
+    }
+
+    private static boolean isPopupMenuItem(JMenuItem item) {
+        if (item == null) return false;
+        for (Component p = item; p != null; p = p.getParent()) {
+            if (p instanceof JPopupMenu) return true;
+            if (p instanceof JMenu) return false;
+        }
+        return false;
+    }
+
+    private static boolean isRecentTableRightClick(RecordingContext ctx, long now) {
+        if (ctx == null || ctx.lastTableRightClickRef[0] == null) return false;
+        long last = ctx.lastTableRightClickTimeRef[0];
+        return last > 0 && (now - last) <= 5000;
     }
 
     private static void emitStep(RecordingContext ctx, Map<String, Object> step) {
