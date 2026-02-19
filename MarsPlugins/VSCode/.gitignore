@@ -11,3 +11,5 @@ scanedfiles/
 HighlightOverlay/bin/
 HighlightOverlay/obj/
 javaagentLog/
+java/marsJavaAgent/.idea/
+java/marsJavaAgent/.vscode/
