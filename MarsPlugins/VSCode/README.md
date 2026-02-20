@@ -1,6 +1,6 @@
 # Java UI Automation Test Extension
 
-针对 Java Application 的自动化测试插件。采用 JVM Agent 模式扫描界面元素，生成测试脚本（JSON 格式）。当前版本**仅生成脚本，不执行**。
+针对 Java Application 的自动化测试插件。采用 JVM Agent 模式扫描界面元素，支持录制、编辑并回放执行测试脚本（JSON 格式）。
 
 ## 功能
 
@@ -86,7 +86,7 @@ cd ..
 4. 在左侧列表**双击**某一进程 → 对该进程 attach 并扫描 UI，对象树显示在左侧
 5. 单击对象可查看 **Object Info**（含 Name、Type、Text、x,y,w,h、Visible 等）；**双击对象**可在目标窗口对应位置显示红框闪烁 3 次
 6. 点击 **Generate Test Steps** 生成测试步骤（或使用命令面板 `Java UI: Generate Test Script`）
-7. **Execute** 当前仅提示“仅生成脚本，不执行”
+7. 点击 **Execute** 可按当前 Test Steps 执行回放
 
 ### 命令面板方式
 

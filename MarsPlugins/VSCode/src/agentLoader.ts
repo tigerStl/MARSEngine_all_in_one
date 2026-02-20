@@ -9,6 +9,7 @@ import { spawn } from 'child_process';
 import WebSocket from 'ws';
 
 const LOG_FILE = path.join(os.tmpdir(), 'marsExtension-agentLoader.log');
+const AGENT_RUNTIME_CONFIG_FILE = 'marsJavaAgent-config.json';
 
 function writeLog(message: string): void {
   try {
@@ -26,6 +27,18 @@ function getJavaExecutable(): string {
     return path.join(javaHome, 'bin', exe);
   }
   return 'java';
+}
+
+function copyAgentRuntimeConfig(agentJarPath: string, tempAgentJarPath: string): void {
+  try {
+    const src = path.join(path.dirname(agentJarPath), AGENT_RUNTIME_CONFIG_FILE);
+    if (!fs.existsSync(src)) return;
+    const dst = path.join(path.dirname(tempAgentJarPath), AGENT_RUNTIME_CONFIG_FILE);
+    fs.copyFileSync(src, dst);
+    writeLog(`[copyAgentRuntimeConfig] copied ${src} -> ${dst}`);
+  } catch (e) {
+    writeLog(`[copyAgentRuntimeConfig] failed: ${String(e)}`);
+  }
 }
 
 export interface ScanResult {
@@ -92,6 +105,7 @@ export async function loadAgentAndScan(
   const tempAgentJar = path.join(os.tmpdir(), `marsJavaAgent-scan-${pid}-${ts}.jar`);
   try {
     fs.copyFileSync(marsJavaAgentJar, tempAgentJar);
+    copyAgentRuntimeConfig(marsJavaAgentJar, tempAgentJar);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     writeLog(`[loadAgentAndScan] branch: copy JAR failed pid=${pid} error=${msg}`);
@@ -247,6 +261,7 @@ export async function startRecordAgent(
   const tempAgentJar = path.join(os.tmpdir(), `marsJavaAgent-record-${pid}-${Date.now()}.jar`);
   try {
     fs.copyFileSync(marsJavaAgentJar, tempAgentJar);
+    copyAgentRuntimeConfig(marsJavaAgentJar, tempAgentJar);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     writeLog(`[startRecordAgent] copy JAR failed pid=${pid} error=${msg}`);
@@ -439,6 +454,7 @@ export async function replaySteps(
   const tempAgentJar = path.join(os.tmpdir(), `marsJavaAgent-replay-${pid}-${Date.now()}.jar`);
   try {
     fs.copyFileSync(marsJavaAgentJar, tempAgentJar);
+    copyAgentRuntimeConfig(marsJavaAgentJar, tempAgentJar);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     writeLog(`[replaySteps] copy JAR failed pid=${pid} error=${msg}`);

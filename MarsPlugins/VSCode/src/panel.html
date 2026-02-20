@@ -210,6 +210,8 @@
         <input type="text" id="visualEditType" />
         <label for="visualEditName">Name</label>
         <input type="text" id="visualEditName" />
+        <label for="visualEditParameter">Parameter</label>
+        <input type="text" id="visualEditParameter" />
         <label for="visualEditData">Data</label>
         <input type="text" id="visualEditData" />
         <label for="visualEditText">Text</label>
@@ -757,11 +759,13 @@
               const object = listForClick[idx];
               vscode.postMessage({ type: 'selectObject', object: object });
               if (selectedProcess != null) vscode.postMessage({ type: 'highlight', pid: selectedProcess, object: object });
-              if (objectListAddStepTimer != null) clearTimeout(objectListAddStepTimer);
-              objectListAddStepTimer = setTimeout(function() {
-                objectListAddStepTimer = null;
-                addSelectListItemVisualNode(object);
-              }, 250);
+              if (isRecording) {
+                if (objectListAddStepTimer != null) clearTimeout(objectListAddStepTimer);
+                objectListAddStepTimer = setTimeout(function() {
+                  objectListAddStepTimer = null;
+                  addSelectListItemVisualNode(object);
+                }, 250);
+              }
             }
           };
           el.ondblclick = (e) => {
@@ -800,11 +804,13 @@
             const object = objects[idx];
             vscode.postMessage({ type: 'selectObject', object: object });
             if (selectedProcess != null) vscode.postMessage({ type: 'highlight', pid: selectedProcess, object: object });
-            if (objectListAddStepTimer != null) clearTimeout(objectListAddStepTimer);
-            objectListAddStepTimer = setTimeout(function() {
-              objectListAddStepTimer = null;
-              addSelectListItemVisualNode(object);
-            }, 250);
+            if (isRecording) {
+              if (objectListAddStepTimer != null) clearTimeout(objectListAddStepTimer);
+              objectListAddStepTimer = setTimeout(function() {
+                objectListAddStepTimer = null;
+                addSelectListItemVisualNode(object);
+              }, 250);
+            }
           }
         };
         el.ondblclick = () => {
@@ -1017,6 +1023,7 @@
       document.getElementById('visualEditKeyword').value = n.keyword || n.event || '';
       document.getElementById('visualEditType').value = n.type || '';
       document.getElementById('visualEditName').value = n.name || '';
+      document.getElementById('visualEditParameter').value = n.parameter || '';
       document.getElementById('visualEditData').value = n.data || '';
       document.getElementById('visualEditText').value = n.text || '';
       var namePath = Array.isArray(n.javaNamePath) ? n.javaNamePath.join('/') : (n.javaNamePath || '');
@@ -1043,9 +1050,11 @@
         n.keyword = document.getElementById('visualEditKeyword').value.trim();
         n.type = document.getElementById('visualEditType').value.trim();
         n.name = document.getElementById('visualEditName').value.trim();
+        n.parameter = document.getElementById('visualEditParameter').value.trim();
         n.data = document.getElementById('visualEditData').value.trim();
         n.text = document.getElementById('visualEditText').value.trim();
         renderVisual();
+        syncStepsToExtension();
       }
       hideEditVisualNodeModal();
     }
@@ -1054,7 +1063,7 @@
       return visualNodes.map(function(n) {
         var o = n.objectIdentifier || { javaType: n.type, text: n.text, caption: n.text };
         var kw = (n.keyword === 'SelectListItem') ? 'SelectListItem' : (n.keyword === 'FillEdit') ? 'FillEdit' : (n.keyword === 'Click') ? 'Click' : (n.keyword || n.event || 'SelectListItem');
-        return { keyword: kw, parentIdentifier: {}, objectIdentifier: o, parameter: '', data: n.data || '', assertValue: '', skipped: false };
+        return { keyword: kw, parentIdentifier: {}, objectIdentifier: o, parameter: n.parameter || '', data: n.data || '', assertValue: '', skipped: false };
       });
     }
     function stepsToVisualNodes(stepList) {
@@ -1067,6 +1076,7 @@
           text: (o.caption != null ? o.caption : o.text) || '',
           keyword: s.keyword || 'SelectListItem',
           objectIdentifier: o,
+          parameter: s.parameter,
           data: s.data,
           javaNamePath: o.javaNamePath,
           javaTypePath: o.javaTypePath,
@@ -1091,6 +1101,7 @@
         type: id.javaType != null ? String(id.javaType) : '',
         text: text,
         keyword: 'SelectListItem',
+        parameter: '',
         objectIdentifier: id
       });
       switchBottomTab('visual');
@@ -1107,7 +1118,7 @@
         return;
       }
       const nodeW = 150;
-      const nodeH = 56;
+      const nodeH = 66;
       const pad = 16;
       const gap = 18;
       const rawCols = Math.floor((container.clientWidth || 500) / (nodeW + gap));
@@ -1149,9 +1160,10 @@
         const link = g.selectAll('.link').data(linkData).join('path').attr('class', 'link').attr('d', linkPath).attr('fill', 'none').attr('stroke', 'var(--vscode-foreground)').attr('stroke-width', 2.5).attr('stroke-opacity', 0.85).attr('marker-end', 'url(#arrowhead)');
         const node = g.selectAll('.node').data(nodeData).join('g').attr('class', 'node').attr('transform', d => 'translate(' + d.x + ',' + d.y + ')').style('cursor', 'pointer');
         node.append('rect').attr('width', nodeW).attr('height', nodeH).attr('rx', 8).attr('ry', 8).attr('fill', d => colorForType(d.type)).attr('stroke', d => (d.index === selectedVisualNodeIndex) ? 'var(--vscode-focusBorder)' : 'rgba(0,0,0,0.25)').attr('stroke-width', d => (d.index === selectedVisualNodeIndex) ? 2.5 : 1).attr('fill-opacity', 0.96).attr('filter', 'url(#nodeShadow)');
-        node.append('text').attr('x', 8).attr('y', 16).attr('font-size', 10.5).attr('font-weight', 'bold').attr('fill', KEYWORD_COLOR).text(d => (d.keyword || d.event || '—').substring(0, 20));
-        node.append('text').attr('x', 8).attr('y', 34).attr('font-size', 9.5).attr('fill', d => textColorForFill(colorForType(d.type)).muted).text(d => (d.type || '—').substring(0, 22));
-        node.append('text').attr('x', 8).attr('y', 50).attr('font-size', 9.5).attr('fill', d => textColorForFill(colorForType(d.type)).main).text(d => (d.data || '—').substring(0, 22));
+        node.append('text').attr('x', 8).attr('y', 14).attr('font-size', 10.5).attr('font-weight', 'bold').attr('fill', KEYWORD_COLOR).text(d => (d.keyword || d.event || '—').substring(0, 20));
+        node.append('text').attr('x', 8).attr('y', 29).attr('font-size', 9.5).attr('fill', d => textColorForFill(colorForType(d.type)).muted).text(d => (d.type || '—').substring(0, 22));
+        node.append('text').attr('x', 8).attr('y', 44).attr('font-size', 9.5).attr('fill', d => textColorForFill(colorForType(d.type)).muted).text(d => ('P: ' + (d.parameter || '—')).substring(0, 22));
+        node.append('text').attr('x', 8).attr('y', 59).attr('font-size', 9.5).attr('fill', d => textColorForFill(colorForType(d.type)).main).text(d => ('D: ' + (d.data || '—')).substring(0, 22));
         var visualNodeDragStarted = false;
         const drag = d3.drag()
           .on('start', function() {})
@@ -1232,11 +1244,13 @@
         g.appendChild(rect);
         var t1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         var c = textColorForFill(colorForType(nodeData[i].type));
-        t1.setAttribute('x', 8); t1.setAttribute('y', 16); t1.setAttribute('font-size', 10.5); t1.setAttribute('font-weight', 'bold'); t1.setAttribute('fill', KEYWORD_COLOR); t1.textContent = (nodeData[i].keyword || nodeData[i].event || '—').substring(0, 20); g.appendChild(t1);
+        t1.setAttribute('x', 8); t1.setAttribute('y', 14); t1.setAttribute('font-size', 10.5); t1.setAttribute('font-weight', 'bold'); t1.setAttribute('fill', KEYWORD_COLOR); t1.textContent = (nodeData[i].keyword || nodeData[i].event || '—').substring(0, 20); g.appendChild(t1);
         var t2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        t2.setAttribute('x', 8); t2.setAttribute('y', 34); t2.setAttribute('font-size', 9.5); t2.setAttribute('fill', c.muted); t2.textContent = (nodeData[i].type || '—').substring(0, 22); g.appendChild(t2);
+        t2.setAttribute('x', 8); t2.setAttribute('y', 29); t2.setAttribute('font-size', 9.5); t2.setAttribute('fill', c.muted); t2.textContent = (nodeData[i].type || '—').substring(0, 22); g.appendChild(t2);
         var t3 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        t3.setAttribute('x', 8); t3.setAttribute('y', 50); t3.setAttribute('font-size', 9.5); t3.setAttribute('fill', c.main); t3.textContent = (nodeData[i].data || '—').substring(0, 22); g.appendChild(t3);
+        t3.setAttribute('x', 8); t3.setAttribute('y', 44); t3.setAttribute('font-size', 9.5); t3.setAttribute('fill', c.muted); t3.textContent = ('P: ' + (nodeData[i].parameter || '—')).substring(0, 22); g.appendChild(t3);
+        var t4 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        t4.setAttribute('x', 8); t4.setAttribute('y', 59); t4.setAttribute('font-size', 9.5); t4.setAttribute('fill', c.main); t4.textContent = ('D: ' + (nodeData[i].data || '—')).substring(0, 22); g.appendChild(t4);
         (function(grp, idx, svgEl) {
           var drag = false, startX = 0, startY = 0, baseX = 0, baseY = 0;
           var dragThreshold = 5;
@@ -1367,9 +1381,9 @@
         const objectCell = formatIdentifierLocator(o);
         const parentCellMultiline = formatIdentifierLocatorMultiline(p);
         const objectCellMultiline = formatIdentifierLocatorMultiline(o);
-        const dataDisplay = (s.keyword === 'FillEdit') ? fillEditDataForDisplay(s.data) : (s.data || '-');
-        const dataEscaped = String(dataDisplay).replace(/</g, '&lt;').replace(/"/g, '&quot;');
-        return '<tr class="' + rowClass + '"><td>' + (i + 1) + '</td><td>' + (s.keyword || '') + '</td><td class="step-locator-cell" title="' + parentCell.replace(/"/g, '&quot;') + '">' + parentCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-locator-cell" title="' + objectCell.replace(/"/g, '&quot;') + '">' + objectCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-param-cell" contenteditable="true" data-i="' + i + '" data-field="parameter">' + paraVal + '</td><td>' + dataEscaped + '</td><td>' + (s.assertValue || '-') + '</td>' + errCell + '<td><button class="action-btn icon-only execute" data-i="' + i + '" title="Execute this step"><img src="' + iconExecuteSvg + '" alt="Execute"/></button><button class="action-btn icon-only highlight" data-i="' + i + '" title="Highlight"><img src="' + iconHighlightSvg + '" alt="Highlight"/></button><button class="action-btn icon-only delete" data-i="' + i + '" title="Delete"><img src="' + iconDeleteSvg + '" alt="Delete"/></button><button class="action-btn icon-only skip" data-i="' + i + '" title="' + skipTitle + '"><img src="' + skipIcon + '" alt="' + skipTitle + '"/></button></td></tr>';
+        const rawData = (s.data != null && s.data !== '-') ? String(s.data) : '';
+        const dataEscaped = rawData.replace(/</g, '&lt;').replace(/"/g, '&quot;');
+        return '<tr class="' + rowClass + '"><td>' + (i + 1) + '</td><td>' + (s.keyword || '') + '</td><td class="step-locator-cell" title="' + parentCell.replace(/"/g, '&quot;') + '">' + parentCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-locator-cell" title="' + objectCell.replace(/"/g, '&quot;') + '">' + objectCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-param-cell" contenteditable="true" data-i="' + i + '" data-field="parameter">' + paraVal + '</td><td class="step-data-cell" contenteditable="true" data-i="' + i + '" data-field="data">' + dataEscaped + '</td><td>' + (s.assertValue || '-') + '</td>' + errCell + '<td><button class="action-btn icon-only execute" data-i="' + i + '" title="Execute this step"><img src="' + iconExecuteSvg + '" alt="Execute"/></button><button class="action-btn icon-only highlight" data-i="' + i + '" title="Highlight"><img src="' + iconHighlightSvg + '" alt="Highlight"/></button><button class="action-btn icon-only delete" data-i="' + i + '" title="Delete"><img src="' + iconDeleteSvg + '" alt="Delete"/></button><button class="action-btn icon-only skip" data-i="' + i + '" title="' + skipTitle + '"><img src="' + skipIcon + '" alt="' + skipTitle + '"/></button></td></tr>';
       }).join('');
       tbody.querySelectorAll('.action-btn.delete').forEach(btn => {
         btn.onclick = function() {
@@ -1404,13 +1418,56 @@
           highlightStepAtIndex(idx);
         };
       });
+
+      function bindEditableCellKeyboard(cell) {
+        cell.onfocus = function() {
+          cell.dataset.prevValue = (cell.textContent || '').trim();
+        };
+        cell.onkeydown = function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            cell.blur();
+            return;
+          }
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            cell.textContent = cell.dataset.prevValue || '';
+            cell.blur();
+          }
+        };
+      }
+
       tbody.querySelectorAll('.step-param-cell').forEach(cell => {
+        bindEditableCellKeyboard(cell);
         cell.onblur = function() {
           const idx = parseInt(cell.dataset.i, 10);
           if (idx >= 0 && idx < steps.length && steps[idx]) {
             var v = (cell.textContent || '').trim();
             steps[idx].parameter = v;
+            if (idx >= 0 && idx < visualNodes.length && visualNodes[idx]) {
+              visualNodes[idx].parameter = v;
+            }
             vscode.postMessage({ type: 'syncSteps', data: steps });
+            if (document.getElementById('visualTabContent').classList.contains('active')) {
+              renderVisual();
+            }
+          }
+        };
+      });
+      tbody.querySelectorAll('.step-data-cell').forEach(cell => {
+        bindEditableCellKeyboard(cell);
+        cell.onblur = function() {
+          const idx = parseInt(cell.dataset.i, 10);
+          if (idx >= 0 && idx < steps.length && steps[idx]) {
+            var v = (cell.textContent || '').trim();
+            steps[idx].data = v;
+            if (idx >= 0 && idx < visualNodes.length && visualNodes[idx]) {
+              visualNodes[idx].data = v;
+            }
+            vscode.postMessage({ type: 'syncSteps', data: steps });
+            if (document.getElementById('visualTabContent').classList.contains('active')) {
+              renderVisual();
+            }
           }
         };
       });

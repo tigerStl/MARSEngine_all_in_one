@@ -1,5 +1,39 @@
 # Java UI Automation - 修改摘要 (Summary of Changes)
 
+## 2026-02-20 Alpha 0.9 发布摘要
+
+### 本版本定位
+- 版本号：`0.9.0-alpha`
+- 发布阶段：Alpha（功能收敛与产品化加固阶段）
+
+### 关键能力完成
+- 回放执行链路稳定化：`ClickButton`、`SelectTreeList`、`SearchAndUpdate` 等关键关键词可回放。
+- `SelectTreeList` 严格失败策略：目标非 `JTree` 或路径无效时，立即失败并终止回放。
+- `SearchAndUpdate` 可靠性增强：进入 cell 编辑态后增加稳定等待，再执行键盘输入。
+- Replay 前高亮能力：支持配置开关 `IsHighlightObjectWhileReplay`，执行 keyword 前先高亮对象。
+
+### 录制与可视化编辑增强
+- 修复 object tree 点击误新增 visual 节点（仅录制中允许新增）。
+- Visual 节点支持 `parameter` 字段：显示、编辑、保存、回放全链路生效。
+- Test Steps 中 `Data` 列可直接编辑并同步执行数据。
+- 表格编辑体验：`Enter` 提交、`Esc` 回滚。
+
+### 配置与分发
+- 新增可随 JAR 分发配置：`marsJavaAgent-config.json`。
+- 配置值标准化为布尔值：
+	- `"IsHighlightObjectWhileReplay": true`
+- 扩展在复制临时 agent JAR 时，会同步复制配置文件，确保扫描/录制/回放一致生效。
+
+### 产品化（P0）落实
+- 文档口径统一为“支持回放执行”（中/英 README 同步）。
+- 新增标准 `CHANGELOG.md`。
+- 新增 CI 门禁：Node 编译、基础测试、Java 构建、.NET 构建。
+
+### 构建验证
+- `npm run compile`：通过
+- `mvn -pl marsJavaAgent -am package -DskipTests`：通过
+- `dotnet build -c Release`（ProcessInfo）：通过
+
 ## 2026-02-19 增量总结
 
 ### 核心能力增强

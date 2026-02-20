@@ -1,6 +1,6 @@
 # Java UI 自动化测试插件
 
-针对 Java Application 的自动化测试插件。采用 JVM Agent 模式扫描界面元素，生成测试脚本（JSON 格式）。当前版本**仅生成脚本，不执行**。
+针对 Java Application 的自动化测试插件。采用 JVM Agent 模式扫描界面元素，支持录制、编辑并回放执行测试脚本（JSON 格式）。
 
 ## 功能
 
@@ -53,7 +53,7 @@ VSCode/
 | Index 模式 | 按 bounds 从上到下、从左到右排序，多元素时使用 index |
 | FillEdit / SelectDropDown | 根据 javaType 推断：JTextField/JTextArea → FillEdit，JComboBox → SelectDropDown |
 | 常量 | 所有字符串写入 constants.json，脚本中只引用 id |
-| 仅生成脚本 | 只生成 JSON 脚本，不执行；Execute 按钮仅提示 |
+| 脚本回放执行 | 支持按 Test Steps 回放执行；可在 Visual/Test Steps 中编辑后执行 |
 | ProcessInfo | 独立 C# 工程，使用 WMI（Windows）和 /proc（Linux）获取进程信息 |
 | 面板状态持久化 | 进程列表、对象、步骤、日志保存到 workspaceState，切换 tab 后恢复 |
 | 对象高亮 | 双击对象 → 加载 highlight-agent，在目标窗口屏幕坐标绘制红框闪烁 3 次 |

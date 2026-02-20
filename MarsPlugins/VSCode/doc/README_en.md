@@ -1,6 +1,6 @@
 # Java UI Automation Test Extension
 
-VS Code extension for Java application UI automation testing. It uses a JVM Agent to scan AWT/Swing UI elements and generates test scripts in JSON. **Script generation only; no execution.**
+VS Code extension for Java application UI automation testing. It uses a JVM Agent to scan AWT/Swing UI elements and supports recording, editing, and replay execution of test scripts in JSON.
 
 ## Features
 
@@ -55,7 +55,7 @@ VSCode/
 | Index mode | Sorted by bounds top-to-bottom, left-to-right; index used when multiple matches |
 | FillEdit / SelectDropDown | Inferred from javaType: JTextField/JTextArea → FillEdit, JComboBox → SelectDropDown |
 | Constants | All strings in constants.json; scripts reference constant ids only |
-| Script generation only | Only JSON scripts are generated; Execute button shows info only |
+| Script replay execution | Supports replay execution from Test Steps; editable in Visual/Test Steps before execution |
 | ProcessInfo | Separate C# project; uses WMI (Windows) and /proc (Linux) for process info |
 | Panel state persistence | Processes, objects, steps, log saved to workspaceState; restored when switching tabs |
 | Object highlight | Double-click object → load highlight-agent, draw red box flash 3× at screen coords |

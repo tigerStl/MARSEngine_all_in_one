@@ -1,6 +1,7 @@
 package com.mars.javaui.record;
 
 import java.awt.AWTEvent;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -21,9 +22,12 @@ import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.instrument.Instrumentation;
@@ -47,7 +51,9 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -61,12 +67,14 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
+import javax.swing.border.Border;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
+import javax.swing.table.TableCellEditor;
 import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
@@ -100,6 +108,13 @@ public class RecordAgent {
     private static final String INFO_FILE = "marsJavaAgentInfo.json";
     private static final String TOOLBUTTON_LOG_FILE = "toolbutton-tooltips.log";
     private static final String RECORD_DEBUG_LOG = "record-debug.log";
+    private static final String AGENT_CONFIG_FILE = "marsJavaAgent-config.json";
+
+    private static final class RuntimeConfig {
+        boolean isHighlightObjectWhileReplay = true;
+    }
+
+    private static volatile RuntimeConfig runtimeConfig = new RuntimeConfig();
 
     private static final class SearchAndUpdateReplaySpec {
         String mode;
@@ -120,6 +135,8 @@ public class RecordAgent {
         AgentLogger.begin(LOG, "agentArgs=" + agentArgs);
         try {
             AgentLogger.info(LOG, "agentmain called, agentArgs=" + agentArgs);
+            runtimeConfig = loadRuntimeConfig();
+            AgentLogger.info(LOG, "agent config loaded: IsHighlightObjectWhileReplay=" + runtimeConfig.isHighlightObjectWhileReplay);
             if (agentArgs == null || agentArgs.isEmpty()) {
                 AgentLogger.warning(LOG, "No agentArgs provided");
                 AgentLogger.end(LOG, "no agentArgs");
@@ -813,6 +830,9 @@ public class RecordAgent {
                                 EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, "Object not found"));
                                 return;
                             }
+                            if (runtimeConfig.isHighlightObjectWhileReplay) {
+                                highlightComponentBeforeReplay(comp, robot);
+                            }
                             String action = "Click";
                             if ("DoubleClickButton".equals(keyword) || "DoubleClick".equals(keyword)) action = "DoubleClick";
                             else if ("FillEdit".equals(keyword)) action = "SetText";
@@ -841,11 +861,20 @@ public class RecordAgent {
                                 continue;
                             }
                             if ("SelectTreeList".equals(keyword)) {
-                                if (comp instanceof JTree) {
-                                    JTree tree = (JTree) comp;
-                                    EventQueue.invokeAndWait(() -> selectTreeByPath(tree, data));
-                                    robot.delay(150);
+                                if (!(comp instanceof JTree)) {
+                                    int idx = i;
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, "SelectTreeList target is not JTree"));
+                                    return;
                                 }
+                                JTree tree = (JTree) comp;
+                                final boolean[] selected = new boolean[1];
+                                EventQueue.invokeAndWait(() -> selected[0] = selectTreeByPath(tree, data));
+                                if (!selected[0]) {
+                                    int idx = i;
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, "SelectTreeList path not found or invalid: " + (data != null ? data : "")));
+                                    return;
+                                }
+                                robot.delay(150);
                                 continue;
                             }
                             int[] b = getScreenBounds(comp);
@@ -905,6 +934,96 @@ public class RecordAgent {
         } catch (Exception e) {
             AgentLogger.logException(LOG, Level.WARNING, "Replay parse failed", e);
             sendReplayDone(conn, 0, null, e.getMessage());
+        }
+    }
+
+    private static RuntimeConfig loadRuntimeConfig() {
+        RuntimeConfig cfg = new RuntimeConfig();
+        JsonObject obj = null;
+        try {
+            File jarFile = new File(RecordAgent.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            File jarDir = jarFile.getParentFile();
+            File externalCfg = jarDir != null ? new File(jarDir, AGENT_CONFIG_FILE) : null;
+            if (externalCfg != null && externalCfg.isFile()) {
+                try (InputStreamReader r = new InputStreamReader(new FileInputStream(externalCfg), StandardCharsets.UTF_8)) {
+                    obj = JsonParser.parseReader(r).getAsJsonObject();
+                    AgentLogger.info(LOG, "Loaded agent config from external file: " + externalCfg.getAbsolutePath());
+                }
+            }
+        } catch (Exception e) {
+            AgentLogger.logException(LOG, Level.WARNING, "Load external agent config failed", e);
+        }
+
+        if (obj == null) {
+            try (InputStream in = RecordAgent.class.getClassLoader().getResourceAsStream(AGENT_CONFIG_FILE)) {
+                if (in != null) {
+                    try (InputStreamReader r = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+                        obj = JsonParser.parseReader(r).getAsJsonObject();
+                        AgentLogger.info(LOG, "Loaded agent config from classpath resource: " + AGENT_CONFIG_FILE);
+                    }
+                }
+            } catch (Exception e) {
+                AgentLogger.logException(LOG, Level.WARNING, "Load classpath agent config failed", e);
+            }
+        }
+
+        if (obj != null && obj.has("IsHighlightObjectWhileReplay")) {
+            cfg.isHighlightObjectWhileReplay = parseBooleanLike(obj.get("IsHighlightObjectWhileReplay"), cfg.isHighlightObjectWhileReplay);
+        }
+        return cfg;
+    }
+
+    private static boolean parseBooleanLike(JsonElement value, boolean defaultValue) {
+        if (value == null || value.isJsonNull()) return defaultValue;
+        try {
+            if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isBoolean()) {
+                return value.getAsBoolean();
+            }
+            String s = value.getAsString();
+            if (s == null) return defaultValue;
+            String t = s.trim().toLowerCase();
+            if ("true".equals(t) || "1".equals(t) || "yes".equals(t) || "y".equals(t) || "on".equals(t)) return true;
+            if ("false".equals(t) || "0".equals(t) || "no".equals(t) || "n".equals(t) || "off".equals(t)) return false;
+        } catch (Exception ignored) {
+        }
+        return defaultValue;
+    }
+
+    private static void highlightComponentBeforeReplay(Component comp, Robot robot) {
+        if (comp == null || robot == null) return;
+        try {
+            int[] b = getScreenBounds(comp);
+            if (b != null && b[2] > 0 && b[3] > 0) {
+                int cx = b[0] + b[2] / 2;
+                int cy = b[1] + b[3] / 2;
+                robot.mouseMove(cx, cy);
+            }
+        } catch (Exception ignored) {
+        }
+
+        if (!(comp instanceof JComponent)) {
+            robot.delay(120);
+            return;
+        }
+        JComponent jc = (JComponent) comp;
+        final Border[] oldBorder = new Border[1];
+        try {
+            EventQueue.invokeAndWait(() -> {
+                oldBorder[0] = jc.getBorder();
+                jc.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+                jc.repaint();
+            });
+            robot.delay(120);
+        } catch (Exception e) {
+            AgentLogger.logException(LOG, Level.FINE, "Highlight before replay failed", e);
+        } finally {
+            try {
+                EventQueue.invokeAndWait(() -> {
+                    jc.setBorder(oldBorder[0]);
+                    jc.repaint();
+                });
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -1093,6 +1212,19 @@ public class RecordAgent {
         final String method = "updateTableCellByUserSimulation";
         AgentLogger.begin(LOG, "[" + method + ":L1071] row=" + row + ", col=" + col + ", targetValue=" + targetValue);
         try {
+            final boolean[] enteredEditMode = new boolean[1];
+            EventQueue.invokeAndWait(() -> {
+                table.requestFocusInWindow();
+                table.changeSelection(row, col, false, false);
+                table.scrollRectToVisible(table.getCellRect(row, col, true));
+                if (!(table.isEditing() && table.getEditingRow() == row && table.getEditingColumn() == col)) {
+                    table.editCellAt(row, col);
+                }
+                Component editorComp = table.getEditorComponent();
+                if (editorComp != null) editorComp.requestFocusInWindow();
+                enteredEditMode[0] = table.isEditing() && table.getEditingRow() == row && table.getEditingColumn() == col;
+            });
+
             Rectangle rect = table.getCellRect(row, col, true);
             Point loc = table.getLocationOnScreen();
             if (rect == null || loc == null) {
@@ -1106,7 +1238,26 @@ public class RecordAgent {
             robot.mouseMove(cx, cy);
             robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
             robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+            robot.delay(50);
+            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
             robot.delay(80);
+
+            EventQueue.invokeAndWait(() -> {
+                if (!(table.isEditing() && table.getEditingRow() == row && table.getEditingColumn() == col)) {
+                    table.editCellAt(row, col);
+                    Component editorComp = table.getEditorComponent();
+                    if (editorComp != null) editorComp.requestFocusInWindow();
+                }
+                enteredEditMode[0] = table.isEditing() && table.getEditingRow() == row && table.getEditingColumn() == col;
+            });
+            if (!enteredEditMode[0]) {
+                AgentLogger.info(LOG, "[" + method + ":L1093] target cell did not enter edit mode");
+                return "Target table cell failed to enter edit mode";
+            }
+
+            // Ensure editor focus is stable before sending keyboard events.
+            robot.delay(120);
 
             robot.keyPress(KeyEvent.VK_HOME);
             robot.keyRelease(KeyEvent.VK_HOME);
@@ -1129,6 +1280,13 @@ public class RecordAgent {
             robot.keyPress(KeyEvent.VK_ENTER);
             robot.keyRelease(KeyEvent.VK_ENTER);
             robot.delay(80);
+
+            EventQueue.invokeAndWait(() -> {
+                if (table.isEditing()) {
+                    TableCellEditor editor = table.getCellEditor();
+                    if (editor != null) editor.stopCellEditing();
+                }
+            });
 
             AgentLogger.info(LOG, "[" + method + ":L1107] update finished");
             return null;
@@ -1157,21 +1315,22 @@ public class RecordAgent {
         }
     }
 
-    private static void selectTreeByPath(JTree tree, String data) {
-        if (tree == null || data == null) return;
+    private static boolean selectTreeByPath(JTree tree, String data) {
+        if (tree == null || data == null) return false;
         String raw = data.trim();
-        if (raw.isEmpty()) return;
+        if (raw.isEmpty()) return false;
         String[] parts = raw.split(";");
         java.util.List<String> list = new ArrayList<>();
         for (String p : parts) {
             String s = p.trim();
             if (!s.isEmpty()) list.add(s);
         }
-        if (list.isEmpty()) return;
+        if (list.isEmpty()) return false;
         Collections.reverse(list); // root -> leaf
 
         TreeModel model = tree.getModel();
         Object node = model.getRoot();
+        if (node == null) return false;
         java.util.List<Object> path = new ArrayList<>();
         path.add(node);
         int idx = 0;
@@ -1180,13 +1339,14 @@ public class RecordAgent {
         }
         for (; idx < list.size(); idx++) {
             Object child = findChildByName(model, node, list.get(idx));
-            if (child == null) return;
+            if (child == null) return false;
             node = child;
             path.add(node);
         }
         TreePath tp = new TreePath(path.toArray());
         tree.setSelectionPath(tp);
         tree.scrollPathToVisible(tp);
+        return tree.getSelectionPath() != null;
     }
 
     private static Object findChildByName(TreeModel model, Object parent, String name) {
