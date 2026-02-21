@@ -10,6 +10,7 @@ import WebSocket from 'ws';
 
 const LOG_FILE = path.join(os.tmpdir(), 'marsExtension-agentLoader.log');
 const AGENT_RUNTIME_CONFIG_FILE = 'marsJavaAgent-config.json';
+export const AGENT_LOADER_LOG_FILE = LOG_FILE;
 
 function writeLog(message: string): void {
   try {
@@ -59,6 +60,19 @@ export interface RecordAgentResult {
   stop?: () => void;
   /** Send a message to the agent (e.g. pauseRecordAndReplay / resumeRecordAndReplay during highlight). */
   send?: (msg: Record<string, unknown>) => void;
+}
+
+export interface ReplayProgressEvent {
+  type: 'replayProgress';
+  event: 'replayStart' | 'stepStart' | 'stepEnd' | 'replayEnd' | string;
+  index?: number;
+  total?: number;
+  keyword?: string;
+  status?: string;
+  startedAt?: number;
+  endedAt?: number;
+  durationMs?: number;
+  error?: string;
 }
 
 export async function loadAgentAndScan(
@@ -389,7 +403,7 @@ export async function startRecordAgent(
           }
           return;
         }
-        if (msg.event === 'click' || msg.event === 'clickButton' || msg.event === 'focusLost' || msg.event === 'componentProperties' || msg.event === 'fillEdit' || msg.event === 'pressKey' || msg.event === 'keyChordAction' || msg.event === 'textInputAction' || msg.event === 'rawKeyEventAction' || msg.event === 'selectDropDown' || msg.event === 'selectDropList' || msg.event === 'selectMenuItem' || msg.event === 'selectMenuIcon' || msg.event === 'selectTreeList' || msg.event === 'expandTreeNode' || msg.event === 'collapseTreeNode' || msg.event === 'searchAndUpdate' || msg.event === 'searchAndClick' || msg.event === 'selectPopupMenu') {
+        if (msg.event === 'click' || msg.event === 'clickButton' || msg.event === 'focusLost' || msg.event === 'componentProperties' || msg.event === 'fillEdit' || msg.event === 'pressKey' || msg.event === 'keyChordAction' || msg.event === 'textInputAction' || msg.event === 'rawKeyEventAction' || msg.event === 'selectDropDown' || msg.event === 'selectDropList' || msg.event === 'selectMenuItem' || msg.event === 'selectMenuIcon' || msg.event === 'selectTreeList' || msg.event === 'selectTab' || msg.event === 'expandTreeNode' || msg.event === 'collapseTreeNode' || msg.event === 'searchAndUpdate' || msg.event === 'searchAndClick' || msg.event === 'selectPopupMenu') {
           onEvent(msg);
         }
       } catch (e) {
@@ -414,7 +428,8 @@ export async function startRecordAgent(
 export async function replaySteps(
   pid: number,
   outputDir: string,
-  steps: Record<string, unknown>[]
+  steps: Record<string, unknown>[],
+  onProgress?: (event: ReplayProgressEvent) => void
 ): Promise<{ success: boolean; count?: number; error?: string; failedIndex?: number }> {
   const extensionPath = path.join(__dirname, '..');
   const agentLoaderJar = path.join(
@@ -578,6 +593,10 @@ export async function replaySteps(
           const count = typeof msg.count === 'number' ? msg.count : steps.length;
           const failedIndex = typeof msg.failedIndex === 'number' ? msg.failedIndex : undefined;
           finish(err ? { success: false, error: err, count, failedIndex } : { success: true, count });
+          return;
+        }
+        if (msg.type === 'replayProgress' && onProgress) {
+          onProgress(msg as unknown as ReplayProgressEvent);
         }
       } catch (e) {
         writeLog(`[replaySteps] message parse error: ${String(e)}`);

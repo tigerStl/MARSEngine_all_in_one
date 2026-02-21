@@ -4,6 +4,7 @@ import java.awt.AWTEvent;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
@@ -54,6 +55,7 @@ import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -67,6 +69,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
+import javax.swing.JWindow;
 import javax.swing.border.Border;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
@@ -112,12 +115,14 @@ public class RecordAgent {
 
     private static final class RuntimeConfig {
         boolean isHighlightObjectWhileReplay = true;
+        int debugPort = 0;
     }
 
     private static volatile RuntimeConfig runtimeConfig = new RuntimeConfig();
 
     private static final class SearchAndUpdateReplaySpec {
         String mode;
+        String clickMode;
         String targetColumn;
         String sourceValue;
         String targetValue;
@@ -136,7 +141,8 @@ public class RecordAgent {
         try {
             AgentLogger.info(LOG, "agentmain called, agentArgs=" + agentArgs);
             runtimeConfig = loadRuntimeConfig();
-            AgentLogger.info(LOG, "agent config loaded: IsHighlightObjectWhileReplay=" + runtimeConfig.isHighlightObjectWhileReplay);
+                AgentLogger.info(LOG, "agent config loaded: IsHighlightObjectWhileReplay=" + runtimeConfig.isHighlightObjectWhileReplay
+                    + ", DebugPort=" + runtimeConfig.debugPort);
             if (agentArgs == null || agentArgs.isEmpty()) {
                 AgentLogger.warning(LOG, "No agentArgs provided");
                 AgentLogger.end(LOG, "no agentArgs");
@@ -144,14 +150,23 @@ public class RecordAgent {
             }
             String recordDirStr = agentArgs.trim();
             int pid = -1;
+            int debugPortFromArgs = 0;
             if (recordDirStr.contains("|")) {
-                String[] parts = recordDirStr.split("\\|", 2);
+                String[] parts = recordDirStr.split("\\|");
                 recordDirStr = parts[0].trim();
-                try {
-                    pid = Integer.parseInt(parts[1].trim());
-                    AgentLogger.info(LOG, "parsed pid=" + pid);
-                } catch (NumberFormatException e) {
-                    AgentLogger.logException(LOG, Level.WARNING, "Invalid pid in agentArgs: " + (parts.length > 1 ? parts[1] : ""), e);
+                if (parts.length > 1) {
+                    try {
+                        pid = Integer.parseInt(parts[1].trim());
+                        AgentLogger.info(LOG, "parsed pid=" + pid);
+                    } catch (NumberFormatException e) {
+                        AgentLogger.logException(LOG, Level.WARNING, "Invalid pid in agentArgs: " + parts[1], e);
+                    }
+                }
+                if (parts.length > 2) {
+                    debugPortFromArgs = parsePortLike(parts[2], 0);
+                    if (debugPortFromArgs > 0) {
+                        AgentLogger.info(LOG, "parsed debugPort from agentArgs=" + debugPortFromArgs);
+                    }
                 }
             }
             File outputDir = new File(recordDirStr);
@@ -169,7 +184,8 @@ public class RecordAgent {
                 return;
             }
             final int pidForRun = pid;
-            EventQueue.invokeAndWait(() -> run(outputDir, pidForRun));
+            final int debugPortForRun = debugPortFromArgs > 0 ? debugPortFromArgs : runtimeConfig.debugPort;
+            EventQueue.invokeAndWait(() -> run(outputDir, pidForRun, debugPortForRun));
             AgentLogger.end(LOG, "ok");
         } catch (Exception e) {
             AgentLogger.logException(LOG, Level.SEVERE, "Record agent run failed", e);
@@ -177,8 +193,8 @@ public class RecordAgent {
         }
     }
 
-    private static void run(File outputDir, int expectedPid) {
-        AgentLogger.begin(LOG, "outputDir=" + outputDir + ", expectedPid=" + expectedPid);
+    private static void run(File outputDir, int expectedPid, int debugPort) {
+        AgentLogger.begin(LOG, "outputDir=" + outputDir + ", expectedPid=" + expectedPid + ", debugPort=" + debugPort);
         File recordFile = new File(outputDir, RECORD_FILE);
         File stopFile = new File(outputDir, STOP_FILE);
         File infoFile = new File(outputDir, INFO_FILE);
@@ -284,7 +300,8 @@ public class RecordAgent {
         final AtomicReference<TreeExpansionListener> treeExpansionListenerRef = new AtomicReference<>();
         final AtomicReference<java.util.List<JTree>> treeExpansionTreesRef = new AtomicReference<>();
 
-        WebSocketServer server = new WebSocketServer(new InetSocketAddress("127.0.0.1", 0)) {
+        final int listenPort = (debugPort > 0 && debugPort <= 65535) ? debugPort : 0;
+        WebSocketServer server = new WebSocketServer(new InetSocketAddress("127.0.0.1", listenPort)) {
             @Override
             public void onOpen(WebSocket conn, ClientHandshake handshake) {
                 LOG.info("Extension connected");
@@ -309,6 +326,7 @@ public class RecordAgent {
             @Override
             public void onMessage(WebSocket conn, String message) {
                 AgentLogger.begin(LOG, "type=" + getJsonStringValue(message, "type"));
+                AgentLogger.info(LOG, "WS_RECV_PACKET=" + (message != null ? message : "null"));
                 try {
                     if (message != null && message.contains("\"method\"")) {
                         handleJsonRpc(conn, message);
@@ -628,11 +646,13 @@ public class RecordAgent {
                 int port = getPort();
                 Map<String, Object> info = new LinkedHashMap<>();
                 info.put("port", port);
+                info.put("debugPort", port);
+                info.put("requestedDebugPort", listenPort);
                 info.put("pid", expectedPid);
                 info.put("status", "ready");
                 try {
                     Files.write(infoFile.toPath(), toJson(info).getBytes(StandardCharsets.UTF_8));
-                    AgentLogger.info(LOG, "Wrote " + INFO_FILE + " port=" + port + " pid=" + expectedPid);
+                    AgentLogger.info(LOG, "Wrote " + INFO_FILE + " port=" + port + " requestedDebugPort=" + listenPort + " pid=" + expectedPid);
                 } catch (IOException e) {
                     AgentLogger.logException(LOG, Level.WARNING, "Write " + INFO_FILE + " failed", e);
                 }
@@ -640,7 +660,7 @@ public class RecordAgent {
         };
 
         server.start();
-        LOG.info("Record agent WS server started on port " + server.getPort());
+        LOG.info("Record agent WS server started on port " + server.getPort() + " (requestedDebugPort=" + listenPort + ")");
 
         Thread stopPoller = new Thread(() -> {
             while (running[0]) {
@@ -719,9 +739,8 @@ public class RecordAgent {
                     final Map<String, Object> ok = objectKey;
                     Boolean[] done = new Boolean[1];
                     EventQueue.invokeAndWait(() -> {
-                                Component rootWin = AgentProtocol.findMainWindowRoot("LoanIQ");
-                                if (rootWin == null) rootWin = AgentProtocol.findMainWindowRoot(null);
-                                Component comp = AgentProtocol.resolveComponent(rootWin, pk, ok);
+                                String[] resolveErr = new String[1];
+                                Component comp = resolveComponentByParentFirst(pk, ok, resolveErr);
                                 if (comp == null) { done[0] = false; return; }
                                 try {
                                     Robot robot = new Robot();
@@ -746,24 +765,13 @@ public class RecordAgent {
                                         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                                         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                                         robot.delay(100);
-                                        Object[] parsed = parseFillEditData(data);
-                                        boolean doHomeDel = (Boolean) parsed[0];
-                                        String text = (String) parsed[1];
-                                        // Default behavior: always clear (HOME + 30x DEL) unless caller explicitly disables.
-                                        if (!doHomeDel) doHomeDel = true;
-                                        if (doHomeDel) {
-                                            robot.keyPress(KeyEvent.VK_HOME);
-                                            robot.keyRelease(KeyEvent.VK_HOME);
-                                            robot.delay(30);
-                                            for (int d = 0; d < 30; d++) {
-                                                robot.keyPress(KeyEvent.VK_DELETE);
-                                                robot.keyRelease(KeyEvent.VK_DELETE);
-                                                robot.delay(20);
-                                            }
-                                        }
+                                        String text = sanitizeFillEditInput(data);
+                                        clearFocusedTextByHomeDel(robot, 30);
                                         if (text != null && !text.isEmpty()) {
-                                            pasteViaClipboard(robot, text);
+                                            typeTextLikeHuman(robot, text);
                                         }
+                                        robot.keyPress(KeyEvent.VK_ENTER);
+                                        robot.keyRelease(KeyEvent.VK_ENTER);
                                         robot.delay(150);
                                     }
                                     done[0] = true;
@@ -806,10 +814,14 @@ public class RecordAgent {
                 try {
                     Robot robot = new Robot();
                     robot.setAutoDelay(30);
+                    sendReplayProgress(conn, "replayStart", null, total, null, null, null, null, null);
                     for (int i = 0; i < total; i++) {
+                        long stepStartedAt = System.currentTimeMillis();
+                        String keyword = null;
                         try {
                             JsonObject step = steps.get(i).getAsJsonObject();
-                            String keyword = getJsonStr(step, "keyword");
+                            keyword = getJsonStr(step, "keyword");
+                            sendReplayProgress(conn, "stepStart", i, total, keyword, "running", stepStartedAt, null, null);
                             JsonObject obj = step.has("object") && step.get("object").isJsonObject() ? step.get("object").getAsJsonObject() : null;
                             JsonObject parentId = obj != null && obj.has("parentKey") ? obj.get("parentKey").getAsJsonObject()
                                     : (step.has("parentIdentifier") ? step.get("parentIdentifier").getAsJsonObject() : null);
@@ -817,21 +829,38 @@ public class RecordAgent {
                                     : (step.has("objectIdentifier") ? step.get("objectIdentifier").getAsJsonObject() : null);
                             if (objectId == null) {
                                 final int failIdx = i;
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", failIdx, total, keyword, "failed", stepStartedAt, endedAt, "Object identifier missing");
                                 EventQueue.invokeLater(() -> sendReplayDone(conn, total, failIdx, "Object identifier missing"));
                                 return;
                             }
                             Map<String, Object> pk = parentId != null ? jsonToMap(parentId) : null;
                             Map<String, Object> ok = jsonToMap(objectId);
-                            Component rootWin = AgentProtocol.findMainWindowRoot("LoanIQ");
-                            if (rootWin == null) rootWin = AgentProtocol.findMainWindowRoot(null);
-                            Component comp = AgentProtocol.resolveComponent(rootWin, pk, ok);
+                            String[] resolveErr = new String[1];
+                            Component comp = resolveComponentByParentFirst(pk, ok, resolveErr);
                             if (comp == null) {
                                 int idx = i;
-                                EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, "Object not found"));
+                                long endedAt = System.currentTimeMillis();
+                                String err = resolveErr[0] != null && !resolveErr[0].isEmpty() ? resolveErr[0] : "Object not found";
+                                sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, err);
+                                EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, err));
                                 return;
                             }
                             if (runtimeConfig.isHighlightObjectWhileReplay) {
                                 highlightComponentBeforeReplay(comp, robot);
+                            }
+                            if ("VerifyObjectValue".equals(keyword)) {
+                                String verifyErr = verifyObjectValueFromStep(comp, step);
+                                if (verifyErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, verifyErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, verifyErr));
+                                    return;
+                                }
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
+                                continue;
                             }
                             String action = "Click";
                             if ("DoubleClickButton".equals(keyword) || "DoubleClick".equals(keyword)) action = "DoubleClick";
@@ -840,29 +869,112 @@ public class RecordAgent {
                             if ("SearchAndUpdate".equals(keyword)) {
                                 if (!(comp instanceof JTable)) {
                                     int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, "SearchAndUpdate target is not JTable");
                                     EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, "SearchAndUpdate target is not JTable"));
                                     return;
                                 }
                                 String replayErr = replaySearchAndUpdate((JTable) comp, step, robot);
                                 if (replayErr != null) {
                                     int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, replayErr);
                                     EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, replayErr));
                                     return;
                                 }
+                                String verifyErr = verifyExpectedAfterAction(comp, step);
+                                if (verifyErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, verifyErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, verifyErr));
+                                    return;
+                                }
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
+                                continue;
+                            }
+                            if ("SearchAndClick".equals(keyword)) {
+                                if (!(comp instanceof JTable)) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, "SearchAndClick target is not JTable");
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, "SearchAndClick target is not JTable"));
+                                    return;
+                                }
+                                String replayErr = replaySearchAndClick((JTable) comp, step, robot);
+                                if (replayErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, replayErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, replayErr));
+                                    return;
+                                }
+                                String verifyErr = verifyExpectedAfterAction(comp, step);
+                                if (verifyErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, verifyErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, verifyErr));
+                                    return;
+                                }
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
                                 continue;
                             }
                             final String data = getJsonStr(step, "data");
+                            if ("SelectTab".equals(keyword)) {
+                                if (!(comp instanceof JTabbedPane)) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, "SelectTab target is not JTabbedPane");
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, "SelectTab target is not JTabbedPane"));
+                                    return;
+                                }
+                                JTabbedPane tabbedPane = (JTabbedPane) comp;
+                                String selectErr = replaySelectTab(tabbedPane, step, data, robot);
+                                if (selectErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, selectErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, selectErr));
+                                    return;
+                                }
+                                String verifyErr = verifyExpectedAfterAction(comp, step);
+                                if (verifyErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, verifyErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, verifyErr));
+                                    return;
+                                }
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
+                                continue;
+                            }
                             if ("SelectDropList".equals(keyword) || "SelectDropDown".equals(keyword)) {
                                 if (comp instanceof JComboBox) {
                                     JComboBox<?> cb = (JComboBox<?>) comp;
                                     EventQueue.invokeAndWait(() -> selectComboValue(cb, data));
                                     robot.delay(150);
                                 }
+                                String verifyErr = verifyExpectedAfterAction(comp, step);
+                                if (verifyErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, verifyErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, verifyErr));
+                                    return;
+                                }
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
                                 continue;
                             }
                             if ("SelectTreeList".equals(keyword)) {
                                 if (!(comp instanceof JTree)) {
                                     int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, "SelectTreeList target is not JTree");
                                     EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, "SelectTreeList target is not JTree"));
                                     return;
                                 }
@@ -871,15 +983,29 @@ public class RecordAgent {
                                 EventQueue.invokeAndWait(() -> selected[0] = selectTreeByPath(tree, data));
                                 if (!selected[0]) {
                                     int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, "SelectTreeList path not found or invalid: " + (data != null ? data : ""));
                                     EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, "SelectTreeList path not found or invalid: " + (data != null ? data : "")));
                                     return;
                                 }
                                 robot.delay(150);
+                                String verifyErr = verifyExpectedAfterAction(comp, step);
+                                if (verifyErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, verifyErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, verifyErr));
+                                    return;
+                                }
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
                                 continue;
                             }
                             int[] b = getScreenBounds(comp);
                             if (b == null || b[2] <= 0 || b[3] <= 0) {
                                 int idx = i;
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, "Object has no bounds");
                                 EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, "Object has no bounds"));
                                 return;
                             }
@@ -903,31 +1029,37 @@ public class RecordAgent {
                                 robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                                 robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                                 robot.delay(100);
-                                Object[] parsed = parseFillEditData(data);
-                                boolean doHomeDel = (Boolean) parsed[0];
-                                String text = (String) parsed[1];
-                                if (doHomeDel) {
-                                    robot.keyPress(KeyEvent.VK_HOME);
-                                    robot.keyRelease(KeyEvent.VK_HOME);
-                                    robot.delay(30);
-                                    for (int d = 0; d < 30; d++) {
-                                        robot.keyPress(KeyEvent.VK_DELETE);
-                                        robot.keyRelease(KeyEvent.VK_DELETE);
-                                        robot.delay(20);
-                                    }
-                                }
+                                String text = sanitizeFillEditInput(data);
+                                clearFocusedTextByHomeDel(robot, 30);
                                 if (text != null && !text.isEmpty()) {
-                                    pasteViaClipboard(robot, text);
+                                    typeTextLikeHuman(robot, text);
                                 }
+                                robot.keyPress(KeyEvent.VK_ENTER);
+                                robot.keyRelease(KeyEvent.VK_ENTER);
                                 robot.delay(150);
                             }
+                            String verifyErr = verifyExpectedAfterAction(comp, step);
+                            if (verifyErr != null) {
+                                int idx = i;
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, verifyErr);
+                                EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, verifyErr));
+                                return;
+                            }
+                            long endedAt = System.currentTimeMillis();
+                            sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
                         } catch (Exception e) {
                             AgentLogger.logException(LOG, Level.WARNING, "Replay step failed", e);
+                            long endedAt = System.currentTimeMillis();
+                            String err = e.getMessage() != null ? e.getMessage() : e.toString();
+                            sendReplayProgress(conn, "stepEnd", i, total, keyword, "failed", stepStartedAt, endedAt, err);
                         }
                     }
+                    sendReplayProgress(conn, "replayEnd", null, total, null, "done", null, null, null);
                     EventQueue.invokeLater(() -> sendReplayDone(conn, total, null, null));
                 } catch (Exception e) {
                     AgentLogger.logException(LOG, Level.WARNING, "Replay failed", e);
+                    sendReplayProgress(conn, "replayEnd", null, total, null, "failed", null, null, e.getMessage());
                     EventQueue.invokeLater(() -> sendReplayDone(conn, 0, null, e.getMessage()));
                 }
             }, "replay-thread").start();
@@ -970,7 +1102,39 @@ public class RecordAgent {
         if (obj != null && obj.has("IsHighlightObjectWhileReplay")) {
             cfg.isHighlightObjectWhileReplay = parseBooleanLike(obj.get("IsHighlightObjectWhileReplay"), cfg.isHighlightObjectWhileReplay);
         }
+        if (obj != null && obj.has("DebugPort")) {
+            cfg.debugPort = parsePortLike(obj.get("DebugPort"), 0);
+        }
         return cfg;
+    }
+
+    private static int parsePortLike(JsonElement value, int defaultValue) {
+        if (value == null || value.isJsonNull()) return defaultValue;
+        try {
+            int p;
+            if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isNumber()) {
+                p = value.getAsInt();
+            } else {
+                String s = value.getAsString();
+                if (s == null || s.trim().isEmpty()) return defaultValue;
+                p = Integer.parseInt(s.trim());
+            }
+            return (p >= 1 && p <= 65535) ? p : defaultValue;
+        } catch (Exception ignored) {
+            return defaultValue;
+        }
+    }
+
+    private static int parsePortLike(String value, int defaultValue) {
+        if (value == null) return defaultValue;
+        try {
+            String s = value.trim();
+            if (s.isEmpty()) return defaultValue;
+            int p = Integer.parseInt(s);
+            return (p >= 1 && p <= 65535) ? p : defaultValue;
+        } catch (Exception ignored) {
+            return defaultValue;
+        }
     }
 
     private static boolean parseBooleanLike(JsonElement value, boolean defaultValue) {
@@ -1093,6 +1257,12 @@ public class RecordAgent {
                             break;
                         }
                     }
+                    if (ok && spec.sourceValue != null && !spec.sourceValue.isEmpty()) {
+                        String sourceCell = getTableCellValue(table, r, targetCol);
+                        if (!matchesByEqualOrRegex(sourceCell, spec.sourceValue)) {
+                            ok = false;
+                        }
+                    }
                     if (ok) {
                         matchedRow = r;
                         break;
@@ -1132,6 +1302,12 @@ public class RecordAgent {
             }
             SearchAndUpdateReplaySpec spec = new SearchAndUpdateReplaySpec();
             String p = para.trim();
+            if (p.startsWith("RightClick;")) {
+                spec.clickMode = "RightClick";
+                p = p.substring("RightClick;".length()).trim();
+            } else {
+                spec.clickMode = "LeftClick";
+            }
             if (p.contains(":[") && p.endsWith("]")) {
                 int split = p.indexOf(':');
                 String targetColumn = p.substring(0, split).trim();
@@ -1160,8 +1336,17 @@ public class RecordAgent {
                     AgentLogger.info(LOG, "[" + method + ":L1021] condition mode data missing ';' separator");
                     return null;
                 }
-                String target = remain.substring(1).trim();
-                if (target.isEmpty()) return null;
+                String sourceAndTarget = remain.substring(1).trim();
+                if (sourceAndTarget.isEmpty()) return null;
+                int sourceSplit = sourceAndTarget.indexOf(':');
+                if (sourceSplit > 0 && sourceSplit < sourceAndTarget.length() - 1) {
+                    spec.sourceValue = sourceAndTarget.substring(0, sourceSplit).trim();
+                    spec.targetValue = sourceAndTarget.substring(sourceSplit + 1).trim();
+                } else {
+                    spec.sourceValue = "";
+                    spec.targetValue = sourceAndTarget;
+                }
+                if (spec.targetValue == null || spec.targetValue.isEmpty()) return null;
                 String[] vals = valPart.isEmpty() ? new String[0] : valPart.split(":");
                 for (String val : vals) spec.conditionValues.add(val.trim());
                 if (spec.conditionValues.size() != spec.conditionColumns.size()) {
@@ -1169,7 +1354,6 @@ public class RecordAgent {
                             + spec.conditionColumns.size() + ", vals=" + spec.conditionValues.size());
                     return null;
                 }
-                spec.targetValue = target;
             } else {
                 spec.mode = "singleColumn";
                 spec.targetColumn = p;
@@ -1191,6 +1375,147 @@ public class RecordAgent {
         } finally {
             AgentLogger.end(LOG, "[" + method + ":L1053] end");
         }
+    }
+
+    private static String replaySearchAndClick(JTable table, JsonObject step, Robot robot) {
+        final String method = "replaySearchAndClick";
+        AgentLogger.begin(LOG, "[" + method + "] begin");
+        try {
+            if (table == null) return "SearchAndClick target table is null";
+            String para = getJsonStr(step, "parameter");
+            if (para == null || para.trim().isEmpty()) {
+                return "SearchAndClick para is empty";
+            }
+            String data = getJsonStr(step, "data");
+            if (data == null) data = "";
+
+            SearchAndUpdateReplaySpec spec = parseSearchAndClickSpec(para, data);
+            if (spec == null) {
+                return "SearchAndClick para/data format is invalid";
+            }
+
+            int targetCol = findTableColumnIndexByName(table, spec.targetColumn);
+            if (targetCol < 0) return "SearchAndClick target column not found: " + spec.targetColumn;
+
+            java.util.List<Integer> condColIndexes = new ArrayList<>();
+            if ("conditionColumns".equals(spec.mode)) {
+                for (String condCol : spec.conditionColumns) {
+                    int idx = findTableColumnIndexByName(table, condCol);
+                    if (idx < 0) return "SearchAndClick condition column not found: " + condCol;
+                    condColIndexes.add(idx);
+                }
+            }
+
+            int rowCount = table.getRowCount();
+            if (rowCount <= 0) return "SearchAndClick table has no data";
+
+            int matchedRow = -1;
+            for (int r = 0; r < rowCount; r++) {
+                boolean ok = true;
+                if ("conditionColumns".equals(spec.mode)) {
+                    for (int i = 0; i < condColIndexes.size(); i++) {
+                        String cell = getTableCellValue(table, r, condColIndexes.get(i));
+                        if (!matchesByEqualOrRegex(cell, spec.conditionValues.get(i))) {
+                            ok = false;
+                            break;
+                        }
+                    }
+                }
+                if (!ok) continue;
+                String sourceCell = getTableCellValue(table, r, targetCol);
+                if (!matchesByEqualOrRegex(sourceCell, spec.sourceValue)) continue;
+                matchedRow = r;
+                break;
+            }
+
+            if (matchedRow < 0) return "SearchAndClick unable to locate row by para/data";
+
+            final Rectangle[] rectRef = new Rectangle[1];
+            final Point[] locRef = new Point[1];
+            final int rowToClick = matchedRow;
+            EventQueue.invokeAndWait(() -> {
+                table.requestFocusInWindow();
+                table.changeSelection(rowToClick, targetCol, false, false);
+                Rectangle cellRect = table.getCellRect(rowToClick, targetCol, true);
+                table.scrollRectToVisible(cellRect);
+                rectRef[0] = cellRect;
+                try {
+                    locRef[0] = table.getLocationOnScreen();
+                } catch (Exception ignored) {
+                    locRef[0] = null;
+                }
+            });
+
+            Rectangle rect = rectRef[0];
+            Point loc = locRef[0];
+            if (rect == null || loc == null) return "SearchAndClick target cell bounds unavailable";
+
+            int cx = loc.x + rect.x + Math.max(1, rect.width / 2);
+            int cy = loc.y + rect.y + Math.max(1, rect.height / 2);
+            robot.mouseMove(cx, cy);
+            if ("RightClick".equals(spec.clickMode)) {
+                robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
+                robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+            } else {
+                robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+                robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+            }
+            robot.delay(150);
+            return null;
+        } catch (Exception e) {
+            AgentLogger.logException(LOG, Level.WARNING, "[" + method + "] exception", e);
+            return "SearchAndClick replay exception: " + e.getMessage();
+        } finally {
+            AgentLogger.end(LOG, "[" + method + "] end");
+        }
+    }
+
+    private static SearchAndUpdateReplaySpec parseSearchAndClickSpec(String para, String data) {
+        if (para == null || para.trim().isEmpty()) return null;
+        SearchAndUpdateReplaySpec spec = new SearchAndUpdateReplaySpec();
+
+        String p = para.trim();
+        if (p.startsWith("RightClick;")) {
+            spec.clickMode = "RightClick";
+            p = p.substring("RightClick;".length()).trim();
+        } else {
+            spec.clickMode = "LeftClick";
+        }
+
+        if (p.contains(":[") && p.endsWith("]")) {
+            int split = p.indexOf(':');
+            String targetColumn = p.substring(0, split).trim();
+            String colsPart = p.substring(split + 1).trim();
+            if (!colsPart.startsWith("[") || !colsPart.endsWith("]") || targetColumn.isEmpty()) return null;
+            String inside = colsPart.substring(1, colsPart.length() - 1).trim();
+            if (inside.isEmpty()) return null;
+            String[] parts = inside.split(",");
+            for (String part : parts) {
+                String c = part.trim();
+                if (!c.isEmpty()) spec.conditionColumns.add(c);
+            }
+            if (spec.conditionColumns.isEmpty()) return null;
+            spec.mode = "conditionColumns";
+            spec.targetColumn = targetColumn;
+
+            String d = data != null ? data.trim() : "";
+            if (!d.startsWith("[") || d.indexOf(']') < 0) return null;
+            int right = d.indexOf(']');
+            String valPart = d.substring(1, right).trim();
+            spec.sourceValue = d.substring(right + 1).trim();
+            if (spec.sourceValue.isEmpty()) return null;
+            String[] vals = valPart.isEmpty() ? new String[0] : valPart.split(":");
+            for (String val : vals) spec.conditionValues.add(val.trim());
+            if (spec.conditionValues.size() != spec.conditionColumns.size()) return null;
+            spec.targetValue = "";
+        } else {
+            spec.mode = "singleColumn";
+            spec.targetColumn = p;
+            spec.sourceValue = data != null ? data.trim() : "";
+            if (spec.targetColumn.isEmpty() || spec.sourceValue.isEmpty()) return null;
+            spec.targetValue = "";
+        }
+        return spec;
     }
 
     private static boolean matchesByEqualOrRegex(String actual, String expected) {
@@ -1269,7 +1594,7 @@ public class RecordAgent {
             }
 
             if (targetValue != null && !targetValue.isEmpty()) {
-                pasteViaClipboard(robot, targetValue);
+                typeTextLikeHuman(robot, targetValue);
             }
             robot.delay(50);
 
@@ -1377,6 +1702,290 @@ public static void putComponentInfo(Map<String, Object> step, Component comp) {
         }
     } catch (Exception ignored) { }
     if (!meta.isEmpty()) step.put("meta", meta);
+}
+
+private static String replaySelectTab(JTabbedPane tabbedPane, JsonObject step, String dataRegex, Robot robot) {
+    if (tabbedPane == null) return "SelectTab target tabbedPane is null";
+    if (dataRegex == null || dataRegex.trim().isEmpty()) return "SelectTab data (tab header regex) is empty";
+
+    java.util.List<Integer> matchedIndexes = new ArrayList<>();
+    java.util.List<String> captions = new ArrayList<>();
+    try {
+        EventQueue.invokeAndWait(() -> {
+            int count = tabbedPane.getTabCount();
+            for (int i = 0; i < count; i++) {
+                String caption = tabbedPane.getTitleAt(i);
+                captions.add(caption != null ? caption : "");
+            }
+        });
+    } catch (Exception e) {
+        return "SelectTab failed to read tab headers: " + e.getMessage();
+    }
+
+    Pattern regex;
+    try {
+        regex = Pattern.compile(dataRegex);
+    } catch (PatternSyntaxException e) {
+        return "SelectTab invalid regex data: " + dataRegex;
+    }
+
+    for (int i = 0; i < captions.size(); i++) {
+        String caption = captions.get(i);
+        if (regex.matcher(caption).matches()) {
+            matchedIndexes.add(i);
+        }
+    }
+
+    if (matchedIndexes.isEmpty()) {
+        return "SelectTab header not found by regex: " + dataRegex;
+    }
+
+    Integer requestedIndex = getStepTabIndex(step);
+    int targetIndex;
+    if (matchedIndexes.size() > 1) {
+        if (requestedIndex == null) {
+            return "SelectTab matched multiple headers, please set index. regex=" + dataRegex + ", matches=" + matchedIndexes;
+        }
+        if (!matchedIndexes.contains(requestedIndex)) {
+            return "SelectTab index does not match regex candidates. index=" + requestedIndex + ", matches=" + matchedIndexes;
+        }
+        targetIndex = requestedIndex;
+    } else {
+        targetIndex = matchedIndexes.get(0);
+    }
+
+    final Rectangle[] tabBoundsRef = new Rectangle[1];
+    final Point[] tabPaneScreenRef = new Point[1];
+    try {
+        final int idx = targetIndex;
+        EventQueue.invokeAndWait(() -> {
+            tabBoundsRef[0] = tabbedPane.getBoundsAt(idx);
+            tabPaneScreenRef[0] = tabbedPane.getLocationOnScreen();
+        });
+    } catch (Exception e) {
+        return "SelectTab failed to resolve tab header bounds: " + e.getMessage();
+    }
+
+    Rectangle tabBounds = tabBoundsRef[0];
+    Point tabPaneScreen = tabPaneScreenRef[0];
+    if (tabBounds == null || tabPaneScreen == null || tabBounds.width <= 0 || tabBounds.height <= 0) {
+        return "SelectTab target tab header bounds unavailable";
+    }
+
+    int cx = tabPaneScreen.x + tabBounds.x + Math.max(1, tabBounds.width / 2);
+    int cy = tabPaneScreen.y + tabBounds.y + Math.max(1, tabBounds.height / 2);
+    robot.mouseMove(cx, cy);
+    robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+    robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    robot.delay(120);
+
+    long deadline = System.currentTimeMillis() + 5000;
+    while (System.currentTimeMillis() < deadline) {
+        final int[] selected = new int[1];
+        try {
+            EventQueue.invokeAndWait(() -> selected[0] = tabbedPane.getSelectedIndex());
+        } catch (Exception ignored) {
+            break;
+        }
+        if (selected[0] == targetIndex) {
+            try {
+                EventQueue.invokeAndWait(() -> {
+                    // Ensure EDT pending tasks after tab switch are drained.
+                });
+            } catch (Exception ignored) {
+            }
+            robot.delay(200);
+            return null;
+        }
+        robot.delay(80);
+    }
+    return "SelectTab click executed but target tab did not become selected: index=" + targetIndex;
+}
+
+private static Integer getStepTabIndex(JsonObject step) {
+    if (step == null) return null;
+    Integer topIndex = getJsonInteger(step, "index");
+    if (topIndex != null) return topIndex;
+    if (step.has("objectIdentifier") && step.get("objectIdentifier").isJsonObject()) {
+        Integer objIndex = getJsonInteger(step.get("objectIdentifier").getAsJsonObject(), "index");
+        if (objIndex != null) return objIndex;
+    }
+    return null;
+}
+
+private static Integer getJsonInteger(JsonObject obj, String key) {
+    if (obj == null || key == null) return null;
+    JsonElement e = obj.get(key);
+    if (e == null || !e.isJsonPrimitive()) return null;
+    try {
+        return e.getAsInt();
+    } catch (Exception ignored) {
+        return null;
+    }
+}
+
+private static String verifyExpectedAfterAction(Component comp, JsonObject step) {
+    String expected = getJsonStr(step, "assertValue");
+    if (expected == null) return null;
+    String trimmed = expected.trim();
+    if (trimmed.isEmpty() || "-".equals(trimmed)) return null;
+    return verifyObjectValue(comp, step, trimmed);
+}
+
+private static String verifyObjectValueFromStep(Component comp, JsonObject step) {
+    String expected = getJsonStr(step, "assertValue");
+    if (expected == null || expected.trim().isEmpty() || "-".equals(expected.trim())) {
+        expected = getJsonStr(step, "data");
+    }
+    if (expected == null || expected.trim().isEmpty() || "-".equals(expected.trim())) {
+        return "VerifyObjectValue expected value is empty (set assertValue or data)";
+    }
+    return verifyObjectValue(comp, step, expected.trim());
+}
+
+private static String verifyObjectValue(Component comp, JsonObject step, String expected) {
+    if (comp == null) return "VerifyObjectValue target object is null";
+    final String para = getJsonStr(step, "parameter");
+    final String[] actualRef = new String[1];
+    try {
+        EventQueue.invokeAndWait(() -> actualRef[0] = readComponentValueForVerify(comp, para));
+    } catch (Exception e) {
+        return "VerifyObjectValue failed to read current value: " + e.getMessage();
+    }
+    String actual = actualRef[0] != null ? actualRef[0] : "";
+    if (!matchesByEqualOrRegex(actual, expected)) {
+        return "VerifyObjectValue failed. expected=" + expected + ", actual=" + actual;
+    }
+    return null;
+}
+
+private static String readComponentValueForVerify(Component comp, String parameter) {
+    String para = parameter != null ? parameter.trim() : "";
+    if (comp instanceof JTable) {
+        JTable table = (JTable) comp;
+        int row = table.getSelectedRow();
+        if (row < 0 && table.getRowCount() > 0) row = 0;
+        if (row < 0) return "";
+        int col = 0;
+        if (!para.isEmpty()) {
+            int found = findTableColumnIndexByName(table, para);
+            if (found >= 0) col = found;
+        }
+        return getTableCellValue(table, row, col);
+    }
+    if (comp instanceof JTextComponent) {
+        String text = ((JTextComponent) comp).getText();
+        return text != null ? text : "";
+    }
+    if (comp instanceof JComboBox) {
+        Object selected = ((JComboBox<?>) comp).getSelectedItem();
+        return selected != null ? String.valueOf(selected) : "";
+    }
+    if (comp instanceof JTabbedPane) {
+        JTabbedPane tab = (JTabbedPane) comp;
+        int idx = tab.getSelectedIndex();
+        if (idx >= 0 && idx < tab.getTabCount()) {
+            String title = tab.getTitleAt(idx);
+            return title != null ? title : "";
+        }
+        return "";
+    }
+    if (comp instanceof AbstractButton) {
+        AbstractButton btn = (AbstractButton) comp;
+        if ("selected".equalsIgnoreCase(para) || "checked".equalsIgnoreCase(para)) {
+            return String.valueOf(btn.isSelected());
+        }
+        String text = btn.getText();
+        if (text != null && !text.isEmpty()) return text;
+        return String.valueOf(btn.isSelected());
+    }
+    if (comp instanceof JLabel) {
+        String text = ((JLabel) comp).getText();
+        return text != null ? text : "";
+    }
+    String name = comp.getName();
+    return name != null ? name : "";
+}
+
+private static void typeTextLikeHuman(Robot robot, String text) {
+    if (robot == null || text == null || text.isEmpty()) return;
+    for (int i = 0; i < text.length(); i++) {
+        char ch = text.charAt(i);
+        boolean typed = typeCharLikeHuman(robot, ch);
+        if (!typed) {
+            pasteViaClipboard(robot, String.valueOf(ch));
+        }
+        robot.delay(45);
+    }
+}
+
+private static boolean typeCharLikeHuman(Robot robot, char ch) {
+    if (robot == null) return false;
+    if (ch == '\n') {
+        pressAndRelease(robot, KeyEvent.VK_ENTER, false);
+        return true;
+    }
+    if (ch == '\t') {
+        pressAndRelease(robot, KeyEvent.VK_TAB, false);
+        return true;
+    }
+
+    int keyCode = -1;
+    boolean shift = false;
+    if (Character.isLetter(ch)) {
+        keyCode = KeyEvent.getExtendedKeyCodeForChar(Character.toUpperCase(ch));
+        shift = Character.isUpperCase(ch);
+    } else if (Character.isDigit(ch)) {
+        keyCode = KeyEvent.getExtendedKeyCodeForChar(ch);
+    } else {
+        switch (ch) {
+            case ' ': keyCode = KeyEvent.VK_SPACE; break;
+            case '.': keyCode = KeyEvent.VK_PERIOD; break;
+            case ',': keyCode = KeyEvent.VK_COMMA; break;
+            case ';': keyCode = KeyEvent.VK_SEMICOLON; break;
+            case ':': keyCode = KeyEvent.VK_SEMICOLON; shift = true; break;
+            case '/': keyCode = KeyEvent.VK_SLASH; break;
+            case '?': keyCode = KeyEvent.VK_SLASH; shift = true; break;
+            case '\\': keyCode = KeyEvent.VK_BACK_SLASH; break;
+            case '|': keyCode = KeyEvent.VK_BACK_SLASH; shift = true; break;
+            case '-': keyCode = KeyEvent.VK_MINUS; break;
+            case '_': keyCode = KeyEvent.VK_MINUS; shift = true; break;
+            case '=': keyCode = KeyEvent.VK_EQUALS; break;
+            case '+': keyCode = KeyEvent.VK_EQUALS; shift = true; break;
+            case '[': keyCode = KeyEvent.VK_OPEN_BRACKET; break;
+            case '{': keyCode = KeyEvent.VK_OPEN_BRACKET; shift = true; break;
+            case ']': keyCode = KeyEvent.VK_CLOSE_BRACKET; break;
+            case '}': keyCode = KeyEvent.VK_CLOSE_BRACKET; shift = true; break;
+            case '\'': keyCode = KeyEvent.VK_QUOTE; break;
+            case '"': keyCode = KeyEvent.VK_QUOTE; shift = true; break;
+            case '`': keyCode = KeyEvent.VK_BACK_QUOTE; break;
+            case '~': keyCode = KeyEvent.VK_BACK_QUOTE; shift = true; break;
+            case '!': keyCode = KeyEvent.VK_1; shift = true; break;
+            case '@': keyCode = KeyEvent.VK_2; shift = true; break;
+            case '#': keyCode = KeyEvent.VK_3; shift = true; break;
+            case '$': keyCode = KeyEvent.VK_4; shift = true; break;
+            case '%': keyCode = KeyEvent.VK_5; shift = true; break;
+            case '^': keyCode = KeyEvent.VK_6; shift = true; break;
+            case '&': keyCode = KeyEvent.VK_7; shift = true; break;
+            case '*': keyCode = KeyEvent.VK_8; shift = true; break;
+            case '(': keyCode = KeyEvent.VK_9; shift = true; break;
+            case ')': keyCode = KeyEvent.VK_0; shift = true; break;
+            case '<': keyCode = KeyEvent.VK_COMMA; shift = true; break;
+            case '>': keyCode = KeyEvent.VK_PERIOD; shift = true; break;
+            default: return false;
+        }
+    }
+
+    if (keyCode == KeyEvent.VK_UNDEFINED || keyCode <= 0) return false;
+    pressAndRelease(robot, keyCode, shift);
+    return true;
+}
+
+private static void pressAndRelease(Robot robot, int keyCode, boolean withShift) {
+    if (withShift) robot.keyPress(KeyEvent.VK_SHIFT);
+    robot.keyPress(keyCode);
+    robot.keyRelease(keyCode);
+    if (withShift) robot.keyRelease(KeyEvent.VK_SHIFT);
 }
 
 public static void putTableCellBounds(Map<String, Object> step, JTable table, int row, int col) {
@@ -2105,6 +2714,138 @@ private static String getComponentStateString(Component c) {
     return invokeStringGetter(c, "getText");
 }
 
+private static Component resolveComponentByParentFirst(Map<String, Object> parentKey, Map<String, Object> objectKey, String[] errorOut) {
+    if (objectKey == null || objectKey.isEmpty()) {
+        if (errorOut != null && errorOut.length > 0) errorOut[0] = "Object identifier missing";
+        return null;
+    }
+    if (parentKey == null || parentKey.isEmpty()) {
+        if (errorOut != null && errorOut.length > 0) errorOut[0] = "Parent object identifier missing";
+        return null;
+    }
+
+    Component parent = findVisibleComponentAcrossRoots(parentKey);
+    if (parent == null) {
+        if (errorOut != null && errorOut.length > 0) errorOut[0] = "Parent object not found";
+        return null;
+    }
+
+    Component child = AgentProtocol.resolveComponent(parent, null, objectKey);
+    if (child == null) {
+        if (errorOut != null && errorOut.length > 0) errorOut[0] = "Object not found under parent object";
+        return null;
+    }
+    return child;
+}
+
+private static Component findVisibleComponentAcrossRoots(Map<String, Object> key) {
+    final String method = "findVisibleComponentAcrossRoots";
+    AgentLogger.begin(LOG, "[" + method + "] key=" + stringifyIdentifierKey(key));
+    try {
+        if (key == null || key.isEmpty()) {
+            AgentLogger.info(LOG, "[" + method + "] key is empty");
+            return null;
+        }
+
+        Component found = null;
+
+        Window[] windows = Window.getWindows();
+        found = resolveAcrossRoots("Window.getWindows", windows, key);
+        if (found != null) {
+            AgentLogger.info(LOG, "[" + method + "] found from Window.getWindows: " + describeComponentForLog(found));
+            return found;
+        }
+
+        Frame[] frames = Frame.getFrames();
+        found = resolveAcrossRoots("Frame.getFrames", frames, key);
+        if (found != null) {
+            AgentLogger.info(LOG, "[" + method + "] found from Frame.getFrames: " + describeComponentForLog(found));
+            return found;
+        }
+
+        java.util.List<Dialog> dialogs = new ArrayList<>();
+        if (windows != null) {
+            for (Window w : windows) {
+                if (w instanceof Dialog) dialogs.add((Dialog) w);
+            }
+        }
+        found = resolveAcrossRoots("Dialog(from Window.getWindows)", dialogs.toArray(new Dialog[0]), key);
+        if (found != null) {
+            AgentLogger.info(LOG, "[" + method + "] found from Dialog list: " + describeComponentForLog(found));
+            return found;
+        }
+
+        java.util.List<JDialog> jDialogs = new ArrayList<>();
+        for (Dialog d : dialogs) {
+            if (d instanceof JDialog) jDialogs.add((JDialog) d);
+        }
+        found = resolveAcrossRoots("JDialog(from Dialog.getDialogs)", jDialogs.toArray(new JDialog[0]), key);
+        if (found != null) {
+            AgentLogger.info(LOG, "[" + method + "] found from JDialog list: " + describeComponentForLog(found));
+            return found;
+        }
+
+        java.util.List<JWindow> jWindows = new ArrayList<>();
+        if (windows != null) {
+            for (Window w : windows) {
+                if (w instanceof JWindow) jWindows.add((JWindow) w);
+            }
+        }
+        found = resolveAcrossRoots("JWindow(from Window.getWindows)", jWindows.toArray(new JWindow[0]), key);
+        if (found != null) {
+            AgentLogger.info(LOG, "[" + method + "] found from JWindow list: " + describeComponentForLog(found));
+            return found;
+        }
+
+        AgentLogger.info(LOG, "[" + method + "] parent not found for key=" + stringifyIdentifierKey(key));
+        return null;
+    } finally {
+        AgentLogger.end(LOG, "[" + method + "] end");
+    }
+}
+
+private static Component resolveAcrossRoots(String source, Window[] roots, Map<String, Object> key) {
+    final String method = "resolveAcrossRoots";
+    int total = roots != null ? roots.length : 0;
+    AgentLogger.info(LOG, "[" + method + "] source=" + source + ", totalRoots=" + total + ", key=" + stringifyIdentifierKey(key));
+    if (roots == null || roots.length == 0) return null;
+    for (Window root : roots) {
+        if (root == null || !root.isVisible()) continue;
+        Component found = AgentProtocol.resolveComponent(root, null, key);
+        if (found != null) {
+            AgentLogger.info(LOG, "[" + method + "] source=" + source + " matched root=" + describeComponentForLog(root));
+            return found;
+        }
+        String reason = AgentProtocol.explainRootMismatch(root, key);
+        AgentLogger.info(LOG, "[" + method + "] source=" + source + " rootNoMatch=" + describeComponentForLog(root)
+                + ", reason=" + reason);
+    }
+    AgentLogger.info(LOG, "[" + method + "] source=" + source + " no match");
+    return null;
+}
+
+private static String stringifyIdentifierKey(Map<String, Object> key) {
+    if (key == null || key.isEmpty()) return "{}";
+    StringBuilder sb = new StringBuilder("{");
+    boolean first = true;
+    for (Map.Entry<String, Object> entry : key.entrySet()) {
+        if (!first) sb.append(", ");
+        first = false;
+        sb.append(entry.getKey()).append("=").append(String.valueOf(entry.getValue()));
+    }
+    sb.append("}");
+    return sb.toString();
+}
+
+private static String describeComponentForLog(Component c) {
+    if (c == null) return "null";
+    String type = c.getClass().getName();
+    String name = c.getName();
+    String text = getComponentText(c);
+    if (text == null || text.isEmpty()) text = invokeStringGetter(c, "getTitle");
+    return "type=" + type + ", name=" + (name != null ? name : "") + ", text=" + (text != null ? text : "");
+}
+
 private static String invokeStringGetter(Component c, String methodName) {
     if (c == null) return null;
     try {
@@ -2136,20 +2877,29 @@ private static int[] getScreenBounds(Component c) {
 
 
 
-/** Parse FillEdit data with optional {HOME}{DEL}... prefix. Returns [doHomeDel, remainingText]. */
-private static Object[] parseFillEditData(String data) {
-    boolean doHomeDel = false;
-    if (data == null) return new Object[]{false, ""};
+private static String sanitizeFillEditInput(String data) {
+    if (data == null) return "";
     String s = data;
-    // Accept tokens like {HOME}{DEL}{DEL}...
     if (s.startsWith("{HOME}")) {
-        doHomeDel = true;
         s = s.substring("{HOME}".length());
         while (s.startsWith("{DEL}")) {
             s = s.substring("{DEL}".length());
         }
     }
-    return new Object[]{doHomeDel, s};
+    return s;
+}
+
+private static void clearFocusedTextByHomeDel(Robot robot, int deleteCount) {
+    if (robot == null) return;
+    robot.keyPress(KeyEvent.VK_HOME);
+    robot.keyRelease(KeyEvent.VK_HOME);
+    robot.delay(30);
+    int times = Math.max(0, deleteCount);
+    for (int d = 0; d < times; d++) {
+        robot.keyPress(KeyEvent.VK_DELETE);
+        robot.keyRelease(KeyEvent.VK_DELETE);
+        robot.delay(20);
+    }
 }
 private static void pasteViaClipboard(Robot robot, String text) {
     Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -2176,6 +2926,38 @@ private static void sendReplayDone(WebSocket conn, int count, Integer failedInde
         conn.send(toJson(ack));
     } catch (Exception e) {
         AgentLogger.logException(LOG, Level.WARNING, "Send replayDone failed", e);
+    }
+}
+
+private static void sendReplayProgress(
+        WebSocket conn,
+        String event,
+        Integer index,
+        int total,
+        String keyword,
+        String status,
+        Long startedAt,
+        Long endedAt,
+        String error) {
+    try {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("type", "replayProgress");
+        payload.put("event", event);
+        payload.put("total", total);
+        if (index != null) payload.put("index", index);
+        if (keyword != null) payload.put("keyword", keyword);
+        if (status != null) payload.put("status", status);
+        if (startedAt != null) payload.put("startedAt", startedAt);
+        if (endedAt != null) {
+            payload.put("endedAt", endedAt);
+            if (startedAt != null && endedAt >= startedAt) {
+                payload.put("durationMs", endedAt - startedAt);
+            }
+        }
+        if (error != null && !error.isEmpty()) payload.put("error", error);
+        conn.send(toJson(payload));
+    } catch (Exception e) {
+        AgentLogger.logException(LOG, Level.WARNING, "Send replayProgress failed", e);
     }
 }
 

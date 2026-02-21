@@ -4,10 +4,11 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 /**
  * Utility class for agent logging with begin/end markers.
@@ -20,7 +21,9 @@ public class AgentLogger {
     public static synchronized void setup(File logsDir) {
         if (initialized) return;
         try {
-            logsDir = new File("C:\\temp\\logs");
+            if (logsDir == null) {
+                logsDir = new File(System.getProperty("java.io.tmpdir"), "mars-javaagent-logs");
+            }
             if (!logsDir.exists()) {
                 logsDir.mkdirs();
             }
@@ -33,15 +36,20 @@ public class AgentLogger {
             }
 
             FileHandler fh = new FileHandler(logFile.getAbsolutePath(), false);
-            fh.setFormatter(new SimpleFormatter());
-            fh.setLevel(Level.ALL);
+            fh.setFormatter(new Formatter() {
+                @Override
+                public String format(LogRecord record) {
+                    return (record.getMessage() != null ? record.getMessage() : "") + System.lineSeparator();
+                }
+            });
+            fh.setLevel(Level.INFO);
 
             Logger root = Logger.getLogger("");
             for (Handler h : root.getHandlers()) {
                 root.removeHandler(h);
             }
             root.addHandler(fh);
-            root.setLevel(Level.ALL);
+            root.setLevel(Level.INFO);
             initialized = true;
         } catch (Exception e) {
             Logger.getLogger(AgentLogger.class.getName()).log(Level.WARNING, "setup log failed", e);
@@ -49,22 +57,22 @@ public class AgentLogger {
     }
 
     public static void begin(Logger logger, String message) {
-        logger.info("[BEGIN] " + message);
+        JavaLog.begin(logger, message);
     }
 
     public static void end(Logger logger, String message) {
-        logger.info("[END] " + message);
+        JavaLog.end(logger, message);
     }
 
     public static void info(Logger logger, String message) {
-        logger.info(message);
+        JavaLog.info(logger, message);
     }
 
     public static void warning(Logger logger, String message) {
-        logger.warning(message);
+        JavaLog.warning(logger, message);
     }
 
     public static void logException(Logger logger, Level level, String message, Throwable t) {
-        logger.log(level, message, t);
+        JavaLog.error(logger, level, message, t);
     }
 }

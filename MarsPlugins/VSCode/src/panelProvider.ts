@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { spawn } from 'child_process';
 import { getJavaProcesses, findProcessInfoExe } from './processInfo';
-import { loadAgentAndScan, runHighlightOverlay, replaySteps, startRecordAgent, stopRecordAgent } from './agentLoader';
+import { AGENT_LOADER_LOG_FILE, loadAgentAndScan, ReplayProgressEvent, runHighlightOverlay, replaySteps, startRecordAgent, stopRecordAgent } from './agentLoader';
 import { convertScanToUIObjects, convertScanToUIObjectTree, ScanOutput } from './objectConverter';
 import { JavaProcess, UIObject, TestScriptStep, ScriptKeyword } from './types';
 import { RecordingEngine } from './recording/recorder';
@@ -244,6 +244,12 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
           break;
         case 'stopRecord':
           this.stopRecordAndShowDialog();
+          break;
+        case 'exportDiagnostics':
+          await this._handleExportDiagnostics(webviewView.webview);
+          break;
+        case 'exportObjects':
+          await this._handleExportObjects(webviewView.webview, msg.data);
           break;
         case 'showDialog':
           this._outputChannel.appendLine('[Java UI] showDialog requested');
@@ -744,7 +750,18 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     this._log(webview, `[begin] Replaying step ${index + 1} on PID=${pid}...\r\n`);
     const outDir = this._getScanDir();
     try {
-      const result = await replaySteps(pid, outDir, [step as Record<string, unknown>]);
+      const result = await replaySteps(
+        pid,
+        outDir,
+        [step as Record<string, unknown>],
+        (event: ReplayProgressEvent) => {
+          if ((event.event === 'stepStart' || event.event === 'stepEnd') && typeof index === 'number') {
+            this._safePost(webview, { type: 'replayProgress', data: { ...event, index, total: 1 } });
+          } else {
+            this._safePost(webview, { type: 'replayProgress', data: event });
+          }
+        }
+      );
       if (result.success) {
         this._log(webview, `[end] Step ${index + 1} executed.\r\n`);
       } else {
@@ -755,7 +772,8 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
         fromActionColumn: true,
         success: result.success,
         error: result.error ?? '',
-        failedIndex: result.failedIndex,
+        index,
+        failedIndex: typeof result.failedIndex === 'number' ? index : undefined,
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -765,6 +783,7 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
         fromActionColumn: true,
         success: false,
         error: msg,
+        index,
         failedIndex: index,
       });
     }
@@ -799,7 +818,9 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     }
     const outDir = this._getScanDir();
     try {
-      const result = await replaySteps(pid, outDir, steps);
+      const result = await replaySteps(pid, outDir, steps, (event: ReplayProgressEvent) => {
+        this._safePost(webview, { type: 'replayProgress', data: event });
+      });
       if (result.success) {
         this._log(webview, `[end] Replay completed. ${result.count ?? steps.length} step(s) executed.\r\n`);
       } else {
@@ -814,6 +835,154 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
       this._log(webview, `[end] Replay error: ${msg}\r\n`);
       this._safePost(webview, { type: 'error', message: msg });
     }
+  }
+
+  private async _handleExportDiagnostics(webview: vscode.Webview): Promise<void> {
+    const baseUri = await vscode.window.showOpenDialog({
+      title: 'Select a folder to export diagnostics',
+      canSelectFiles: false,
+      canSelectFolders: true,
+      canSelectMany: false,
+      defaultUri: vscode.Uri.file(this._getScanDir()),
+      openLabel: 'Export Here',
+    });
+    if (!baseUri || baseUri.length === 0) {
+      this._log(webview, '[action] Export diagnostics canceled.\r\n');
+      return;
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const bundleDir = path.join(baseUri[0].fsPath, `mars-diagnostics-${timestamp}`);
+    const logsDir = path.join(bundleDir, 'logs');
+    const configDir = path.join(bundleDir, 'config');
+    const runtimeDir = path.join(bundleDir, 'runtime');
+    fs.mkdirSync(logsDir, { recursive: true });
+    fs.mkdirSync(configDir, { recursive: true });
+    fs.mkdirSync(runtimeDir, { recursive: true });
+
+    const copiedFiles: string[] = [];
+    const copyIfExists = (src: string, dst: string): void => {
+      try {
+        if (!fs.existsSync(src)) return;
+        fs.mkdirSync(path.dirname(dst), { recursive: true });
+        fs.copyFileSync(src, dst);
+        copiedFiles.push(dst);
+      } catch {
+        // ignore
+      }
+    };
+
+    const extensionRoot = this._extensionUri.fsPath;
+    copyIfExists(AGENT_LOADER_LOG_FILE, path.join(logsDir, 'marsExtension-agentLoader.log'));
+    copyIfExists(path.join(extensionRoot, 'java', 'marsJavaAgent', 'src', 'main', 'resources', 'marsJavaAgent-config.json'), path.join(configDir, 'marsJavaAgent-config.default.json'));
+    copyIfExists(path.join(extensionRoot, 'java', 'marsJavaAgent', 'target', 'marsJavaAgent-config.json'), path.join(configDir, 'marsJavaAgent-config.runtime.json'));
+
+    const scanDir = this._getScanDir();
+    try {
+      const recordDirs = fs.readdirSync(scanDir)
+        .filter((name) => name.startsWith('record-'))
+        .map((name) => ({ name, full: path.join(scanDir, name), mtime: fs.statSync(path.join(scanDir, name)).mtimeMs }))
+        .sort((a, b) => b.mtime - a.mtime)
+        .slice(0, 3);
+      for (const dir of recordDirs) {
+        copyIfExists(path.join(dir.full, 'record-debug.log'), path.join(logsDir, dir.name, 'record-debug.log'));
+        copyIfExists(path.join(dir.full, 'toolbutton-tooltips.log'), path.join(logsDir, dir.name, 'toolbutton-tooltips.log'));
+        copyIfExists(path.join(dir.full, 'record.jsonl'), path.join(logsDir, dir.name, 'record.jsonl'));
+      }
+    } catch {
+      // ignore
+    }
+
+    const packageJsonPath = path.join(extensionRoot, 'package.json');
+    let extensionVersion = 'unknown';
+    try {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as { version?: string };
+      if (typeof packageJson.version === 'string' && packageJson.version.trim()) {
+        extensionVersion = packageJson.version.trim();
+      }
+    } catch {
+      // ignore
+    }
+
+    fs.writeFileSync(path.join(runtimeDir, 'panel-log.txt'), this._lastLogText || '', 'utf-8');
+    fs.writeFileSync(path.join(runtimeDir, 'steps.json'), JSON.stringify({ steps: this._currentSteps }, null, 2), 'utf-8');
+
+    const summary = {
+      generatedAt: new Date().toISOString(),
+      extensionVersion,
+      platform: process.platform,
+      nodeVersion: process.version,
+      processCount: this._currentProcesses.length,
+      objectCount: this._currentObjects.length,
+      stepCount: this._currentSteps.length,
+      copiedFileCount: copiedFiles.length,
+      copiedFiles,
+      configSummary: {
+        IsHighlightObjectWhileReplay: this._readReplayHighlightConfig(),
+      },
+    };
+    fs.writeFileSync(path.join(bundleDir, 'summary.json'), JSON.stringify(summary, null, 2), 'utf-8');
+
+    this._log(webview, `[end] Diagnostics exported: ${bundleDir}\r\n`);
+    vscode.window.showInformationMessage(`Diagnostics exported: ${bundleDir}`);
+  }
+
+  private async _handleExportObjects(webview: vscode.Webview, payload: unknown): Promise<void> {
+    const data = (payload && typeof payload === 'object') ? (payload as { objectTree?: unknown; objects?: unknown }) : {};
+    const objectTree = Array.isArray(data.objectTree) ? data.objectTree : [];
+    const objects = Array.isArray(data.objects) ? data.objects : [];
+    const parentObjects = objectTree;
+    const defaultUri = vscode.Uri.file(path.join(this._getScanDir(), `mars-objects-${Date.now()}.json`));
+    const targetUri = await vscode.window.showSaveDialog({
+      title: 'Export Objects (JSON)',
+      defaultUri,
+      filters: { 'JSON Files': ['json'] },
+      saveLabel: 'Export',
+    });
+    if (!targetUri) {
+      this._log(webview, '[action] Export objects canceled.\r\n');
+      return;
+    }
+
+    try {
+      const output = {
+        marker: 'MARS_UI_OBJECTS',
+        generatedAt: new Date().toISOString(),
+        parentObjects,
+        objectTree,
+        objects,
+      };
+      fs.writeFileSync(targetUri.fsPath, JSON.stringify(output, null, 2), 'utf-8');
+      this._log(webview, `[end] Export objects success: ${targetUri.fsPath}\r\n`);
+      vscode.window.showInformationMessage('Objects exported successfully.');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this._log(webview, `[end] Export objects failed: ${msg}\r\n`);
+      vscode.window.showErrorMessage(`Export objects failed: ${msg}`);
+    }
+  }
+
+  private _readReplayHighlightConfig(): boolean | 'unknown' {
+    const extensionRoot = this._extensionUri.fsPath;
+    const runtimeConfigPath = path.join(extensionRoot, 'java', 'marsJavaAgent', 'target', 'marsJavaAgent-config.json');
+    const defaultConfigPath = path.join(extensionRoot, 'java', 'marsJavaAgent', 'src', 'main', 'resources', 'marsJavaAgent-config.json');
+    const parse = (filePath: string): boolean | undefined => {
+      try {
+        if (!fs.existsSync(filePath)) return undefined;
+        const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as { IsHighlightObjectWhileReplay?: unknown };
+        if (typeof parsed.IsHighlightObjectWhileReplay === 'boolean') {
+          return parsed.IsHighlightObjectWhileReplay;
+        }
+      } catch {
+        return undefined;
+      }
+      return undefined;
+    };
+    const runtime = parse(runtimeConfigPath);
+    if (typeof runtime === 'boolean') return runtime;
+    const defaultVal = parse(defaultConfigPath);
+    if (typeof defaultVal === 'boolean') return defaultVal;
+    return 'unknown';
   }
 
   private async _handleStartRecord(webview: vscode.Webview, pid: number): Promise<void> {
@@ -870,6 +1039,7 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
           stepEvent === 'selectDropDown' ||
           stepEvent === 'searchAndClick' ||
           stepEvent === 'searchAndUpdate' ||
+          stepEvent === 'selectTab' ||
           stepEvent === 'expandTreeNode' ||
           stepEvent === 'collapseTreeNode';
         if (isStepEvent) return;
@@ -1030,6 +1200,7 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
         'SelectDropDown', 'SelectDropList', 'SelectListItem', 'SelectMenuItem',
         'SelectTreeList', 'SelectTab', 'SelectMenuIcon', 'SelectPopupMenu',
         'SearchAndClick', 'SearchAndUpdate', 'Check', 'Uncheck'
+        , 'VerifyObjectValue'
       ];
       return {
         keyword: validKw.includes(kw as ScriptKeyword) ? (kw as ScriptKeyword) : 'Click',
@@ -1082,7 +1253,8 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     const htmlPath = path.join(this._extensionUri.fsPath, 'src', 'panel.html');
     try {
       const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
-      return htmlContent;
+      const locale = (vscode.env.language || 'en').trim() || 'en';
+      return htmlContent.replace(/__MARS_LOCALE__/g, locale.replace(/'/g, "\\'"));
     } catch (err) {
       this._outputChannel.appendLine(`[Java UI] Error loading panel.html: ${String(err)}`);
       return `<html><body><h1>Failed to load panel</h1><p>Error: ${String(err)}</p></body></html>`;

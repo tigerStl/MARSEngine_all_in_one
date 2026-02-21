@@ -111,6 +111,86 @@ cd ..
 }
 ```
 
+## VerifyObjectValue 用法示例
+
+- 如果在任一步骤设置了 `assertValue`（Expected），该步骤执行后会自动校验。
+- 也可显式新增一条 `VerifyObjectValue` 步骤进行独立校验。
+
+### 示例 1：普通控件（JTextField）
+
+```json
+{
+  "steps": [
+    {
+      "keyword": "FillEdit",
+      "parentIdentifier": { "javaType": "javax.swing.JFrame" },
+      "objectIdentifier": { "javaType": "javax.swing.JTextField", "name": "txtCustomer" },
+      "data": "ACME-001",
+      "assertValue": "ACME-001"
+    },
+    {
+      "keyword": "VerifyObjectValue",
+      "parentIdentifier": { "javaType": "javax.swing.JFrame" },
+      "objectIdentifier": { "javaType": "javax.swing.JTextField", "name": "txtCustomer" },
+      "parameter": "",
+      "data": "ACME-001",
+      "assertValue": ""
+    }
+  ]
+}
+```
+
+### 示例 2：JTable 校验
+
+```json
+{
+  "steps": [
+    {
+      "keyword": "SearchAndUpdate",
+      "parentIdentifier": { "javaType": "javax.swing.JFrame" },
+      "objectIdentifier": { "javaType": "javax.swing.JTable", "name": "loanTable" },
+      "parameter": "Amount:[Deal]",
+      "data": "[D-1001];1000:1500",
+      "assertValue": "1500"
+    },
+    {
+      "keyword": "VerifyObjectValue",
+      "parentIdentifier": { "javaType": "javax.swing.JFrame" },
+      "objectIdentifier": { "javaType": "javax.swing.JTable", "name": "loanTable" },
+      "parameter": "Amount",
+      "data": "1500",
+      "assertValue": ""
+    }
+  ]
+}
+```
+
+### 示例 3：使用正则进行校验
+
+`VerifyObjectValue` 与 `assertValue` 都支持正则匹配（Java Pattern）。
+
+```json
+{
+  "steps": [
+    {
+      "keyword": "FillEdit",
+      "parentIdentifier": { "javaType": "javax.swing.JFrame" },
+      "objectIdentifier": { "javaType": "javax.swing.JTextField", "name": "txtRef" },
+      "data": "ACME-2026-001",
+      "assertValue": "^ACME-\\d{4}-\\d{3}$"
+    },
+    {
+      "keyword": "VerifyObjectValue",
+      "parentIdentifier": { "javaType": "javax.swing.JFrame" },
+      "objectIdentifier": { "javaType": "javax.swing.JTextField", "name": "txtRef" },
+      "parameter": "",
+      "data": "^ACME-\\d{4}-\\d{3}$",
+      "assertValue": ""
+    }
+  ]
+}
+```
+
 ## 常量文件
 
 ```json

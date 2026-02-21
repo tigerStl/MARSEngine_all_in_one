@@ -278,6 +278,21 @@ export class RecordingEngine {
         this.treeAggregator.commitPath(ts, ref, (msg.data as string) ?? '');
         return;
       }
+      case 'selectTab': {
+        this.stepId += 1;
+        this.callbacks.onStep(
+          semanticToRecordedStep(
+            {
+              keyword: 'SelectTab',
+              objectRef: toStrictRef(ref),
+              data: (msg.data ?? msg.content ?? ref.self?.javaName ?? '') as string,
+              ts,
+            },
+            'step-' + this.stepId
+          )
+        );
+        return;
+      }
       case 'searchAndUpdate': {
         this.stepId += 1;
         this.callbacks.onStep(

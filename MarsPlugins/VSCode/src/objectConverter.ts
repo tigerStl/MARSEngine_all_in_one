@@ -75,6 +75,33 @@ function sanitize(s: string): string {
   return s.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
 }
 
+function toIdentifier(node: ScannedNode): ElementIdentifier {
+  const identifier: ElementIdentifier = {
+    javaType: node.javaType,
+  };
+  if (node.text) identifier.text = node.text;
+  if (node.value != null) identifier.value = node.value;
+  if (node.name) identifier.name = node.name;
+  if (node.caption) identifier.caption = node.caption;
+  if (node.title) identifier.title = node.title;
+  if (node.toolTipText) identifier.toolTipText = node.toolTipText;
+  if (node.bounds) identifier.bounds = node.bounds;
+  if (node.screenBounds) identifier.screenBounds = node.screenBounds;
+  if (node.visible !== undefined) identifier.visible = node.visible;
+  if (node.baseTypes && node.baseTypes.length) identifier.baseTypes = node.baseTypes;
+  return identifier;
+}
+
+function findTopParentNode(node: ScannedNode, idToNode: Map<string, ScannedNode>): ScannedNode {
+  let current: ScannedNode = node;
+  while (current.parentId) {
+    const parent = idToNode.get(current.parentId);
+    if (!parent) break;
+    current = parent;
+  }
+  return current;
+}
+
 export function convertScanToUIObjects(scan: ScanOutput): UIObject[] {
   const roots = scan.roots ?? [];
   const flat: ScannedNode[] = [];
@@ -91,14 +118,9 @@ export function convertScanToUIObjects(scan: ScanOutput): UIObject[] {
   const result: UIObject[] = [];
 
   for (const node of flat) {
-    const parent = node.parentId ? idToNode.get(node.parentId) : null;
-    const parentIdentifier: ElementIdentifier | null = parent
-      ? {
-          javaType: parent.javaType,
-          text: parent.text,
-          name: parent.name,
-          caption: parent.caption,
-        }
+    const topParent = findTopParentNode(node, idToNode);
+    const parentIdentifier: ElementIdentifier | null = topParent && topParent.id !== node.id
+      ? toIdentifier(topParent)
       : null;
 
     const siblings = flat.filter((n) => n.parentId === node.parentId).sort(sortByTopLeft);
@@ -110,19 +132,7 @@ export function convertScanToUIObjects(scan: ScanOutput): UIObject[] {
         (s.name ?? '') === (node.name ?? '')
     ).length > 1;
 
-    const identifier: ElementIdentifier = {
-      javaType: node.javaType,
-    };
-    if (node.text) identifier.text = node.text;
-    if (node.value != null) identifier.value = node.value;
-    if (node.name) identifier.name = node.name;
-    if (node.caption) identifier.caption = node.caption;
-    if (node.title) identifier.title = node.title;
-    if (node.toolTipText) identifier.toolTipText = node.toolTipText;
-    if (node.bounds) identifier.bounds = node.bounds;
-    if (node.screenBounds) identifier.screenBounds = node.screenBounds;
-    if (node.visible !== undefined) identifier.visible = node.visible;
-    if (node.baseTypes && node.baseTypes.length) identifier.baseTypes = node.baseTypes;
+    const identifier: ElementIdentifier = toIdentifier(node);
 
     const uniqueName = generateUniqueName(node, used, []);
 
@@ -151,14 +161,9 @@ export function convertScanToUIObjectTree(scan: ScanOutput): UIObjectTree[] {
   const used = new Set<string>();
   const idToObj = new Map<string, UIObject>();
   for (const node of flat) {
-    const parent = node.parentId ? idToNode.get(node.parentId) : null;
-    const parentIdentifier: ElementIdentifier | null = parent
-      ? {
-          javaType: parent.javaType,
-          text: parent.text,
-          name: parent.name,
-          caption: parent.caption,
-        }
+    const topParent = findTopParentNode(node, idToNode);
+    const parentIdentifier: ElementIdentifier | null = topParent && topParent.id !== node.id
+      ? toIdentifier(topParent)
       : null;
     const siblings = flat.filter((n) => n.parentId === node.parentId).sort(sortByTopLeft);
     const index = siblings.findIndex((s) => s.id === node.id);
@@ -169,17 +174,7 @@ export function convertScanToUIObjectTree(scan: ScanOutput): UIObjectTree[] {
           (s.text ?? '') === (node.text ?? '') &&
           (s.name ?? '') === (node.name ?? '')
       ).length > 1;
-    const identifier: ElementIdentifier = { javaType: node.javaType };
-    if (node.text) identifier.text = node.text;
-    if (node.value != null) identifier.value = node.value;
-    if (node.name) identifier.name = node.name;
-    if (node.caption) identifier.caption = node.caption;
-    if (node.title) identifier.title = node.title;
-    if (node.toolTipText) identifier.toolTipText = node.toolTipText;
-    if (node.bounds) identifier.bounds = node.bounds;
-    if (node.screenBounds) identifier.screenBounds = node.screenBounds;
-    if (node.visible !== undefined) identifier.visible = node.visible;
-    if (node.baseTypes && node.baseTypes.length) identifier.baseTypes = node.baseTypes;
+    const identifier: ElementIdentifier = toIdentifier(node);
     const uniqueName = generateUniqueName(node, used, []);
     const obj: UIObject = {
       uniqueName,

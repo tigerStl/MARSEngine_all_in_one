@@ -3,20 +3,27 @@ package com.mars.javaui.record.keyword;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
+import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Logger;
+
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
+
+import com.mars.javaui.record.AgentLogger;
 
 /**
  * Abstract base for all keyword-based steps. Standard TestStep: Keyword, top parent identifiers,
  * object identifiers, parameter, data. findObject is implemented here for replay.
  */
 public abstract class MarsKeyword {
+
+    private static final Logger LOG = Logger.getLogger(MarsKeyword.class.getName());
 
     public abstract String getKeyword();
 
@@ -39,10 +46,100 @@ public abstract class MarsKeyword {
 
     /** Top parent (window/dialog) identifier. */
     public static Map<String, Object> buildParentIdentifier(Component comp) {
-        if (comp == null) return new LinkedHashMap<>();
-        Component root = SwingUtilities.getWindowAncestor(comp);
-        if (root == null) root = comp;
-        return buildObjectIdentifier(root);
+        AgentLogger.begin(LOG, "buildParentIdentifier");
+        try {
+            if (comp == null) return new LinkedHashMap<>();
+            Component root = resolveTopParent(comp);
+            if (root != null) {
+                AgentLogger.info(LOG, "resolveParent componentType=" + comp.getClass().getName()
+                        + ", componentName=" + safe(getComponentJavaName(comp))
+                        + " -> parentType=" + root.getClass().getName()
+                        + ", parentName=" + safe(getComponentJavaName(root)));
+            } else {
+                AgentLogger.info(LOG, "resolveParent componentType=" + comp.getClass().getName()
+                        + ", componentName=" + safe(getComponentJavaName(comp))
+                        + " -> parentType=null,parentName=");
+            }
+            return buildObjectIdentifier(root);
+        } finally {
+            AgentLogger.end(LOG, "buildParentIdentifier");
+        }
+    }
+
+    private static String safe(String s) {
+        return s == null ? "" : s;
+    }
+
+    private static Component resolveTopParent(Component comp) {
+        AgentLogger.begin(LOG, "resolveTopParent");
+        try {
+            if (comp == null) return null;
+
+            // Prefer Dialog explicitly for modal scenarios.
+            for (Component p = comp; p != null; p = p.getParent()) {
+                if (p instanceof javax.swing.JFrame) {
+                    AgentLogger.info(LOG, "resolveTopParent branch=JFrame type=" + p.getClass().getName()
+                            + ", text=" + safe(getComponentJavaName(p)));
+                    return p;
+                }
+                if (p instanceof javax.swing.JDialog) {
+                    AgentLogger.info(LOG, "resolveTopParent branch=JDialog type=" + p.getClass().getName()
+                            + ", text=" + safe(getComponentJavaName(p)));
+                    return p;
+                }
+                if (p instanceof javax.swing.JWindow) {
+                    AgentLogger.info(LOG, "resolveTopParent branch=JWindow type=" + p.getClass().getName()
+                            + ", text=" + safe(getComponentJavaName(p)));
+                    return p;
+                }
+                if (p instanceof java.awt.Frame) {
+                    AgentLogger.info(LOG, "resolveTopParent branch=Frame type=" + p.getClass().getName()
+                            + ", text=" + safe(getComponentJavaName(p)));
+                    return p;
+                }
+                if (p instanceof java.awt.Dialog) {
+                    AgentLogger.info(LOG, "resolveTopParent branch=Dialog type=" + p.getClass().getName()
+                            + ", text=" + safe(getComponentJavaName(p)));
+                    return p;
+                }
+                if (p instanceof Window) {
+                    AgentLogger.info(LOG, "resolveTopParent branch=WindowChain type=" + p.getClass().getName()
+                            + ", text=" + safe(getComponentJavaName(p)));
+                    return p;
+                }
+            }
+
+            // Fallback for cases where parent chain is unusual.
+            Component windowAncestor = SwingUtilities.getWindowAncestor(comp);
+            if (windowAncestor != null) {
+                AgentLogger.info(LOG, "resolveTopParent branch=SwingWindowAncestor type=" + windowAncestor.getClass().getName()
+                        + ", text=" + safe(getComponentJavaName(windowAncestor)));
+                return windowAncestor;
+            }
+
+            // Detached component case (e.g. modal dialog button closes immediately on click).
+            Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+            if (activeWindow != null) {
+                AgentLogger.info(LOG, "resolveTopParent branch=ActiveWindow type=" + activeWindow.getClass().getName()
+                        + ", text=" + safe(getComponentJavaName(activeWindow)));
+                return activeWindow;
+            }
+            Window focusedWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusedWindow();
+            if (focusedWindow != null) {
+                AgentLogger.info(LOG, "resolveTopParent branch=FocusedWindow type=" + focusedWindow.getClass().getName()
+                        + ", text=" + safe(getComponentJavaName(focusedWindow)));
+                return focusedWindow;
+            }
+
+            Component top = comp;
+            while (top.getParent() != null) {
+                top = top.getParent();
+            }
+            AgentLogger.info(LOG, "resolveTopParent top type=" + top.getClass().getName() + ", text=" + safe(getComponentJavaName(top)));
+            return top;
+        } finally {
+            AgentLogger.end(LOG, "resolveTopParent");
+        }
     }
 
     /** Object identifier: javaName, javaType, index, optional javaNamePath, javaTypePath, javaTitle for window. */
@@ -73,6 +170,8 @@ public abstract class MarsKeyword {
         if (comp == null) return "";
         String name = comp.getName();
         if (name != null && !name.isEmpty()) return name;
+        String windowTitle = getWindowTitle(comp);
+        if (windowTitle != null && !windowTitle.isEmpty()) return windowTitle;
         try {
             if (comp instanceof JComponent && ((JComponent) comp).getAccessibleContext() != null) {
                 String acc = ((JComponent) comp).getAccessibleContext().getAccessibleName();

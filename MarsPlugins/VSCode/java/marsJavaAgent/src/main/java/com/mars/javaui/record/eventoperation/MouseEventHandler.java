@@ -14,6 +14,7 @@ import javax.swing.JComboBox;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
@@ -150,6 +151,29 @@ public final class MouseEventHandler {
             return;
         }
 
+        if (clickTarget instanceof JTabbedPane) {
+            if (id == MouseEvent.MOUSE_RELEASED) {
+                JTabbedPane tabbedPane = (JTabbedPane) clickTarget;
+                Point tabPoint = SwingUtilities.convertPoint(me.getComponent(), me.getPoint(), tabbedPane);
+                int tabIndex = tabbedPane.indexAtLocation(tabPoint.x, tabPoint.y);
+                if (tabIndex < 0) {
+                    tabIndex = tabbedPane.getSelectedIndex();
+                }
+                if (tabIndex >= 0 && tabIndex < tabbedPane.getTabCount()) {
+                    String header = tabbedPane.getTitleAt(tabIndex);
+                    if (header == null) header = "";
+                    Map<String, Object> step = MarsKeyword.buildScriptStep("SelectTab", tabbedPane, "", header, "");
+                    step.put("event", "selectTab");
+                    step.put("timestamp", now);
+                    step.put("index", tabIndex);
+                    RecordAgent.putComponentInfo(step, tabbedPane);
+                    step.put("content", header);
+                    emitStep(ctx, step);
+                }
+            }
+            return;
+        }
+
         if (!RecordAgent.shouldRecordClickTarget(clickTarget)) return;
 
         if (id == MouseEvent.MOUSE_PRESSED && button != MouseEvent.NOBUTTON) {
@@ -218,6 +242,7 @@ public final class MouseEventHandler {
         final int emitButton = button;
         final int emitX = ctx.lastPressedXRef[0];
         final int emitY = ctx.lastPressedYRef[0];
+        final Map<String, Object> emitParentIdentifier = MarsKeyword.buildParentIdentifier(pressComp);
 
         javax.swing.Timer timer = new javax.swing.Timer(ctx.PENDING_CLICK_DELAY_MS, ev -> {
             ctx.pendingClickTimerRef.set(null);
@@ -226,6 +251,9 @@ public final class MouseEventHandler {
             int clickCount = 1;
             String param = "button=" + emitButton + ",clickCount=" + clickCount;
             Map<String, Object> step = MarsKeyword.buildScriptStep("ClickButton", emitComp, param, "", "");
+            if (emitParentIdentifier != null && !emitParentIdentifier.isEmpty()) {
+                step.put("parentIdentifier", emitParentIdentifier);
+            }
             step.put("event", "clickButton");
             step.put("timestamp", System.currentTimeMillis());
             RecordAgent.putComponentInfo(step, emitComp);

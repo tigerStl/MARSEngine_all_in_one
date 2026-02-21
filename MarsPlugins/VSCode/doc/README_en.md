@@ -76,6 +76,86 @@ VSCode/
 }
 ```
 
+## VerifyObjectValue Examples
+
+- If a step has `assertValue` (Expected), verification runs automatically after that step.
+- You can also add an explicit `VerifyObjectValue` step for standalone verification.
+
+### Example 1: Regular component (JTextField)
+
+```json
+{
+  "steps": [
+    {
+      "keyword": "FillEdit",
+      "parentIdentifier": { "javaType": "javax.swing.JFrame" },
+      "objectIdentifier": { "javaType": "javax.swing.JTextField", "name": "txtCustomer" },
+      "data": "ACME-001",
+      "assertValue": "ACME-001"
+    },
+    {
+      "keyword": "VerifyObjectValue",
+      "parentIdentifier": { "javaType": "javax.swing.JFrame" },
+      "objectIdentifier": { "javaType": "javax.swing.JTextField", "name": "txtCustomer" },
+      "parameter": "",
+      "data": "ACME-001",
+      "assertValue": ""
+    }
+  ]
+}
+```
+
+### Example 2: JTable verification
+
+```json
+{
+  "steps": [
+    {
+      "keyword": "SearchAndUpdate",
+      "parentIdentifier": { "javaType": "javax.swing.JFrame" },
+      "objectIdentifier": { "javaType": "javax.swing.JTable", "name": "loanTable" },
+      "parameter": "Amount:[Deal]",
+      "data": "[D-1001];1000:1500",
+      "assertValue": "1500"
+    },
+    {
+      "keyword": "VerifyObjectValue",
+      "parentIdentifier": { "javaType": "javax.swing.JFrame" },
+      "objectIdentifier": { "javaType": "javax.swing.JTable", "name": "loanTable" },
+      "parameter": "Amount",
+      "data": "1500",
+      "assertValue": ""
+    }
+  ]
+}
+```
+
+### Example 3: Regex-based verification
+
+Both `VerifyObjectValue` and `assertValue` support regex matching (Java Pattern).
+
+```json
+{
+  "steps": [
+    {
+      "keyword": "FillEdit",
+      "parentIdentifier": { "javaType": "javax.swing.JFrame" },
+      "objectIdentifier": { "javaType": "javax.swing.JTextField", "name": "txtRef" },
+      "data": "ACME-2026-001",
+      "assertValue": "^ACME-\\d{4}-\\d{3}$"
+    },
+    {
+      "keyword": "VerifyObjectValue",
+      "parentIdentifier": { "javaType": "javax.swing.JFrame" },
+      "objectIdentifier": { "javaType": "javax.swing.JTextField", "name": "txtRef" },
+      "parameter": "",
+      "data": "^ACME-\\d{4}-\\d{3}$",
+      "assertValue": ""
+    }
+  ]
+}
+```
+
 ## Constants File Example
 
 ```json

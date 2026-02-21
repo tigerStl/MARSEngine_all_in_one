@@ -33,7 +33,8 @@
     .tree-node.selected { background: var(--vscode-list-activeSelectionBackground); }
     .tree-node.object-hidden { color: var(--vscode-errorForeground); }
     .center-panel { flex: 1; display: flex; flex-direction: row; overflow: hidden; min-width: 200px; min-height: 0; }
-    .center-panel .col-left { width: 33.333%; flex: 0 0 33.333%; min-width: 0; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--vscode-panel-border); }
+    .center-panel .col-left { width: 33.333%; flex: 0 0 33.333%; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+    #centerSplitter { width: 6px; cursor: col-resize; background: linear-gradient(90deg, transparent, rgba(128,128,128,0.12), transparent); flex-shrink: 0; }
     .center-panel .col-right { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
     .tab-row { display: flex; flex-direction: column; min-height: 0; overflow: hidden; flex: 1; }
     .tab-bar { display: flex; gap: 0; border-bottom: 1px solid var(--vscode-panel-border); flex-shrink: 0; background: var(--vscode-editor-inactiveSelectionBackground); }
@@ -58,7 +59,9 @@
     .steps-table th .col-resize:hover { background: var(--vscode-focusBorder); opacity: 0.3; }
     .steps-table tr:hover { background: var(--vscode-list-hoverBackground); }
     .steps-table tr.step-error { background: var(--vscode-inputValidation-errorBackground); color: var(--vscode-errorForeground); }
+    .steps-table tr.step-running { background: var(--vscode-list-hoverBackground); }
     .steps-table tr.step-error .step-error-msg { font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .replay-status-bar { padding: 6px 8px; border-bottom: 1px solid var(--vscode-panel-border); font-size: 12px; color: var(--vscode-descriptionForeground); }
     .action-btn { padding: 2px 6px; margin: 0 2px; font-size: 11px; cursor: pointer; border-radius: 3px; border: 1px solid; }
     .action-btn.execute { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border-color: var(--vscode-button-border); }
     .action-btn.execute:hover { background: var(--vscode-button-hoverBackground); }
@@ -116,13 +119,14 @@
       <button class="toolbar-btn icon-only" id="btnExecute" title="Execute"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpolygon points='5 3 19 12 5 21 5 3'/%3E%3C/svg%3E" alt="Execute"/></button>
       <button class="toolbar-btn save-special" id="btnSaveSteps" title="Save test steps to JSON file">Save</button>
       <button class="toolbar-btn load-special" id="btnLoadSteps" title="Load test steps from JSON file">Load</button>
+      <button class="toolbar-btn" id="btnExportDiag" title="Export diagnostics package">Diag</button>
       <button class="toolbar-btn icon-only" id="btnRefreshObjects" title="Refresh Object List"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M21 12a9 9 0 1 1-3-6.7'/%3E%3Cpolyline points='21 3 21 9 15 9'/%3E%3C/svg%3E" alt="Refresh"/></button>
       <div class="toolbar-spacer"></div>
       <button class="toolbar-btn icon-only" id="btnToggleLog" title="Log"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M12 2v6'/%3E%3Cpath d='M12 16v6'/%3E%3Cpath d='M4.93 4.93l4.24 4.24'/%3E%3Cpath d='M14.83 14.83l4.24 4.24'/%3E%3Cpath d='M2 12h6'/%3E%3Cpath d='M16 12h6'/%3E%3Cpath d='M4.93 19.07l4.24-4.24'/%3E%3Cpath d='M14.83 9.17l4.24-4.24'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E" alt="Log"/></button>
     </div>
     <div class="main">
       <div class="left-panel" id="leftPanel">
-        <div class="object-list-label">Object List</div>
+        <div class="object-list-label" id="objectListLabel">Object List</div>
         <div class="object-tree-search">
           <input type="text" id="objectTreeSearchInput" placeholder="Search node text..." />
           <button type="button" class="search-arrow" id="objectTreeSearchPrev" title="Previous">&#9664;</button>
@@ -137,7 +141,7 @@
         <div class="col-left">
           <div class="tab-bar" id="topTabBar">
             <button class="tab" data-tab="log">Log</button>
-            <button class="tab active" data-tab="objectInfo">Object Info</button>
+            <button class="tab active" data-tab="objectInfo" id="tabObjectInfo">Object Info</button>
           </div>
           <div class="tab-row">
             <div class="tab-content" id="logTabContent">
@@ -150,13 +154,15 @@
             </div>
           </div>
         </div>
+        <div id="centerSplitter" title="Drag to resize object and test step panels"></div>
         <div class="col-right">
           <div class="tab-bar" id="bottomTabBar">
-            <button class="tab active" data-tab="testSteps">Test Steps</button>
-            <button class="tab" data-tab="visual">Visual</button>
+            <button class="tab active" data-tab="testSteps" id="tabTestSteps">Test Steps</button>
+            <button class="tab" data-tab="visual" id="tabVisual">Visual</button>
           </div>
           <div class="tab-row">
           <div class="tab-content active" id="testStepsTabContent">
+            <div class="replay-status-bar" id="replayStatusBar">Replay idle.</div>
             <div class="steps-panel-inner">
               <table class="steps-table" id="stepsTable">
                 <thead>
@@ -167,7 +173,7 @@
                     <th data-col="3" style="width:18%">Object<span class="col-resize" data-col="3"></span></th>
                     <th data-col="4" style="width:70px">Para<span class="col-resize" data-col="4"></span></th>
                     <th data-col="5" style="width:12%">Data<span class="col-resize" data-col="5"></span></th>
-                    <th data-col="6" style="width:10%">Expected<span class="col-resize" data-col="6"></span></th>
+                    <th data-col="6" style="width:10%" id="thExpected">Expected<span class="col-resize" data-col="6"></span></th>
                     <th data-col="7" style="width:12%">Error<span class="col-resize" data-col="7"></span></th>
                     <th data-col="8" style="width:140px">Action<span class="col-resize" data-col="8"></span></th>
                   </tr>
@@ -190,6 +196,9 @@
       <div class="visual-context-menu-sep"></div>
       <button type="button" data-action="deleteNode"><img class="menu-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M3 4h10v9a1 1 0 01-1 1H4a1 1 0 01-1-1V4z'/%3E%3Cpath d='M2 4h12M6 4V2a1 1 0 011-1h2a1 1 0 011 1v2'/%3E%3Cline x1='6' y1='8' x2='6' y2='12'/%3E%3Cline x1='10' y1='8' x2='10' y2='12'/%3E%3C/svg%3E" alt="">Delete (Node)</button>
       <button type="button" data-action="deleteChain"><img class="menu-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M8 4v8M4 8h8'/%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='M5 5l6 6M11 5l-6 6'/%3E%3C/svg%3E" alt="">Delete (Chain)</button>
+    </div>
+    <div id="objectTreeContextMenu" class="visual-context-menu" aria-hidden="true">
+      <button type="button" data-action="exportObjects" id="menuExportObjects">Export</button>
     </div>
     <div id="visualCleanConfirmModal" class="visual-modal-overlay" aria-hidden="true">
       <div class="visual-modal">
@@ -241,8 +250,138 @@
     let visualNodes = [];
     let selectedVisualNodeIndex = -1;
     let logVisible = false;
+    let replayState = { running: false, total: 0, currentIndex: -1, startedAt: 0, endedCount: 0 };
+    const systemLang = '__MARS_LOCALE__';
+    const currentLang = /^zh\b/i.test((systemLang || navigator.language || 'en').toLowerCase()) ? 'zh' : 'en';
+    const I18N = {
+      en: {
+        objectList: 'Object List',
+        objectInfo: 'Object Info',
+        testSteps: 'Test Steps',
+        visual: 'Visual',
+        replayIdle: 'Replay idle.',
+        searchPlaceholder: 'Search node text...',
+        emptySelectApp: 'Select an application from dropdown to scan UI objects',
+        emptySelectObject: 'Select object to view info; click to highlight. Click ▶ to expand/collapse.',
+        export: 'Export',
+        expected: 'Expected'
+      },
+      zh: {
+        objectList: '对象列表',
+        objectInfo: '对象信息',
+        testSteps: '测试步骤',
+        visual: '可视化',
+        replayIdle: '回放空闲。',
+        searchPlaceholder: '搜索节点文本...',
+        emptySelectApp: '请先从下拉框选择应用并扫描对象',
+        emptySelectObject: '选择对象查看详情；单击高亮。点击 ▶ 展开/折叠。',
+        export: '导出',
+        expected: '期望值'
+      }
+    };
+    function t(key) {
+      const pack = I18N[currentLang] || I18N.en;
+      return pack[key] || key;
+    }
+    function applyI18n() {
+      const objectListLabel = document.getElementById('objectListLabel');
+      if (objectListLabel) objectListLabel.textContent = t('objectList');
+      const tabObjectInfo = document.getElementById('tabObjectInfo');
+      if (tabObjectInfo) tabObjectInfo.textContent = t('objectInfo');
+      const tabTestSteps = document.getElementById('tabTestSteps');
+      if (tabTestSteps) tabTestSteps.textContent = t('testSteps');
+      const tabVisual = document.getElementById('tabVisual');
+      if (tabVisual) tabVisual.textContent = t('visual');
+      const replayStatusBar = document.getElementById('replayStatusBar');
+      if (replayStatusBar && replayStatusBar.textContent === 'Replay idle.') replayStatusBar.textContent = t('replayIdle');
+      const searchInput = document.getElementById('objectTreeSearchInput');
+      if (searchInput) searchInput.placeholder = t('searchPlaceholder');
+      const menuExportObjects = document.getElementById('menuExportObjects');
+      if (menuExportObjects) menuExportObjects.textContent = t('export');
+      const thExpected = document.getElementById('thExpected');
+      if (thExpected) {
+        const resize = thExpected.querySelector('.col-resize');
+        thExpected.textContent = t('expected');
+        if (resize) thExpected.appendChild(resize);
+      }
+    }
     /** Timer for delayed add-to-steps on object list single-click; cleared on dblclick so double-click only highlights. */
     let objectListAddStepTimer = null;
+
+    function formatDuration(ms) {
+      if (typeof ms !== 'number' || !isFinite(ms) || ms < 0) return '-';
+      return ms + 'ms';
+    }
+
+    function resetReplayState(clearStepMeta) {
+      replayState = { running: false, total: 0, currentIndex: -1, startedAt: 0, endedCount: 0 };
+      if (clearStepMeta) {
+        steps.forEach(function(s) {
+          delete s.replayStatus;
+          delete s.replayDurationMs;
+          delete s.replayStartedAt;
+          delete s.replayEndedAt;
+          delete s.errorMessage;
+        });
+      }
+      renderReplayStatusBar();
+    }
+
+    function renderReplayStatusBar() {
+      const bar = document.getElementById('replayStatusBar');
+      if (!bar) return;
+      if (!replayState.running) {
+        bar.textContent = t('replayIdle');
+        return;
+      }
+      const currentText = replayState.currentIndex >= 0 ? ('Step ' + (replayState.currentIndex + 1)) : '-';
+      const totalText = replayState.total > 0 ? replayState.total : steps.length;
+      bar.textContent = 'Replay running | Current: ' + currentText + ' / ' + totalText + ' | Completed: ' + replayState.endedCount;
+    }
+
+    function handleReplayProgress(progress) {
+      if (!progress || typeof progress !== 'object') return;
+      if (progress.event === 'replayStart' || progress.event === 'clientStart') {
+        replayState.running = true;
+        replayState.total = Number(progress.total || steps.length || 0);
+        replayState.startedAt = Date.now();
+        replayState.currentIndex = -1;
+        replayState.endedCount = 0;
+        renderReplayStatusBar();
+        return;
+      }
+      if (progress.event === 'stepStart') {
+        const idx = Number(progress.index);
+        if (idx >= 0 && idx < steps.length) {
+          replayState.currentIndex = idx;
+          steps[idx].replayStatus = 'running';
+          steps[idx].replayStartedAt = Number(progress.startedAt || Date.now());
+          renderSteps();
+        }
+        replayState.running = true;
+        renderReplayStatusBar();
+        return;
+      }
+      if (progress.event === 'stepEnd') {
+        const idx = Number(progress.index);
+        if (idx >= 0 && idx < steps.length) {
+          steps[idx].replayStatus = String(progress.status || 'done');
+          if (typeof progress.durationMs === 'number') steps[idx].replayDurationMs = progress.durationMs;
+          if (typeof progress.startedAt === 'number') steps[idx].replayStartedAt = progress.startedAt;
+          if (typeof progress.endedAt === 'number') steps[idx].replayEndedAt = progress.endedAt;
+          if (progress.error) steps[idx].errorMessage = String(progress.error);
+          renderSteps();
+        }
+        replayState.endedCount += 1;
+        renderReplayStatusBar();
+        return;
+      }
+      if (progress.event === 'replayEnd' || progress.event === 'clientEnd') {
+        replayState.running = false;
+        replayState.currentIndex = -1;
+        renderReplayStatusBar();
+      }
+    }
 
     function switchTopTab(tabId) {
       if (tabId === 'log' && !logVisible) return;
@@ -305,7 +444,11 @@
         if (typeof alert !== 'undefined') alert('Test Steps \u4e3a\u7a7a\uff0c\u8bf7\u5148\u6dfb\u52a0\u6b65\u9aa4\u3002');
         return;
       }
-      steps.forEach(function(s) { delete s.errorMessage; });
+      resetReplayState(true);
+      replayState.running = true;
+      replayState.total = steps.length;
+      replayState.startedAt = Date.now();
+      renderReplayStatusBar();
       renderSteps();
       switchTopTab('log');
       vscode.postMessage({ type: 'execute', pid: selectedProcess, steps: steps });
@@ -321,6 +464,12 @@
       appendLog('[action] Load Test Steps clicked.\r\n');
       switchTopTab('log');
       vscode.postMessage({ type: 'loadStepsFile' });
+    };
+
+    document.getElementById('btnExportDiag').onclick = () => {
+      appendLog('[action] Export diagnostics clicked.\r\n');
+      switchTopTab('log');
+      vscode.postMessage({ type: 'exportDiagnostics' });
     };
 
     document.getElementById('processCombo').onchange = () => {
@@ -360,6 +509,7 @@
           visualNodes = [];
           selectedVisualNodeIndex = -1;
           steps = [];
+          resetReplayState(false);
           const comboClear = document.getElementById('processCombo');
           if (comboClear) { comboClear.innerHTML = '<option value="">-- Select --</option>'; comboClear.value = ''; }
           const btnRecordClear = document.getElementById('btnRecordReplay');
@@ -401,6 +551,8 @@
           if (btnLoadStart) btnLoadStart.disabled = true;
           const btnLogStart = document.getElementById('btnToggleLog');
           if (btnLogStart) btnLogStart.disabled = true;
+          const btnDiagStart = document.getElementById('btnExportDiag');
+          if (btnDiagStart) btnDiagStart.disabled = true;
           const comboStart = document.getElementById('processCombo');
           if (comboStart) comboStart.disabled = true;
           break;
@@ -425,6 +577,8 @@
           if (btnLoadStop) btnLoadStop.disabled = false;
           const btnLogStop = document.getElementById('btnToggleLog');
           if (btnLogStop) btnLogStop.disabled = false;
+          const btnDiagStop = document.getElementById('btnExportDiag');
+          if (btnDiagStop) btnDiagStop.disabled = false;
           const comboStop = document.getElementById('processCombo');
           if (comboStop) comboStop.disabled = false;
           break;
@@ -494,18 +648,37 @@
           renderVisual();
           break;
         case 'executeResult':
-          if (typeof msg.failedIndex === 'number' && steps[msg.failedIndex]) {
+          if (msg.fromActionColumn && typeof msg.index === 'number' && steps[msg.index]) {
+            if (msg.success) {
+              delete steps[msg.index].errorMessage;
+              steps[msg.index].replayStatus = 'success';
+            } else {
+              steps[msg.index].errorMessage = msg.error || 'Unknown error';
+              steps[msg.index].replayStatus = 'failed';
+            }
+            renderSteps();
+            switchBottomTab('testSteps');
+          } else if (typeof msg.failedIndex === 'number' && steps[msg.failedIndex]) {
             steps[msg.failedIndex].errorMessage = msg.error || 'Unknown error';
             renderSteps();
             switchBottomTab('testSteps');
           }
+          replayState.running = false;
+          replayState.currentIndex = -1;
+          renderReplayStatusBar();
           if (msg.fromActionColumn) {
             var resMsg = msg.success ? 'Step executed successfully.' : (msg.error || 'Step failed.');
             vscode.postMessage({ type: 'showExecuteResultDialog', success: msg.success, message: resMsg });
           }
           break;
+        case 'replayProgress':
+          handleReplayProgress(msg.data);
+          break;
         case 'error':
           appendLog('[error] ' + msg.message + '\r\n');
+          replayState.running = false;
+          replayState.currentIndex = -1;
+          renderReplayStatusBar();
           console.error(msg.message);
           break;
         case 'log':
@@ -527,6 +700,7 @@
             objects = [];
             objectTree = [];
             steps = Array.isArray(msg.state.steps) ? msg.state.steps : [];
+            resetReplayState(false);
             visualNodes = stepsToVisualNodes(steps);
             const logText = typeof msg.state.logText === 'string' ? msg.state.logText : '';
             const ta = document.getElementById('logTextarea');
@@ -726,7 +900,7 @@
           }
           return html;
         }
-        let html = '<div class="empty-msg">Select object to view info; click to highlight. Click ▶ to expand/collapse.</div>';
+        let html = '<div class="empty-msg">' + t('emptySelectObject') + '</div>';
         for (let r = 0; r < objectTree.length; r++) html += renderNode(objectTree[r], 0);
         tree.innerHTML = html;
         const listForClick = flatList;
@@ -784,7 +958,7 @@
       }
 
       if (objects.length === 0) {
-        tree.innerHTML = '<div class="empty-msg">Select an application from dropdown to scan UI objects</div>';
+        tree.innerHTML = '<div class="empty-msg">' + t('emptySelectApp') + '</div>';
         return;
       }
       function mkNode(obj, idx) {
@@ -794,7 +968,7 @@
         const icon = getIconForType(obj.identifier?.javaType);
         return '<div class="' + cls + '" data-idx="' + idx + '"><div class="tree-node-inner"><span class="tree-chevron collapsed"></span><img class="tree-icon" src="' + icon + '" alt="" /><span class="tree-node-label">' + name + '</span></div></div>';
       }
-      tree.innerHTML = '<div class="empty-msg">Select object to view info; click to highlight</div>' + objects.map((o, i) => mkNode(o, i)).join('');
+      tree.innerHTML = '<div class="empty-msg">' + t('emptySelectObject') + '</div>' + objects.map((o, i) => mkNode(o, i)).join('');
       tree.querySelectorAll('.tree-node').forEach(el => {
         el.onclick = () => {
           tree.querySelectorAll('.tree-node').forEach(x => x.classList.remove('selected'));
@@ -1062,8 +1236,9 @@
     function visualNodesToSteps() {
       return visualNodes.map(function(n) {
         var o = n.objectIdentifier || { javaType: n.type, text: n.text, caption: n.text };
+        var p = n.parentIdentifier || {};
         var kw = (n.keyword === 'SelectListItem') ? 'SelectListItem' : (n.keyword === 'FillEdit') ? 'FillEdit' : (n.keyword === 'Click') ? 'Click' : (n.keyword || n.event || 'SelectListItem');
-        return { keyword: kw, parentIdentifier: {}, objectIdentifier: o, parameter: n.parameter || '', data: n.data || '', assertValue: '', skipped: false };
+        return { keyword: kw, parentIdentifier: p, objectIdentifier: o, parameter: n.parameter || '', data: n.data || '', assertValue: n.assertValue || '', skipped: false };
       });
     }
     function stepsToVisualNodes(stepList) {
@@ -1075,9 +1250,11 @@
           type: o.javaType || '',
           text: (o.caption != null ? o.caption : o.text) || '',
           keyword: s.keyword || 'SelectListItem',
+          parentIdentifier: s.parentIdentifier || {},
           objectIdentifier: o,
           parameter: s.parameter,
           data: s.data,
+          assertValue: s.assertValue,
           javaNamePath: o.javaNamePath,
           javaTypePath: o.javaTypePath,
           screenX: o.screenBounds ? o.screenBounds.x : undefined,
@@ -1102,6 +1279,8 @@
         text: text,
         keyword: 'SelectListItem',
         parameter: '',
+        assertValue: '',
+        parentIdentifier: obj.parent || {},
         objectIdentifier: id
       });
       switchBottomTab('visual');
@@ -1359,6 +1538,67 @@
       }
       return parts.length ? parts.join('\n') : '-';
     }
+    function parseIdentifierLocatorMultiline(text) {
+      var out = {};
+      var raw = (text == null ? '' : String(text)).trim();
+      if (!raw || raw === '-') return out;
+      var lines = raw.split(/\r?\n/).map(function(v) { return String(v || '').trim(); }).filter(Boolean);
+      lines.forEach(function(line) {
+        var p = line.indexOf(':');
+        if (p <= 0) return;
+        var key = line.slice(0, p).trim();
+        var val = line.slice(p + 1).trim();
+        if (!key) return;
+        if (key === 'javaType') { out.javaType = val; return; }
+        if (key === 'text') { out.text = val; return; }
+        if (key === 'name') { out.name = val; return; }
+        if (key === 'caption') { out.caption = val; return; }
+        if (key === 'index') {
+          var idx = parseInt(val, 10);
+          if (!isNaN(idx)) out.index = idx;
+          return;
+        }
+        if (key === 'javaNamePath') {
+          out.javaNamePath = val ? val.split('/').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+          return;
+        }
+        if (key === 'javaTypePath') {
+          out.javaTypePath = val ? val.split('/').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+          return;
+        }
+        if (key === 'bounds') {
+          var b = {};
+          val.split(/\s+/).forEach(function(token) {
+            var kv = token.split('=');
+            if (kv.length !== 2) return;
+            var n = Number(kv[1]);
+            if (!isFinite(n)) return;
+            if (kv[0] === 'x') b.x = n;
+            else if (kv[0] === 'y') b.y = n;
+            else if (kv[0] === 'w') b.width = n;
+            else if (kv[0] === 'h') b.height = n;
+          });
+          if (Object.keys(b).length) out.bounds = b;
+          return;
+        }
+        if (key === 'screen') {
+          var s = {};
+          val.split(/\s+/).forEach(function(token) {
+            var kv = token.split('=');
+            if (kv.length !== 2) return;
+            var n = Number(kv[1]);
+            if (!isFinite(n)) return;
+            if (kv[0] === 'screenX') s.x = n;
+            else if (kv[0] === 'screenY') s.y = n;
+            else if (kv[0] === 'width') s.width = n;
+            else if (kv[0] === 'height') s.height = n;
+          });
+          if (Object.keys(s).length) out.screenBounds = s;
+          return;
+        }
+      });
+      return out;
+    }
     /** For FillEdit, strip {HOME} and {DEL}*30 from data for display only; do not show those tokens in UI. */
     function fillEditDataForDisplay(data) {
       if (data == null || typeof data !== 'string') return data || '-';
@@ -1372,10 +1612,21 @@
       tbody.innerHTML = steps.map((s, i) => {
         const p = s.parentIdentifier || {};
         const o = s.objectIdentifier || {};
-        const rowClass = (s.skipped ? 'skipped ' : '') + (s.errorMessage ? 'step-error' : '');
+        const rowClass = (s.skipped ? 'skipped ' : '') + (s.errorMessage ? 'step-error ' : '') + (s.replayStatus === 'running' ? 'step-running' : '');
         const skipTitle = s.skipped ? 'Unskip' : 'Skip';
         const skipIcon = s.skipped ? iconUnskipSvg : iconSkipSvg;
-        const errCell = s.errorMessage ? ('<td class="step-error-msg" title="' + (s.errorMessage || '').replace(/"/g, '&quot;') + '">' + (s.errorMessage || '').replace(/</g, '&lt;') + '</td>') : '<td></td>';
+        let progressText = '';
+        if (s.replayStatus === 'running') {
+          progressText = 'Running...';
+        } else if (s.replayStatus === 'success') {
+          progressText = 'OK (' + formatDuration(s.replayDurationMs) + ')';
+        } else if (s.replayStatus === 'failed') {
+          progressText = 'Failed (' + formatDuration(s.replayDurationMs) + ')';
+        }
+        const errMsgRaw = s.errorMessage ? String(s.errorMessage) : '';
+        const errMsg = errMsgRaw.replace(/</g, '&lt;').replace(/"/g, '&quot;');
+        const errCellText = errMsgRaw ? errMsg : progressText;
+        const errCell = errCellText ? ('<td class="step-error-msg" title="' + errCellText + '">' + errCellText + '</td>') : '<td></td>';
         const paraVal = (s.parameter != null && s.parameter !== '') ? String(s.parameter).replace(/</g, '&lt;').replace(/"/g, '&quot;') : '';
         const parentCell = formatIdentifierLocator(p);
         const objectCell = formatIdentifierLocator(o);
@@ -1383,7 +1634,8 @@
         const objectCellMultiline = formatIdentifierLocatorMultiline(o);
         const rawData = (s.data != null && s.data !== '-') ? String(s.data) : '';
         const dataEscaped = rawData.replace(/</g, '&lt;').replace(/"/g, '&quot;');
-        return '<tr class="' + rowClass + '"><td>' + (i + 1) + '</td><td>' + (s.keyword || '') + '</td><td class="step-locator-cell" title="' + parentCell.replace(/"/g, '&quot;') + '">' + parentCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-locator-cell" title="' + objectCell.replace(/"/g, '&quot;') + '">' + objectCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-param-cell" contenteditable="true" data-i="' + i + '" data-field="parameter">' + paraVal + '</td><td class="step-data-cell" contenteditable="true" data-i="' + i + '" data-field="data">' + dataEscaped + '</td><td>' + (s.assertValue || '-') + '</td>' + errCell + '<td><button class="action-btn icon-only execute" data-i="' + i + '" title="Execute this step"><img src="' + iconExecuteSvg + '" alt="Execute"/></button><button class="action-btn icon-only highlight" data-i="' + i + '" title="Highlight"><img src="' + iconHighlightSvg + '" alt="Highlight"/></button><button class="action-btn icon-only delete" data-i="' + i + '" title="Delete"><img src="' + iconDeleteSvg + '" alt="Delete"/></button><button class="action-btn icon-only skip" data-i="' + i + '" title="' + skipTitle + '"><img src="' + skipIcon + '" alt="' + skipTitle + '"/></button></td></tr>';
+        const assertVal = (s.assertValue != null && s.assertValue !== '-') ? String(s.assertValue).replace(/</g, '&lt;').replace(/"/g, '&quot;') : '';
+        return '<tr class="' + rowClass + '"><td>' + (i + 1) + '</td><td>' + (s.keyword || '') + '</td><td class="step-locator-cell step-parent-cell" contenteditable="true" data-i="' + i + '" data-field="parentIdentifier" title="' + parentCell.replace(/"/g, '&quot;') + '">' + parentCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-locator-cell step-object-cell" contenteditable="true" data-i="' + i + '" data-field="objectIdentifier" title="' + objectCell.replace(/"/g, '&quot;') + '">' + objectCellMultiline.replace(/\n/g, '<br/>') + '</td><td class="step-param-cell" contenteditable="true" data-i="' + i + '" data-field="parameter">' + paraVal + '</td><td class="step-data-cell" contenteditable="true" data-i="' + i + '" data-field="data">' + dataEscaped + '</td><td class="step-assert-cell" contenteditable="true" data-i="' + i + '" data-field="assertValue">' + assertVal + '</td>' + errCell + '<td><button class="action-btn icon-only execute" data-i="' + i + '" title="Execute this step"><img src="' + iconExecuteSvg + '" alt="Execute"/></button><button class="action-btn icon-only highlight" data-i="' + i + '" title="Highlight"><img src="' + iconHighlightSvg + '" alt="Highlight"/></button><button class="action-btn icon-only delete" data-i="' + i + '" title="Delete"><img src="' + iconDeleteSvg + '" alt="Delete"/></button><button class="action-btn icon-only skip" data-i="' + i + '" title="' + skipTitle + '"><img src="' + skipIcon + '" alt="' + skipTitle + '"/></button></td></tr>';
       }).join('');
       tbody.querySelectorAll('.action-btn.delete').forEach(btn => {
         btn.onclick = function() {
@@ -1408,6 +1660,14 @@
             appendLog('[action] Execute step: select an application first.\r\n');
             return;
           }
+          resetReplayState(false);
+          replayState.running = true;
+          replayState.total = 1;
+          replayState.currentIndex = idx;
+          replayState.startedAt = Date.now();
+          steps[idx].replayStatus = 'running';
+          renderReplayStatusBar();
+          renderSteps();
           vscode.postMessage({ type: 'executeStepAtIndex', index: idx, pid: selectedProcess, steps: steps });
         };
       });
@@ -1471,6 +1731,62 @@
           }
         };
       });
+      tbody.querySelectorAll('.step-assert-cell').forEach(cell => {
+        bindEditableCellKeyboard(cell);
+        cell.onblur = function() {
+          const idx = parseInt(cell.dataset.i, 10);
+          if (idx >= 0 && idx < steps.length && steps[idx]) {
+            var v = (cell.textContent || '').trim();
+            steps[idx].assertValue = v;
+            vscode.postMessage({ type: 'syncSteps', data: steps });
+          }
+        };
+      });
+      tbody.querySelectorAll('.step-parent-cell').forEach(cell => {
+        bindEditableCellKeyboard(cell);
+        cell.onblur = function() {
+          const idx = parseInt(cell.dataset.i, 10);
+          if (idx >= 0 && idx < steps.length && steps[idx]) {
+            var parsed = parseIdentifierLocatorMultiline(cell.innerText || cell.textContent || '');
+            steps[idx].parentIdentifier = parsed;
+            if (idx >= 0 && idx < visualNodes.length && visualNodes[idx]) {
+              visualNodes[idx].parentIdentifier = parsed;
+            }
+            vscode.postMessage({ type: 'syncSteps', data: steps });
+            renderSteps();
+            if (document.getElementById('visualTabContent').classList.contains('active')) {
+              renderVisual();
+            }
+          }
+        };
+      });
+      tbody.querySelectorAll('.step-object-cell').forEach(cell => {
+        bindEditableCellKeyboard(cell);
+        cell.onblur = function() {
+          const idx = parseInt(cell.dataset.i, 10);
+          if (idx >= 0 && idx < steps.length && steps[idx]) {
+            var parsed = parseIdentifierLocatorMultiline(cell.innerText || cell.textContent || '');
+            steps[idx].objectIdentifier = parsed;
+            if (idx >= 0 && idx < visualNodes.length && visualNodes[idx]) {
+              visualNodes[idx].objectIdentifier = parsed;
+              visualNodes[idx].type = parsed.javaType || '';
+              visualNodes[idx].text = (parsed.caption != null ? parsed.caption : parsed.text) || '';
+              visualNodes[idx].name = parsed.uniqueName || parsed.name || parsed.javaType || '';
+              visualNodes[idx].javaNamePath = parsed.javaNamePath;
+              visualNodes[idx].javaTypePath = parsed.javaTypePath;
+              visualNodes[idx].screenX = parsed.screenBounds ? parsed.screenBounds.x : undefined;
+              visualNodes[idx].screenY = parsed.screenBounds ? parsed.screenBounds.y : undefined;
+              visualNodes[idx].width = parsed.screenBounds ? parsed.screenBounds.width : undefined;
+              visualNodes[idx].height = parsed.screenBounds ? parsed.screenBounds.height : undefined;
+            }
+            vscode.postMessage({ type: 'syncSteps', data: steps });
+            renderSteps();
+            if (document.getElementById('visualTabContent').classList.contains('active')) {
+              renderVisual();
+            }
+          }
+        };
+      });
     }
 
     document.getElementById('visualEditOk').onclick = function() { applyEditVisualNodeModal(); };
@@ -1522,6 +1838,7 @@
     })();
 
     var visualContextMenuEl = document.getElementById('visualContextMenu');
+    var objectTreeContextMenuEl = document.getElementById('objectTreeContextMenu');
     function showVisualContextMenu(x, y) {
       if (visualContextMenuEl) {
         visualContextMenuEl.style.left = x + 'px';
@@ -1536,6 +1853,24 @@
         visualContextMenuEl.setAttribute('aria-hidden', 'true');
       }
     }
+    function showObjectTreeContextMenu(x, y) {
+      if (objectTreeContextMenuEl) {
+        objectTreeContextMenuEl.style.left = x + 'px';
+        objectTreeContextMenuEl.style.top = y + 'px';
+        objectTreeContextMenuEl.classList.add('show');
+        objectTreeContextMenuEl.setAttribute('aria-hidden', 'false');
+      }
+    }
+    function hideObjectTreeContextMenu() {
+      if (objectTreeContextMenuEl) {
+        objectTreeContextMenuEl.classList.remove('show');
+        objectTreeContextMenuEl.setAttribute('aria-hidden', 'true');
+      }
+    }
+    document.getElementById('uiTree').addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      showObjectTreeContextMenu(e.clientX, e.clientY);
+    });
     document.getElementById('visualTabContent').addEventListener('contextmenu', function(e) {
       e.preventDefault();
       showVisualContextMenu(e.clientX, e.clientY);
@@ -1543,6 +1878,9 @@
     document.addEventListener('click', function(e) {
       if (visualContextMenuEl && visualContextMenuEl.classList.contains('show') && !visualContextMenuEl.contains(e.target)) {
         hideVisualContextMenu();
+      }
+      if (objectTreeContextMenuEl && objectTreeContextMenuEl.classList.contains('show') && !objectTreeContextMenuEl.contains(e.target)) {
+        hideObjectTreeContextMenu();
       }
     });
     function showCleanConfirmModal() {
@@ -1603,7 +1941,19 @@
         }
       };
     });
+    objectTreeContextMenuEl && objectTreeContextMenuEl.querySelectorAll('button').forEach(function(btn) {
+      btn.onmousedown = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var action = btn.dataset.action;
+        hideObjectTreeContextMenu();
+        if (action === 'exportObjects') {
+          vscode.postMessage({ type: 'exportObjects', data: { objectTree: objectTree, objects: objects } });
+        }
+      };
+    });
 
+    applyI18n();
     console.log('[panel.html] Sending ping and loading data...');
     appendLog('Java UI Automation panel ready. Click Java Applications to scan processes.\r\n');
     // verify messaging works: send a ping to the extension and expect a 'pong' reply
@@ -1632,6 +1982,40 @@
         const dx = e.clientX - startX;
         const newWidth = Math.max(160, startWidth + dx);
         left.style.width = newWidth + 'px';
+      });
+      window.addEventListener('mouseup', () => {
+        if (!dragging) return;
+        dragging = false;
+        document.body.style.cursor = '';
+      });
+    })();
+
+    // Splitter logic between object info and test steps panels
+    (function() {
+      const splitter = document.getElementById('centerSplitter');
+      const panel = document.querySelector('.center-panel');
+      const left = panel ? panel.querySelector('.col-left') : null;
+      if (!splitter || !panel || !left) return;
+      let dragging = false;
+      let startX = 0;
+      let startWidth = 0;
+      splitter.addEventListener('mousedown', (e) => {
+        dragging = true;
+        startX = e.clientX;
+        startWidth = left.getBoundingClientRect().width;
+        document.body.style.cursor = 'col-resize';
+        e.preventDefault();
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        const dx = e.clientX - startX;
+        const panelWidth = panel.getBoundingClientRect().width;
+        const minLeft = 180;
+        const minRight = 260;
+        const maxLeft = Math.max(minLeft, panelWidth - minRight - splitter.getBoundingClientRect().width);
+        const newWidth = Math.max(minLeft, Math.min(maxLeft, startWidth + dx));
+        left.style.width = newWidth + 'px';
+        left.style.flex = '0 0 ' + newWidth + 'px';
       });
       window.addEventListener('mouseup', () => {
         if (!dragging) return;

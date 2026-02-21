@@ -62,6 +62,7 @@ export type ScriptKeyword =
   | 'SelectPopupMenu'
   | 'SearchAndClick'
   | 'SearchAndUpdate'
+  | 'VerifyObjectValue'
   | 'Check'
   | 'Uncheck';
 
