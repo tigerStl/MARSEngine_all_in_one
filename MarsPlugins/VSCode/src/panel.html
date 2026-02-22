@@ -472,14 +472,23 @@
       vscode.postMessage({ type: 'exportDiagnostics' });
     };
 
+    function applySelectedProcess(pid, shouldScan) {
+      const nextPid = Number.isInteger(pid) && pid > 0 ? pid : null;
+      selectedProcess = nextPid;
+      const combo = document.getElementById('processCombo');
+      if (combo) {
+        combo.value = nextPid ? String(nextPid) : '';
+      }
+      const btnRecord = document.getElementById('btnRecordReplay');
+      if (btnRecord) btnRecord.disabled = !nextPid;
+      if (shouldScan && nextPid) vscode.postMessage({ type: 'scanProcess', pid: nextPid });
+    }
+
     document.getElementById('processCombo').onchange = () => {
       const combo = document.getElementById('processCombo');
       const val = combo ? combo.value : '';
       const pid = val ? parseInt(val, 10) : null;
-      selectedProcess = pid;
-      const btnRecord = document.getElementById('btnRecordReplay');
-      if (btnRecord) btnRecord.disabled = !pid;
-      if (pid) vscode.postMessage({ type: 'scanProcess', pid });
+      applySelectedProcess(pid, true);
     };
 
     document.getElementById('btnRecordReplay').onclick = () => {
@@ -607,7 +616,18 @@
               const label = (p.displayName || p.mainClass || 'java').substring(0, 50) + ' | ' + p.pid;
               return '<option value="' + p.pid + '">' + label + '</option>';
             }).join('');
+            if (selectedProcess) {
+              combo.value = String(selectedProcess);
+              if (combo.value !== String(selectedProcess)) {
+                selectedProcess = null;
+              }
+            }
           }
+          const btnRecordProcesses = document.getElementById('btnRecordReplay');
+          if (btnRecordProcesses) btnRecordProcesses.disabled = !selectedProcess;
+          break;
+        case 'setSelectedProcess':
+          applySelectedProcess(Number(msg.pid), msg.triggerChange !== false);
           break;
         case 'objects':
           objects = msg.data || [];

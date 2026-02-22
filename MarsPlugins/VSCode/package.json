@@ -1,2 +1,149 @@
-{"name":"java-ui-automation","displayName":"Java UI Automation Test","description":"Java Application UI automation testing plugin - scan UI elements, generate test scripts","version":"0.9.0-alpha","publisher":"mars","engines":{"vscode":"^1.85.0"},"categories":["Testing","Other"],"activationEvents":["onCommand:javaUiAutomation.scanUi","onCommand:javaUiAutomation.generateScript","onCommand:javaUiAutomation.selectProcess","onCommand:javaUiAutomation.showPanel","onCommand:javaUiAutomation.stopRecord","onView:javaUiAutomation.panel","onCommand:loaniq.generateTestsFromJavaTree"],"main":"./out/extension.js","contributes":{"viewsContainers":{"panel":[{"id":"javaUiAutomation","title":"Java UI Automation","icon":"media/icon.svg"}]},"views":{"javaUiAutomation":[{"type":"webview","id":"javaUiAutomation.panel","name":"UI Inspector"}]},"commands":[{"command":"javaUiAutomation.scanUi","title":"Java UI: Scan Application UI Elements"},{"command":"javaUiAutomation.generateScript","title":"Java UI: Generate Test Script"},{"command":"javaUiAutomation.selectProcess","title":"Java UI: Select Java Process and Scan"},{"command":"javaUiAutomation.showPanel","title":"Java UI: Show Panel"},{"command":"javaUiAutomation.stopRecord","title":"Java UI: Stop Record & Replay"},{"command":"loaniq.generateTestsFromJavaTree","title":"LoanIQ: Generate Tests from Java Tree"}],"keybindings":[{"command":"javaUiAutomation.stopRecord","key":"ctrl+alt+F12","mac":"ctrl+alt+F12"}],"configuration":{"title":"LoanIQ Test Gen","properties":{"loaniq.javaTreeSnapshotPath":{"type":"string","default":"","description":"Path to Java UI tree snapshot JSON"},"loaniq.mainWindowTitleHint":{"type":"string","default":"LoanIQ","description":"Main window title hint"},"loaniq.javaAgentUrl":{"type":"string","default":"","description":"Optional HTTP URL for snapshot"},"loaniq.recordingStepDebugLog":{"type":"boolean","default":false,"description":"Enable debug logs for recorded test steps (keyword/parameter/data) in the Java UI output channel."}}}},"scripts":{"vscode:prepublish":"npm run compile","compile":"tsc -p ./","watch":"tsc -watch -p ./","pretest":"npm run compile","build:java":"cd java && mvn clean package -DskipTests && cd ..","build:processinfo":"cd ProcessInfo && dotnet publish -c Release && cd ..","gen:loaniq":"npm run compile && node out/test/dev-generate-loaniq-tests.js","e2e:loaniq":"npm run compile && node scripts/e2e-loaniq-record-replay.js",
-    "test:recorder":"npm run compile && node out/test/recorderRules.test.js"},"dependencies":{"ws":"^8.17.0"},"devDependencies":{"@types/node":"^20.10.0","@types/ws":"^8.5.10","@types/vscode":"^1.85.0","typescript":"^5.3.0"}}
+{
+    "name": "java-ui-automation",
+    "displayName": "Java UI Automation Test",
+    "description": "Java Application UI automation testing plugin - scan UI elements, generate test scripts",
+    "version": "0.9.0-alpha",
+    "publisher": "mars",
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "Testing",
+        "Other"
+    ],
+    "activationEvents": [
+        "onStartupFinished",
+        "onCommand:javaUiAutomation.scanUi",
+        "onCommand:javaUiAutomation.generateScript",
+        "onCommand:javaUiAutomation.selectProcess",
+        "onCommand:javaUiAutomation.showPanel",
+        "onCommand:javaUiAutomation.stopRecord",
+        "onView:javaUiAutomation.panel",
+        "onCommand:javaUiAutomation.mcp.callTool",
+        "onCommand:javaUiAutomation.mcp.callToolInteractive",
+        "onCommand:loaniq.generateTestsFromJavaTree"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "mcpServerDefinitionProviders": [
+            {
+                "id": "javaUiAutomation.marsMcpServerProvider",
+                "label": "MARS Local MCP Servers"
+            }
+        ],
+        "viewsContainers": {
+            "panel": [
+                {
+                    "id": "javaUiAutomation",
+                    "title": "Java UI Automation",
+                    "icon": "media/icon.svg"
+                }
+            ]
+        },
+        "views": {
+            "javaUiAutomation": [
+                {
+                    "type": "webview",
+                    "id": "javaUiAutomation.panel",
+                    "name": "UI Inspector"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "javaUiAutomation.scanUi",
+                "title": "Java UI: Scan Application UI Elements"
+            },
+            {
+                "command": "javaUiAutomation.generateScript",
+                "title": "Java UI: Generate Test Script"
+            },
+            {
+                "command": "javaUiAutomation.selectProcess",
+                "title": "Java UI: Select Java Process and Scan"
+            },
+            {
+                "command": "javaUiAutomation.showPanel",
+                "title": "Java UI: Show Panel"
+            },
+            {
+                "command": "javaUiAutomation.stopRecord",
+                "title": "Java UI: Stop Record & Replay"
+            },
+            {
+                "command": "javaUiAutomation.mcp.callTool",
+                "title": "Java UI Automation: MCP Call Tool (Internal)"
+            },
+            {
+                "command": "javaUiAutomation.mcp.callToolInteractive",
+                "title": "Java UI Automation: MCP Call Tool (Interactive)"
+            },
+            {
+                "command": "javaUiAutomation.mcp.showStatus",
+                "title": "Java UI Automation: MCP Show Status"
+            },
+            {
+                "command": "javaUiAutomation.mcp.probe",
+                "title": "Java UI Automation: MCP Probe"
+            },
+            {
+                "command": "loaniq.generateTestsFromJavaTree",
+                "title": "LoanIQ: Generate Tests from Java Tree"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "javaUiAutomation.stopRecord",
+                "key": "ctrl+alt+F12",
+                "mac": "ctrl+alt+F12"
+            }
+        ],
+        "configuration": {
+            "title": "LoanIQ Test Gen",
+            "properties": {
+                "loaniq.javaTreeSnapshotPath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Path to Java UI tree snapshot JSON"
+                },
+                "loaniq.mainWindowTitleHint": {
+                    "type": "string",
+                    "default": "LoanIQ",
+                    "description": "Main window title hint"
+                },
+                "loaniq.javaAgentUrl": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Optional HTTP URL for snapshot"
+                },
+                "loaniq.recordingStepDebugLog": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable debug logs for recorded test steps (keyword/parameter/data) in the Java UI output channel."
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "start:mcp": "node out/mcp-server.js",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile",
+        "build:java": "cd java && mvn clean package -DskipTests && cd ..",
+        "build:processinfo": "cd ProcessInfo && dotnet publish -c Release && cd ..",
+        "gen:loaniq": "npm run compile && node out/test/dev-generate-loaniq-tests.js",
+        "e2e:loaniq": "npm run compile && node scripts/e2e-loaniq-record-replay.js",
+        "test:recorder": "npm run compile && node out/test/recorderRules.test.js",
+        "test:mcp-smoke": "npm run compile && node scripts/mcp-stdio-smoke.js"
+    },
+    "dependencies": {
+        "ws": "^8.17.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.10.0",
+        "@types/ws": "^8.5.10",
+        "@types/vscode": "^1.85.0",
+        "typescript": "^5.3.0"
+    }
+}

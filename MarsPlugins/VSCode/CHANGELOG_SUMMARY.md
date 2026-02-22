@@ -1,5 +1,37 @@
 # Java UI Automation - 修改摘要 (Summary of Changes)
 
+## 2026-02-22 MCP 联调与文档交付摘要
+
+### MCP 与扩展链路增强
+- 扩展侧新增 MCP bridge 与 provider 注册能力，支持本地 `stdio` server 暴露给 Chat 客户端发现。
+- 增加诊断命令：`javaUiAutomation.mcp.showStatus`、`javaUiAutomation.mcp.probe`。
+- `mcp.callTool` 路由扩展到 13 个工具，新增录制工具：`mars.startRecord`、`mars.stopRecord`。
+
+### MCP Server 协议与工具能力
+- 新增 `src/mcp-server.ts`：实现 `initialize` / `tools/list` / `tools/call`。
+- 工具名统一为合规格式 `mars-*`，并保留 `mars.*` / `mars_*` 别名兼容。
+- 输出协议采用 JSON 行格式，同时兼容 Content-Length 帧输入解析。
+- 新增协议自检脚本 `scripts/mcp-stdio-smoke.js`，覆盖初始化、工具列表与调用闭环。
+
+### 录制状态一致性修复（MCP 路径）
+- 修复 MCP 选进程后面板状态不同步：新增 `setSelectedProcess` 消息，确保下拉框选中与 change 等效逻辑执行。
+- 修复 MCP 启动录制时 UI 状态不同步：后端新增 `mcpStartRecord` / `mcpStopRecord`，复用现有 `recordingStarted/Stopped` 状态流。
+- 前端新增 `applySelectedProcess` 统一处理流程，保证按钮禁用/启用状态一致。
+
+### 文档交付（中英）
+- 新增英文文档：
+	- `doc/mcp-demo-test_en.md`
+	- `doc/mcp-demo-chat-test.en.md`
+- 更新中文文档并统一为 13 工具口径，补齐录制开始/停止步骤与验收标准：
+	- `doc/mcp-demo-test_zh.md`
+	- `doc/mcp-demo-chat-test.zh.md`
+
+### 构建与验证
+- `npm run compile`：通过
+- `npm run test:mcp-smoke`：通过
+- `mvn clean package`（java）：通过
+- `dotnet build -c release`（ProcessInfo）：通过
+
 ## 2026-02-20 Alpha 0.9 发布摘要
 
 ### 本版本定位

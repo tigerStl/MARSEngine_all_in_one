@@ -44,6 +44,8 @@ interface MarsStepsFile extends MarsStepsFilePayload {
 }
 
 export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
+  private _activeWebview: vscode.Webview | null = null;
+  private _selectedPid: number | null = null;
   private _currentProcesses: JavaProcess[] = [];
   private _currentObjects: UIObject[] = [];
   private _currentSteps: TestScriptStep[] = [];
@@ -63,6 +65,235 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     private readonly _context: vscode.ExtensionContext
   ) {
     this._loadState();
+  }
+
+  public async mcpListProcesses(): Promise<JavaProcess[]> {
+    const processes = await getJavaProcesses();
+    this._currentProcesses = processes;
+    this._persistStateDebounced();
+    if (this._activeWebview) {
+      this._safePost(this._activeWebview, { type: 'processes', data: processes });
+    }
+    return processes;
+  }
+
+  public mcpSelectProcess(pid: number): { selectedPid: number } {
+    if (!Number.isInteger(pid) || pid <= 0) {
+      throw new Error('Invalid pid');
+    }
+    this._selectedPid = pid;
+    if (this._activeWebview) {
+      this._safePost(this._activeWebview, { type: 'setSelectedProcess', pid, triggerChange: true });
+      this._handleProcessSelected(this._activeWebview, pid);
+    }
+    return { selectedPid: pid };
+  }
+
+  public async mcpStartRecord(options?: { pid?: number }): Promise<{ status: 'recording'; pid: number }> {
+    const pid = Number(options?.pid ?? this._selectedPid ?? 0);
+    if (!Number.isInteger(pid) || pid <= 0) {
+      throw new Error('No process selected');
+    }
+    if (!this._activeWebview) {
+      throw new Error('Panel is not ready');
+    }
+    this._selectedPid = pid;
+    this._safePost(this._activeWebview, { type: 'setSelectedProcess', pid, triggerChange: true });
+    await this._handleStartRecord(this._activeWebview, pid);
+    if (this._recordingPid !== pid) {
+      throw new Error('Failed to start recording');
+    }
+    return { status: 'recording', pid };
+  }
+
+  public async mcpStopRecord(): Promise<{ status: 'stopped'; stepCount: number }> {
+    if (this._recordingPid === null) {
+      throw new Error('No recording in progress');
+    }
+    const before = this._currentSteps.length;
+    await this.stopRecordAndShowDialog();
+    const stepCount = this._currentSteps.length >= before ? this._currentSteps.length : before;
+    return { status: 'stopped', stepCount };
+  }
+
+  public async mcpGetObjectTree(options?: { rootWindowHint?: string; refresh?: boolean }): Promise<{ roots: unknown[] }> {
+    if (!this._selectedPid || this._selectedPid <= 0) {
+      throw new Error('No process selected');
+    }
+    const refresh = options?.refresh !== false;
+    const outDir = this._getScanDir();
+    const scanPath = path.join(outDir, `ui-scan-${this._selectedPid}.json`);
+    let scan: ScanOutput;
+
+    if (!refresh && fs.existsSync(scanPath)) {
+      scan = JSON.parse(fs.readFileSync(scanPath, 'utf-8')) as ScanOutput;
+    } else {
+      const result = await loadAgentAndScan(this._selectedPid, outDir);
+      if (!result.success || !result.outputPath) {
+        throw new Error(result.error ?? 'Scan failed');
+      }
+      const raw = fs.readFileSync(result.outputPath, 'utf-8');
+      scan = JSON.parse(raw) as ScanOutput;
+      fs.writeFileSync(scanPath, JSON.stringify(scan, null, 2), 'utf-8');
+    }
+
+    const objectTree = convertScanToUIObjectTree(scan);
+    this._currentObjects = convertScanToUIObjects(scan);
+    this._persistStateDebounced();
+    if (this._activeWebview) {
+      this._safePost(this._activeWebview, { type: 'objects', data: this._currentObjects });
+      this._safePost(this._activeWebview, { type: 'objectTree', data: objectTree });
+    }
+    return { roots: scan.roots ?? [] };
+  }
+
+  public async mcpExecuteStep(index: number): Promise<{ status: 'success' | 'failed'; durationMs: number; error?: string }> {
+    if (!this._selectedPid || this._selectedPid <= 0) {
+      throw new Error('No process selected');
+    }
+    if (!Number.isInteger(index) || index < 0) {
+      throw new Error('Invalid step index');
+    }
+    if (!Array.isArray(this._currentSteps) || index >= this._currentSteps.length) {
+      throw new Error('Step index out of range');
+    }
+
+    const started = Date.now();
+    const outDir = this._getScanDir();
+    const step = this._currentSteps[index] as unknown as Record<string, unknown>;
+    const result = await replaySteps(this._selectedPid, outDir, [step]);
+    const durationMs = Date.now() - started;
+    if (result.success) {
+      return { status: 'success', durationMs };
+    }
+    return { status: 'failed', durationMs, error: result.error ?? 'unknown' };
+  }
+
+  public mcpGetSteps(): { steps: TestScriptStep[] } {
+    return { steps: [...this._currentSteps] };
+  }
+
+  public mcpUpdateStep(index: number, patch: Partial<TestScriptStep>): { step: TestScriptStep } {
+    if (!Number.isInteger(index) || index < 0 || index >= this._currentSteps.length) {
+      throw new Error('Step index out of range');
+    }
+    const current = this._currentSteps[index];
+    const next: TestScriptStep = {
+      ...current,
+      ...patch,
+      parentIdentifier: patch.parentIdentifier ?? current.parentIdentifier,
+      objectIdentifier: patch.objectIdentifier ?? current.objectIdentifier,
+    };
+    this._currentSteps[index] = next;
+    this._persistStateDebounced();
+    if (this._activeWebview) {
+      this._safePost(this._activeWebview, { type: 'steps', data: this._currentSteps });
+    }
+    return { step: next };
+  }
+
+  public async mcpRunReplay(options?: { fromIndex?: number; toIndex?: number; strictParent?: boolean }): Promise<{ status: 'done' | 'failed'; failedIndex?: number; error?: string }> {
+    if (!this._selectedPid || this._selectedPid <= 0) {
+      throw new Error('No process selected');
+    }
+    if (!Array.isArray(this._currentSteps) || this._currentSteps.length === 0) {
+      throw new Error('No steps to replay');
+    }
+    const fromIndex = Number.isInteger(options?.fromIndex) ? Number(options?.fromIndex) : 0;
+    const toIndex = Number.isInteger(options?.toIndex) ? Number(options?.toIndex) : (this._currentSteps.length - 1);
+    if (fromIndex < 0 || toIndex < fromIndex || toIndex >= this._currentSteps.length) {
+      throw new Error('Invalid replay range');
+    }
+
+    const steps = this._currentSteps.slice(fromIndex, toIndex + 1) as unknown as Record<string, unknown>[];
+    const outDir = this._getScanDir();
+    const result = await replaySteps(this._selectedPid, outDir, steps);
+    if (result.success) {
+      return { status: 'done' };
+    }
+    const failedIndex = typeof result.failedIndex === 'number' ? (fromIndex + result.failedIndex) : undefined;
+    return { status: 'failed', failedIndex, error: result.error ?? 'Replay failed' };
+  }
+
+  public async mcpHighlightObject(input: { objectKey: Record<string, unknown>; parentKey?: Record<string, unknown> }): Promise<{ message: string }> {
+    const key = (input?.objectKey ?? {}) as Record<string, unknown>;
+    const target = this._findObjectByKey(key);
+    const bounds = target?.identifier?.screenBounds;
+    if (!bounds) {
+      throw new Error('Object has no screenBounds');
+    }
+    const x = Number(bounds.x ?? 0);
+    const y = Number(bounds.y ?? 0);
+    const width = Math.max(2, Number(bounds.width ?? 2));
+    const height = Math.max(2, Number(bounds.height ?? 2));
+    const result = await runHighlightOverlay(this._extensionUri.fsPath, x, y, width, height);
+    if (!result.success) {
+      throw new Error(result.error ?? 'Highlight failed');
+    }
+    return { message: `highlight at (${x},${y}) ${width}x${height}` };
+  }
+
+  public mcpExportObjects(options?: { format?: string; includeParents?: boolean }): { filePath: string } {
+    const format = (options?.format ?? 'json').toLowerCase();
+    if (format !== 'json') {
+      throw new Error('Only json format is supported');
+    }
+    const outDir = this._getScanDir();
+    const filePath = path.join(outDir, `mars-objects-${Date.now()}.json`);
+    const includeParents = options?.includeParents !== false;
+    const payload = {
+      marker: 'MARS_UI_OBJECTS',
+      generatedAt: new Date().toISOString(),
+      parentObjects: includeParents ? this._currentObjects.map((o) => o.parent ?? {}) : [],
+      objects: this._currentObjects,
+    };
+    fs.writeFileSync(filePath, JSON.stringify(payload, null, 2), 'utf-8');
+    return { filePath };
+  }
+
+  public mcpExportDiagnostics(options?: { includeLogs?: boolean }): { filePath: string } {
+    const outDir = this._getScanDir();
+    const bundleDir = path.join(outDir, `mars-diagnostics-${Date.now()}`);
+    const logsDir = path.join(bundleDir, 'logs');
+    fs.mkdirSync(logsDir, { recursive: true });
+    fs.writeFileSync(path.join(bundleDir, 'steps.json'), JSON.stringify({ steps: this._currentSteps }, null, 2), 'utf-8');
+    fs.writeFileSync(path.join(bundleDir, 'summary.json'), JSON.stringify({
+      generatedAt: new Date().toISOString(),
+      platform: process.platform,
+      processCount: this._currentProcesses.length,
+      objectCount: this._currentObjects.length,
+      stepCount: this._currentSteps.length,
+    }, null, 2), 'utf-8');
+    if (options?.includeLogs !== false) {
+      fs.writeFileSync(path.join(logsDir, 'panel-log.txt'), this._lastLogText || '', 'utf-8');
+    }
+    return { filePath: bundleDir };
+  }
+
+  public mcpGetLastErrors(limit?: number): { items: Array<{ ts: number; scope: string; message: string }> } {
+    const max = Number.isInteger(limit) && Number(limit) > 0 ? Number(limit) : 20;
+    const lines = (this._lastLogText || '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    const errors = lines.filter((line) => /error|failed|exception/i.test(line)).slice(-max).map((message) => ({
+      ts: Date.now(),
+      scope: 'panel',
+      message,
+    }));
+    return { items: errors };
+  }
+
+  private _findObjectByKey(key: Record<string, unknown>): UIObject | undefined {
+    const keyJavaType = typeof key.javaType === 'string' ? key.javaType : undefined;
+    const keyName = typeof key.name === 'string' ? key.name : undefined;
+    const keyText = typeof key.text === 'string' ? key.text : undefined;
+    const keyIndex = typeof key.index === 'number' ? key.index : undefined;
+    return this._currentObjects.find((obj) => {
+      const id = obj.identifier || {};
+      if (keyJavaType && id.javaType !== keyJavaType) return false;
+      if (keyName && id.name !== keyName) return false;
+      if (keyText && id.text !== keyText && id.caption !== keyText) return false;
+      if (typeof keyIndex === 'number' && id.index !== keyIndex) return false;
+      return true;
+    });
   }
 
   private _loadState(): void {
@@ -126,6 +357,7 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     _token: vscode.CancellationToken
   ): void {
     this._outputChannel.appendLine('[Java UI] resolveWebviewView invoked');
+    this._activeWebview = webviewView.webview;
     webviewView.webview.options = {
       enableScripts: true,
       localResourceRoots: [this._extensionUri],
@@ -153,6 +385,7 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
           this._safePost(webviewView.webview, { type: 'pong' });
           if (!this._panelLoadedOnce) {
             this._panelLoadedOnce = true;
+            this._selectedPid = null;
             this._currentProcesses = [];
             this._currentObjects = [];
             this._currentSteps = [];
@@ -401,6 +634,7 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
 
   /** When selected application (combobox) changes: load objects for that PID if objects-<pid>.json exists. */
   private _handleProcessSelected(webview: vscode.Webview, pid: number): void {
+    this._selectedPid = Number.isInteger(pid) && pid > 0 ? pid : null;
     this._log(webview, `[action] Application selected: PID=${pid}, loading objects.\r\n`);
     const scanDir = this._getScanDir();
     const objectsPidPath = path.join(scanDir, `objects-${pid}.json`);

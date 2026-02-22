@@ -96,7 +96,7 @@ export async function getJavaProcesses(onProgress?: (e: ProgressEvent) => void):
       ws.on('message', (data: RawData) => {
         try {
           const text = data.toString();
-          console.log('[ProcessInfo] WS message received, length=', text.length, 'raw=', text.substring(0, 500));
+          console.error('[ProcessInfo] WS message received, length=', text.length, 'raw=', text.substring(0, 500));
           const payload = JSON.parse(text) as {
             acquireId?: string;
             javaProcess?: { pid: number; displayName?: string; mainClass?: string }[];
