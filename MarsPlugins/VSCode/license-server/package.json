@@ -1,0 +1,13 @@
+{
+  "name": "mars-license-server",
+  "version": "0.1.0-beta",
+  "private": true,
+  "description": "Minimal privacy-first license server for MARS extension",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

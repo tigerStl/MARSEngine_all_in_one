@@ -76,6 +76,21 @@ cd ..
 - 在 VS Code 中按 F5 启动 Extension Development Host
 - 或打包：`vsce package`
 
+### 6. 启动 License Server（收费功能准备）
+
+- 目录：`license-server/`
+- 环境变量模板：`license-server/.env.example`
+- 启动：`npm run start:license-server`
+
+隐私增强能力（默认开启）：
+
+- customer 信息哈希化（不落库原始邮箱）
+- 吊销列表使用哈希 ID
+- 响应默认 `no-store`，并开启安全响应头
+- 最小审计日志（不记录原始 PII）
+
+详细说明见：`doc/license-server-privacy_zh.md`
+
 ## 使用流程
 
 ### 面板方式（推荐）
