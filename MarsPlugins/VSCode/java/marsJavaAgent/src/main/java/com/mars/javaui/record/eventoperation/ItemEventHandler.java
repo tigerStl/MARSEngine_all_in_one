@@ -1,18 +1,19 @@
 package com.mars.javaui.record.eventoperation;
 
-import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.io.Writer;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.swing.JComboBox;
+
 import org.java_websocket.WebSocket;
 
+import com.mars.javaui.keyword.MarsKeyword;
 import com.mars.javaui.record.AgentLogger;
 import com.mars.javaui.record.RecordAgent;
 import com.mars.javaui.record.config.EventFilterConfig;
-import com.mars.javaui.record.keyword.MarsKeyword;
 
 /** Handles item events for ComboBox selection. */
 public final class ItemEventHandler {

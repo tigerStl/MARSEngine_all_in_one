@@ -11,9 +11,9 @@ import javax.swing.JTable;
 
 import org.java_websocket.WebSocket;
 
+import com.mars.javaui.keyword.MarsKeyword;
 import com.mars.javaui.record.RecordAgent;
 import com.mars.javaui.record.config.EventFilterConfig;
-import com.mars.javaui.record.keyword.MarsKeyword;
 
 /**
  * Handles key events for recording.

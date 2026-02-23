@@ -1,5 +1,5 @@
-package com.mars.javaui.record;
 
+package com.mars.javaui.record;
 import java.awt.AWTEvent;
 import java.awt.Color;
 import java.awt.Component;
@@ -22,6 +22,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -90,12 +91,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mars.javaui.keyword.MarsKeyword;
 import com.mars.javaui.protocol.AgentProtocol;
 import com.mars.javaui.record.eventoperation.ItemEventHandler;
 import com.mars.javaui.record.eventoperation.KeyboardEventHandler;
 import com.mars.javaui.record.eventoperation.MouseEventHandler;
 import com.mars.javaui.record.eventoperation.RecordingContext;
-import com.mars.javaui.record.keyword.MarsKeyword;
 
 /**
  * Record agent: runs as WebSocket server inside target JVM.
@@ -846,6 +847,21 @@ public class RecordAgent {
                                 EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, err));
                                 return;
                             }
+                            // SnapShot keyword: capture and save component screenshot
+                            if ("SnapShot".equals(keyword)) {
+                                String fileName = "snapshot_step" + i + ".jpg";
+                                String saveErr = saveComponentSnapshot(comp, fileName);
+                                if (saveErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, saveErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, saveErr));
+                                    return;
+                                }
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
+                                continue;
+                            }
                             if (runtimeConfig.isHighlightObjectWhileReplay) {
                                 highlightComponentBeforeReplay(comp, robot);
                             }
@@ -1066,6 +1082,35 @@ public class RecordAgent {
         } catch (Exception e) {
             AgentLogger.logException(LOG, Level.WARNING, "Replay parse failed", e);
             sendReplayDone(conn, 0, null, e.getMessage());
+        }
+    }
+
+    /**
+     * 截取组件在屏幕上的图像并保存为jpg文件。
+     * @param comp 目标组件
+     * @param fileName 保存文件名（相对当前目录）
+     * @return 错误信息，成功为null
+     */
+    private static String saveComponentSnapshot(Component comp, String fileName) {
+        try {
+            int[] b = getScreenBounds(comp);
+            if (b == null || b[2] <= 0 || b[3] <= 0) {
+                return "Object has no bounds";
+            }
+            // 扩大1像素
+            int x = Math.max(0, b[0] - 1);
+            int y = Math.max(0, b[1] - 1);
+            int w = b[2] + 2;
+            int h = b[3] + 2;
+            Rectangle rect = new Rectangle(x, y, w, h);
+            Robot robot = new Robot();
+            BufferedImage img = robot.createScreenCapture(rect);
+            File outFile = new File(fileName);
+            javax.imageio.ImageIO.write(img, "jpg", outFile);
+            return null;
+        } catch (Exception e) {
+            AgentLogger.logException(LOG, Level.WARNING, "saveComponentSnapshot failed", e);
+            return e.getMessage();
         }
     }
 

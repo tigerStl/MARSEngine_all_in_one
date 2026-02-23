@@ -4107,12 +4107,19 @@ namespace Mars.Inter.MQCenter.MSAASupport
                     MarsLoggerSimple.Error("MARSUI_Snapshot", $"{iMark}|{strError}|{Environment.StackTrace}");
                     return false;
                 }
+                string tmpTypeName = string.IsNullOrEmpty(typeName) ? "" : typeName.ToLower();
+                bool isPegwindow = Mars.message.Inter.MQCenter.objectTypeMapping.MarsObjectKeyword.cnst_pegwindow.Equals(tmpTypeName, StringComparison.OrdinalIgnoreCase);
                 AutomationElement targetElement = null;
+                if (isPegwindow)
+                {
+                    /// 如果是pegwindow，直接获取当前pegwindow的AutomationElement对象
+                    dictObjProperties = dictPegProperties;
+                }
                 /// 如果要截图的是pegwindow本身，不需要再去找对象，以为为pegwindow已经保留，且text之类会变化，导致无法找到对象
-                /// 
-                if ((!string.IsNullOrEmpty(typeName))
-                    && ("pegwindow".Equals(typeName, StringComparison.OrdinalIgnoreCase))
-                    && ("no_reget".Equals(strParaMeter, StringComparison.OrdinalIgnoreCase)))
+                /// 如果是pegwindow，直接获取当前pegwindow的AutomationElement对象 
+                if (isPegwindow
+                    //&& ("no_reget".Equals(strParaMeter, StringComparison.OrdinalIgnoreCase))
+                   )
                 {
                     var vars = MARSUIAppSideVariables.GetInstance();
                     if (vars == null || vars.currentPegwindow == null)
@@ -4141,8 +4148,7 @@ namespace Mars.Inter.MQCenter.MSAASupport
                     targetElement = curPegUIA;
                 }
                 else
-                {
-
+                {   
                     /// 判断是什么类型的对象需要捕获
                     /// 
                     // 统一查找指定ControlType的元素
@@ -4155,8 +4161,9 @@ namespace Mars.Inter.MQCenter.MSAASupport
 
                     // 5. 从objProperties的key中，除去control type外还有那些？如果有Text/ObjectName，从UIA对象中获得Name，value，text的值，并且用RegularTest判断是否符合，如果符合，放到待选列表中
                     var candidates = new List<AutomationElement>();
-                    bool isOk = false;
+                    bool isOk = false;                    
                     candidates = FilterObjectsByProperties(dictObjProperties, foundElements, ref isOk, ref strError);
+                    
                     // 6. 如果没有候选对象，报错，有多个，判断是否有index？否则报错
                     if ((candidates.Count == 0) || (!isOk))
                     {

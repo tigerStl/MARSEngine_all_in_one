@@ -118,7 +118,10 @@ cd ..
     {
       "keyword": "FillEdit",
       "parentIdentifier": { "javaType": "javax.swing.JFrame" },
-      "objectIdentifier": { "javaType": "javax.swing.JTextField", "name": "username" },
+      "objectIdentifier": {
+        "javaType": "javax.swing.JTextField",
+        "name": "username"
+      },
       "data": "CONST_TEST_USER_ABC123",
       "assertValue": null
     }
@@ -139,14 +142,20 @@ cd ..
     {
       "keyword": "FillEdit",
       "parentIdentifier": { "javaType": "javax.swing.JFrame" },
-      "objectIdentifier": { "javaType": "javax.swing.JTextField", "name": "txtCustomer" },
+      "objectIdentifier": {
+        "javaType": "javax.swing.JTextField",
+        "name": "txtCustomer"
+      },
       "data": "ACME-001",
       "assertValue": "ACME-001"
     },
     {
       "keyword": "VerifyObjectValue",
       "parentIdentifier": { "javaType": "javax.swing.JFrame" },
-      "objectIdentifier": { "javaType": "javax.swing.JTextField", "name": "txtCustomer" },
+      "objectIdentifier": {
+        "javaType": "javax.swing.JTextField",
+        "name": "txtCustomer"
+      },
       "parameter": "",
       "data": "ACME-001",
       "assertValue": ""
@@ -163,7 +172,10 @@ cd ..
     {
       "keyword": "SearchAndUpdate",
       "parentIdentifier": { "javaType": "javax.swing.JFrame" },
-      "objectIdentifier": { "javaType": "javax.swing.JTable", "name": "loanTable" },
+      "objectIdentifier": {
+        "javaType": "javax.swing.JTable",
+        "name": "loanTable"
+      },
       "parameter": "Amount:[Deal]",
       "data": "[D-1001];1000:1500",
       "assertValue": "1500"
@@ -171,7 +183,10 @@ cd ..
     {
       "keyword": "VerifyObjectValue",
       "parentIdentifier": { "javaType": "javax.swing.JFrame" },
-      "objectIdentifier": { "javaType": "javax.swing.JTable", "name": "loanTable" },
+      "objectIdentifier": {
+        "javaType": "javax.swing.JTable",
+        "name": "loanTable"
+      },
       "parameter": "Amount",
       "data": "1500",
       "assertValue": ""
@@ -190,14 +205,20 @@ cd ..
     {
       "keyword": "FillEdit",
       "parentIdentifier": { "javaType": "javax.swing.JFrame" },
-      "objectIdentifier": { "javaType": "javax.swing.JTextField", "name": "txtRef" },
+      "objectIdentifier": {
+        "javaType": "javax.swing.JTextField",
+        "name": "txtRef"
+      },
       "data": "ACME-2026-001",
       "assertValue": "^ACME-\\d{4}-\\d{3}$"
     },
     {
       "keyword": "VerifyObjectValue",
       "parentIdentifier": { "javaType": "javax.swing.JFrame" },
-      "objectIdentifier": { "javaType": "javax.swing.JTextField", "name": "txtRef" },
+      "objectIdentifier": {
+        "javaType": "javax.swing.JTextField",
+        "name": "txtRef"
+      },
       "parameter": "",
       "data": "^ACME-\\d{4}-\\d{3}$",
       "assertValue": ""
@@ -211,7 +232,11 @@ cd ..
 ```json
 {
   "constants": [
-    { "id": "CONST_TEST_USER_ABC123", "value": "test@example.com", "category": "INPUT_DATA" }
+    {
+      "id": "CONST_TEST_USER_ABC123",
+      "value": "test@example.com",
+      "category": "INPUT_DATA"
+    }
   ]
 }
 ```

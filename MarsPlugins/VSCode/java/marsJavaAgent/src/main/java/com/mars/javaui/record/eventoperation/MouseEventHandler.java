@@ -21,10 +21,10 @@ import javax.swing.SwingUtilities;
 
 import org.java_websocket.WebSocket;
 
+import com.mars.javaui.keyword.MarsKeyword;
 import com.mars.javaui.record.AgentLogger;
 import com.mars.javaui.record.RecordAgent;
 import com.mars.javaui.record.config.EventFilterConfig;
-import com.mars.javaui.record.keyword.MarsKeyword;
 
 /** Handles mouse events for recording: click/double-click merge, menu, tree, toolbar, ComboBox. */
 public final class MouseEventHandler {

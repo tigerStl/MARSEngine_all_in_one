@@ -35,28 +35,35 @@ npm start
 ## 4. 隐私增强（已默认内置）
 
 1. 数据最小化
+
 - 默认不持久化原始邮箱、姓名、IP。
 
 2. 伪匿名化
+
 - 对 `customerEmail` 做带盐 SHA-256，写入 `customerRef`。
 
 3. 最小审计日志
+
 - 仅保留 `ts/action/ok/requestId/subjectHash/reason`。
 - 不记录原始 PII。
 
 4. 安全响应头
+
 - `Cache-Control: no-store`
 - `X-Frame-Options: DENY`
 - `Referrer-Policy: no-referrer`
 - `X-Content-Type-Options: nosniff`
 
 5. 请求体限制
+
 - JSON body 上限 `64KB`，防止超大载荷滥用。
 
 6. 安全比较
+
 - 签名与密钥比较使用 timing-safe 策略。
 
 7. 吊销信息保护
+
 - 吊销列表仅存储 `licenseId` 的哈希。
 
 ## 5. 环境变量
