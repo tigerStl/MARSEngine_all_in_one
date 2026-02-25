@@ -74,6 +74,8 @@ export interface TestScriptStep {
   data?: string;       // Constant ID reference
   assertValue?: string; // Constant ID reference
   skipped?: boolean;   // When true, step is skipped during execution
+  /** Per-step wait time in seconds. 0 or undefined means use default (auto). */
+  waitTime?: number;
 }
 
 export interface ConstantEntry {

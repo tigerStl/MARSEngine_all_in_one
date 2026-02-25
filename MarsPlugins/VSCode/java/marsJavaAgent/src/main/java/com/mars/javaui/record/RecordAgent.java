@@ -837,8 +837,13 @@ public class RecordAgent {
                             }
                             Map<String, Object> pk = parentId != null ? jsonToMap(parentId) : null;
                             Map<String, Object> ok = jsonToMap(objectId);
+                            int waitSeconds = getJsonInt(step, "waitTime", 0);
+                            if (waitSeconds < 0) waitSeconds = 0;
+                            // When waitTime is 0 or missing, use a sensible default (auto wait).
+                            final int DEFAULT_AUTO_WAIT_SECONDS = 5;
+                            long waitMillis = (long) ((waitSeconds == 0 ? DEFAULT_AUTO_WAIT_SECONDS : waitSeconds) * 1000L);
                             String[] resolveErr = new String[1];
-                            Component comp = resolveComponentByParentFirst(pk, ok, resolveErr);
+                            Component comp = resolveComponentWithWait(pk, ok, resolveErr, waitMillis);
                             if (comp == null) {
                                 int idx = i;
                                 long endedAt = System.currentTimeMillis();
@@ -2781,6 +2786,33 @@ private static Component resolveComponentByParentFirst(Map<String, Object> paren
         return null;
     }
     return child;
+}
+
+/**
+ * Resolve component with wait: repeatedly try resolveComponentByParentFirst until found or timeout.
+ * waitMillis is per-step maximum wait time (derived from step.waitTime or default auto wait).
+ */
+private static Component resolveComponentWithWait(Map<String, Object> parentKey, Map<String, Object> objectKey, String[] errorOut, long waitMillis) {
+    long deadline = System.currentTimeMillis() + Math.max(0, waitMillis);
+    String[] lastErr = errorOut != null && errorOut.length > 0 ? errorOut : new String[1];
+    while (true) {
+        Component c = resolveComponentByParentFirst(parentKey, objectKey, lastErr);
+        if (c != null) {
+            if (errorOut != null && errorOut.length > 0) errorOut[0] = null;
+            return c;
+        }
+        if (System.currentTimeMillis() >= deadline) {
+            if (errorOut != null && errorOut.length > 0) errorOut[0] = lastErr[0];
+            return null;
+        }
+        try {
+            Thread.sleep(200L);
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+            if (errorOut != null && errorOut.length > 0) errorOut[0] = "Interrupted while waiting for object";
+            return null;
+        }
+    }
 }
 
 private static Component findVisibleComponentAcrossRoots(Map<String, Object> key) {

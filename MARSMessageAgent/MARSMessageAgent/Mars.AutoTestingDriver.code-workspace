@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "."
+		},
+		{
+			"path": "../../Mars.Inter.MQCenter"
 		}
 	],
 	"settings": {}

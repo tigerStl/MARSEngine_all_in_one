@@ -238,7 +238,6 @@ namespace Mars.message.Inter.MQCenter.objectSpy
             // 
             // searchText
             // 
-            this.searchText.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.searchText.Name = "searchText";
             this.searchText.Size = new System.Drawing.Size(100, 31);
             this.searchText.Click += new System.EventHandler(this.toolStripTextBox1_Click);

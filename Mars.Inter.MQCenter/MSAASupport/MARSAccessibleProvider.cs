@@ -1,9 +1,12 @@
 using Accessibility;
+using Mars.message.Inter.MQCenter.simpleLog;
 using Mars.message.windowsWrapper.SystemUtil;
 
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Drawing;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -51,6 +54,38 @@ namespace Mars.Inter.MQCenter.MSAASupport
             int cChildren,
             [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] object[] rgvarChildren,
             out int pcObtained);
+
+        public IAccessible FindTableFromUIAParentByHwnd(IntPtr hwnd)
+        {
+            var acc = GetAccessibleObject(hwnd) as IAccessible;
+            return FindTableFromAccessParent(acc);
+        }
+
+        private IAccessible FindTableFromAccessParent(IAccessible acc)
+        {
+            if (acc == null) return null;
+            int childCount = acc.accChildCount;
+            if (childCount > 0)
+            {
+                object[] children = new object[childCount];
+                int obtained = AccessibleChildren(acc, 0, childCount, children, out int nObtained);
+                for (int i = 0; i < nObtained; i++)
+                {
+                    if (children[i] is IAccessible childAcc)
+                    {
+                        string role = GetRoleName(childAcc);
+                        if (role.Equals(GetRoleName(MARSAccessibleConstans.ROLE_SYSTEM_TABLE), StringComparison.OrdinalIgnoreCase)) // ROLE_SYSTEM_COLUMNHEADER
+                        {
+                            string colName = childAcc.get_accName(0);
+                            return childAcc;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        
 
         /// <summary>
         /// 获取表格的所有列名

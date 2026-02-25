@@ -27,6 +27,7 @@ using Accessibility;
 using System.Windows.Automation;
 using Mars.Inter.MQCenter.MarsUtility;
 
+
 namespace Mars.message.Inter.MQCenter.objectSpy
 {
     public partial class MarsObjSpyForm : Form
@@ -4702,7 +4703,14 @@ namespace Mars.message.Inter.MQCenter.objectSpy
 
             try
             {
-                var walker = TreeWalker.ControlViewWalker;
+                //string pattersnAndInfo = MarsUIInspector.InspectElementPatterns(element);
+                //simpleLog.MarsLoggerSimple.Info("GetUIAChildren", $"Inspecting UIA element: {pattersnAndInfo}");
+
+                //var all = element.FindAll(TreeScope.Descendants, Condition.TrueCondition);
+                //Dictionary<string, string>  allItems = MarsUIInspector.DumpAllElements(all);
+                //Console.WriteLine($"Descendants={all.Count}");
+
+                var walker = TreeWalker.ContentViewWalker;
                 var child = walker.GetFirstChild(element);
 
                 while (child != null)

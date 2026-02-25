@@ -33,5 +33,6 @@ export function recordedStepToTestScriptStep(step: RecordedStep): TestScriptStep
     data: step.data ?? '',
     assertValue: '',
     skipped: false,
+    waitTime: 0,
   };
 }

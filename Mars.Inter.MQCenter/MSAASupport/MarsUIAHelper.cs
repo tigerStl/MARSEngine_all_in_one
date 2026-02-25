@@ -4091,6 +4091,102 @@ namespace Mars.Inter.MQCenter.MSAASupport
             }
 
         }
+        /// <summary>
+        /// 在UI模式中，存在两种情况。一种是那个对象存在Table或者Gridpattern.那么通过Table或者Gridpattern来查找元素并且更新值。
+        /// 另外一种是它的contentview中，存在一个Table（
+        /// 
+        /// </summary>
+        /// <param name="stepId"></param>
+        /// <param name="dictPegProperties"></param>
+        /// <param name="dictObjProperties"></param>
+        /// <param name="strParaMeter">[conditionCol1:conditionCol2....];targetCol 例如：[Name];value  </param>
+        /// <param name="strData">[conditionCol1Value:conditionCol2Value....];targetValue 例如：[FIGI];1234</param>
+        /// <param name="typeName"></param>
+        /// <param name="strAttachInfo"></param>
+        /// <param name="pegWindName"></param>
+        /// <param name="objName"></param>
+        /// <param name="strError"></param>
+        /// <param name="dealResult"></param>
+        /// <returns></returns>
+        public static bool MARSUI_SearchAndUpdate(long stepId, Dictionary<string, string> dictPegProperties,
+            Dictionary<string, string> dictObjProperties, string strParaMeter, string strData, string typeName, string strAttachInfo,
+            string pegWindName, string objName, ref string strError, ref MARSDealResult dealResult)
+        {
+            int iMark = new Random().Next(10000);
+            MarsLoggerSimple.logBegin("MARSUI_SearchAndUpdate", $"{iMark}|stepId:{stepId}|{pegWindName}.{objName}|{strParaMeter}|data:{strData}");
+            bool isOk = false;
+            if (dealResult == null)
+                dealResult = new MARSDealResult();
+            try
+            {
+                if (string.IsNullOrEmpty(typeName))
+                {
+                    strError = "typeName is null or empty";
+                    dealResult.ResultMessage = "FAILED";
+                    dealResult.ErrorMessage = strError;
+                    MarsLoggerSimple.Error("MARSUI_SearchAndUpdate", $"{iMark}|{strError}|{Environment.StackTrace}");
+                    return false;
+                }
+
+                if (!TryFindElementsByControlType(dictObjProperties, out var foundLists, ref strError))
+                {
+                    dealResult.ResultMessage = "FAILED";
+                    dealResult.ErrorMessage = strError;
+                    MarsLoggerSimple.Error("MARSUI_SearchAndUpdate", $"{iMark}|{strError}");
+                    return false;
+                }
+
+                var visibleLists = FilterObjectsByProperties(dictObjProperties, foundLists, ref isOk, ref strError);
+                if ((!isOk)||(visibleLists==null)||(visibleLists.Count<=0))
+                {
+                    strError = $"No matching elements found based on the specified criteria|{strError}";
+                    dealResult.ResultMessage = "FAILED";
+                    dealResult.ErrorMessage = strError;
+                    MarsLoggerSimple.Error("MARSUI_SearchAndUpdate", $"{iMark}|{strError}|{Environment.StackTrace}");
+                    return false;
+                }
+                var tbl = visibleLists[0];
+                if (tbl == null)
+                {
+                    strError = $"Can't find target table based on the specified criteria|{strError}";
+                    dealResult.ResultMessage = "FAILED";
+                    dealResult.ErrorMessage = strError;
+                    MarsLoggerSimple.Error("MARSUI_SearchAndUpdate", $"{iMark}|{strError}|{Environment.StackTrace}");
+                    return false;
+                }
+                /// 这里有几种情况：
+                /// 1， table本身支持TablePattern或者GridPattern，那么直接在table上进行查找和更新
+                /// 2， table本身不支持TablePattern或者GridPattern，但是它的contentview中存在一个table，且是IAccessible
+                /// 20260224 先做第二种情况的处理，如果第二种情况处理成功了，再考虑第一种情况
+                /// 
+                return isOk = SearchAndUpdateHelper.SearchAndUpdate("SearchAndUpdate", tbl, pegWindName, objName,
+                    dictPegProperties, dictObjProperties, strParaMeter, strData, ref strError, ref dealResult);
+
+            }
+            catch (Exception e)
+            {
+                strError = $"Exception in MARSUI_CaptureValue: {e.Message}";
+                dealResult = new MARSDealResult { ResultMessage = "FAILED", ErrorMessage = strError };
+                MarsLoggerSimple.Error("SearchAndUpdate", $"{iMark}|{strError}", e);
+                return false;
+            }
+            finally
+            {
+                MarsLoggerSimple.logEnd("SearchAndUpdate", $"{iMark}|Completed");
+            }
+
+        }
+
+        public static IAccessible GetIAccessibleFromAutomationElement(AutomationElement targetElement)
+        {
+            if (targetElement == null)
+                return null;
+            int hwnd = targetElement.Current.NativeWindowHandle;
+            if (hwnd == 0)
+                return null;
+            var accessibleProvider = new MARSAccessibleProvider();
+            return accessibleProvider.GetAccessibleObject(new IntPtr(hwnd)) as IAccessible;
+        }
 
         public static bool MARSUI_Snapshot(long stepId, Dictionary<string, string> dictPegProperties,
             Dictionary<string, string> dictObjProperties, string strParaMeter, string strData, string typeName, string strAttachInfo,

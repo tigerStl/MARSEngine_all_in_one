@@ -1804,6 +1804,14 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
             bool isOk = ObjectInfoAnlyst.AlystObjectQuickAccessToPegAndObj(stepObject.PEG_QUICK_ACCESS, stepObject.QUICK_ACCESS, ref dictPegProperties, ref dictObjProperties, ref strError);
             if (!isOk) return false;
 
+            if (appTyp == Mars_applicationTyp.MARS_APPTYPE.STANDARD_MFC_APP 
+                || (isOk = Mars.Inter.MQCenter.MSAASupport.MarsMARSUIHelper.ISUsingMARSUI(dictPegProperties, ref strError)))
+            {
+                return MarsMARSUIHelper.MARSUI_SearchAndUpdate(runOrdId, dictPegProperties, dictObjProperties, strParaMeter, strData, stepObject.TYPE_NAME,
+                    strAttachInfo, stepObject.PEG_NAME ?? "", stepObject.OBJECT_HAPPY_NAME ?? "", ref strError, ref dealResult);
+            }
+
+
             isOk = InjectorMessageAgent.DealWithKeyword_GUIOp("SEARCHANDUPDATE", runOrdId, dictPegProperties, dictObjProperties, strParaMeter, strData,
                 stepObject.TYPE_NAME,
                 strAttachInfo,

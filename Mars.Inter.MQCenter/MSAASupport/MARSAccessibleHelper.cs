@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.IO.Pipelines;
 using System.Runtime.InteropServices;
 using System.Text;
 using Accessibility;
@@ -14,6 +16,14 @@ namespace Mars.Inter.MQCenter.MSAASupport
     /// </summary>
     public class MARSAccessibleHelper
     {
+        private const int CHILDID_SELF = 0;
+        private const int SELFLAG_TAKEFOCUS = 0x2;
+        private const int SELFLAG_TAKESELECTION = 0x4;
+        private const int STATE_SYSTEM_FOCUSED = 0x4;
+        private const int STATE_SYSTEM_SELECTED = 0x2;
+        private const int STATE_SYSTEM_UNAVAILABLE = 0x1;
+        private const int DEFAULT_POLL_INTERVAL_MS = 100;
+
         /// <summary>
         /// 静态开关：是否显示高度和宽度都为0的IAccessible对象
         /// </summary>
@@ -197,6 +207,213 @@ namespace Mars.Inter.MQCenter.MSAASupport
             catch (Exception ex)
             {
                 sb.AppendLine($"{indentStr}            方法1-通过索引获取失败: {ex.Message}");
+            }
+        }
+
+
+        public static bool IsAccessibleObjReady(IAccessible acc, int waitSeconds = 5)
+        {
+            if (acc == null)
+            {
+                MarsLoggerSimple.Warning("IsAccessibleObjReady", "IAccessible is null.");
+                return false;
+            }
+
+            // waitSeconds <= 0 时按 1s 处理，避免传入非法参数导致不轮询
+            int timeoutMs = Math.Max(waitSeconds, 1) * 1000;
+            int elapsedMs = 0;
+
+            // 某些对象不支持 select/focus，不应直接判定失败
+            try
+            {
+                acc.accSelect(SELFLAG_TAKEFOCUS | SELFLAG_TAKESELECTION, CHILDID_SELF);
+            }
+            catch
+            {
+                // ignore
+            }
+
+            while (elapsedMs <= timeoutMs)
+            {
+                try
+                {
+                    object stateObj = acc.accState[CHILDID_SELF];
+
+                    int state = 0;
+                    if (stateObj != null)
+                    {
+                        state = Convert.ToInt32(stateObj);
+                    }
+
+                    bool isUnavailable = (state & STATE_SYSTEM_UNAVAILABLE) != 0;
+                    bool isFocused = (state & STATE_SYSTEM_FOCUSED) != 0;
+                    bool isSelected = (state & STATE_SYSTEM_SELECTED) != 0;
+
+                    // 优先使用状态位判断
+                    if (!isUnavailable && (isFocused || isSelected))
+                    {
+                        return true;
+                    }
+
+                    // 兜底：有些对象不会置 focused/selected，但可正常读取关键属性也可视为 ready
+                    if (!isUnavailable)
+                    {
+                        string accName = acc.accName[CHILDID_SELF];
+                        object accRole = acc.accRole[CHILDID_SELF];
+                        return true;
+                    }
+                }
+                catch
+                {
+                    // 可能是对象还未就绪或短暂失效，继续轮询
+                }
+
+                System.Threading.Thread.Sleep(DEFAULT_POLL_INTERVAL_MS);
+                elapsedMs += DEFAULT_POLL_INTERVAL_MS;
+            }
+
+            MarsLoggerSimple.Warning("IsAccessibleObjReady",
+                $"IAccessible was not ready within {timeoutMs}ms.");
+            return false;
+        }
+
+        /// <summary>
+        /// 判断 IAccessible 对象是否在当前屏幕 viewport 内；若不在则尝试通过选中/聚焦将其滚动到可视区域。
+        /// </summary>
+        /// <param name="acc">目标可访问对象</param>
+        /// <param name="waitSeconds">移动后等待可见状态生效的秒数</param>
+        /// <returns>最终是否在 viewport 内</returns>
+        public static bool EnsureAccessibleObjInViewport(IAccessible acc, int waitSeconds = 2)
+        {
+            if (acc == null)
+            {
+                MarsLoggerSimple.Warning("EnsureAccessibleObjInViewport", "IAccessible is null.");
+                return false;
+            }
+
+            if (IsAccessibleObjInViewport(acc))
+            {
+                return true;
+            }
+
+            // 首选：通过聚焦/选中触发容器自动滚动
+            try
+            {
+                acc.accSelect(SELFLAG_TAKEFOCUS | SELFLAG_TAKESELECTION, CHILDID_SELF);
+            }
+            catch
+            {
+                // ignore
+            }
+
+            int timeoutMs = Math.Max(waitSeconds, 1) * 1000;
+            int elapsedMs = 0;
+            while (elapsedMs <= timeoutMs)
+            {
+                if (IsAccessibleObjInViewport(acc))
+                {
+                    return true;
+                }
+
+                System.Threading.Thread.Sleep(DEFAULT_POLL_INTERVAL_MS);
+                elapsedMs += DEFAULT_POLL_INTERVAL_MS;
+            }
+
+            // 兜底：尝试对父对象执行焦点/选中后再检查一次
+            try
+            {
+                if (acc.accParent is IAccessible parentAcc)
+                {
+                    parentAcc.accSelect(SELFLAG_TAKEFOCUS | SELFLAG_TAKESELECTION, CHILDID_SELF);
+                    if (IsAccessibleObjInViewport(acc))
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            MarsLoggerSimple.Warning("EnsureAccessibleObjInViewport",
+                "IAccessible is still outside viewport after focus/selection attempts.");
+            return false;
+        }
+
+        /// <summary>
+        /// 判断 IAccessible 的位置矩形是否与当前虚拟屏幕可视区域相交。
+        /// </summary>
+        public static bool IsAccessibleObjInViewport(IAccessible acc)
+        {
+            if (acc == null) return false;
+
+            try
+            {
+                acc.accLocation(out int left, out int top, out int width, out int height, CHILDID_SELF);
+
+                if (width <= 0 || height <= 0)
+                {
+                    return false;
+                }
+
+                var targetRect = new System.Drawing.Rectangle(left, top, width, height);
+                var viewport = System.Windows.Forms.SystemInformation.VirtualScreen;
+                return targetRect.IntersectsWith(viewport);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 在已知对象位置后执行编辑动作：
+        /// 1) 计算中点；2) 双击；3) SendKeys("{HOME}{DEL 30}")；4) 输入 data。
+        /// </summary>
+        public static bool OperateAccessibleObjByRect(int x, int y, int w, int h, string data, bool isClear=true)
+        {
+            if (w <= 0 || h <= 0)
+            {
+                MarsLoggerSimple.Warning("OperateAccessibleObjByRect",
+                    $"Invalid rect: x={x}, y={y}, w={w}, h={h}");
+                return false;
+            }
+
+            try
+            {
+                if (isClear)
+                {
+                    int centerX = x + (w / 2);
+                    int centerY = y + (h / 2);
+
+                    // 1) 移动到对象中点
+                    MarsWindowsAPIs.SetCursorPos(centerX, centerY);
+                    System.Threading.Thread.Sleep(80);
+                    // 这个对象要点三次
+                    MarsWindowsAPIsExtend.LeftMouseClick(centerX, centerY);
+                    // 2) 双击
+                    MarsWindowsAPIsExtend.LeftMouseClick(centerX, centerY); // 已封装的单击方法
+                    MarsWindowsAPIsExtend.LeftMouseClick(centerX, centerY); // 已封装的单击方法
+                    System.Threading.Thread.Sleep(80);
+
+                    // 3) 清空原内容
+                    System.Windows.Forms.SendKeys.SendWait("{HOME}{DEL 30}");
+                    System.Threading.Thread.Sleep(50);
+                }
+                // 4) 输入 data
+                if (!string.IsNullOrEmpty(data))
+                {
+                    System.Windows.Forms.SendKeys.SendWait(data);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MarsLoggerSimple.Error("OperateAccessibleObjByRect",
+                    $"Failed to operate object by rect: {ex.Message}", ex);
+                return false;
             }
         }
 

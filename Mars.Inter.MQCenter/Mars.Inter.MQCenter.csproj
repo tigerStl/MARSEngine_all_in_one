@@ -532,10 +532,12 @@
     <Compile Include="MSAASupport\MarsAccessibleKeywords\PegWindowUtilites.cs" />
     <Compile Include="MSAASupport\MarsAccessibleKeywords\PopupMenuHelper.cs" />
     <Compile Include="MSAASupport\MarsAccessibleKeywords\RibbonMenuHelper.cs" />
+    <Compile Include="MSAASupport\MarsAccessibleKeywords\SearchAndUpdateHelper.cs" />
     <Compile Include="MSAASupport\MarsAccessibleKeywords\SnapshotHelper.cs" />
     <Compile Include="MSAASupport\MARSAccessibleProvider.cs" />
     <Compile Include="MSAASupport\MarsUIAHelper.cs" />
     <Compile Include="MSAASupport\MARSUIAppSideVariables.cs" />
+    <Compile Include="MSAASupport\MarsUIInspector.cs" />
     <Compile Include="MSAASupport\MfcAccessibleHelper.cs" />
     <Compile Include="spyHelper\SpyMode.cs" />
     <Compile Include="ThirdPartComponent\DevExpress\DevExpressButtonOpHelper.cs" />
