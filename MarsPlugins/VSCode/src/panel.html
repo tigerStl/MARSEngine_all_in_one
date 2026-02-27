@@ -11,6 +11,10 @@
     .container { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
     .toolbar { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--vscode-panel-border); background: var(--vscode-editor-background); }
     .toolbar-spacer { flex: 1; }
+    .license-status { max-width: 520px; font-size: 11px; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--vscode-panel-border); color: var(--vscode-descriptionForeground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .license-status.paid { color: #0f7b0f; border-color: #0f7b0f55; }
+    .license-status.test { color: #1a6fb3; border-color: #1a6fb355; }
+    .license-status.trial { color: #b86b00; border-color: #b86b0055; }
     .toolbar-btn { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--vscode-button-border); background: var(--vscode-button-background); color: var(--vscode-button-foreground); cursor: pointer; border-radius: 4px; }
     .toolbar-btn:hover { background: var(--vscode-button-hoverBackground); }
     .toolbar-btn.spy { width: auto; padding: 0 10px; }
@@ -22,7 +26,39 @@
     .toolbar-btn.save-special:hover { background: linear-gradient(135deg, #7b1fa2, #512da8); }
     .toolbar-btn.load-special { width: auto; min-width: 52px; padding: 0 10px; background: linear-gradient(135deg, #00695c, #00897b); color: #ffffff; border-color: #004d40; font-weight: 600; }
     .toolbar-btn.load-special:hover { background: linear-gradient(135deg, #00796b, #009688); }
-    .toolbar-combo { min-width: 200px; padding: 4px 8px; font-size: 12px; border: 1px solid var(--vscode-input-border); background: var(--vscode-input-background); color: var(--vscode-input-foreground); border-radius: 4px; }
+    .toolbar-combo {
+      min-width: 200px;
+      padding: 4px 28px 4px 8px;
+      font-size: 12px;
+      border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+      background-color: var(--vscode-input-background, var(--vscode-editor-background));
+      color: var(--vscode-input-foreground, var(--vscode-editor-foreground));
+      border-radius: 4px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      /* Keep dropdown arrow visible and theme-consistent across VSCode/Cursor webviews */
+      background-image:
+        linear-gradient(45deg, transparent 50%, currentColor 50%),
+        linear-gradient(135deg, currentColor 50%, transparent 50%);
+      background-position:
+        calc(100% - 14px) 52%,
+        calc(100% - 9px) 52%;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+    }
+    .toolbar-combo option {
+      background-color: var(--vscode-dropdown-background, var(--vscode-input-background, var(--vscode-editor-background)));
+      color: var(--vscode-dropdown-foreground, var(--vscode-input-foreground, var(--vscode-editor-foreground)));
+    }
+    .toolbar-combo:focus {
+      border-color: var(--vscode-focusBorder);
+      box-shadow: 0 0 0 1px var(--vscode-focusBorder);
+    }
+    .toolbar-combo:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
     .main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
     .left-panel { width: 280px; min-width: 200px; display: flex; flex-direction: column; border-right: 1px solid var(--vscode-panel-border); overflow: hidden; flex-shrink: 0; }
     #splitter { width: 6px; cursor: col-resize; background: linear-gradient(90deg, transparent, rgba(128,128,128,0.12), transparent); flex-shrink: 0; }
@@ -122,6 +158,10 @@
       <button class="toolbar-btn" id="btnExportDiag" title="Export diagnostics package">Diag</button>
       <button class="toolbar-btn icon-only" id="btnRefreshObjects" title="Refresh Object List"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M21 12a9 9 0 1 1-3-6.7'/%3E%3Cpolyline points='21 3 21 9 15 9'/%3E%3C/svg%3E" alt="Refresh"/></button>
       <div class="toolbar-spacer"></div>
+      <button class="toolbar-btn" id="btnLicensePay" title="Open Stripe payment page">Pay</button>
+      <button class="toolbar-btn" id="btnFetchLicense" title="Fetch approved license by order ID">Fetch</button>
+      <button class="toolbar-btn" id="btnImportLicense" title="Import license file">Import Lic</button>
+      <div id="licenseStatus" class="license-status trial" title="License status">License: initializing...</div>
       <button class="toolbar-btn icon-only" id="btnToggleLog" title="Log"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M12 2v6'/%3E%3Cpath d='M12 16v6'/%3E%3Cpath d='M4.93 4.93l4.24 4.24'/%3E%3Cpath d='M14.83 14.83l4.24 4.24'/%3E%3Cpath d='M2 12h6'/%3E%3Cpath d='M16 12h6'/%3E%3Cpath d='M4.93 19.07l4.24-4.24'/%3E%3Cpath d='M14.83 9.17l4.24-4.24'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E" alt="Log"/></button>
     </div>
     <div class="main">
@@ -472,6 +512,21 @@
       vscode.postMessage({ type: 'exportDiagnostics' });
     };
 
+    document.getElementById('btnLicensePay').onclick = () => {
+      appendLog('[action] Open Stripe payment portal.\r\n');
+      vscode.postMessage({ type: 'openZellePortal' });
+    };
+
+    document.getElementById('btnFetchLicense').onclick = () => {
+      appendLog('[action] Fetch approved license by order.\r\n');
+      vscode.postMessage({ type: 'fetchZelleLicense' });
+    };
+
+    document.getElementById('btnImportLicense').onclick = () => {
+      appendLog('[action] Import license file.\r\n');
+      vscode.postMessage({ type: 'importLicenseFile' });
+    };
+
     function applySelectedProcess(pid, shouldScan) {
       const nextPid = Number.isInteger(pid) && pid > 0 ? pid : null;
       selectedProcess = nextPid;
@@ -562,6 +617,12 @@
           if (btnLogStart) btnLogStart.disabled = true;
           const btnDiagStart = document.getElementById('btnExportDiag');
           if (btnDiagStart) btnDiagStart.disabled = true;
+          const btnPayStart = document.getElementById('btnLicensePay');
+          if (btnPayStart) btnPayStart.disabled = true;
+          const btnFetchStart = document.getElementById('btnFetchLicense');
+          if (btnFetchStart) btnFetchStart.disabled = true;
+          const btnImportStart = document.getElementById('btnImportLicense');
+          if (btnImportStart) btnImportStart.disabled = true;
           const comboStart = document.getElementById('processCombo');
           if (comboStart) comboStart.disabled = true;
           break;
@@ -588,6 +649,12 @@
           if (btnLogStop) btnLogStop.disabled = false;
           const btnDiagStop = document.getElementById('btnExportDiag');
           if (btnDiagStop) btnDiagStop.disabled = false;
+          const btnPayStop = document.getElementById('btnLicensePay');
+          if (btnPayStop) btnPayStop.disabled = false;
+          const btnFetchStop = document.getElementById('btnFetchLicense');
+          if (btnFetchStop) btnFetchStop.disabled = false;
+          const btnImportStop = document.getElementById('btnImportLicense');
+          if (btnImportStop) btnImportStop.disabled = false;
           const comboStop = document.getElementById('processCombo');
           if (comboStop) comboStop.disabled = false;
           break;
@@ -613,7 +680,8 @@
           const combo = document.getElementById('processCombo');
           if (combo) {
             combo.innerHTML = '<option value="">-- Select --</option>' + processes.map(p => {
-              const label = (p.displayName || p.mainClass || 'java').substring(0, 50) + ' | ' + p.pid;
+              const src = p.source ? (' [' + p.source + ']') : '';
+              const label = (p.displayName || p.mainClass || 'java').substring(0, 50) + src + ' | ' + p.pid;
               return '<option value="' + p.pid + '">' + label + '</option>';
             }).join('');
             if (selectedProcess) {
@@ -625,6 +693,9 @@
           }
           const btnRecordProcesses = document.getElementById('btnRecordReplay');
           if (btnRecordProcesses) btnRecordProcesses.disabled = !selectedProcess;
+          break;
+        case 'licenseStatus':
+          applyLicenseStatus(msg.data || {});
           break;
         case 'setSelectedProcess':
           applySelectedProcess(Number(msg.pid), msg.triggerChange !== false);
@@ -729,7 +800,8 @@
               const c = document.getElementById('processCombo');
               if (c) {
                 c.innerHTML = '<option value="">-- Select --</option>' + processes.map(p => {
-                  const label = (p.displayName || p.mainClass || 'java').substring(0, 50) + ' | ' + p.pid;
+                  const src = p.source ? (' [' + p.source + ']') : '';
+                  const label = (p.displayName || p.mainClass || 'java').substring(0, 50) + src + ' | ' + p.pid;
                   return '<option value="' + p.pid + '">' + label + '</option>';
                 }).join('');
                 const val = c.value;
@@ -760,6 +832,20 @@
         ta.scrollTop = ta.scrollHeight;
       }
       lastAnalyzingStart = -1;
+    }
+
+    function applyLicenseStatus(data) {
+      const el = document.getElementById('licenseStatus');
+      if (!el) return;
+      const msg = (data && data.message) ? String(data.message) : 'License: unknown';
+      const detail = (data && data.detail) ? String(data.detail) : '';
+      const t = (data && data.licenseType) ? String(data.licenseType).toUpperCase() : '';
+      el.textContent = msg;
+      el.title = detail ? (msg + '\n' + detail) : msg;
+      el.classList.remove('paid', 'test', 'trial');
+      if (t === 'PAID') el.classList.add('paid');
+      else if (t === 'TEST') el.classList.add('test');
+      else el.classList.add('trial');
     }
 
     function appendAnalyzingLine(pid, name) {
@@ -1062,7 +1148,6 @@
     }
 
     var TYPE_COLORS = { button: '#ED7D31', textfield: '#5B9BD5', label: '#70AD47', combo: '#FFC000', checkbox: '#A5A5A5', panel: '#4472C4', frame: '#9DC3E6', menu: '#C0504D', list: '#8FAADC', tree: '#A9D18E' };
-    var KEYWORD_COLOR = '#C0504D';
     function colorForType(t) {
       if (!t) return '#6b8e9f';
       var s = (t + '').toLowerCase();
@@ -1359,7 +1444,7 @@
         const link = g.selectAll('.link').data(linkData).join('path').attr('class', 'link').attr('d', linkPath).attr('fill', 'none').attr('stroke', 'var(--vscode-foreground)').attr('stroke-width', 2.5).attr('stroke-opacity', 0.85).attr('marker-end', 'url(#arrowhead)');
         const node = g.selectAll('.node').data(nodeData).join('g').attr('class', 'node').attr('transform', d => 'translate(' + d.x + ',' + d.y + ')').style('cursor', 'pointer');
         node.append('rect').attr('width', nodeW).attr('height', nodeH).attr('rx', 8).attr('ry', 8).attr('fill', d => colorForType(d.type)).attr('stroke', d => (d.index === selectedVisualNodeIndex) ? 'var(--vscode-focusBorder)' : 'rgba(0,0,0,0.25)').attr('stroke-width', d => (d.index === selectedVisualNodeIndex) ? 2.5 : 1).attr('fill-opacity', 0.96).attr('filter', 'url(#nodeShadow)');
-        node.append('text').attr('x', 8).attr('y', 14).attr('font-size', 10.5).attr('font-weight', 'bold').attr('fill', KEYWORD_COLOR).text(d => (d.keyword || d.event || '—').substring(0, 20));
+        node.append('text').attr('x', 8).attr('y', 14).attr('font-size', 10.5).attr('font-weight', 'bold').attr('fill', d => textColorForFill(colorForType(d.type)).main).text(d => (d.keyword || d.event || '—').substring(0, 20));
         node.append('text').attr('x', 8).attr('y', 29).attr('font-size', 9.5).attr('fill', d => textColorForFill(colorForType(d.type)).muted).text(d => (d.type || '—').substring(0, 22));
         node.append('text').attr('x', 8).attr('y', 44).attr('font-size', 9.5).attr('fill', d => textColorForFill(colorForType(d.type)).muted).text(d => ('P: ' + (d.parameter || '—')).substring(0, 22));
         node.append('text').attr('x', 8).attr('y', 59).attr('font-size', 9.5).attr('fill', d => textColorForFill(colorForType(d.type)).main).text(d => ('D: ' + (d.data || '—')).substring(0, 22));
@@ -1443,7 +1528,7 @@
         g.appendChild(rect);
         var t1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         var c = textColorForFill(colorForType(nodeData[i].type));
-        t1.setAttribute('x', 8); t1.setAttribute('y', 14); t1.setAttribute('font-size', 10.5); t1.setAttribute('font-weight', 'bold'); t1.setAttribute('fill', KEYWORD_COLOR); t1.textContent = (nodeData[i].keyword || nodeData[i].event || '—').substring(0, 20); g.appendChild(t1);
+        t1.setAttribute('x', 8); t1.setAttribute('y', 14); t1.setAttribute('font-size', 10.5); t1.setAttribute('font-weight', 'bold'); t1.setAttribute('fill', c.main); t1.textContent = (nodeData[i].keyword || nodeData[i].event || '—').substring(0, 20); g.appendChild(t1);
         var t2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         t2.setAttribute('x', 8); t2.setAttribute('y', 29); t2.setAttribute('font-size', 9.5); t2.setAttribute('fill', c.muted); t2.textContent = (nodeData[i].type || '—').substring(0, 22); g.appendChild(t2);
         var t3 = document.createElementNS('http://www.w3.org/2000/svg', 'text');

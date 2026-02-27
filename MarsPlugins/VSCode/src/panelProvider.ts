@@ -7,6 +7,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
+import * as http from 'http';
+import * as https from 'https';
 import { spawn } from 'child_process';
 import { getJavaProcesses, findProcessInfoExe } from './processInfo';
 import { AGENT_LOADER_LOG_FILE, loadAgentAndScan, ReplayProgressEvent, runHighlightOverlay, replaySteps, startRecordAgent, stopRecordAgent } from './agentLoader';
@@ -22,6 +24,26 @@ const MARS_STEPS_COPYRIGHT = 'Copyright (c) MARS. All rights reserved.';
 const MARS_STEPS_PURPOSE = 'Java UI Automation Test Steps storage and exchange.';
 const MARS_STEPS_VERSION = '1.0.0';
 const MARS_STEPS_MD5_SALT = 'MARS::JavaUI::Steps::Integrity::v1';
+const LICENSE_FIRST_SEEN_KEY = 'javaUiAutomation.license.firstSeenAt';
+const LICENSE_LAST_SYNC_KEY = 'javaUiAutomation.license.lastSyncAt';
+const LICENSE_STATE_FILE = 'license.latest.json';
+const LICENSE_DECLARATION_FILE = 'license.declaration.latest.txt';
+const LICENSE_SERVER_URL_CONFIG = 'loaniq.licenseServerUrl';
+const LICENSE_SYNC_INTERVAL_MS = 60 * 1000;
+
+type LicenseType = 'TEST' | 'PAID' | 'TRIAL_LIMITED';
+
+interface ClientLicenseState {
+  licenseType: LicenseType;
+  region: 'US' | 'CN' | 'GLOBAL';
+  trialStartAt: string;
+  replayMaxStepsAfterTrialDays: number;
+  trialDays: number;
+  expiresAt?: string;
+  message?: string;
+  price?: { currency?: string; amount?: number };
+  testPool?: Record<string, { used?: number; limit?: number; remaining?: number }>;
+}
 
 interface PanelState {
   processes: JavaProcess[];
@@ -58,6 +80,7 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
   private _recordSend: ((msg: Record<string, unknown>) => void) | null = null;
   private _recordingEngine: RecordingEngine | null = null;
   private _recordingSteps: TestScriptStep[] = [];
+  private _licenseRefreshInFlight: Promise<void> | null = null;
 
   constructor(
     private readonly _extensionUri: vscode.Uri,
@@ -161,6 +184,13 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     const started = Date.now();
     const outDir = this._getScanDir();
     const step = this._currentSteps[index] as unknown as Record<string, unknown>;
+    await this._refreshLicenseFromServerIfDue();
+    const permit = this._evaluateReplayPermission(1);
+    if (!permit.allowed) {
+      const msg = permit.message ?? 'License restriction: replay is limited.';
+      vscode.window.showWarningMessage(msg);
+      return { status: 'failed', durationMs: Date.now() - started, error: msg };
+    }
     const result = await replaySteps(this._selectedPid, outDir, [step]);
     const durationMs = Date.now() - started;
     if (result.success) {
@@ -206,6 +236,13 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     }
 
     const steps = this._currentSteps.slice(fromIndex, toIndex + 1) as unknown as Record<string, unknown>[];
+    await this._refreshLicenseFromServerIfDue();
+    const permit = this._evaluateReplayPermission(steps.length);
+    if (!permit.allowed) {
+      const msg = permit.message ?? 'License restriction: replay is limited.';
+      vscode.window.showWarningMessage(msg);
+      return { status: 'failed', error: msg };
+    }
     const outDir = this._getScanDir();
     const result = await replaySteps(this._selectedPid, outDir, steps);
     if (result.success) {
@@ -383,6 +420,8 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
         case 'ping':
           this._outputChannel.appendLine('[Java UI] received ping from webview');
           this._safePost(webviewView.webview, { type: 'pong' });
+          await this._refreshLicenseFromServerIfDue(true);
+          this._pushLicenseStatus(webviewView.webview);
           if (!this._panelLoadedOnce) {
             this._panelLoadedOnce = true;
             this._selectedPid = null;
@@ -480,6 +519,15 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
           break;
         case 'exportDiagnostics':
           await this._handleExportDiagnostics(webviewView.webview);
+          break;
+        case 'openZellePortal':
+          await this._handleOpenZellePortal(webviewView.webview);
+          break;
+        case 'fetchZelleLicense':
+          await this._handleFetchZelleLicense(webviewView.webview);
+          break;
+        case 'importLicenseFile':
+          await this._handleImportLicenseFile(webviewView.webview);
           break;
         case 'exportObjects':
           await this._handleExportObjects(webviewView.webview, msg.data);
@@ -982,6 +1030,22 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
       return;
     }
     this._log(webview, `[begin] Replaying step ${index + 1} on PID=${pid}...\r\n`);
+    await this._refreshLicenseFromServerIfDue();
+    const permit = this._evaluateReplayPermission(1);
+    if (!permit.allowed) {
+      const msg = permit.message ?? 'License restriction: replay is limited.';
+      this._log(webview, `[license] ${msg}\r\n`);
+      vscode.window.showWarningMessage(msg);
+      this._safePost(webview, {
+        type: 'executeResult',
+        fromActionColumn: true,
+        success: false,
+        error: msg,
+        index,
+        failedIndex: index,
+      });
+      return;
+    }
     const outDir = this._getScanDir();
     try {
       const result = await replaySteps(
@@ -1045,6 +1109,15 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
       return;
     }
     this._log(webview, `[begin] Replaying ${steps.length} step(s) on PID=${pid}...\r\n`);
+    await this._refreshLicenseFromServerIfDue();
+    const permit = this._evaluateReplayPermission(steps.length);
+    if (!permit.allowed) {
+      const msg = permit.message ?? 'License restriction: replay is limited.';
+      this._log(webview, `[license] ${msg}\r\n`);
+      this._safePost(webview, { type: 'error', message: msg });
+      vscode.window.showWarningMessage(msg);
+      return;
+    }
     try {
       await this._bringProcessWindowToFront(pid);
     } catch {
@@ -1196,6 +1269,109 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     }
   }
 
+  private _licenseStateFromIssuedLicense(
+    license: Record<string, unknown>,
+    base: ClientLicenseState,
+    message?: string
+  ): ClientLicenseState {
+    const regionRaw = String(license.region ?? base.region).toUpperCase();
+    const region: 'US' | 'CN' | 'GLOBAL' = regionRaw === 'US' ? 'US' : regionRaw === 'CN' ? 'CN' : 'GLOBAL';
+    const amount = Number(license.amount ?? NaN);
+    const currencyRaw = String(license.currency ?? '').toUpperCase();
+    const price = Number.isFinite(amount)
+      ? { currency: currencyRaw || (region === 'CN' ? 'CNY' : 'USD'), amount }
+      : base.price;
+    const plan = String(license.plan ?? '').toUpperCase();
+    const licenseType: LicenseType = plan === 'TEST' ? 'TEST' : 'PAID';
+    const next: ClientLicenseState = {
+      ...base,
+      licenseType,
+      region,
+      expiresAt: typeof license.expiresAt === 'string' ? license.expiresAt : base.expiresAt,
+      message: message ?? `License imported (${licenseType}).`,
+      price,
+    };
+    return next;
+  }
+
+  private async _handleOpenZellePortal(webview: vscode.Webview): Promise<void> {
+    const base = this._getLicenseServerBaseUrl();
+    const url = `${base}/stripe`;
+    await vscode.env.openExternal(vscode.Uri.parse(url));
+    this._log(webview, `[action] Opened payment page: ${url}\r\n`);
+  }
+
+  private async _handleImportLicenseFile(webview: vscode.Webview): Promise<void> {
+    const pick = await vscode.window.showOpenDialog({
+      title: 'Import License File',
+      canSelectMany: false,
+      canSelectFiles: true,
+      canSelectFolders: false,
+      filters: { 'JSON Files': ['json'] },
+    });
+    if (!pick || pick.length === 0) {
+      this._log(webview, '[action] Import license canceled.\r\n');
+      return;
+    }
+    try {
+      const text = fs.readFileSync(pick[0].fsPath, 'utf-8');
+      const parsed = JSON.parse(text) as Record<string, unknown>;
+      const license = (parsed.license && typeof parsed.license === 'object')
+        ? parsed.license as Record<string, unknown>
+        : parsed;
+      const licenseId = String(license.licenseId ?? '').trim();
+      if (!licenseId) {
+        throw new Error('Invalid license file: missing licenseId');
+      }
+      const current = this._loadLicenseState();
+      const next = this._licenseStateFromIssuedLicense(license, current, 'Imported from file.');
+      this._saveLicenseState(next);
+      this._pushLicenseStatus(webview);
+      this._log(webview, `[license] Imported license from file (${pick[0].fsPath}).\r\n`);
+      vscode.window.showInformationMessage('License imported successfully.');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this._log(webview, `[license] Import failed: ${msg}\r\n`);
+      vscode.window.showErrorMessage(`Import license failed: ${msg}`);
+    }
+  }
+
+  private async _handleFetchZelleLicense(webview: vscode.Webview): Promise<void> {
+    const orderId = await vscode.window.showInputBox({
+      title: 'Fetch License - Stripe Order ID',
+      prompt: 'Enter Stripe order ID (e.g. STRIPE-YYYYMMDD-XXXXXX)',
+      ignoreFocusOut: true,
+    });
+    if (!orderId || !orderId.trim()) return;
+    const email = await vscode.window.showInputBox({
+      title: 'Fetch License - Email',
+      prompt: 'Enter the same payment email used for this order',
+      ignoreFocusOut: true,
+    });
+    if (!email || !email.trim()) return;
+    try {
+      const base = this._getLicenseServerBaseUrl();
+      const url = `${base}/v1/stripe/order/license?orderId=${encodeURIComponent(orderId.trim())}&email=${encodeURIComponent(email.trim().toLowerCase())}`;
+      const resp = await this._httpGetJson(url, 3500);
+      const licenseObj = (resp.license && typeof resp.license === 'object')
+        ? resp.license as Record<string, unknown>
+        : null;
+      if (!licenseObj) {
+        throw new Error('License not ready yet. Please wait for admin approval.');
+      }
+      const current = this._loadLicenseState();
+      const next = this._licenseStateFromIssuedLicense(licenseObj, current, 'Imported from approved Stripe order.');
+      this._saveLicenseState(next);
+      this._pushLicenseStatus(webview);
+      this._log(webview, `[license] Imported license from Stripe order ${orderId.trim()}.\r\n`);
+      vscode.window.showInformationMessage(`License imported from order ${orderId.trim()}.`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this._log(webview, `[license] Fetch by order failed: ${msg}\r\n`);
+      vscode.window.showWarningMessage(`Fetch license failed: ${msg}`);
+    }
+  }
+
   private _readReplayHighlightConfig(): boolean | 'unknown' {
     const extensionRoot = this._extensionUri.fsPath;
     const runtimeConfigPath = path.join(extensionRoot, 'java', 'marsJavaAgent', 'target', 'marsJavaAgent-config.json');
@@ -1217,6 +1393,230 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     const defaultVal = parse(defaultConfigPath);
     if (typeof defaultVal === 'boolean') return defaultVal;
     return 'unknown';
+  }
+
+  private _getLicenseStatePath(): string {
+    return path.join(this._getScanDir(), LICENSE_STATE_FILE);
+  }
+
+  private _getLicenseDeclarationPath(): string {
+    return path.join(this._getScanDir(), LICENSE_DECLARATION_FILE);
+  }
+
+  private _loadLicenseState(): ClientLicenseState {
+    const nowIso = new Date().toISOString();
+    let firstSeen = this._context.globalState.get<string>(LICENSE_FIRST_SEEN_KEY);
+    if (!firstSeen || Number.isNaN(Date.parse(firstSeen))) {
+      firstSeen = nowIso;
+      void this._context.globalState.update(LICENSE_FIRST_SEEN_KEY, firstSeen);
+    }
+
+    const fallback: ClientLicenseState = {
+      licenseType: 'TRIAL_LIMITED',
+      region: 'GLOBAL',
+      trialStartAt: firstSeen,
+      trialDays: 7,
+      replayMaxStepsAfterTrialDays: 10,
+      message: 'Trial mode: after 7 days replay supports up to 10 steps. Upgrade to continue.',
+    };
+
+    const filePath = this._getLicenseStatePath();
+    if (!fs.existsSync(filePath)) return fallback;
+    try {
+      const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as Partial<ClientLicenseState>;
+      const licenseType = (parsed.licenseType ?? fallback.licenseType) as LicenseType;
+      const regionRaw = String(parsed.region ?? fallback.region).toUpperCase();
+      const region: 'US' | 'CN' | 'GLOBAL' = regionRaw === 'US' ? 'US' : regionRaw === 'CN' ? 'CN' : 'GLOBAL';
+      const trialStartAt = typeof parsed.trialStartAt === 'string' && !Number.isNaN(Date.parse(parsed.trialStartAt))
+        ? parsed.trialStartAt
+        : fallback.trialStartAt;
+      const trialDays = Number.isFinite(Number(parsed.trialDays)) && Number(parsed.trialDays) > 0
+        ? Number(parsed.trialDays)
+        : fallback.trialDays;
+      const replayMaxStepsAfterTrialDays = Number.isFinite(Number(parsed.replayMaxStepsAfterTrialDays)) && Number(parsed.replayMaxStepsAfterTrialDays) > 0
+        ? Number(parsed.replayMaxStepsAfterTrialDays)
+        : fallback.replayMaxStepsAfterTrialDays;
+      const expiresAt = typeof parsed.expiresAt === 'string' ? parsed.expiresAt : undefined;
+      const message = typeof parsed.message === 'string' && parsed.message.trim()
+        ? parsed.message.trim()
+        : fallback.message;
+      const price = parsed.price && typeof parsed.price === 'object'
+        ? parsed.price as { currency?: string; amount?: number }
+        : undefined;
+      const testPool = parsed.testPool && typeof parsed.testPool === 'object'
+        ? parsed.testPool as Record<string, { used?: number; limit?: number; remaining?: number }>
+        : undefined;
+      return {
+        licenseType: licenseType === 'TEST' || licenseType === 'PAID' || licenseType === 'TRIAL_LIMITED' ? licenseType : fallback.licenseType,
+        region,
+        trialStartAt,
+        trialDays,
+        replayMaxStepsAfterTrialDays,
+        expiresAt,
+        message,
+        price,
+        testPool,
+      };
+    } catch {
+      return fallback;
+    }
+  }
+
+  private _evaluateReplayPermission(stepCount: number): { allowed: boolean; message?: string } {
+    const state = this._loadLicenseState();
+    const now = Date.now();
+    if (state.expiresAt && Number.isFinite(Date.parse(state.expiresAt)) && now >= Date.parse(state.expiresAt)) {
+      return { allowed: false, message: 'License expired. Please renew your license.' };
+    }
+    if (state.licenseType === 'PAID' || state.licenseType === 'TEST') {
+      return { allowed: true };
+    }
+    const trialStart = Number.isFinite(Date.parse(state.trialStartAt)) ? Date.parse(state.trialStartAt) : now;
+    const days = Math.floor((now - trialStart) / 86400000);
+    if (days < state.trialDays) {
+      return { allowed: true };
+    }
+    if (stepCount <= state.replayMaxStepsAfterTrialDays) {
+      return { allowed: true };
+    }
+    const priceHint = state.region === 'US'
+      ? 'Upgrade price: $4.99'
+      : state.region === 'CN'
+        ? '升级价格：5元'
+        : 'Upgrade required';
+    const msg = state.message
+      ?? `Trial limit reached: replay supports up to ${state.replayMaxStepsAfterTrialDays} steps after ${state.trialDays} days. ${priceHint}`;
+    return { allowed: false, message: msg };
+  }
+
+  private _pushLicenseStatus(webview: vscode.Webview): void {
+    const state = this._loadLicenseState();
+    const pool = state.testPool ?? {};
+    const us = pool.US ?? {};
+    const cn = pool.CN ?? {};
+    const priceText = state.region === 'US'
+      ? '$4.99'
+      : state.region === 'CN'
+        ? '5 CNY'
+        : '';
+    const message = `License: ${state.licenseType} | Region: ${state.region}${priceText ? ` | Price: ${priceText}` : ''}`;
+    const detail = `Trial=${state.trialDays}d, ReplayLimitAfterTrial=${state.replayMaxStepsAfterTrialDays}, Pool(US ${us.remaining ?? '-'} / CN ${cn.remaining ?? '-'})`;
+    this._safePost(webview, {
+      type: 'licenseStatus',
+      data: {
+        message,
+        detail,
+        licenseType: state.licenseType,
+        region: state.region,
+      },
+    });
+  }
+
+  private _getLicenseServerBaseUrl(): string {
+    const configured = vscode.workspace.getConfiguration('loaniq').get<string>(LICENSE_SERVER_URL_CONFIG, '').trim();
+    if (configured) return configured.replace(/\/+$/, '');
+    return 'http://127.0.0.1:8787';
+  }
+
+  private _httpGetJson(urlText: string, timeoutMs: number): Promise<Record<string, unknown>> {
+    return new Promise((resolve, reject) => {
+      const u = new URL(urlText);
+      const lib = u.protocol === 'https:' ? https : http;
+      const req = lib.request({
+        method: 'GET',
+        hostname: u.hostname,
+        port: u.port ? Number(u.port) : (u.protocol === 'https:' ? 443 : 80),
+        path: `${u.pathname}${u.search}`,
+        headers: {
+          Accept: 'application/json',
+        },
+      }, (res) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (d) => chunks.push(Buffer.isBuffer(d) ? d : Buffer.from(d)));
+        res.on('end', () => {
+          const body = Buffer.concat(chunks).toString('utf-8');
+          if ((res.statusCode ?? 500) < 200 || (res.statusCode ?? 500) >= 300) {
+            reject(new Error(`HTTP ${res.statusCode}: ${body.slice(0, 300)}`));
+            return;
+          }
+          try {
+            const parsed = JSON.parse(body) as Record<string, unknown>;
+            resolve(parsed);
+          } catch (e) {
+            reject(new Error(`Invalid JSON from license server: ${String(e)}`));
+          }
+        });
+      });
+      req.setTimeout(timeoutMs, () => req.destroy(new Error('request timeout')));
+      req.on('error', reject);
+      req.end();
+    });
+  }
+
+  private _saveLicenseState(state: ClientLicenseState): void {
+    try {
+      fs.writeFileSync(this._getLicenseStatePath(), JSON.stringify(state, null, 2), 'utf-8');
+    } catch {
+      // ignore
+    }
+  }
+
+  private async _refreshLicenseFromServerIfDue(force = false): Promise<void> {
+    if (this._licenseRefreshInFlight) {
+      await this._licenseRefreshInFlight;
+      return;
+    }
+    const lastSync = this._context.globalState.get<number>(LICENSE_LAST_SYNC_KEY, 0);
+    const now = Date.now();
+    if (!force && now - lastSync < LICENSE_SYNC_INTERVAL_MS) return;
+
+    this._licenseRefreshInFlight = (async () => {
+      try {
+        const base = this._getLicenseServerBaseUrl();
+        const current = this._loadLicenseState();
+        const region = current.region || 'GLOBAL';
+        const lang = (vscode.env.language || 'en').toLowerCase().startsWith('zh') ? 'zh' : 'en';
+
+        const stateUrl = `${base}/v1/license/client-state?region=${encodeURIComponent(region)}`;
+        const stateResp = await this._httpGetJson(stateUrl, 2500);
+        const stateObj = (stateResp.state ?? {}) as Partial<ClientLicenseState>;
+        if (stateObj && typeof stateObj === 'object') {
+          const merged: ClientLicenseState = {
+            ...current,
+            ...stateObj,
+            licenseType: (stateObj.licenseType === 'TEST' || stateObj.licenseType === 'PAID' || stateObj.licenseType === 'TRIAL_LIMITED')
+              ? stateObj.licenseType
+              : current.licenseType,
+            region: stateObj.region === 'US' || stateObj.region === 'CN' || stateObj.region === 'GLOBAL'
+              ? stateObj.region
+              : current.region,
+            trialStartAt: typeof stateObj.trialStartAt === 'string' ? stateObj.trialStartAt : current.trialStartAt,
+            trialDays: Number.isFinite(Number(stateObj.trialDays)) ? Number(stateObj.trialDays) : current.trialDays,
+            replayMaxStepsAfterTrialDays: Number.isFinite(Number(stateObj.replayMaxStepsAfterTrialDays))
+              ? Number(stateObj.replayMaxStepsAfterTrialDays)
+              : current.replayMaxStepsAfterTrialDays,
+          };
+          this._saveLicenseState(merged);
+        }
+
+        const declUrl = `${base}/v1/license/declaration?lang=${lang}`;
+        const declResp = await this._httpGetJson(declUrl, 2500);
+        const declaration = typeof declResp.declaration === 'string' ? declResp.declaration : '';
+        if (declaration.trim()) {
+          fs.writeFileSync(this._getLicenseDeclarationPath(), declaration, 'utf-8');
+        }
+      } catch {
+        // keep local fallback silently
+      } finally {
+        await this._context.globalState.update(LICENSE_LAST_SYNC_KEY, Date.now());
+      }
+    })();
+
+    try {
+      await this._licenseRefreshInFlight;
+    } finally {
+      this._licenseRefreshInFlight = null;
+    }
   }
 
   private async _handleStartRecord(webview: vscode.Webview, pid: number): Promise<void> {
@@ -1432,8 +1832,8 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
       const validKw: ScriptKeyword[] = [
         'Click', 'ClickButton', 'DoubleClickButton', 'ClickMenuIcon', 'FillEdit',
         'SelectDropDown', 'SelectDropList', 'SelectListItem', 'SelectMenuItem',
-        'SelectTreeList', 'SelectTab', 'SelectMenuIcon', 'SelectPopupMenu',
-        'SearchAndClick', 'SearchAndUpdate', 'Check', 'Uncheck'
+        'SelectTreeList', 'SelectTab', 'SelectMenuIcon', 'SelectPopupMenu', 'ClickAT',
+        'SearchAndClick', 'SearchAndUpdate', 'SetRadioBox', 'SetCheckBox', 'Check', 'Uncheck'
         , 'VerifyObjectValue'
       ];
       return {
