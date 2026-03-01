@@ -18,13 +18,68 @@ export function findProcessInfoExe(extensionPath: string): string | null {
   const configs = ['Release', 'Debug'];
   const frameworks = ['net8.0', 'net8.0-windows', 'net9.0', 'net7.0'];
   const ext = isWindows ? 'ProcessInfo.exe' : 'ProcessInfo';
+  let bestPath: string | null = null;
+  let bestMtime = -1;
   for (const cfg of configs) {
     for (const fx of frameworks) {
       const exe = path.join(base, cfg, fx, ext);
-      if (fs.existsSync(exe)) return exe;
+      if (!fs.existsSync(exe)) continue;
+      try {
+        const stat = fs.statSync(exe);
+        const mt = stat.mtimeMs || 0;
+        if (mt > bestMtime) {
+          bestMtime = mt;
+          bestPath = exe;
+        }
+      } catch {
+        // ignore and continue
+      }
     }
   }
-  return null;
+  return bestPath;
+}
+
+function getLatestProcessesCachePath(): string {
+  const extensionPath = path.join(__dirname, '..');
+  const dir = path.join(extensionPath, 'scanedfiles');
+  try {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  } catch {
+    // ignore
+  }
+  return path.join(dir, 'processes-latest.json');
+}
+
+function readLatestProcessesCache(): JavaProcess[] {
+  try {
+    const p = getLatestProcessesCachePath();
+    if (!fs.existsSync(p)) return [];
+    const raw = fs.readFileSync(p, 'utf-8');
+    const parsed = JSON.parse(raw) as { processes?: JavaProcess[] };
+    const list = Array.isArray(parsed?.processes) ? parsed.processes : [];
+    return list.filter((x) => x && Number.isFinite(Number(x.pid)) && Number(x.pid) > 0)
+      .map((x) => ({
+        pid: Number(x.pid),
+        displayName: String(x.displayName ?? x.mainClass ?? `PID ${x.pid}`),
+        mainClass: x.mainClass,
+        source: typeof x.source === 'string' ? x.source : undefined,
+      }));
+  } catch {
+    return [];
+  }
+}
+
+function writeLatestProcessesCache(processes: JavaProcess[]): void {
+  try {
+    const p = getLatestProcessesCachePath();
+    fs.writeFileSync(p, JSON.stringify({
+      generatedAt: new Date().toISOString(),
+      count: processes.length,
+      processes,
+    }, null, 2), 'utf-8');
+  } catch {
+    // ignore
+  }
 }
 
 export async function createWebSocketServer(): Promise<{ wss: WebSocketServer; port: number }> {
@@ -61,6 +116,8 @@ export async function getJavaProcesses(onProgress?: (e: ProgressEvent) => void):
   const processInfoExe = findProcessInfoExe(extensionPath);
 
   if (!processInfoExe) {
+    const cached = readLatestProcessesCache();
+    if (cached.length > 0) return cached;
     const base = path.join(path.join(__dirname, '..'), 'ProcessInfo', 'bin');
     throw new Error(`ProcessInfo not found at ${base}. Run: cd ProcessInfo && dotnet publish -c Release`);
   }
@@ -86,6 +143,15 @@ export async function getJavaProcesses(onProgress?: (e: ProgressEvent) => void):
       if (err) reject(err);
     };
 
+    const successCleanup = (processes: JavaProcess[]) => {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(timeout);
+      try { wss.close(); } catch { /* ignore */ }
+      try { proc?.kill(); } catch { /* ignore */ }
+      resolve(processes);
+    };
+
     const timeout = setTimeout(() => {
       cleanup(new Error('WebSocket response timeout from ProcessInfo'));
     }, 15000);
@@ -99,18 +165,17 @@ export async function getJavaProcesses(onProgress?: (e: ProgressEvent) => void):
           console.error('[ProcessInfo] WS message received, length=', text.length, 'raw=', text.substring(0, 500));
           const payload = JSON.parse(text) as {
             acquireId?: string;
-            javaProcess?: { pid: number; displayName?: string; mainClass?: string }[];
+            javaProcess?: { pid: number; displayName?: string; mainClass?: string; source?: string }[];
           };
           const list = Array.isArray(payload.javaProcess) ? payload.javaProcess : [];
           const processes: JavaProcess[] = list.map((p) => ({
             pid: Number(p.pid),
             displayName: p.displayName ?? p.mainClass ?? `PID ${p.pid}`,
             mainClass: p.mainClass,
+            source: p.source,
           }));
-          clearTimeout(timeout);
-          resolved = true;
-          try { wss.close(); } catch { /* ignore */ }
-          resolve(processes);
+          writeLatestProcessesCache(processes);
+          successCleanup(processes);
         } catch (err) {
           clearTimeout(timeout);
           cleanup(new Error(`Invalid JSON from ProcessInfo WS: ${String(err)}`));
@@ -134,6 +199,14 @@ export async function getJavaProcesses(onProgress?: (e: ProgressEvent) => void):
 
     proc.on('error', (err) => {
       clearTimeout(timeout);
+      const cached = readLatestProcessesCache();
+      if (cached.length > 0) {
+        resolved = true;
+        try { wss.close(); } catch { /* ignore */ }
+        try { proc?.kill(); } catch { /* ignore */ }
+        resolve(cached);
+        return;
+      }
       cleanup(new Error(`Failed to start ProcessInfo: ${err.message}`));
     });
 
@@ -165,6 +238,13 @@ export async function getJavaProcesses(onProgress?: (e: ProgressEvent) => void):
     proc.on('close', (code) => {
       if (!resolved && code !== 0) {
         clearTimeout(timeout);
+        const cached = readLatestProcessesCache();
+        if (cached.length > 0) {
+          resolved = true;
+          try { wss.close(); } catch { /* ignore */ }
+          resolve(cached);
+          return;
+        }
         cleanup(new Error(`ProcessInfo exited with code ${code}`));
       }
     });

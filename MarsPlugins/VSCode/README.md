@@ -41,6 +41,31 @@ VSCode/
   - **agent-loader**：其 JAR 同目录下的 `javaagentLog/`
   - **unified-agent**：扫描时在运行时 JAR 同目录的 `javaagentLog/`，录制时在**录制目录**（recordDir）的 `record-debug.log`、`toolbutton-tooltips.log`
 
+## License and Pricing
+
+- **License types**
+  - `TEST`
+  - `PAID`
+  - `TRIAL_LIMITED`
+- **Limited trial policy**
+  - First 7 days: replay is not step-limited
+  - After 7 days: recording can exceed 30 steps, replay is limited to 10 steps
+  - Replay beyond 10 steps triggers upgrade prompt
+- **Pricing**
+  - US: `$4.99`
+  - CN: `CNY 5`
+- **Test pool**
+  - Total: 400
+  - US: 200, CN: 200
+- **Minimal license server endpoints**
+  - `GET /v1/license/client-state`
+  - `GET /v1/license/policy`
+  - `GET /v1/license/declaration?lang=en|zh`
+  - `POST /v1/license/test/claim` (admin)
+- **Client-synced files**
+  - `scanedfiles/license.latest.json`
+  - `scanedfiles/license.declaration.latest.txt`
+
 ## 构建
 
 ### 1. 安装依赖
@@ -90,6 +115,11 @@ cd ..
 - 最小审计日志（不记录原始 PII）
 
 详细说明见：`doc/license-server-privacy_zh.md`
+
+发布手册：
+
+- 中文：`doc/USER_GUIDE_zh.md`
+- English: `doc/USER_GUIDE_en.md`
 
 ## 使用流程
 

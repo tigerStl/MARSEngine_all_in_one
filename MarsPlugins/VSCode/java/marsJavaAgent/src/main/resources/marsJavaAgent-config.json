@@ -1,3 +1,4 @@
 {
-  "IsHighlightObjectWhileReplay": true
+  "IsHighlightObjectWhileReplay": true,
+  "JdwpPort": 0
 }

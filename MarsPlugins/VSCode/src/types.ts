@@ -32,6 +32,8 @@ export interface ElementIdentifier {
   visible?: boolean;
   /** Index when name+javaType+path still duplicate (0,1,2... top-to-bottom, left-to-right). */
   index?: number;
+  /** Semantic role from config (e.g. Tree, Table, Edit); used for display and parsing. */
+  semanticRole?: string;
 }
 
 export interface UIObject {
@@ -60,9 +62,12 @@ export type ScriptKeyword =
   | 'SelectTab'
   | 'SelectMenuIcon'
   | 'SelectPopupMenu'
+  | 'ClickAT'
   | 'SearchAndClick'
   | 'SearchAndUpdate'
   | 'VerifyObjectValue'
+  | 'SetRadioBox'
+  | 'SetCheckBox'
   | 'Check'
   | 'Uncheck';
 
@@ -104,4 +109,5 @@ export interface JavaProcess {
   mainClass?: string;
   commandLine?: string;
   displayName: string;
+  source?: string;
 }

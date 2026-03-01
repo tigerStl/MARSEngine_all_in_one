@@ -10,6 +10,7 @@ import WebSocket from 'ws';
 
 const LOG_FILE = path.join(os.tmpdir(), 'marsExtension-agentLoader.log');
 const AGENT_RUNTIME_CONFIG_FILE = 'marsJavaAgent-config.json';
+const AGENT_ENCRYPTED_RESOURCE_FILE = 'marsJavaResource.bin';
 export const AGENT_LOADER_LOG_FILE = LOG_FILE;
 
 function writeLog(message: string): void {
@@ -30,15 +31,20 @@ function getJavaExecutable(): string {
   return 'java';
 }
 
-function copyAgentRuntimeConfig(agentJarPath: string, tempAgentJarPath: string): void {
+function copyAgentRuntimeArtifacts(agentJarPath: string, tempAgentJarPath: string): void {
   try {
-    const src = path.join(path.dirname(agentJarPath), AGENT_RUNTIME_CONFIG_FILE);
-    if (!fs.existsSync(src)) return;
-    const dst = path.join(path.dirname(tempAgentJarPath), AGENT_RUNTIME_CONFIG_FILE);
-    fs.copyFileSync(src, dst);
-    writeLog(`[copyAgentRuntimeConfig] copied ${src} -> ${dst}`);
+    const sourceDir = path.dirname(agentJarPath);
+    const targetDir = path.dirname(tempAgentJarPath);
+    const toCopy = [AGENT_RUNTIME_CONFIG_FILE, AGENT_ENCRYPTED_RESOURCE_FILE];
+    for (const name of toCopy) {
+      const src = path.join(sourceDir, name);
+      if (!fs.existsSync(src)) continue;
+      const dst = path.join(targetDir, name);
+      fs.copyFileSync(src, dst);
+      writeLog(`[copyAgentRuntimeArtifacts] copied ${src} -> ${dst}`);
+    }
   } catch (e) {
-    writeLog(`[copyAgentRuntimeConfig] failed: ${String(e)}`);
+    writeLog(`[copyAgentRuntimeArtifacts] failed: ${String(e)}`);
   }
 }
 
@@ -92,7 +98,7 @@ export async function loadAgentAndScan(
     'java',
     'marsJavaAgent',
     'target',
-    'marsJavaAgent-1.0.jar'
+    'marsJavaAgent-1.0-bootstrap.jar'
   );
 
   if (!fs.existsSync(agentLoaderJar) || !fs.existsSync(marsJavaAgentJar)) {
@@ -119,7 +125,7 @@ export async function loadAgentAndScan(
   const tempAgentJar = path.join(os.tmpdir(), `marsJavaAgent-scan-${pid}-${ts}.jar`);
   try {
     fs.copyFileSync(marsJavaAgentJar, tempAgentJar);
-    copyAgentRuntimeConfig(marsJavaAgentJar, tempAgentJar);
+    copyAgentRuntimeArtifacts(marsJavaAgentJar, tempAgentJar);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     writeLog(`[loadAgentAndScan] branch: copy JAR failed pid=${pid} error=${msg}`);
@@ -250,7 +256,7 @@ export async function startRecordAgent(
     'java',
     'marsJavaAgent',
     'target',
-    'marsJavaAgent-1.0.jar'
+    'marsJavaAgent-1.0-bootstrap.jar'
   );
 
   const recordDir = path.join(outputDir, `record-${pid}`);
@@ -275,7 +281,7 @@ export async function startRecordAgent(
   const tempAgentJar = path.join(os.tmpdir(), `marsJavaAgent-record-${pid}-${Date.now()}.jar`);
   try {
     fs.copyFileSync(marsJavaAgentJar, tempAgentJar);
-    copyAgentRuntimeConfig(marsJavaAgentJar, tempAgentJar);
+    copyAgentRuntimeArtifacts(marsJavaAgentJar, tempAgentJar);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     writeLog(`[startRecordAgent] copy JAR failed pid=${pid} error=${msg}`);
@@ -403,7 +409,17 @@ export async function startRecordAgent(
           }
           return;
         }
-        if (msg.event === 'click' || msg.event === 'clickButton' || msg.event === 'focusLost' || msg.event === 'componentProperties' || msg.event === 'fillEdit' || msg.event === 'pressKey' || msg.event === 'keyChordAction' || msg.event === 'textInputAction' || msg.event === 'rawKeyEventAction' || msg.event === 'selectDropDown' || msg.event === 'selectDropList' || msg.event === 'selectMenuItem' || msg.event === 'selectMenuIcon' || msg.event === 'selectTreeList' || msg.event === 'selectTab' || msg.event === 'expandTreeNode' || msg.event === 'collapseTreeNode' || msg.event === 'searchAndUpdate' || msg.event === 'searchAndClick' || msg.event === 'selectPopupMenu') {
+        const ev = msg.event;
+        const isRecordEvent =
+          typeof ev === 'string' &&
+          (ev === 'click' || ev === 'clickButton' || ev === 'focusLost' || ev === 'componentProperties' ||
+            ev === 'fillEdit' || ev === 'FillEdit' || ev === 'pressKey' || ev === 'keyChordAction' ||
+            ev === 'textInputAction' || ev === 'rawKeyEventAction' || ev === 'selectDropDown' || ev === 'selectDropList' ||
+            ev === 'selectMenuItem' || ev === 'selectMenuIcon' || ev === 'selectTreeList' || ev === 'selectTab' ||
+            ev === 'expandTreeNode' || ev === 'collapseTreeNode' || ev === 'searchAndUpdate' || ev === 'searchAndClick' ||
+            ev === 'selectPopupMenu' || ev === 'SetCheckBox' || ev === 'SetRadioBox' ||
+            /^(Click|FillEdit|Select|Set|Search|Expand|Collapse)/i.test(ev));
+        if (isRecordEvent || (typeof msg.keyword === 'string' && msg.keyword.length > 0)) {
           onEvent(msg);
         }
       } catch (e) {
@@ -444,7 +460,7 @@ export async function replaySteps(
     'java',
     'marsJavaAgent',
     'target',
-    'marsJavaAgent-1.0.jar'
+    'marsJavaAgent-1.0-bootstrap.jar'
   );
 
   const recordDir = path.join(outputDir, `record-${pid}`);
@@ -469,7 +485,7 @@ export async function replaySteps(
   const tempAgentJar = path.join(os.tmpdir(), `marsJavaAgent-replay-${pid}-${Date.now()}.jar`);
   try {
     fs.copyFileSync(marsJavaAgentJar, tempAgentJar);
-    copyAgentRuntimeConfig(marsJavaAgentJar, tempAgentJar);
+    copyAgentRuntimeArtifacts(marsJavaAgentJar, tempAgentJar);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     writeLog(`[replaySteps] copy JAR failed pid=${pid} error=${msg}`);

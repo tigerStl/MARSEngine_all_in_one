@@ -27,7 +27,7 @@
         <dependency>
             <groupId>org.java-websocket</groupId>
             <artifactId>Java-WebSocket</artifactId>
-            <version>1.5.4</version>
+            <version>1.5.6</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -40,6 +40,34 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>bootstrap-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>bootstrap</classifier>
+                            <includes>
+                                <include>com/mars/javaui/unified/**</include>
+                            </includes>
+                            <archive>
+                                <manifestEntries>
+                                    <Agent-Class>com.mars.javaui.unified.UnifiedAgent</Agent-Class>
+                                    <Premain-Class>com.mars.javaui.unified.UnifiedAgent</Premain-Class>
+                                    <Can-Redefine-Classes>true</Can-Redefine-Classes>
+                                    <Can-Retransform-Classes>true</Can-Retransform-Classes>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.5.1</version>
                 <executions>
@@ -49,13 +77,12 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>core</shadedClassifierName>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Agent-Class>com.mars.javaui.unified.UnifiedAgent</Agent-Class>
-                                        <Premain-Class>com.mars.javaui.unified.UnifiedAgent</Premain-Class>
-                                        <Can-Redefine-Classes>true</Can-Redefine-Classes>
-                                        <Can-Retransform-Classes>true</Can-Retransform-Classes>
+                                        <Main-Class>com.mars.javaui.unified.UnifiedAgent</Main-Class>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
@@ -70,6 +97,27 @@
                                 </filter>
                             </filters>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>pack-encrypted-agent-resource</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.mars.javaui.unified.PackAgentResource</mainClass>
+                            <arguments>
+                                <argument>${project.build.directory}/${project.build.finalName}-core.jar</argument>
+                                <argument>${project.build.directory}/marsJavaResource.bin</argument>
+                            </arguments>
                         </configuration>
                     </execution>
                 </executions>

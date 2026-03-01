@@ -1,27 +1,64 @@
 package com.mars.javaui.unified;
 
 import java.lang.instrument.Instrumentation;
-import com.mars.javaui.record.RecordAgent;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
- * Unified Agent entry point combining UI Scanner and Record/Replay functionality.
- * Single agent entry point that handles all functionality via WebSocket communication.
+ * Bootstrap agent entry point. Loads encrypted marsJavaResource.bin in memory
+ * and delegates to com.mars.javaui.record.RecordAgent from decrypted payload.
  */
 public class UnifiedAgent {
+    private static final String RESOURCE_FILE = "marsJavaResource.bin";
+    private static final String DELEGATE_CLASS = "com.mars.javaui.record.RecordAgent";
+    private static final String DELEGATE_METHOD = "agentmain";
 
     /**
      * Agent entry point for attach (agentmain).
-     * Delegates to RecordAgent which provides WebSocket server for all functionality.
      */
     public static void agentmain(String agentArgs, Instrumentation inst) {
-        RecordAgent.agentmain(agentArgs, inst);
+        delegate(agentArgs, inst);
     }
 
     /**
      * Agent entry point for -javaagent (premain).
-     * Delegates to RecordAgent which provides WebSocket server for all functionality.
      */
     public static void premain(String agentArgs, Instrumentation inst) {
-        RecordAgent.agentmain(agentArgs, inst);
+        delegate(agentArgs, inst);
+    }
+
+    private static void delegate(String agentArgs, Instrumentation inst) {
+        try {
+            byte[] payload = loadEncryptedPayload();
+            if (payload != null) {
+                InMemoryJarClassLoader loader = new InMemoryJarClassLoader(payload, UnifiedAgent.class.getClassLoader());
+                Class<?> delegate = Class.forName(DELEGATE_CLASS, true, loader);
+                Method method = delegate.getMethod(DELEGATE_METHOD, String.class, Instrumentation.class);
+                method.invoke(null, agentArgs, inst);
+                return;
+            }
+            // Dev fallback: allow direct classpath delegate when bin is unavailable.
+            Class<?> fallback = Class.forName(DELEGATE_CLASS);
+            Method method = fallback.getMethod(DELEGATE_METHOD, String.class, Instrumentation.class);
+            method.invoke(null, agentArgs, inst);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to bootstrap encrypted agent payload", e);
+        }
+    }
+
+    private static byte[] loadEncryptedPayload() throws Exception {
+        Path jarDir = resolveAgentJarDirectory();
+        Path bin = jarDir.resolve(RESOURCE_FILE);
+        if (!Files.exists(bin)) return null;
+        byte[] encrypted = Files.readAllBytes(bin);
+        return AgentResourceCrypto.decrypt(encrypted);
+    }
+
+    private static Path resolveAgentJarDirectory() throws Exception {
+        Path path = Paths.get(UnifiedAgent.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        Path file = Files.isDirectory(path) ? path : path.getParent();
+        return file != null ? file : Paths.get(".");
     }
 }

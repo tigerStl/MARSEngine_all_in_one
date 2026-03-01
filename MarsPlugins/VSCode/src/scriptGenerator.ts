@@ -91,8 +91,11 @@ export function inferKeywordFromJavaType(javaType: string): ScriptKeyword {
   if (t.includes('jbutton') || t.includes('jmenuitem')) {
     return 'Click';
   }
+  if (t.includes('jradiobutton')) {
+    return 'SetRadioBox';
+  }
   if (t.includes('jcheckbox')) {
-    return 'Check';
+    return 'SetCheckBox';
   }
   return 'Click';
 }

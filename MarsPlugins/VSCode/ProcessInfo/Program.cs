@@ -144,6 +144,7 @@ List<JavaProcessInfo> GetJavaProcesses(object? unused, bool reportChecking)
     Log("[START]\tGetJavaProcesses\tINFO: Scanning for Java processes");
     var result = new List<JavaProcessInfo>();
     var seen = new HashSet<int>();
+    var jcmdMap = TryGetJavaProcessesFromJcmd();
 
     try
     {
@@ -180,7 +181,7 @@ List<JavaProcessInfo> GetJavaProcesses(object? unused, bool reportChecking)
                 if (reportChecking)
                     Log($"CHECKING:{p.Id}:{name}");
 
-                bool isJava = HasJavaModule(p);
+                bool isJava = HasJavaModule(p) || jcmdMap.ContainsKey(p.Id);
 
                 string display = name;
                 var commandLine = "";
@@ -189,15 +190,28 @@ List<JavaProcessInfo> GetJavaProcesses(object? unused, bool reportChecking)
                 if (isJava)
                 {
                     seen.Add(p.Id);
-                    commandLine = GetCommandLine(p.Id);
-                    if (!string.IsNullOrEmpty(commandLine))
+                    if (jcmdMap.TryGetValue(p.Id, out var jcmd))
                     {
-                        display = commandLine;
-                        mainClass = ExtractMainClass(commandLine);
+                        display = jcmd.DisplayName;
+                        mainClass = jcmd.MainClass;
+                        commandLine = GetCommandLine(p.Id);
+                        if (string.IsNullOrWhiteSpace(commandLine))
+                        {
+                            commandLine = jcmd.DisplayName;
+                        }
                     }
                     else
                     {
-                        display = $"{name} (PID {p.Id})";
+                        commandLine = GetCommandLine(p.Id);
+                        if (!string.IsNullOrEmpty(commandLine))
+                        {
+                            display = commandLine;
+                            mainClass = ExtractMainClass(commandLine);
+                        }
+                        else
+                        {
+                            display = $"{name} (PID {p.Id})";
+                        }
                     }
 
                     var displayShort = (display.Length > 80 ? display.Substring(0, 77) + "..." : display).Replace("\t", " ").Replace("\r", " ").Replace("\n", " ");
@@ -217,7 +231,8 @@ List<JavaProcessInfo> GetJavaProcesses(object? unused, bool reportChecking)
                     Pid = p.Id,
                     MainClass = mainClass,
                     CommandLine = commandLine,
-                    DisplayName = display
+                    DisplayName = display,
+                    Source = jcmdMap.ContainsKey(p.Id) ? "jcmd" : "fallback"
                 });
             }
             catch(Exception ex)
@@ -240,6 +255,137 @@ List<JavaProcessInfo> GetJavaProcesses(object? unused, bool reportChecking)
     }
 
     return result.OrderBy(x => x.Pid).ToList();
+}
+
+Dictionary<int, JavaProcessInfo> TryGetJavaProcessesFromJcmd()
+{
+    var map = new Dictionary<int, JavaProcessInfo>();
+    try
+    {
+        var jcmdPath = ResolveJcmdExecutable();
+        if (string.IsNullOrWhiteSpace(jcmdPath))
+        {
+            Log("INFO: jcmd not found in JAVA_HOME or PATH, fallback to module/cmdline detection");
+            return map;
+        }
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = jcmdPath,
+            Arguments = "-l",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+
+        using var proc = Process.Start(psi);
+        if (proc == null)
+        {
+            Log("WARN: failed to start jcmd process");
+            return map;
+        }
+        if (!proc.WaitForExit(5000))
+        {
+            try { proc.Kill(true); } catch { }
+            Log("WARN: jcmd -l timed out (>5s), fallback to module/cmdline detection");
+            return map;
+        }
+
+        var stdout = proc.StandardOutput.ReadToEnd();
+        var stderr = proc.StandardError.ReadToEnd();
+        if (proc.ExitCode != 0)
+        {
+            Log($"WARN: jcmd -l exitCode={proc.ExitCode}, stderr={stderr}");
+            return map;
+        }
+
+        foreach (var rawLine in stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var line = rawLine.Trim();
+            if (line.Length == 0) continue;
+            var firstSpace = line.IndexOf(' ');
+            var pidPart = firstSpace > 0 ? line.Substring(0, firstSpace) : line;
+            if (!int.TryParse(pidPart, out var pid) || pid <= 0) continue;
+            var display = firstSpace > 0 ? line.Substring(firstSpace + 1).Trim() : $"java (PID {pid})";
+            if (string.IsNullOrWhiteSpace(display)) display = $"java (PID {pid})";
+            map[pid] = new JavaProcessInfo
+            {
+                Pid = pid,
+                MainClass = ExtractMainClassFromJcmdDisplay(display),
+                CommandLine = display,
+                DisplayName = display
+            };
+        }
+        Log($"INFO: jcmd -l collected {map.Count} process entries");
+    }
+    catch (Exception ex)
+    {
+        Log($"WARN: TryGetJavaProcessesFromJcmd failed: {ex.Message}");
+    }
+    return map;
+}
+
+string ResolveJcmdExecutable()
+{
+    var candidates = new List<string>();
+    var javaHome = Environment.GetEnvironmentVariable("JAVA_HOME");
+    if (!string.IsNullOrWhiteSpace(javaHome))
+    {
+        var file = OperatingSystem.IsWindows() ? "jcmd.exe" : "jcmd";
+        candidates.Add(Path.Combine(javaHome, "bin", file));
+    }
+    candidates.Add("jcmd");
+
+    foreach (var c in candidates)
+    {
+        try
+        {
+            if (Path.IsPathRooted(c))
+            {
+                if (File.Exists(c)) return c;
+                continue;
+            }
+            var psi = new ProcessStartInfo
+            {
+                FileName = c,
+                Arguments = "-h",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            using var p = Process.Start(psi);
+            if (p == null) continue;
+            if (p.WaitForExit(2000)) return c;
+            try { p.Kill(true); } catch { }
+        }
+        catch
+        {
+            // try next candidate
+        }
+    }
+    return "";
+}
+
+string ExtractMainClassFromJcmdDisplay(string display)
+{
+    if (string.IsNullOrWhiteSpace(display)) return "";
+    var parts = display.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    if (parts.Length == 0) return "";
+    var first = parts[0].Trim('"');
+    if (first.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
+    {
+        try
+        {
+            return Path.GetFileNameWithoutExtension(first);
+        }
+        catch
+        {
+            return first;
+        }
+    }
+    return first;
 }
 
 bool IsJavaProcessByName(string name)
@@ -455,7 +601,7 @@ async Task RunWebSocketMode(int port)
         {
             acquireId,
             from = "dotnetProcess",
-            javaProcess = processes.Select(p => new { displayName = p.DisplayName, pid = p.Pid, mainClass = p.MainClass }).ToList()
+            javaProcess = processes.Select(p => new { displayName = p.DisplayName, pid = p.Pid, mainClass = p.MainClass, source = p.Source }).ToList()
         };
 
         var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
@@ -510,4 +656,5 @@ public record JavaProcessInfo
     public string? MainClass { get; init; }
     public string? CommandLine { get; init; }
     public string DisplayName { get; init; } = "";
+    public string? Source { get; init; }
 }

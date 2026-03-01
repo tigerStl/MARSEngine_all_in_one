@@ -55,6 +55,18 @@ function legacyToObjectRef(msg: LegacyRecordMessage): ObjectRef {
   return { parent, self };
 }
 
+function legacyIdentifierToObjectKey(id: Record<string, unknown> | undefined): Record<string, unknown> {
+  if (!id || typeof id !== 'object') {
+    return { javaName: '', javaType: '', index: 0 };
+  }
+  const key = { ...id } as Record<string, unknown>;
+  if (key.javaName == null && key.name != null) key.javaName = key.name;
+  if (key.javaType == null && key.type != null) key.javaType = key.type;
+  if (key.index == null || typeof key.index !== 'number') key.index = 0;
+  if (key.javaNamePath == null && Array.isArray(key.namePath)) key.javaNamePath = key.namePath;
+  return key;
+}
+
 function semanticToRecordedStep(step: SemanticStep, id: string): RecordedStepOutput {
   const debugBounds = step.meta?.debugBounds;
   return {
@@ -185,175 +197,26 @@ export class RecordingEngine {
   }
 
   private onLegacyMessage(msg: LegacyRecordMessage): void {
-    const ref = legacyToObjectRef(msg);
     const ts = (msg.timestamp ?? Date.now()) as number;
+    const resolvedKeyword = typeof msg.keyword === 'string' && msg.keyword.trim()
+      ? msg.keyword.trim()
+      : keywordFromLegacyEvent(msg.event, msg.clickCount);
+    if (!resolvedKeyword) return;
 
-    switch (msg.event) {
-      case 'click':
-      case 'clickButton': {
-        const metaClickCount = (msg as { meta?: { clickCount?: number } }).meta?.clickCount;
-        const clickCount = (metaClickCount ?? msg.clickCount ?? 1) as number;
-        const kw = (msg.keyword ?? '') as string;
-
-        if (kw === 'SelectMenuItem') {
-          this.menuSession.commitMenuPath(ts, ref, (msg.data as string) ?? '');
-          return;
-        }
-        if (kw === 'SelectTreeNode' || kw === 'SelectTreeList') {
-          this.treeAggregator.commitPath(ts, ref, (msg.data as string) ?? '');
-          return;
-        }
-        if (kw === 'ClickMenuIcon' || kw === 'SelectMenuIcon') {
-          const toolbarRef = ref.parent ? { parent: null, self: ref.parent } : ref;
-          this.toolButtonAggregator.onToolButtonClick(ts, ref, toolbarRef, {
-            text: msg.objectIdentifier?.text as string,
-            caption: msg.objectIdentifier?.caption as string,
-            tooltip: msg.objectIdentifier?.toolTipText as string,
-            name: msg.objectIdentifier?.name as string,
-          });
-          return;
-        }
-        if (isComboBox(ref)) return;
-        if (isTreeView(ref)) {
-          this.treeAggregator.commitPath(ts, ref, (msg.data as string) ?? '');
-          return;
-        }
-        if (isTab(ref)) {
-          this.stepId += 1;
-          this.callbacks.onStep(
-            semanticToRecordedStep(
-              {
-                keyword: 'SelectTab',
-                objectRef: toStrictRef(ref),
-                data: (msg.data ?? msg.content ?? ref.self?.javaName ?? '') as string,
-                ts,
-              },
-              'step-' + this.stepId
-            )
-          );
-          return;
-        }
-        if (!shouldRecordClick(ref)) return;
-        const keyword = clickCount === 2 || kw === 'DoubleClick' || kw === 'DoubleClickButton' ? 'DoubleClickButton' : 'ClickButton';
-        this.stepId += 1;
-        this.callbacks.onStep(
-          semanticToRecordedStep(
-            {
-              keyword,
-              objectRef: toStrictRef(ref),
-              ts,
-              meta: keyword === 'DoubleClickButton' ? { clickType: 'DoubleClick' } : undefined,
-            },
-            'step-' + this.stepId
-          )
-        );
-        return;
-      }
-      case 'selectDropDown':
-      case 'selectDropList': {
-        this.stepId += 1;
-        this.callbacks.onStep(
-          semanticToRecordedStep(
-            { keyword: 'SelectDropList', objectRef: toStrictRef(ref), data: (msg.data ?? msg.content ?? '') as string, ts },
-            'step-' + this.stepId
-          )
-        );
-        return;
-      }
-      case 'selectMenuItem': {
-        this.menuSession.commitMenuPath(ts, ref, (msg.data as string) ?? '');
-        return;
-      }
-      case 'selectMenuIcon': {
-        const toolbarRef = ref.parent ? { parent: null, self: ref.parent } : ref;
-        this.toolButtonAggregator.onToolButtonClick(ts, ref, toolbarRef, {
-          text: msg.objectIdentifier?.text as string,
-          caption: msg.objectIdentifier?.caption as string,
-          tooltip: msg.objectIdentifier?.toolTipText as string,
-          name: msg.objectIdentifier?.name as string,
-        });
-        return;
-      }
-      case 'selectTreeList': {
-        this.treeAggregator.commitPath(ts, ref, (msg.data as string) ?? '');
-        return;
-      }
-      case 'selectTab': {
-        this.stepId += 1;
-        this.callbacks.onStep(
-          semanticToRecordedStep(
-            {
-              keyword: 'SelectTab',
-              objectRef: toStrictRef(ref),
-              data: (msg.data ?? msg.content ?? ref.self?.javaName ?? '') as string,
-              ts,
-            },
-            'step-' + this.stepId
-          )
-        );
-        return;
-      }
-      case 'searchAndUpdate': {
-        this.stepId += 1;
-        this.callbacks.onStep(
-          semanticToRecordedStep(
-            {
-              keyword: 'SearchAndUpdate',
-              objectRef: toStrictRef(ref),
-              parameter: (msg.parameter ?? '') as string,
-              data: (msg.data ?? msg.content ?? '') as string,
-              ts,
-            },
-            'step-' + this.stepId
-          )
-        );
-        return;
-      }
-      case 'searchAndClick': {
-        this.stepId += 1;
-        this.callbacks.onStep(
-          semanticToRecordedStep(
-            {
-              keyword: 'SearchAndClick',
-              objectRef: toStrictRef(ref),
-              parameter: (msg.parameter ?? '') as string,
-              data: (msg.data ?? msg.content ?? '') as string,
-              ts,
-            },
-            'step-' + this.stepId
-          )
-        );
-        return;
-      }
-      case 'selectPopupMenu': {
-        this.stepId += 1;
-        this.callbacks.onStep(
-          semanticToRecordedStep(
-            { keyword: 'SelectPopupMenu', objectRef: toStrictRef(ref), data: (msg.data ?? msg.content ?? '') as string, ts },
-            'step-' + this.stepId
-          )
-        );
-        return;
-      }
-      case 'fillEdit': {
-        const content = (msg.data ?? msg.content ?? '') as string;
-        this.stepId += 1;
-        this.callbacks.onStep(
-          semanticToRecordedStep(
-            { keyword: 'FillEdit', objectRef: toStrictRef(ref), data: content, ts },
-            'step-' + this.stepId
-          )
-        );
-        return;
-      }
-      case 'expandTreeNode':
-      case 'collapseTreeNode': {
-        this.treeAggregator.commitPath(ts, ref, (msg.data as string) ?? '');
-        return;
-      }
-      default:
-        break;
-    }
+    const step: RecordedStepOutput = {
+      id: 'step-' + (++this.stepId),
+      keyword: resolvedKeyword,
+      object: {
+        parentKey: msg.parentIdentifier
+          ? (legacyIdentifierToObjectKey(msg.parentIdentifier as Record<string, unknown>) as unknown as ObjectKey)
+          : null,
+        objectKey: legacyIdentifierToObjectKey(msg.objectIdentifier as Record<string, unknown>) as unknown as ObjectKey,
+      },
+      parameter: typeof msg.parameter === 'string' ? msg.parameter : '',
+      data: typeof msg.data === 'string' ? msg.data : (typeof msg.content === 'string' ? msg.content : ''),
+      meta: { ts },
+    };
+    this.callbacks.onStep(step);
   }
 
   /** Emit one semantic step (e.g. from legacy stream). Identifiers are stripped of bounds. */
@@ -391,4 +254,54 @@ function isCanonicalEvent(ev: unknown): ev is CanonicalEvent {
 
 function isLegacyMessage(ev: unknown): ev is LegacyRecordMessage {
   return typeof ev === 'object' && ev !== null && 'event' in ev && typeof (ev as { event: unknown }).event === 'string';
+}
+
+function keywordFromLegacyEvent(eventName: string, clickCount?: number): string {
+  const e = eventName;
+  switch (e) {
+    case 'click':
+    case 'clickButton':
+    case 'ClickButton':
+      return clickCount === 2 ? 'DoubleClickButton' : 'ClickButton';
+    case 'selectDropDown':
+    case 'selectDropList':
+    case 'SelectDropList':
+      return 'SelectDropList';
+    case 'selectMenuItem':
+    case 'SelectMenuItem':
+      return 'SelectMenuItem';
+    case 'selectMenuIcon':
+    case 'SelectMenuIcon':
+      return 'SelectMenuIcon';
+    case 'selectTreeList':
+    case 'selectTreeNode':
+    case 'SelectTreeList':
+      return 'SelectTreeList';
+    case 'selectTab':
+    case 'SelectTab':
+      return 'SelectTab';
+    case 'searchAndUpdate':
+    case 'SearchAndUpdate':
+      return 'SearchAndUpdate';
+    case 'searchAndClick':
+    case 'SearchAndClick':
+      return 'SearchAndClick';
+    case 'selectPopupMenu':
+    case 'SelectPopupMenu':
+      return 'SelectPopupMenu';
+    case 'fillEdit':
+    case 'FillEdit':
+      return 'FillEdit';
+    case 'SetCheckBox':
+      return 'SetCheckBox';
+    case 'SetRadioBox':
+      return 'SetRadioBox';
+    case 'expandTreeNode':
+    case 'collapseTreeNode':
+    case 'ExpandTreeNode':
+    case 'CollapseTreeNode':
+      return 'SelectTreeList';
+    default:
+      return /^(Click|FillEdit|Select|Set|Search|Expand|Collapse|DoubleClick)/i.test(e) ? e : '';
+  }
 }

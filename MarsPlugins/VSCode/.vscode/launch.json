@@ -6,6 +6,15 @@
       "type": "extensionHost",
       "request": "launch",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}"]
+    },
+    {
+      "name": "Attach to Java (Record Agent Debug)",
+      "type": "java",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005,
+      "projectName": "marsJavaAgent",
+      "timeout": 30000
     }
   ]
 }

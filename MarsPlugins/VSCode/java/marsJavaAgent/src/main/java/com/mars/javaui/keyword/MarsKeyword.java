@@ -5,6 +5,8 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
 import java.awt.KeyboardFocusManager;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -13,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
+import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
@@ -143,7 +146,7 @@ public abstract class MarsKeyword {
 		}
 	}
 
-	/** Object identifier: javaName, javaType, index, optional javaNamePath, javaTypePath, javaTitle for window. */
+	/** Object identifier with locator + useful display fields (text/caption/bounds). */
 	public static Map<String, Object> buildObjectIdentifier(Component comp) {
 		Map<String, Object> id = new LinkedHashMap<>();
 		if (comp == null) {
@@ -160,9 +163,43 @@ public abstract class MarsKeyword {
 		if (!namePath.isEmpty()) id.put("javaNamePath", namePath);
 		List<String> typePath = buildJavaTypePath(comp);
 		if (!typePath.isEmpty()) id.put("javaTypePath", typePath);
+		String text = invokeStringGetter(comp, "getText");
+		if ((text == null || text.isEmpty()) && comp instanceof AbstractButton) {
+			text = ((AbstractButton) comp).getText();
+		}
+		if (text != null && !text.isEmpty()) id.put("text", text);
+		String caption = invokeStringGetter(comp, "getCaption");
+		if (caption != null && !caption.isEmpty()) id.put("caption", caption);
+		String title = invokeStringGetter(comp, "getTitle");
+		if (title != null && !title.isEmpty()) id.put("title", title);
+		String toolTipText = invokeStringGetter(comp, "getToolTipText");
+		if (toolTipText != null && !toolTipText.isEmpty()) id.put("toolTipText", toolTipText);
+		try {
+			Rectangle rect = comp.getBounds();
+			if (rect != null) {
+				Map<String, Object> bounds = new LinkedHashMap<>();
+				bounds.put("x", rect.x);
+				bounds.put("y", rect.y);
+				bounds.put("width", rect.width);
+				bounds.put("height", rect.height);
+				id.put("bounds", bounds);
+			}
+		} catch (Exception ignored) { }
+		try {
+			Point loc = comp.getLocationOnScreen();
+			Rectangle rect = comp.getBounds();
+			if (loc != null && rect != null) {
+				Map<String, Object> screenBounds = new LinkedHashMap<>();
+				screenBounds.put("x", loc.x);
+				screenBounds.put("y", loc.y);
+				screenBounds.put("width", rect.width);
+				screenBounds.put("height", rect.height);
+				id.put("screenBounds", screenBounds);
+			}
+		} catch (Exception ignored) { }
 		if (comp instanceof java.awt.Window) {
-			String title = getWindowTitle(comp);
-			if (title != null && !title.isEmpty()) id.put("javaTitle", title);
+			String windowTitle = getWindowTitle(comp);
+			if (windowTitle != null && !windowTitle.isEmpty()) id.put("javaTitle", windowTitle);
 		}
 		return id;
 	}
@@ -219,6 +256,18 @@ public abstract class MarsKeyword {
 		if (c instanceof java.awt.Frame) return ((Frame) c).getTitle();
 		if (c instanceof java.awt.Dialog) return ((java.awt.Dialog) c).getTitle();
 		return null;
+	}
+
+	private static String invokeStringGetter(Component c, String methodName) {
+		try {
+			java.lang.reflect.Method m = c.getClass().getMethod(methodName);
+			Object v = m.invoke(c);
+			if (v == null) return null;
+			String s = v.toString().trim();
+			return s.isEmpty() ? null : s;
+		} catch (Exception ignored) {
+			return null;
+		}
 	}
 
 	/**

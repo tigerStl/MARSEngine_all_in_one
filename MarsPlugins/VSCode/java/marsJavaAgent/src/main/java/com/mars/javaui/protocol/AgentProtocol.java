@@ -12,6 +12,7 @@ import java.awt.Window;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,6 +25,9 @@ import java.util.regex.PatternSyntaxException;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.JComponent;
+
+import com.mars.javaui.fx.FxScanner;
+import com.mars.javaui.fx.FxSemanticConfig;
 
 /**
  * Protocol utilities for agent communication.
@@ -86,6 +90,14 @@ public class AgentProtocol {
             }
         }
 
+        // Fallback for pure JavaFX apps (no AWT Window roots).
+        if (roots.isEmpty()) {
+            // JavaFX scanning is isolated in com.mars.javaui.fx.*
+            String cfg = System.getProperty("mars.fx.semantic.config");
+            FxSemanticConfig semantic = FxSemanticConfig.loadDefaultOrFromFile(cfg);
+            roots.addAll(FxScanner.scanJavaFxRoots(rootWindowHint, semantic));
+        }
+
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("roots", roots);
         return result;
@@ -130,7 +142,6 @@ public class AgentProtocol {
     /**
      * Resolve component by parent and object keys.
      */
-    @SuppressWarnings("unchecked")
     public static Component resolveComponent(Component root, Map<String, Object> parentKey, Map<String, Object> objectKey) {
         if (root == null || objectKey == null) {
             return null;
@@ -184,7 +195,6 @@ public class AgentProtocol {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
     private static Component findComponentByKey(Component root, Map<String, Object> parentKey, Map<String, Object> objectKey) {
         if (root == null) {
             return null;
@@ -210,7 +220,6 @@ public class AgentProtocol {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
     private static boolean matchesKey(Component c, Map<String, Object> key) {
         if (c == null || key == null) {
             return false;
@@ -227,6 +236,18 @@ public class AgentProtocol {
         String keyType = key.containsKey("javaType") ? String.valueOf(key.get("javaType")) : null;
         if (keyType != null && !keyType.isEmpty()) {
             if (!stringMatchesExpected(c.getClass().getName(), keyType)) return false;
+        }
+
+        String keyText = key.containsKey("text") ? String.valueOf(key.get("text")) : null;
+        if (keyText != null && !keyText.isEmpty()) {
+            String text = getComponentText(c);
+            if (!stringMatchesExpected(text, keyText)) return false;
+        }
+
+        String keyCaption = key.containsKey("caption") ? String.valueOf(key.get("caption")) : null;
+        if (keyCaption != null && !keyCaption.isEmpty()) {
+            String caption = nullToEmpty(invokeStringGetter(c, "getCaption"));
+            if (!stringMatchesExpected(caption, keyCaption)) return false;
         }
 
         List<String> keyNamePath = toPathList(key.get("javaNamePath"));
@@ -248,6 +269,17 @@ public class AgentProtocol {
         }
 
         return true;
+    }
+
+    private static String getComponentText(Component c) {
+        if (c == null) return "";
+        String text = invokeStringGetter(c, "getText");
+        if (text != null) return text;
+        if (c instanceof AbstractButton) {
+            String label = ((AbstractButton) c).getText();
+            if (label != null) return label;
+        }
+        return "";
     }
 
     private static Integer parseIndex(Object idxObj) {
@@ -607,6 +639,8 @@ public class AgentProtocol {
 
         return node;
     }
+
+    // JavaFX-specific scan helpers were intentionally moved to com.mars.javaui.fx.*
 
     private static String getToolTipText(Component c) {
         String s = invokeToolTipTextGetter(c);

@@ -1,6 +1,7 @@
 package com.mars.javaui.record.eventoperation;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
@@ -10,10 +11,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
+import javax.accessibility.AccessibleContext;
+import javax.accessibility.AccessibleRole;
+import javax.swing.AbstractButton;
 import javax.swing.JComboBox;
+import javax.swing.JCheckBox;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTree;
@@ -94,7 +100,7 @@ public final class MouseEventHandler {
             return;
         }
 
-        if (clickTarget instanceof JMenuItem && !(clickTarget instanceof JMenu)) {
+        if (clickTarget instanceof JMenuItem) {
             if (id == MouseEvent.MOUSE_RELEASED) {
                 JMenuItem mi = (JMenuItem) clickTarget;
                 boolean isPopup = isPopupMenuItem(mi);
@@ -105,7 +111,11 @@ public final class MouseEventHandler {
                     step.put("timestamp", now);
                     RecordAgent.putComponentInfo(step, mi);
                     step.put("content", data);
+                    appendRightClickParameter(step, button);
                     emitStep(ctx, step);
+                    if (button == MouseEvent.BUTTON3) {
+                        emitRightClickAtStep(ctx, now);
+                    }
                     ctx.lastTableRightClickRef[0] = null;
                     ctx.lastTableRightClickTimeRef[0] = 0L;
                 } else {
@@ -115,7 +125,11 @@ public final class MouseEventHandler {
                     step.put("timestamp", now);
                     RecordAgent.putComponentInfo(step, mi);
                     step.put("content", data);
+                    appendRightClickParameter(step, button);
                     emitStep(ctx, step);
+                    if (button == MouseEvent.BUTTON3) {
+                        emitRightClickAtStep(ctx, now);
+                    }
                 }
             }
             return;
@@ -131,6 +145,7 @@ public final class MouseEventHandler {
                     step.put("timestamp", now);
                     RecordAgent.putComponentInfo(step, tree);
                     step.put("content", data);
+                    appendRightClickParameter(step, button);
                     emitStep(ctx, step);
                 }
             }
@@ -168,8 +183,37 @@ public final class MouseEventHandler {
                     step.put("index", tabIndex);
                     RecordAgent.putComponentInfo(step, tabbedPane);
                     step.put("content", header);
+                    appendRightClickParameter(step, button);
                     emitStep(ctx, step);
                 }
+            }
+            return;
+        }
+
+        if (clickTarget instanceof JRadioButton) {
+            if (id == MouseEvent.MOUSE_RELEASED && button == MouseEvent.BUTTON1) {
+                JRadioButton radio = (JRadioButton) clickTarget;
+                String text = resolveSelectedRadioText(radio);
+                Map<String, Object> step = MarsKeyword.buildScriptStep("SetRadioBox", radio, "", text, "");
+                step.put("event", "clickButton");
+                step.put("timestamp", now);
+                RecordAgent.putComponentInfo(step, radio);
+                step.put("content", text);
+                emitStep(ctx, step);
+            }
+            return;
+        }
+
+        if (clickTarget instanceof JCheckBox) {
+            if (id == MouseEvent.MOUSE_RELEASED && button == MouseEvent.BUTTON1) {
+                JCheckBox checkBox = (JCheckBox) clickTarget;
+                String checked = String.valueOf(checkBox.isSelected());
+                Map<String, Object> step = MarsKeyword.buildScriptStep("SetCheckBox", checkBox, "", checked, "");
+                step.put("event", "clickButton");
+                step.put("timestamp", now);
+                RecordAgent.putComponentInfo(step, checkBox);
+                step.put("content", checked);
+                emitStep(ctx, step);
             }
             return;
         }
@@ -212,7 +256,16 @@ public final class MouseEventHandler {
 
             int clickCount = 2;
             String param = "button=" + ctx.pendingClickButtonRef[0] + ",clickCount=" + clickCount;
-            Map<String, Object> step = MarsKeyword.buildScriptStep("ClickButton", pressComp, param, "", "");
+            String keyword = "ClickButton";
+            String data = "";
+            if (isRadioButtonLike(pressComp)) {
+                keyword = "SetRadioBox";
+                data = resolveSelectedRadioText(pressComp);
+            } else if (isCheckBoxLike(pressComp)) {
+                keyword = "SetCheckBox";
+                data = String.valueOf(isButtonSelected(pressComp));
+            }
+            Map<String, Object> step = MarsKeyword.buildScriptStep(keyword, pressComp, param, data, "");
             step.put("event", "clickButton");
             step.put("timestamp", now);
             RecordAgent.putComponentInfo(step, pressComp);
@@ -223,6 +276,9 @@ public final class MouseEventHandler {
             meta.put("y", ctx.pendingClickYRef[0]);
             step.put("meta", meta);
             emitStep(ctx, step);
+            if (ctx.pendingClickButtonRef[0] == MouseEvent.BUTTON3) {
+                emitRightClickAtStep(ctx, now);
+            }
             ctx.lastReleasedTimeRef[0] = now;
             ctx.lastReleasedComponentRef[0] = pressComp;
             return;
@@ -250,7 +306,16 @@ public final class MouseEventHandler {
             ctx.pendingClickComponentRef[0] = null;
             int clickCount = 1;
             String param = "button=" + emitButton + ",clickCount=" + clickCount;
-            Map<String, Object> step = MarsKeyword.buildScriptStep("ClickButton", emitComp, param, "", "");
+            String keyword = "ClickButton";
+            String data = "";
+            if (isRadioButtonLike(emitComp)) {
+                keyword = "SetRadioBox";
+                data = resolveSelectedRadioText(emitComp);
+            } else if (isCheckBoxLike(emitComp)) {
+                keyword = "SetCheckBox";
+                data = String.valueOf(isButtonSelected(emitComp));
+            }
+            Map<String, Object> step = MarsKeyword.buildScriptStep(keyword, emitComp, param, data, "");
             if (emitParentIdentifier != null && !emitParentIdentifier.isEmpty()) {
                 step.put("parentIdentifier", emitParentIdentifier);
             }
@@ -271,6 +336,9 @@ public final class MouseEventHandler {
             }
             WebSocket c = ctx.clientConn.get();
             if (c != null && c.isOpen()) c.send(RecordAgent.toJson(step));
+            if (emitButton == MouseEvent.BUTTON3) {
+                emitRightClickAtStep(ctx, System.currentTimeMillis());
+            }
         });
         timer.setRepeats(false);
         timer.start();
@@ -334,6 +402,7 @@ public final class MouseEventHandler {
             RecordAgent.putTableCellBounds(step, table, row, col);
             step.put("content", data);
             emitStep(ctx, step);
+            emitRightClickAtStep(ctx, now);
             String emitMsg = "StepEmit keyword=SearchAndClick, event=searchAndClick, trigger=mouse-right, row=" + row + ", col=" + col;
             AgentLogger.info(LOG, emitMsg);
             RecordAgent.appendDebugLog(ctx.outputDir, emitMsg);
@@ -382,5 +451,113 @@ public final class MouseEventHandler {
         }
         WebSocket c = ctx.clientConn.get();
         if (c != null && c.isOpen()) c.send(RecordAgent.toJson(step));
+    }
+
+    private static void emitRightClickAtStep(RecordingContext ctx, long timestamp) {
+        Map<String, Object> clickAt = new LinkedHashMap<>();
+        clickAt.put("keyword", "ClickAT");
+        clickAt.put("parameter", "CURRENT_POSITION");
+        clickAt.put("data", "Rightclick");
+        clickAt.put("parentIdentifier", new LinkedHashMap<>());
+        clickAt.put("objectIdentifier", new LinkedHashMap<>());
+        clickAt.put("event", "clickAt");
+        clickAt.put("timestamp", timestamp);
+        emitStep(ctx, clickAt);
+    }
+
+    private static void appendRightClickParameter(Map<String, Object> step, int button) {
+        if (button != MouseEvent.BUTTON3 || step == null) return;
+        Object keywordObj = step.get("keyword");
+        String keyword = keywordObj != null ? String.valueOf(keywordObj) : "";
+        if (keyword.isEmpty()) return;
+        boolean isSelectKeyword = "SelectMenuItem".equals(keyword)
+            || "SelectPopupMenu".equals(keyword)
+            || "SelectTreeList".equals(keyword)
+            || "SelectTab".equals(keyword)
+            || "SelectDropList".equals(keyword)
+            || "SelectDropDown".equals(keyword)
+            || "SelectListItem".equals(keyword);
+        if (!isSelectKeyword) return;
+        String para = step.get("parameter") != null ? String.valueOf(step.get("parameter")) : "";
+        if (containsParameterTokenIgnoreCase(para, "rightclick")) return;
+        if (para.trim().isEmpty()) {
+            step.put("parameter", "rightclick");
+        } else {
+            step.put("parameter", para + ";rightclick");
+        }
+    }
+
+    private static boolean containsParameterTokenIgnoreCase(String parameter, String token) {
+        if (parameter == null || token == null) return false;
+        String[] parts = parameter.split("[;,]");
+        for (String part : parts) {
+            if (part != null && part.trim().equalsIgnoreCase(token)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isRadioButtonLike(Component c) {
+        if (c == null) return false;
+        if (c instanceof JRadioButton) return true;
+        String type = c.getClass().getName();
+        if (type != null && type.toLowerCase().contains("radiobutton")) return true;
+        String role = getAccessibleRoleName(c);
+        return role.contains("radio");
+    }
+
+    private static boolean isCheckBoxLike(Component c) {
+        if (c == null) return false;
+        if (c instanceof JCheckBox) return true;
+        String type = c.getClass().getName();
+        if (type != null && type.toLowerCase().contains("checkbox")) return true;
+        String role = getAccessibleRoleName(c);
+        return role.contains("check");
+    }
+
+    private static String getAccessibleRoleName(Component c) {
+        try {
+            AccessibleContext ac = c.getAccessibleContext();
+            if (ac == null) return "";
+            AccessibleRole role = ac.getAccessibleRole();
+            return role != null ? role.toDisplayString().toLowerCase() : "";
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
+    private static String extractButtonText(Component c) {
+        if (c instanceof AbstractButton) {
+            String text = ((AbstractButton) c).getText();
+            if (text != null && !text.isEmpty()) return text;
+        }
+        return RecordAgent.getComponentNameForLog(c);
+    }
+
+    private static String resolveSelectedRadioText(Component c) {
+        if (!(c instanceof AbstractButton)) return extractButtonText(c);
+        AbstractButton btn = (AbstractButton) c;
+        Container parent = btn.getParent();
+        if (parent != null) {
+            for (Component child : parent.getComponents()) {
+                if (child instanceof AbstractButton && isRadioButtonLike(child) && ((AbstractButton) child).isSelected()) {
+                    String t = extractButtonText(child);
+                    if (t != null && !t.isEmpty()) return t;
+                }
+            }
+        }
+        if (btn.isSelected()) {
+            String t = extractButtonText(btn);
+            if (t != null && !t.isEmpty()) return t;
+        }
+        return extractButtonText(c);
+    }
+
+    private static boolean isButtonSelected(Component c) {
+        if (c instanceof AbstractButton) {
+            return ((AbstractButton) c).isSelected();
+        }
+        return false;
     }
 }

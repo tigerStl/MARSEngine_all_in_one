@@ -100,11 +100,9 @@ export class ClickAggregator {
     });
   }
 
+  /** Clear pending without emitting. Steps are already sent by the agent (legacy); emitting here would duplicate. */
   flush(): void {
     cancel(PENDING_ID);
-    if (this.pending) {
-      this.emitClick(this.pending.ts, this.pending.targetRef);
-      this.pending = null;
-    }
+    this.pending = null;
   }
 }

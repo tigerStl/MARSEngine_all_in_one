@@ -120,6 +120,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enable debug logs for recorded test steps (keyword/parameter/data) in the Java UI output channel."
+                },
+                "loaniq.licenseServerUrl": {
+                    "type": "string",
+                    "default": "http://127.0.0.1:8787",
+                    "description": "License server base URL for client policy/declaration sync."
                 }
             }
         }
@@ -143,8 +148,8 @@
     },
     "devDependencies": {
         "@types/node": "^20.10.0",
-        "@types/ws": "^8.5.10",
         "@types/vscode": "^1.85.0",
+        "@types/ws": "^8.5.10",
         "typescript": "^5.3.0"
     }
 }

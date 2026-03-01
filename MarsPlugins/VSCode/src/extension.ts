@@ -64,7 +64,7 @@ async function selectJavaProcess(): Promise<JavaProcess | undefined> {
 
   const items = processes.map((p) => ({
     label: `${p.pid}: ${p.displayName}`,
-    description: p.mainClass ?? '',
+    description: `${p.mainClass ?? ''}${p.source ? ` [${p.source}]` : ''}`.trim(),
     detail: p.commandLine,
     process: p,
   }));

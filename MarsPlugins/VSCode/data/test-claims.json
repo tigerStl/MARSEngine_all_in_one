@@ -1,0 +1,15 @@
+{
+  "US": {},
+  "CN": {
+    "cd3218b92bc96f99aa6fdbe1a596c7bbe32b1de5f5ce0eb54bc4645ca8c40e75": {
+      "claimId": "6e39c973-51bd-4a56-ad21-064e1ba75508",
+      "customerRef": "cd3218b92bc96f99aa6fdbe1a596c7bbe32b1de5f5ce0eb54bc4645ca8c40e75",
+      "customerEmail": "gengfeng.liu@mbtsllc.com",
+      "region": "CN",
+      "issuedAt": "2026-02-27T16:22:36.031Z",
+      "licenseType": "TEST",
+      "expiresAt": "2027-03-29T16:22:36.031Z",
+      "status": "ACTIVE"
+    }
+  }
+}

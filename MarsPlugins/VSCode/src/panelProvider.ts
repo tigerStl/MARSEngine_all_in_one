@@ -578,6 +578,8 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
 
   private async _handleGetProcesses(webview: vscode.Webview): Promise<void> {
     this._outputChannel.show(true);
+    this._currentProcesses = [];
+    this._safePost(webview, { type: 'processes', data: [] });
     this._log(webview, '[begin] Window Spy button is clicked.\r\n');
     this._log(webview, 'Traversing system processes...\r\n');
     try {
@@ -730,6 +732,14 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
   private _handleSyncSteps(webview: vscode.Webview, steps: unknown): void {
     const arr = Array.isArray(steps) ? steps : [];
     this._currentSteps = arr as TestScriptStep[];
+    if (arr.length === 0) {
+      this._recordingSteps = [];
+      try {
+        this._recordSend?.({ type: 'clearRecord' });
+      } catch (e) {
+        this._outputChannel.appendLine(`[Java UI] clearRecord send failed: ${e}`);
+      }
+    }
     const scriptPath = this._getScriptPath();
     if (scriptPath) {
       try {
@@ -741,6 +751,7 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
       }
     }
     this._persistState();
+    this._safePost(webview, { type: 'steps', data: this._currentSteps });
   }
 
   private _createMarsStepsPayload(steps: TestScriptStep[]): MarsStepsFilePayload {
@@ -1632,6 +1643,7 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     this._recordingEngine = new RecordingEngine({
       onStep: (step) => {
         const testStep = recordedStepToTestScriptStep(step);
+        if (!testStep.keyword?.trim() || !testStep.objectIdentifier?.javaType) return;
         this._logRecordingStep(testStep);
         this._recordingSteps.push(testStep);
         const webviewRef = this._recordingWebview;
@@ -1771,12 +1783,13 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
         try {
           const obj = JSON.parse(line) as Record<string, unknown>;
           const step = this._normalizeRecordLineToStep(obj);
-          if (step) steps.push(step);
+          if (step && JavaUIPanelProvider._isMeaningfulStep(step)) steps.push(step);
         } catch {
           // skip malformed lines
         }
       }
     }
+    steps = steps.filter((s) => JavaUIPanelProvider._isMeaningfulStep(s));
 
     try {
       const dir = path.dirname(outputPath);
@@ -1824,10 +1837,22 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     });
   }
 
+  private static _isMeaningfulStep(step: TestScriptStep): boolean {
+    const o = step.objectIdentifier;
+    if (!o) return false;
+    const hasType = typeof o.javaType === 'string' && o.javaType.trim().length > 0;
+    const hasBounds = o.screenBounds && typeof o.screenBounds === 'object';
+    return hasType || !!hasBounds;
+  }
+
   /** Normalize a record.jsonl line (keyword step or legacy event) to TestScriptStep. */
   private _normalizeRecordLineToStep(obj: Record<string, unknown>): TestScriptStep | null {
     const emptyId = {};
     if (obj.keyword && obj.objectIdentifier && typeof obj.objectIdentifier === 'object') {
+      const oid = obj.objectIdentifier as Record<string, unknown>;
+      const hasType = typeof oid.javaType === 'string' && (oid.javaType as string).trim().length > 0;
+      const hasBounds = oid.screenBounds && typeof oid.screenBounds === 'object';
+      if (!hasType && !hasBounds) return null;
       const kw = obj.keyword as string;
       const validKw: ScriptKeyword[] = [
         'Click', 'ClickButton', 'DoubleClickButton', 'ClickMenuIcon', 'FillEdit',

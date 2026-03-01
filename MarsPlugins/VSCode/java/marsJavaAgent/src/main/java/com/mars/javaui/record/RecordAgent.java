@@ -33,8 +33,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -43,10 +45,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -91,6 +99,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mars.javaui.fx.FxRecordSupport;
+import com.mars.javaui.fx.FxReplaySupport;
 import com.mars.javaui.keyword.MarsKeyword;
 import com.mars.javaui.protocol.AgentProtocol;
 import com.mars.javaui.record.eventoperation.ItemEventHandler;
@@ -117,6 +127,8 @@ public class RecordAgent {
     private static final class RuntimeConfig {
         boolean isHighlightObjectWhileReplay = true;
         int debugPort = 0;
+        /** When > 0, enable JVM debug (JDWP) on this port so a debugger can attach. */
+        int jdwpPort = 0;
     }
 
     private static volatile RuntimeConfig runtimeConfig = new RuntimeConfig();
@@ -132,18 +144,31 @@ public class RecordAgent {
     }
 
     public static void agentmain(String agentArgs, Instrumentation inst) {
+        File logsDir = null;
         try {
-            File jarFile = new File(RecordAgent.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-            File jarDir = jarFile.getParentFile();
-            File logsDir = jarDir != null ? new File(jarDir, "logs") : null;
-            AgentLogger.setup(logsDir);
+            java.net.URL loc = RecordAgent.class.getProtectionDomain().getCodeSource().getLocation();
+            if (loc != null && "file".equals(loc.getProtocol())) {
+                File jarFile = new File(loc.toURI());
+                File jarDir = jarFile.getParentFile();
+                if (jarDir != null) {
+                    File underJar = new File(jarDir, "logs");
+                    if (underJar.exists() || underJar.mkdirs()) logsDir = underJar;
+                }
+            }
         } catch (Exception ignored) { }
+        if (logsDir == null) {
+            logsDir = new File(System.getProperty("java.io.tmpdir", ""), "mars-javaagent-logs");
+        }
+        AgentLogger.setup(logsDir);
         AgentLogger.begin(LOG, "agentArgs=" + agentArgs);
         try {
             AgentLogger.info(LOG, "agentmain called, agentArgs=" + agentArgs);
             runtimeConfig = loadRuntimeConfig();
                 AgentLogger.info(LOG, "agent config loaded: IsHighlightObjectWhileReplay=" + runtimeConfig.isHighlightObjectWhileReplay
-                    + ", DebugPort=" + runtimeConfig.debugPort);
+                    + ", DebugPort=" + runtimeConfig.debugPort + ", JdwpPort=" + runtimeConfig.jdwpPort);
+            if (runtimeConfig.jdwpPort > 0) {
+                enableJdwp(runtimeConfig.jdwpPort);
+            }
             if (agentArgs == null || agentArgs.isEmpty()) {
                 AgentLogger.warning(LOG, "No agentArgs provided");
                 AgentLogger.end(LOG, "no agentArgs");
@@ -215,6 +240,8 @@ public class RecordAgent {
         final boolean[] running = { true };
         final AtomicReference<WebSocket> clientConn = new AtomicReference<>();
         final AtomicReference<AWTEventListener> listenerRef = new AtomicReference<>();
+        final AtomicReference<List<FxRecordSupport.FxFilterHook>> fxHooksRef = new AtomicReference<>();
+        final AtomicReference<ExecutorService> fxStepExecutorRef = new AtomicReference<>();
         final Component[] lastRecordedComponentRef = new Component[1];
         final long[] lastRecordedTimeRef = new long[1];
         final int[] lastRecordedXRef = new int[1];
@@ -321,6 +348,8 @@ public class RecordAgent {
                     if (L != null) {
                         EventQueue.invokeLater(() -> Toolkit.getDefaultToolkit().removeAWTEventListener(L));
                     }
+                    FxRecordSupport.detachJavaFxRecordHooks(fxHooksRef.getAndSet(null));
+                    shutdownFxStepExecutor(fxStepExecutorRef);
                 }
             }
 
@@ -564,6 +593,25 @@ public class RecordAgent {
                         listenerRef.set(listener);
                         long mask = AWTEvent.MOUSE_EVENT_MASK | AWTEvent.FOCUS_EVENT_MASK | AWTEvent.KEY_EVENT_MASK | AWTEvent.ITEM_EVENT_MASK;
                         Toolkit.getDefaultToolkit().addAWTEventListener(listener, mask);
+                        ThreadFactory daemonThreadFactory = r -> {
+                            Thread t = new Thread(r);
+                            t.setDaemon(true);
+                            return t;
+                        };
+                        ExecutorService fxStepExecutor = Executors.newSingleThreadExecutor(daemonThreadFactory);
+                        fxStepExecutorRef.set(fxStepExecutor);
+                        FxRecordSupport.attachJavaFxRecordHooks(recording, writerRef, clientConn, fxHooksRef, step -> {
+                            fxStepExecutor.execute(() -> {
+                                try {
+                                    Writer w = writerRef.get();
+                                    if (w != null) writeLine(w, step);
+                                } catch (IOException e) {
+                                    AgentLogger.logException(LOG, Level.WARNING, "writeLine failed", e);
+                                }
+                                WebSocket c = clientConn.get();
+                                if (c != null && c.isOpen()) c.send(toJson(step));
+                            });
+                        });
                         EventQueue.invokeLater(() -> {
                             java.util.List<JTree> treeList = new ArrayList<>();
                             for (Window w : Window.getWindows()) {
@@ -606,6 +654,8 @@ public class RecordAgent {
                         if (L != null) {
                             Toolkit.getDefaultToolkit().removeAWTEventListener(L);
                         }
+                        FxRecordSupport.detachJavaFxRecordHooks(fxHooksRef.getAndSet(null));
+                        shutdownFxStepExecutor(fxStepExecutorRef);
                         final TreeExpansionListener tel = treeExpansionListenerRef.getAndSet(null);
                         final java.util.List<JTree> treeList = treeExpansionTreesRef.getAndSet(null);
                         if (tel != null && treeList != null) {
@@ -626,6 +676,26 @@ public class RecordAgent {
                     } else if ("resumeRecordAndReplay".equals(type)) {
                         AgentLogger.info(LOG, "resumeRecordAndReplay");
                         if (writerRef.get() != null) recording[0] = true;
+                    } else if ("clearRecord".equals(type)) {
+                        AgentLogger.info(LOG, "clearRecord (no step cache; truncate record file)");
+                        OutputStreamWriter w = writerRef.getAndSet(null);
+                        if (w != null) {
+                            try { w.close(); } catch (IOException e) {
+                                AgentLogger.logException(LOG, Level.WARNING, "Close record file on clearRecord failed", e);
+                            }
+                        }
+                        try {
+                            new FileOutputStream(recordFile, false).close();
+                        } catch (IOException e) {
+                            AgentLogger.logException(LOG, Level.WARNING, "Truncate record file on clearRecord failed", e);
+                        }
+                        if (recording[0]) {
+                            try {
+                                writerRef.set(new OutputStreamWriter(new FileOutputStream(recordFile, true), StandardCharsets.UTF_8));
+                            } catch (IOException e) {
+                                AgentLogger.logException(LOG, Level.SEVERE, "Reopen record file after clearRecord failed", e);
+                            }
+                        }
                     } else if ("replay".equals(type)) {
                         AgentLogger.info(LOG, "replay");
                         runReplay(conn, message);
@@ -660,7 +730,21 @@ public class RecordAgent {
             }
         };
 
-        server.start();
+        // Avoid non-daemon threads so the JVM exits when the host app exits.
+        try {
+            server.setConnectionLostTimeout(0);
+        } catch (Exception ignored) { }
+        try {
+            server.setDaemon(true);
+        } catch (NoSuchMethodError e) {
+            setWebSocketServerDecodersDaemon(server, true);
+        }
+        Thread serverThread = new Thread(server, "record-agent-ws");
+        serverThread.setDaemon(true);
+        serverThread.start();
+        while (server.getPort() == 0 && serverThread.isAlive()) {
+            try { Thread.sleep(20); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+        }
         LOG.info("Record agent WS server started on port " + server.getPort() + " (requestedDebugPort=" + listenPort + ")");
 
         Thread stopPoller = new Thread(() -> {
@@ -682,6 +766,8 @@ public class RecordAgent {
                     if (L != null) {
                         EventQueue.invokeLater(() -> Toolkit.getDefaultToolkit().removeAWTEventListener(L));
                     }
+                    FxRecordSupport.detachJavaFxRecordHooks(fxHooksRef.getAndSet(null));
+                    shutdownFxStepExecutor(fxStepExecutorRef);
                     try {
                         server.stop(1000);
                     } catch (InterruptedException e) {
@@ -811,7 +897,7 @@ public class RecordAgent {
                 return;
             }
             final int total = steps.size();
-            new Thread(() -> {
+            Thread replayThread = new Thread(() -> {
                 try {
                     Robot robot = new Robot();
                     robot.setAutoDelay(30);
@@ -823,6 +909,19 @@ public class RecordAgent {
                             JsonObject step = steps.get(i).getAsJsonObject();
                             keyword = getJsonStr(step, "keyword");
                             sendReplayProgress(conn, "stepStart", i, total, keyword, "running", stepStartedAt, null, null);
+                            if ("ClickAT".equals(keyword)) {
+                                final String para = getJsonStr(step, "parameter");
+                                final String data = getJsonStr(step, "data");
+                                int mask = "Rightclick".equalsIgnoreCase(data) ? InputEvent.BUTTON3_DOWN_MASK : InputEvent.BUTTON1_DOWN_MASK;
+                                if (para == null || para.trim().isEmpty() || parameterEqualsIgnoreCase(para, "CURRENT_POSITION")) {
+                                    robot.mousePress(mask);
+                                    robot.mouseRelease(mask);
+                                    robot.delay(120);
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
+                                    continue;
+                                }
+                            }
                             JsonObject obj = step.has("object") && step.get("object").isJsonObject() ? step.get("object").getAsJsonObject() : null;
                             JsonObject parentId = obj != null && obj.has("parentKey") ? obj.get("parentKey").getAsJsonObject()
                                     : (step.has("parentIdentifier") ? step.get("parentIdentifier").getAsJsonObject() : null);
@@ -837,20 +936,52 @@ public class RecordAgent {
                             }
                             Map<String, Object> pk = parentId != null ? jsonToMap(parentId) : null;
                             Map<String, Object> ok = jsonToMap(objectId);
+                            boolean javaFxStep = FxReplaySupport.isJavaFxObjectKey(ok);
                             int waitSeconds = getJsonInt(step, "waitTime", 0);
                             if (waitSeconds < 0) waitSeconds = 0;
                             // When waitTime is 0 or missing, use a sensible default (auto wait).
                             final int DEFAULT_AUTO_WAIT_SECONDS = 5;
                             long waitMillis = (long) ((waitSeconds == 0 ? DEFAULT_AUTO_WAIT_SECONDS : waitSeconds) * 1000L);
                             String[] resolveErr = new String[1];
-                            Component comp = resolveComponentWithWait(pk, ok, resolveErr, waitMillis);
-                            if (comp == null) {
+                            Component comp = javaFxStep ? null : resolveComponentWithWait(pk, ok, resolveErr, waitMillis);
+                            if (!javaFxStep && comp == null) {
                                 int idx = i;
                                 long endedAt = System.currentTimeMillis();
                                 String err = resolveErr[0] != null && !resolveErr[0].isEmpty() ? resolveErr[0] : "Object not found";
                                 sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, err);
                                 EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, err));
                                 return;
+                            }
+                            if (javaFxStep) {
+                                FxReplaySupport.FxReplayCallbacks fxCallbacks = new FxReplaySupport.FxReplayCallbacks() {
+                                    @Override
+                                    public String getStepData(Object s) {
+                                        return s instanceof JsonObject ? getJsonStr((JsonObject) s, "data") : null;
+                                    }
+                                    @Override
+                                    public void typeText(Robot r, String text) {
+                                        typeTextLikeHuman(r, text);
+                                    }
+                                    @Override
+                                    public void clearFocusedText(Robot r, int n) {
+                                        clearFocusedTextByHomeDel(r, n);
+                                    }
+                                    @Override
+                                    public String sanitizeFillEditInput(String data) {
+                                        return RecordAgent.sanitizeFillEditInput(data);
+                                    }
+                                };
+                                String fxErr = FxReplaySupport.replayJavaFxByBounds(ok, keyword, step, robot, fxCallbacks);
+                                if (fxErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, fxErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, fxErr));
+                                    return;
+                                }
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
+                                continue;
                             }
                             // SnapShot keyword: capture and save component screenshot
                             if ("SnapShot".equals(keyword)) {
@@ -961,6 +1092,14 @@ public class RecordAgent {
                                     EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, selectErr));
                                     return;
                                 }
+                                String clickErr = replayRightClickIfRequested(tabbedPane, keyword, step, robot);
+                                if (clickErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, clickErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, clickErr));
+                                    return;
+                                }
                                 String verifyErr = verifyExpectedAfterAction(comp, step);
                                 if (verifyErr != null) {
                                     int idx = i;
@@ -978,6 +1117,14 @@ public class RecordAgent {
                                     JComboBox<?> cb = (JComboBox<?>) comp;
                                     EventQueue.invokeAndWait(() -> selectComboValue(cb, data));
                                     robot.delay(150);
+                                }
+                                String clickErr = replayRightClickIfRequested(comp, keyword, step, robot);
+                                if (clickErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, clickErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, clickErr));
+                                    return;
                                 }
                                 String verifyErr = verifyExpectedAfterAction(comp, step);
                                 if (verifyErr != null) {
@@ -1010,6 +1157,100 @@ public class RecordAgent {
                                     return;
                                 }
                                 robot.delay(150);
+                                String clickErr = replayRightClickIfRequested(tree, keyword, step, robot);
+                                if (clickErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, clickErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, clickErr));
+                                    return;
+                                }
+                                String verifyErr = verifyExpectedAfterAction(comp, step);
+                                if (verifyErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, verifyErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, verifyErr));
+                                    return;
+                                }
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
+                                continue;
+                            }
+                            if ("SetRadioBox".equals(keyword)) {
+                                if (!(comp instanceof AbstractButton)) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, "SetRadioBox target is not AbstractButton");
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, "SetRadioBox target is not AbstractButton"));
+                                    return;
+                                }
+                                AbstractButton radio = (AbstractButton) comp;
+                                EventQueue.invokeAndWait(() -> {
+                                    if (!radio.isSelected()) {
+                                        radio.doClick();
+                                    }
+                                });
+                                robot.delay(150);
+                                String verifyErr = verifyExpectedAfterAction(comp, step);
+                                if (verifyErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, verifyErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, verifyErr));
+                                    return;
+                                }
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
+                                continue;
+                            }
+                            if ("SetCheckBox".equals(keyword)) {
+                                if (!(comp instanceof AbstractButton)) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, "SetCheckBox target is not AbstractButton");
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, "SetCheckBox target is not AbstractButton"));
+                                    return;
+                                }
+                                final boolean targetChecked = Boolean.parseBoolean(data != null ? data.trim() : "false");
+                                AbstractButton checkBox = (AbstractButton) comp;
+                                EventQueue.invokeAndWait(() -> {
+                                    if (checkBox.isSelected() != targetChecked) {
+                                        checkBox.doClick();
+                                    }
+                                });
+                                robot.delay(150);
+                                String verifyErr = verifyExpectedAfterAction(comp, step);
+                                if (verifyErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, verifyErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, verifyErr));
+                                    return;
+                                }
+                                long endedAt = System.currentTimeMillis();
+                                sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
+                                continue;
+                            }
+                            if ("SelectMenuItem".equals(keyword) || "SelectPopupMenu".equals(keyword) || "SelectListItem".equals(keyword)) {
+                                String clickErr = replayRightClickIfRequested(comp, keyword, step, robot);
+                                if (clickErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, clickErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, clickErr));
+                                    return;
+                                }
+                                String selectErr = replaySelectItemClick(comp, robot);
+                                if (selectErr != null) {
+                                    int idx = i;
+                                    long endedAt = System.currentTimeMillis();
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, selectErr);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, selectErr));
+                                    return;
+                                }
+                                // Popup/menu action can be asynchronous; keep a default settle delay.
+                                robot.delay(1000);
                                 String verifyErr = verifyExpectedAfterAction(comp, step);
                                 if (verifyErr != null) {
                                     int idx = i;
@@ -1083,7 +1324,9 @@ public class RecordAgent {
                     sendReplayProgress(conn, "replayEnd", null, total, null, "failed", null, null, e.getMessage());
                     EventQueue.invokeLater(() -> sendReplayDone(conn, 0, null, e.getMessage()));
                 }
-            }, "replay-thread").start();
+            }, "replay-thread");
+            replayThread.setDaemon(true);
+            replayThread.start();
         } catch (Exception e) {
             AgentLogger.logException(LOG, Level.WARNING, "Replay parse failed", e);
             sendReplayDone(conn, 0, null, e.getMessage());
@@ -1155,7 +1398,34 @@ public class RecordAgent {
         if (obj != null && obj.has("DebugPort")) {
             cfg.debugPort = parsePortLike(obj.get("DebugPort"), 0);
         }
+        if (obj != null && obj.has("JdwpPort")) {
+            cfg.jdwpPort = parsePortLike(obj.get("JdwpPort"), 0);
+        }
         return cfg;
+    }
+
+    /**
+     * Enables JVM debug (JDWP) on the given port so a debugger can attach to this process.
+     * Uses Attach API to load the JDWP agent into the current VM. No-op if port is invalid or attach fails.
+     */
+    private static void enableJdwp(int port) {
+        if (port <= 0 || port > 65535) return;
+        try {
+            long pid = ProcessHandle.current().pid();
+            Class<?> vmClass = Class.forName("com.sun.tools.attach.VirtualMachine");
+            Method attachMethod = vmClass.getMethod("attach", String.class);
+            Object vm = attachMethod.invoke(null, String.valueOf(pid));
+            try {
+                String options = "transport=dt_socket,server=y,suspend=n,address=*:" + port;
+                Method loadLib = vmClass.getMethod("loadAgentLibrary", String.class, String.class);
+                loadLib.invoke(vm, "jdwp", options);
+                AgentLogger.info(LOG, "JDWP debug port opened on " + port + "; attach debugger to localhost:" + port);
+            } finally {
+                vmClass.getMethod("detach").invoke(vm);
+            }
+        } catch (Exception e) {
+            AgentLogger.logException(LOG, Level.WARNING, "Failed to open JDWP port " + port + " (attach/loadAgentLibrary)", e);
+        }
     }
 
     private static int parsePortLike(JsonElement value, int defaultValue) {
@@ -1352,7 +1622,7 @@ public class RecordAgent {
             }
             SearchAndUpdateReplaySpec spec = new SearchAndUpdateReplaySpec();
             String p = para.trim();
-            if (p.startsWith("RightClick;")) {
+            if (startsWithIgnoreCase(p, "RightClick;")) {
                 spec.clickMode = "RightClick";
                 p = p.substring("RightClick;".length()).trim();
             } else {
@@ -1525,7 +1795,7 @@ public class RecordAgent {
         SearchAndUpdateReplaySpec spec = new SearchAndUpdateReplaySpec();
 
         String p = para.trim();
-        if (p.startsWith("RightClick;")) {
+        if (startsWithIgnoreCase(p, "RightClick;")) {
             spec.clickMode = "RightClick";
             p = p.substring("RightClick;".length()).trim();
         } else {
@@ -2675,10 +2945,49 @@ private static Map<String, Object> jsonToMap(JsonObject obj) {
     return map;
 }
 
+/**
+ * Set daemon flag on WebSocketServer's decoder worker threads (Java-WebSocket 1.5.4 has no public setDaemon).
+ * Call before starting the server so the JVM can exit when the host app exits.
+ */
+private static void setWebSocketServerDecodersDaemon(WebSocketServer server, boolean daemon) {
+    if (server == null) return;
+    try {
+        Class<?> c = server.getClass();
+        while (c != null) {
+            try {
+                java.lang.reflect.Field f = c.getDeclaredField("decoders");
+                f.setAccessible(true);
+                Object val = f.get(server);
+                if (val instanceof List<?>) {
+                    for (Object w : (List<?>) val) {
+                        if (w instanceof Thread) ((Thread) w).setDaemon(daemon);
+                    }
+                }
+                return;
+            } catch (NoSuchFieldException e) {
+                c = c.getSuperclass();
+            }
+        }
+    } catch (Exception e) {
+        AgentLogger.logException(LOG, Level.WARNING, "Set WebSocketServer decoders daemon failed", e);
+    }
+}
+
+private static void shutdownFxStepExecutor(AtomicReference<ExecutorService> ref) {
+    ExecutorService ex = ref.getAndSet(null);
+    if (ex != null) {
+        ex.shutdown();
+        try {
+            ex.awaitTermination(500, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+}
+
 private static String nullToEmpty(String s) {
     return s == null ? "" : s;
 }
-
 
 /** Find first component in the window hierarchy that matches the given identifier (javaType, text, caption). */
 private static Component findComponentByIdentifier(JsonObject id) {
@@ -2949,6 +3258,118 @@ private static int[] getScreenBounds(Component c) {
     } catch (Exception e) {
         AgentLogger.logException(LOG, Level.FINE, "getScreenBounds", e);
     }
+    return null;
+}
+
+private static String replayRightClickIfRequested(Component comp, String keyword, JsonObject step, Robot robot) {
+    if (!hasRightClickParameter(step)) return null;
+    if (comp == null) return "Rightclick requested but target component is null";
+    final int[] pos = new int[] { -1, -1 };
+    try {
+        EventQueue.invokeAndWait(() -> {
+            Point p = resolveSelectedItemPoint(comp, keyword);
+            if (p != null) {
+                pos[0] = p.x;
+                pos[1] = p.y;
+            }
+        });
+    } catch (Exception e) {
+        return "Rightclick point resolve failed: " + e.getMessage();
+    }
+    if (pos[0] < 0 || pos[1] < 0) {
+        return "Rightclick point unavailable for keyword " + keyword;
+    }
+    robot.mouseMove(pos[0], pos[1]);
+    robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
+    robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+    robot.delay(120);
+    return null;
+}
+
+private static boolean hasRightClickParameter(JsonObject step) {
+    String para = getJsonStr(step, "parameter");
+    return parameterContainsTokenIgnoreCase(para, "rightclick");
+}
+
+private static boolean startsWithIgnoreCase(String source, String prefix) {
+    if (source == null || prefix == null) return false;
+    if (source.length() < prefix.length()) return false;
+    return source.regionMatches(true, 0, prefix, 0, prefix.length());
+}
+
+private static boolean parameterEqualsIgnoreCase(String parameter, String expected) {
+    if (parameter == null || expected == null) return false;
+    return parameter.trim().equalsIgnoreCase(expected);
+}
+
+private static boolean parameterContainsTokenIgnoreCase(String parameter, String token) {
+    if (parameter == null || token == null) return false;
+    String[] parts = parameter.split("[;,]");
+    for (String part : parts) {
+        if (part != null && part.trim().equalsIgnoreCase(token)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+private static Point resolveSelectedItemPoint(Component comp, String keyword) {
+    if (comp instanceof JTree) {
+        JTree tree = (JTree) comp;
+        TreePath sel = tree.getSelectionPath();
+        if (sel != null) {
+            Rectangle r = tree.getPathBounds(sel);
+            Point base = tree.getLocationOnScreen();
+            if (r != null && base != null) {
+                return new Point(base.x + Math.max(1, r.x + r.width / 2), base.y + Math.max(1, r.y + r.height / 2));
+            }
+        }
+    }
+    if (comp instanceof JTabbedPane) {
+        JTabbedPane tabs = (JTabbedPane) comp;
+        int idx = tabs.getSelectedIndex();
+        if (idx >= 0) {
+            Rectangle r = tabs.getBoundsAt(idx);
+            Point base = tabs.getLocationOnScreen();
+            if (r != null && base != null) {
+                return new Point(base.x + Math.max(1, r.x + r.width / 2), base.y + Math.max(1, r.y + r.height / 2));
+            }
+        }
+    }
+    if (comp instanceof JTable) {
+        JTable table = (JTable) comp;
+        int row = table.getSelectedRow();
+        int col = table.getSelectedColumn();
+        if (row >= 0 && col >= 0) {
+            Rectangle r = table.getCellRect(row, col, true);
+            Point base = table.getLocationOnScreen();
+            if (r != null && base != null) {
+                return new Point(base.x + Math.max(1, r.x + r.width / 2), base.y + Math.max(1, r.y + r.height / 2));
+            }
+        }
+    }
+    int[] b = getScreenBounds(comp);
+    if (b != null && b[2] > 0 && b[3] > 0) {
+        return new Point(b[0] + b[2] / 2, b[1] + b[3] / 2);
+    }
+    return null;
+}
+
+private static String replaySelectItemClick(Component comp, Robot robot) {
+    if (comp == null) return "Select action target is null";
+    if (robot == null) return "Select action robot is null";
+    int[] b = getScreenBounds(comp);
+    if (b == null || b[2] <= 0 || b[3] <= 0) {
+        return "Select action target has no bounds";
+    }
+    int cx = b[0] + b[2] / 2;
+    int cy = b[1] + b[3] / 2;
+    robot.mouseMove(cx, cy);
+    robot.delay(80);
+    robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+    robot.delay(40);
+    robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    robot.delay(180);
     return null;
 }
 
