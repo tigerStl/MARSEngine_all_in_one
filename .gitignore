@@ -438,3 +438,5 @@ FodyWeavers.xsd
 *.msm
 *.msp
 *.class
+*.jar
+/MarsPlugins/sampleJava/JavaLoanIqDemo/LoanIQDemo/runtime/legal
