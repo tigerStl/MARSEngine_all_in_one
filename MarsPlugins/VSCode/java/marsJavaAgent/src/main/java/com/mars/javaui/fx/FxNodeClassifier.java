@@ -69,6 +69,8 @@ public final class FxNodeClassifier {
         List<ClassRule> r = new ArrayList<>();
         r.add(new ClassRule("TabPaneSkin", FxNodeCategory.SEMANTIC_CONTROL, FxNodeCategory.COMPOSITE_BOUNDARY, "TABPANE"));
         r.add(new ClassRule("TabHeaderSkin", FxNodeCategory.SEMANTIC_PART, FxNodeCategory.ACTION_BOUNDARY, "TAB"));
+        r.add(new ClassRule("javafx.scene.control.skin.", FxNodeCategory.STRUCTURAL_CONTAINER, FxNodeCategory.NON_BOUNDARY, "SKIN_OR_VFLOW"));
+        r.add(new ClassRule("com.sun.javafx.", FxNodeCategory.STRUCTURAL_CONTAINER, FxNodeCategory.NON_BOUNDARY, "SKIN_OR_VFLOW"));
         r.add(new ClassRule("Skin", FxNodeCategory.STRUCTURAL_CONTAINER, FxNodeCategory.NON_BOUNDARY, "SKIN_OR_VFLOW"));
         r.add(new ClassRule("VirtualFlow", FxNodeCategory.STRUCTURAL_CONTAINER, FxNodeCategory.NON_BOUNDARY, "SKIN_OR_VFLOW"));
         r.add(new ClassRule("ScrollBar", FxNodeCategory.STRUCTURAL_CONTAINER, FxNodeCategory.NON_BOUNDARY, "LAYOUT_CONTAINER"));
@@ -140,6 +142,20 @@ public final class FxNodeClassifier {
                 || "SKIN_OR_VFLOW".equals(meta.semanticType);
     }
 
+    /** True if meta is a part of a composite semantic (TableCell, TreeCell, ListCell, Tab). 组合语义的一部分. */
+    public static boolean isCompositeSemanticPart(FxNodeCategory.NodeMeta meta) {
+        if (meta == null) return false;
+        return FxNodeCategory.SEMANTIC_PART.equals(meta.category)
+                && FxNodeCategory.ACTION_BOUNDARY.equals(meta.boundary);
+    }
+
+    /** True if meta is a simple semantic control (TextField, Button, CheckBox, etc.). 简单语义，需向上查找组合语义. */
+    public static boolean isSimpleSemanticControl(FxNodeCategory.NodeMeta meta) {
+        if (meta == null) return false;
+        return FxNodeCategory.SEMANTIC_CONTROL.equals(meta.category)
+                && FxNodeCategory.ACTION_BOUNDARY.equals(meta.boundary);
+    }
+
     public static Object parentOf(Object node) {
         if (node == null) return null;
         try {
@@ -166,11 +182,16 @@ public final class FxNodeClassifier {
         return false;
     }
 
-    /** Normalize: inside TabHeaderSkin -> TabHeaderSkin (SelectTab); text/graphic inside Labeled/Button -> that control. */
+    /** Normalize: Skin→getSkinnable (Tab etc.); inside TabHeaderSkin→TabHeaderSkin; text/graphic inside Labeled/Button→that control. */
     public static Object normalizeToMeaningfulNode(Object node) {
         if (node == null) return null;
         String name = node.getClass().getName();
-        // First: any node inside TabHeaderSkin (e.g. LabeledText, Label, TabHeaderSkin$4) -> lift to tab header for SelectTab
+        // Spec: Skin → skinnable (model) if possible
+        if (isSkin(node)) {
+            Object skinnable = getSkinnable(node);
+            if (skinnable != null) return skinnable;
+        }
+        // Any node inside TabHeaderSkin (e.g. LabeledText, Label) -> tab header for SelectTab
         Object tabHeader = nearestAncestorWithClassNameContaining(node, "TabHeaderSkin");
         if (tabHeader != null) return tabHeader;
         if (isTextNodeInsideLabeled(node, name)) {
@@ -182,6 +203,22 @@ public final class FxNodeClassifier {
             if (a != null) return a;
         }
         return node;
+    }
+
+    private static boolean isSkin(Object node) {
+        if (node == null) return false;
+        String cn = node.getClass().getName();
+        return cn.contains("javafx.scene.control.Skin") || cn.contains(".Skin");
+    }
+
+    private static Object getSkinnable(Object skin) {
+        if (skin == null) return null;
+        try {
+            Method m = skin.getClass().getMethod("getSkinnable");
+            return m.invoke(skin);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static Object nearestAncestorWithClassNameContaining(Object node, String fragment) {
@@ -299,50 +336,78 @@ public final class FxNodeClassifier {
     /**
      * Fold structural nodes and lift to semantic target + semantic parent.
      * Returns (semanticTarget, semanticParent, foldedChain).
+     * Uses default max ancestor hops (3).
      */
     public static FxNodeCategory.LiftResult foldAndLift(Object eventTargetNode) {
+        return foldAndLift(eventTargetNode, 5);
+    }
+
+    /**
+     * Fold structural nodes and lift to semantic target within maxAncestorHops.
+     * Rule: 组合语义 (Table/Tree/List/TabPane 及其 part) vs 简单语义 (TextField, Button, CheckBox 等).
+     * - <b>Composite-semantic part</b> (TableCell, TreeCell, ListCell, Tab): use as target immediately.
+     * - <b>Simple-semantic control</b>: always look upward (within maxAncestorHops) for a composite-semantic
+     *   part; if found, that part is the target (e.g. SearchAndUpdate); if not found, use the control
+     *   itself as target (e.g. FillEdit, ClickButton).
+     *
+     * @param maxAncestorHops max parent steps from normalized node (default 5); 0 = use 5
+     */
+    public static FxNodeCategory.LiftResult foldAndLift(Object eventTargetNode, int maxAncestorHops) {
+        int maxHops = maxAncestorHops <= 0 ? 5 : maxAncestorHops;
         Object n0 = normalizeToMeaningfulNode(eventTargetNode);
         List<Object> folded = new ArrayList<>();
         FxNodeCategory.NodeMeta targetMeta = null;
+        FxNodeCategory.NodeMeta candidateSimpleSemantic = null;
         Object cur = n0;
+        int hopCount = 0;
 
-        while (cur != null) {
+        while (cur != null && hopCount <= maxHops) {
             FxNodeCategory.NodeMeta meta = classify(cur);
 
             if (shouldFold(meta)) {
                 folded.add(cur);
                 cur = parentOf(cur);
+                hopCount++;
                 continue;
             }
 
-            if (FxNodeCategory.SEMANTIC_PART.equals(meta.category) && FxNodeCategory.ACTION_BOUNDARY.equals(meta.boundary)) {
+            if (isCompositeSemanticPart(meta)) {
                 targetMeta = meta;
                 break;
             }
 
-            if (FxNodeCategory.SEMANTIC_CONTROL.equals(meta.category) && FxNodeCategory.ACTION_BOUNDARY.equals(meta.boundary)) {
-                targetMeta = meta;
-                break;
+            if (isSimpleSemanticControl(meta)) {
+                if (candidateSimpleSemantic == null) candidateSimpleSemantic = meta;
+                cur = parentOf(cur);
+                hopCount++;
+                continue;
             }
 
             if (FxNodeCategory.SEMANTIC_CONTROL.equals(meta.category) && FxNodeCategory.COMPOSITE_BOUNDARY.equals(meta.boundary)) {
                 if (targetMeta == null) targetMeta = meta;
                 cur = parentOf(cur);
+                hopCount++;
                 continue;
             }
 
             if (FxNodeCategory.DECORATION.equals(meta.category)) {
                 if (isInteractable(cur)) {
-                    targetMeta = new FxNodeCategory.NodeMeta(cur, FxNodeCategory.SEMANTIC_CONTROL, FxNodeCategory.ACTION_BOUNDARY, "DECORATION_AS_CONTROL");
-                    break;
+                    if (candidateSimpleSemantic == null) {
+                        candidateSimpleSemantic = new FxNodeCategory.NodeMeta(cur, FxNodeCategory.SEMANTIC_CONTROL, FxNodeCategory.ACTION_BOUNDARY, "DECORATION_AS_CONTROL");
+                    }
                 }
                 cur = parentOf(cur);
+                hopCount++;
                 continue;
             }
 
             cur = parentOf(cur);
+            hopCount++;
         }
 
+        if (targetMeta == null && candidateSimpleSemantic != null) {
+            targetMeta = candidateSimpleSemantic;
+        }
         if (targetMeta == null) {
             return new FxNodeCategory.LiftResult(null, null, folded);
         }

@@ -154,7 +154,7 @@ export async function getJavaProcesses(onProgress?: (e: ProgressEvent) => void):
 
     const timeout = setTimeout(() => {
       cleanup(new Error('WebSocket response timeout from ProcessInfo'));
-    }, 15000);
+    }, 60000);
 
     wss.on('connection', (ws: WebSocket) => {
       ws.send(JSON.stringify(command));

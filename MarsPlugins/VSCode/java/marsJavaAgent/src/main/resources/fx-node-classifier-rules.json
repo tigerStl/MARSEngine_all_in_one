@@ -1,6 +1,8 @@
 [
   { "pattern": "TabPaneSkin", "category": "SEMANTIC_CONTROL", "boundary": "COMPOSITE_BOUNDARY", "semanticType": "TABPANE" },
   { "pattern": "TabHeaderSkin", "category": "SEMANTIC_PART", "boundary": "ACTION_BOUNDARY", "semanticType": "TAB" },
+  { "pattern": "javafx.scene.control.skin.", "category": "STRUCTURAL_CONTAINER", "boundary": "NON_BOUNDARY", "semanticType": "SKIN_OR_VFLOW" },
+  { "pattern": "com.sun.javafx.", "category": "STRUCTURAL_CONTAINER", "boundary": "NON_BOUNDARY", "semanticType": "SKIN_OR_VFLOW" },
   { "pattern": "Skin", "category": "STRUCTURAL_CONTAINER", "boundary": "NON_BOUNDARY", "semanticType": "SKIN_OR_VFLOW" },
   { "pattern": "VirtualFlow", "category": "STRUCTURAL_CONTAINER", "boundary": "NON_BOUNDARY", "semanticType": "SKIN_OR_VFLOW" },
   { "pattern": "ScrollBar", "category": "STRUCTURAL_CONTAINER", "boundary": "NON_BOUNDARY", "semanticType": "LAYOUT_CONTAINER" },

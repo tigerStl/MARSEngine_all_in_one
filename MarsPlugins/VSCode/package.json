@@ -138,6 +138,7 @@
         "pretest": "npm run compile",
         "build:java": "cd java && mvn clean package -DskipTests && cd ..",
         "build:processinfo": "cd ProcessInfo && dotnet publish -c Release && cd ..",
+        "build:all": "npm run compile && npm run build:java && npm run build:processinfo",
         "gen:loaniq": "npm run compile && node out/test/dev-generate-loaniq-tests.js",
         "e2e:loaniq": "npm run compile && node scripts/e2e-loaniq-record-replay.js",
         "test:recorder": "npm run compile && node out/test/recorderRules.test.js",

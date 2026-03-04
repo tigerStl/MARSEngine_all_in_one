@@ -1,4 +1,16 @@
 {
   "IsHighlightObjectWhileReplay": true,
-  "JdwpPort": 0
+  "JdwpPort": 0,
+  "SemanticTracking": {
+    "MaxAncestorHops": 5,
+    "PreferPartOverControl": true,
+    "PreferModelOverView": true,
+    "UseCssClassAnchors": true,
+    "FallbackToSelectionModel": true
+  },
+  "SemanticPolicy": {
+    "ButtonInTableCell": "ROW_ACTION",
+    "ActionNamePriority": ["text", "tooltip", "graphic"],
+    "RowKeyStrategy": "ITEM_PRIMARY_KEY_OR_INDEX"
+  }
 }

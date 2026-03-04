@@ -90,6 +90,24 @@ var wsPort = GetArgInt("--ws");
 
 string[] JavaModuleKeywords = { "jvm", "java", "jdk", "jre", "jli", "jimage", "verify" };
 
+// Process names (lowercase) that are always treated as non-Java and skipped early to speed up scanning.
+// 系统 / 浏览器 / 常见非 Java 进程前缀，全部小写，按 contains/startsWith 过滤。
+string[] ExcludedProcessNameKeywords = new[]
+{
+    // Windows system & service processes
+    "idle", "system", "registry", "smss", "csrss", "wininit", "services",
+    "lsaiso", "lsass", "fontdrvhost", "wudfhost", "svchost",
+    // 常见安全/驱动相关
+    "ekrn",          // ESET
+    "syntpenh",      // Synaptics touchpad
+    "nvdisplay.container",
+    // 浏览器 / 其它非 Java 应用
+    "opera", "msedge", "chrome", "dotnet",
+    // 其它明确非 Java 服务
+    "mqsvc","dllhost", "wslhost", "csrss", "wininit", "services","chrome","msedge","opera","firefox",
+    "backgroundTaskHost","msedgewebview2","chromewebview2","chromewebview2embedded","chromewebview2embeddedhost","Cursor"
+};
+
 if (wsPort.HasValue)
 {
     Log($"INFO: WebSocket port requested: {wsPort.Value}");
@@ -161,12 +179,16 @@ List<JavaProcessInfo> GetJavaProcesses(object? unused, bool reportChecking)
                 var name = p.ProcessName ?? "";
                 Log($"PROCESSING:{p.Id}:{name}");
 
-                // Filter out common non-Java processes early to avoid unnecessary work
+                // Filter out common non-Java / system processes early to avoid unnecessary work.
+                // 使用 ExcludedProcessNameKeywords 常量（全部小写），按 equals / startsWith / contains 过滤。
                 var lname = name.ToLowerInvariant();
-                var excluded = new[] { "svchost", "opera", "msedge", "chrome", "dotnet" };
                 bool isExcluded = false;
-                foreach (var ex in excluded)
+                foreach (var ex in ExcludedProcessNameKeywords)
                 {
+                    if (string.IsNullOrEmpty(ex)) {
+                        Log($"SKIP:{p.Id} (excluded:{name})");
+                        continue;
+                    }
                     if (lname == ex || lname.StartsWith(ex) || lname.Contains(ex))
                     {
                         isExcluded = true;

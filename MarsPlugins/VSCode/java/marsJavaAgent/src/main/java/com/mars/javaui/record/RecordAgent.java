@@ -99,6 +99,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mars.javaui.fx.FxReplayResolver;
 import com.mars.javaui.fx.FxRecordSupport;
 import com.mars.javaui.fx.FxReplaySupport;
 import com.mars.javaui.keyword.MarsKeyword;
@@ -241,6 +242,7 @@ public class RecordAgent {
         final AtomicReference<WebSocket> clientConn = new AtomicReference<>();
         final AtomicReference<AWTEventListener> listenerRef = new AtomicReference<>();
         final AtomicReference<List<FxRecordSupport.FxFilterHook>> fxHooksRef = new AtomicReference<>();
+        final AtomicReference<List<FxRecordSupport.FxFocusHook>> fxFocusHooksRef = new AtomicReference<>();
         final AtomicReference<ExecutorService> fxStepExecutorRef = new AtomicReference<>();
         final Component[] lastRecordedComponentRef = new Component[1];
         final long[] lastRecordedTimeRef = new long[1];
@@ -349,6 +351,7 @@ public class RecordAgent {
                         EventQueue.invokeLater(() -> Toolkit.getDefaultToolkit().removeAWTEventListener(L));
                     }
                     FxRecordSupport.detachJavaFxRecordHooks(fxHooksRef.getAndSet(null));
+                    FxRecordSupport.detachJavaFxFocusHooks(fxFocusHooksRef.getAndSet(null));
                     shutdownFxStepExecutor(fxStepExecutorRef);
                 }
             }
@@ -600,7 +603,7 @@ public class RecordAgent {
                         };
                         ExecutorService fxStepExecutor = Executors.newSingleThreadExecutor(daemonThreadFactory);
                         fxStepExecutorRef.set(fxStepExecutor);
-                        FxRecordSupport.attachJavaFxRecordHooks(recording, writerRef, clientConn, fxHooksRef, step -> {
+                        FxRecordSupport.attachJavaFxRecordHooks(recording, writerRef, clientConn, fxHooksRef, fxFocusHooksRef, step -> {
                             fxStepExecutor.execute(() -> {
                                 try {
                                     Writer w = writerRef.get();
@@ -655,6 +658,7 @@ public class RecordAgent {
                             Toolkit.getDefaultToolkit().removeAWTEventListener(L);
                         }
                         FxRecordSupport.detachJavaFxRecordHooks(fxHooksRef.getAndSet(null));
+                        FxRecordSupport.detachJavaFxFocusHooks(fxFocusHooksRef.getAndSet(null));
                         shutdownFxStepExecutor(fxStepExecutorRef);
                         final TreeExpansionListener tel = treeExpansionListenerRef.getAndSet(null);
                         final java.util.List<JTree> treeList = treeExpansionTreesRef.getAndSet(null);
@@ -767,6 +771,7 @@ public class RecordAgent {
                         EventQueue.invokeLater(() -> Toolkit.getDefaultToolkit().removeAWTEventListener(L));
                     }
                     FxRecordSupport.detachJavaFxRecordHooks(fxHooksRef.getAndSet(null));
+                    FxRecordSupport.detachJavaFxFocusHooks(fxFocusHooksRef.getAndSet(null));
                     shutdownFxStepExecutor(fxStepExecutorRef);
                     try {
                         server.stop(1000);
@@ -971,12 +976,39 @@ public class RecordAgent {
                                         return RecordAgent.sanitizeFillEditInput(data);
                                     }
                                 };
-                                String fxErr = FxReplaySupport.replayJavaFxByBounds(ok, keyword, step, robot, fxCallbacks);
-                                if (fxErr != null) {
+                                String fxErr;
+                                if (FxReplaySupport.isJavaFxTableStep(ok, keyword)) {
+                                    Object parent = FxReplayResolver.resolveParent(pk);
+                                    if (parent == null) {
+                                        fxErr = "JavaFX parent not found";
+                                    } else {
+                                        Object tableNode = FxReplayResolver.resolveObject(parent, ok);
+                                        if (tableNode == null) {
+                                            fxErr = "JavaFX TableView not found under parent";
+                                        } else {
+                                            String para = getJsonStr(step, "parameter");
+                                            String data = getJsonStr(step, "data");
+                                            if ("SearchAndUpdate".equals(keyword)) {
+                                                fxErr = FxReplaySupport.replayJavaFxTableViewSearchAndUpdate(tableNode, para, data, robot, fxCallbacks);
+                                            } else if ("SearchAndClick".equals(keyword)) {
+                                                fxErr = FxReplaySupport.replayJavaFxTableViewSearchAndClick(tableNode, para, data, robot);
+                                            } else {
+                                                fxErr = "Unsupported keyword for JavaFX table: " + keyword;
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    fxErr = FxReplaySupport.resolveAndReplayJavaFx(pk, ok, keyword, step, robot, fxCallbacks);
+                                    if (fxErr != null && FxReplaySupport.getScreenBoundsFromObjectKey(ok) != null) {
+                                        fxErr = FxReplaySupport.replayJavaFxByBounds(ok, keyword, step, robot, fxCallbacks);
+                                    }
+                                }
+                                final String fxErrFinal = fxErr;
+                                if (fxErrFinal != null) {
                                     int idx = i;
                                     long endedAt = System.currentTimeMillis();
-                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, fxErr);
-                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, fxErr));
+                                    sendReplayProgress(conn, "stepEnd", idx, total, keyword, "failed", stepStartedAt, endedAt, fxErrFinal);
+                                    EventQueue.invokeLater(() -> sendReplayDone(conn, total, idx, fxErrFinal));
                                     return;
                                 }
                                 long endedAt = System.currentTimeMillis();

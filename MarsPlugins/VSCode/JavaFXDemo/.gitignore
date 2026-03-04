@@ -1,4 +1,8 @@
 target/
 dist/
+dist-new/
+build/
 **/jpackage-input/
 $inputDir/
+*.class
+gradle/wrapper/*.jar

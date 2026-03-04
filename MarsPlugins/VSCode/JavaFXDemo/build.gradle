@@ -1,0 +1,46 @@
+plugins {
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+    id 'org.beryx.jlink' version '3.2.1'
+}
+
+group = 'com.mars.javafxdemo'
+version = '1.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+}
+
+javafx {
+    version = '21.0.1'
+    modules = ['javafx.controls', 'javafx.fxml', 'javafx.graphics']
+}
+
+application {
+    mainModule = 'com.mars.javafxdemo'
+    mainClass = 'com.mars.javafxdemo.LoanIQStyleDemo'
+}
+
+def os = org.gradle.internal.os.OperatingSystem.current()
+jlink {
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+    imageDir = file("$buildDir/image")
+    imageZip = file("$buildDir/image-zip/LoanIQDemo.zip")
+    launcher {
+        name = 'LoanIQDemo'
+        noConsole = true
+    }
+    jpackage {
+        imageName = 'LoanIQDemo'
+        installerName = 'LoanIQDemo'
+        installerType = 'app-image'
+        if (os.windows) {
+            installerOptions = ['--win-per-user-install', '--win-menu']
+        }
+    }
+}

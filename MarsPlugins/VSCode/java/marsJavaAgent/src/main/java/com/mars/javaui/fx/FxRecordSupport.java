@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * JavaFX recording hooks and step emission (isolated from Swing/AWT).
@@ -38,9 +40,59 @@ public final class FxRecordSupport {
         }
     }
 
+    /** Holder for focus listener (scene + listener) for table cell focus-lost → SearchAndUpdate. */
+    public static final class FxFocusHook {
+        public final Object scene;
+        public final Object property;
+        public final Object listener;
+
+        public FxFocusHook(Object scene, Object property, Object listener) {
+            this.scene = scene;
+            this.property = property;
+            this.listener = listener;
+        }
+    }
+
+    /** Info for a TableView cell: table + row + column index. */
+    private static final class TableCellInfo {
+        final Object tableView;
+        final int row;
+        final int col;
+
+        TableCellInfo(Object tableView, int row, int col) {
+            this.tableView = tableView;
+            this.row = row;
+            this.col = col;
+        }
+    }
+
+    // Context for recording SearchAndUpdate when focus leaves the cell (left-click in cell only).
+    private static volatile Object fxTableContextTableView;
+    private static volatile int fxTableContextRow = -1;
+    private static volatile int fxTableContextCol = -1;
+    private static volatile List<String> fxTableContextConditionColumns;
+    private static volatile List<String> fxTableContextConditionValues;
+
     /** Sends a recorded step (e.g. to file + WebSocket). Implemented by RecordAgent. */
     public interface FxStepSender {
         void sendStep(Map<String, Object> step);
+    }
+
+    private static volatile FxSemanticTrackingConfig semanticTrackingConfig;
+
+    private static FxSemanticTrackingConfig getSemanticTrackingConfig() {
+        FxSemanticTrackingConfig c = semanticTrackingConfig;
+        if (c == null) {
+            synchronized (FxRecordSupport.class) {
+                c = semanticTrackingConfig;
+                if (c == null) {
+                    String path = System.getProperty("mars.fx.semantic.config");
+                    c = FxSemanticTrackingConfig.load(path);
+                    semanticTrackingConfig = c;
+                }
+            }
+        }
+        return c;
     }
 
     public static void attachJavaFxRecordHooks(
@@ -48,6 +100,7 @@ public final class FxRecordSupport {
             AtomicReference<OutputStreamWriter> writerRef,
             AtomicReference<?> clientConnRef,
             AtomicReference<List<FxFilterHook>> fxHooksRef,
+            AtomicReference<List<FxFocusHook>> fxFocusHooksRef,
             FxStepSender stepSender) {
         try {
             Class<?> platformClz = Class.forName("javafx.application.Platform");
@@ -65,6 +118,7 @@ public final class FxRecordSupport {
             Object keyReleasedType = keyEventClz.getField("KEY_RELEASED").get(null);
 
             List<FxFilterHook> hooks = new ArrayList<>();
+            List<FxFocusHook> focusHooks = new ArrayList<>();
             Runnable register = () -> {
                 try {
                     Object winsObj = windowClz.getMethod("getWindows").invoke(null);
@@ -109,6 +163,28 @@ public final class FxRecordSupport {
                         });
                         addEventFilter.invoke(scene, keyReleasedType, keyHandler);
                         hooks.add(new FxFilterHook(scene, keyReleasedType, keyHandler));
+
+                        // Focus listener: when focus leaves a table cell we recorded, emit SearchAndUpdate
+                        try {
+                            Method focusOwnerProp = sceneClz.getMethod("focusOwnerProperty");
+                            Object focusProp = focusOwnerProp.invoke(scene);
+                            if (focusProp != null) {
+                                Object focusListener = createFocusChangeListenerProxy((oldOwner, newOwner) -> {
+                                    if (!recording[0]) return;
+                                    try {
+                                        runLater.invoke(null, (Runnable) () -> onJavaFxFocusChange(oldOwner, newOwner, stepSender));
+                                    } catch (Exception e) {
+                                        LOG.log(Level.WARNING, "FX runLater (focus) failed", e);
+                                    }
+                                });
+                                Class<?> changeListenerClz = Class.forName("javafx.beans.value.ChangeListener");
+                                Method addListener = focusProp.getClass().getMethod("addListener", changeListenerClz);
+                                addListener.invoke(focusProp, focusListener);
+                                focusHooks.add(new FxFocusHook(scene, focusProp, focusListener));
+                            }
+                        } catch (Exception e) {
+                            LOG.log(Level.FINE, "FX focusOwnerProperty/addListener not available", e);
+                        }
                     }
                 } catch (Exception e) {
                     LOG.log(Level.WARNING, "attachJavaFxRecordHooks register.run failed", e);
@@ -130,6 +206,7 @@ public final class FxRecordSupport {
                 latch.await(1500, TimeUnit.MILLISECONDS);
             }
             fxHooksRef.set(hooks);
+            if (fxFocusHooksRef != null) fxFocusHooksRef.set(focusHooks);
         } catch (ClassNotFoundException e) {
             LOG.log(Level.FINE, "JavaFX not present, skip FX record hooks", e);
         } catch (Exception e) {
@@ -165,6 +242,36 @@ public final class FxRecordSupport {
         }
     }
 
+    public static void detachJavaFxFocusHooks(List<FxFocusHook> focusHooks) {
+        if (focusHooks == null || focusHooks.isEmpty()) return;
+        clearFxTableContext();
+        try {
+            Class<?> platformClz = Class.forName("javafx.application.Platform");
+            Method isFxThread = platformClz.getMethod("isFxApplicationThread");
+            Method runLater = platformClz.getMethod("runLater", Runnable.class);
+            Runnable remove = () -> {
+                for (FxFocusHook h : focusHooks) {
+                    try {
+                        if (h.property != null && h.listener != null) {
+                            Method removeListener = h.property.getClass().getMethod("removeListener", Class.forName("javafx.beans.value.ChangeListener"));
+                            removeListener.invoke(h.property, h.listener);
+                        }
+                    } catch (Exception e) {
+                        LOG.log(Level.WARNING, "detachJavaFxFocusHooks removeListener failed", e);
+                    }
+                }
+            };
+            boolean fxThread = Boolean.TRUE.equals(isFxThread.invoke(null));
+            if (fxThread) {
+                remove.run();
+            } else {
+                runLater.invoke(null, remove);
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "detachJavaFxFocusHooks failed", e);
+        }
+    }
+
     private interface EventConsumer {
         void onEvent(Object event);
     }
@@ -189,6 +296,65 @@ public final class FxRecordSupport {
         );
     }
 
+    private interface FocusChangeConsumer {
+        void onFocusChange(Object oldOwner, Object newOwner);
+    }
+
+    private static Object createFocusChangeListenerProxy(FocusChangeConsumer consumer) throws Exception {
+        Class<?> changeListenerClz = Class.forName("javafx.beans.value.ChangeListener");
+        InvocationHandler ih = (proxy, method, args) -> {
+            if ("changed".equals(method.getName()) && args != null && args.length >= 3) {
+                try {
+                    consumer.onFocusChange(args[1], args[2]);
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "FX focus listener failed", e);
+                }
+                return null;
+            }
+            return null;
+        };
+        return Proxy.newProxyInstance(
+                FxRecordSupport.class.getClassLoader(),
+                new Class<?>[]{changeListenerClz},
+                ih
+        );
+    }
+
+    /** Called on FX thread when focus changes; emit SearchAndUpdate if focus left our tracked table cell. */
+    private static void onJavaFxFocusChange(Object oldOwner, Object newOwner, FxStepSender stepSender) {
+        Object table = fxTableContextTableView;
+        if (table == null || oldOwner == null || stepSender == null) return;
+        TableCellInfo cell = getTableCellInfoFromNode(oldOwner);
+        if (cell == null || cell.tableView != table || cell.row != fxTableContextRow || cell.col != fxTableContextCol) return;
+        List<String> condCols = fxTableContextConditionColumns;
+        List<String> condVals = fxTableContextConditionValues;
+        if (condCols == null || condVals == null || condCols.size() != condVals.size()) return;
+        String targetValue = getFxTableCellValue(table, fxTableContextRow, fxTableContextCol);
+        if (targetValue == null) targetValue = "";
+        String param = buildFxTableParameter(condCols, fxTableContextCol);
+        String data = buildFxTableSearchAndUpdateData(condVals, targetValue);
+        Map<String, Object> step = new LinkedHashMap<>();
+        step.put("keyword", "SearchAndUpdate");
+        step.put("event", "searchAndUpdate");
+        step.put("timestamp", System.currentTimeMillis());
+        step.put("parameter", param);
+        step.put("data", data);
+        step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(table, null));
+        step.put("objectIdentifier", buildJavaFxObjectIdentifier(table));
+        step.put("objectCategory", "javaFxTable");
+        step.put("semanticType", "TABLEVIEW");
+        stepSender.sendStep(step);
+        clearFxTableContext();
+    }
+
+    private static void clearFxTableContext() {
+        fxTableContextTableView = null;
+        fxTableContextRow = -1;
+        fxTableContextCol = -1;
+        fxTableContextConditionColumns = null;
+        fxTableContextConditionValues = null;
+    }
+
     /**
      * Build step from foldAndLift result: semanticTarget + semanticParent.
      * Structural containers are folded; parts hang under composite boundary.
@@ -206,7 +372,8 @@ public final class FxRecordSupport {
                 LOG.info("[FxRecord] eventType=" + eventTypeName + " | target(sender)=" + describeNodeForLog(target));
             }
 
-            FxNodeCategory.LiftResult lr = FxNodeClassifier.foldAndLift(target);
+            int maxHops = getSemanticTrackingConfig().getMaxAncestorHops();
+            FxNodeCategory.LiftResult lr = FxNodeClassifier.foldAndLift(target, maxHops);
             Object semanticTarget = lr.semanticTarget;
             Object semanticParent = lr.semanticParent;
 
@@ -235,6 +402,43 @@ public final class FxRecordSupport {
             FxNodeCategory.NodeMeta targetMeta = FxNodeClassifier.classify(semanticTarget);
             String semanticType = targetMeta != null ? targetMeta.semanticType : "UNKNOWN";
 
+            // Table as whole semantic object: SearchAndUpdate / SearchAndClick (parent = top window, object = TableView)
+            if ("TABLECELL".equals(semanticType) || "TABLEVIEW".equals(semanticType)) {
+                TableCellInfo cellInfo = getTableCellInfoFromNode(target);
+                    if (cellInfo != null && eventTypeName.contains("MOUSE_CLICKED")) {
+                    Object tableView = cellInfo.tableView;
+                    List<String> condCols = getFxTableColumnNames(tableView);
+                    if (condCols != null && !condCols.isEmpty() && cellInfo.row >= 0 && cellInfo.col >= 0 && cellInfo.col < condCols.size()) {
+                        List<String> condVals = getFxTableRowValues(tableView, cellInfo.row, condCols.size());
+                        String param = buildFxTableParameter(condCols, cellInfo.col);
+                        boolean rightClick = isSecondaryMouseButton(event);
+                        if (rightClick) {
+                            String dataClick = buildFxTableSearchAndClickData(condVals, "Action:RightClick");
+                            Map<String, Object> step = new LinkedHashMap<>();
+                            step.put("keyword", "SearchAndClick");
+                            step.put("event", "searchAndClick");
+                            step.put("timestamp", System.currentTimeMillis());
+                            step.put("parameter", param);
+                            step.put("data", dataClick);
+                            step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(tableView, null));
+                            step.put("objectIdentifier", buildJavaFxObjectIdentifier(tableView));
+                            step.put("objectCategory", "javaFxTable");
+                            step.put("semanticType", "TABLEVIEW");
+                            stepSender.sendStep(step);
+                            return;
+                        }
+                        // Left-click: store context; SearchAndUpdate will be emitted when cell loses focus
+                        fxTableContextTableView = tableView;
+                        fxTableContextRow = cellInfo.row;
+                        fxTableContextCol = cellInfo.col;
+                        fxTableContextConditionColumns = new ArrayList<>(condCols);
+                        fxTableContextConditionValues = condVals != null ? new ArrayList<>(condVals) : new ArrayList<>();
+                        return;
+                    }
+                }
+                // Fall through to ClickButton if not a valid table cell or not mouse click
+            }
+
             String data = "";
             if (eventTypeName.contains("MOUSE_CLICKED")) {
                 if ("TEXT_INPUT".equals(semanticType) || isInsideTextInput(target) || isInsideTextInput(semanticTarget)) {
@@ -244,13 +448,49 @@ public final class FxRecordSupport {
                 data = dataForMouseClick(semanticTarget, semanticType, keyword);
             } else if (eventTypeName.contains("KEY_PRESSED")) {
                 String code = String.valueOf(invokeNoArg(event, "getCode"));
-                if ("ENTER".equalsIgnoreCase(code) || "TAB".equalsIgnoreCase(code)) {
-                    String targetType = target.getClass().getName();
-                    if (targetType.contains("TextField") || targetType.contains("TextArea") || targetType.contains("PasswordField")) {
-                        keyword = "FillEdit";
-                        String text = asString(invokeNoArg(target, "getText"));
-                        data = text != null ? text : "";
+
+                // Case 1: In table context (TABLECELL/TABLEVIEW) and user presses Enter → emit SearchAndUpdate immediately.
+                if ("ENTER".equalsIgnoreCase(code)
+                        && ("TABLECELL".equals(semanticType) || "TABLEVIEW".equals(semanticType))) {
+                    TableCellInfo cellInfo = getTableCellInfoFromNode(target);
+                    if (cellInfo != null) {
+                        Object tableView = cellInfo.tableView;
+                        List<String> condCols = getFxTableColumnNames(tableView);
+                        if (condCols != null && !condCols.isEmpty()
+                                && cellInfo.row >= 0
+                                && cellInfo.col >= 0
+                                && cellInfo.col < condCols.size()) {
+                            List<String> condVals = getFxTableRowValues(tableView, cellInfo.row, condCols.size());
+                            String param = buildFxTableParameter(condCols, cellInfo.col);
+                            String targetValue = getFxTableCellValue(tableView, cellInfo.row, cellInfo.col);
+                            if (targetValue == null) targetValue = "";
+                            String dataSU = buildFxTableSearchAndUpdateData(condVals, targetValue);
+
+                            Map<String, Object> step = new LinkedHashMap<>();
+                            step.put("keyword", "SearchAndUpdate");
+                            step.put("event", "searchAndUpdate");
+                            step.put("timestamp", System.currentTimeMillis());
+                            step.put("parameter", param);
+                            step.put("data", dataSU);
+                            step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(tableView, null));
+                            step.put("objectIdentifier", buildJavaFxObjectIdentifier(tableView));
+                            step.put("objectCategory", "javaFxTable");
+                            step.put("semanticType", "TABLEVIEW");
+                            stepSender.sendStep(step);
+
+                            // Avoid emitting a second SearchAndUpdate on focus-lost with stale context.
+                            clearFxTableContext();
+                            return;
+                        }
                     }
+                }
+
+                // Case 2: Simple text input control (semantic TEXT_INPUT) → FillEdit on Enter/Tab.
+                if (("ENTER".equalsIgnoreCase(code) || "TAB".equalsIgnoreCase(code))
+                        && "TEXT_INPUT".equals(semanticType)) {
+                    keyword = "FillEdit";
+                    String text = asString(invokeNoArg(target, "getText"));
+                    data = text != null ? text : "";
                 }
             }
             if (keyword == null) return;
@@ -449,6 +689,192 @@ public final class FxRecordSupport {
             return "";
         }
         return "";
+    }
+
+    private static boolean isSecondaryMouseButton(Object mouseEvent) {
+        if (mouseEvent == null) return false;
+        try {
+            Object button = invokeNoArg(mouseEvent, "getButton");
+            if (button != null) {
+                String name = button.getClass().getName();
+                if (name.contains("SECONDARY") || "SECONDARY".equals(String.valueOf(button))) return true;
+                Method ordinal = button.getClass().getMethod("ordinal");
+                Object ord = ordinal.invoke(button);
+                if (ord instanceof Number && ((Number) ord).intValue() == 2) return true;
+            }
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "isSecondaryMouseButton failed", e);
+        }
+        return false;
+    }
+
+    /** Find TableCell ancestor and return (TableView, row, col) or null. */
+    private static TableCellInfo getTableCellInfoFromNode(Object node) {
+        Object cur = node;
+        while (cur != null) {
+            String cn = cur.getClass().getName();
+            if (cn.contains("TableCell") && cn.contains("javafx")) {
+                Object tableView = invokeNoArg(cur, "getTableView");
+                if (tableView == null) return null;
+                Object tableRow = invokeNoArg(cur, "getTableRow");
+                int row = -1;
+                if (tableRow != null) {
+                    Object idx = invokeNoArg(tableRow, "getIndex");
+                    if (idx instanceof Number) row = ((Number) idx).intValue();
+                }
+                Object tableColumn = invokeNoArg(cur, "getTableColumn");
+                int col = -1;
+                if (tableColumn != null && tableView != null) {
+                    Object columns = invokeNoArg(tableView, "getColumns");
+                    if (columns != null) col = indexOfInObservableList(columns, tableColumn);
+                }
+                if (row >= 0 && col >= 0) return new TableCellInfo(tableView, row, col);
+                return null;
+            }
+            cur = FxNodeClassifier.parentOf(cur);
+        }
+        return null;
+    }
+
+    /** Get column names (header text or id) left to right. */
+    private static List<String> getFxTableColumnNames(Object tableView) {
+        if (tableView == null) return null;
+        try {
+            Object columns = invokeNoArg(tableView, "getColumns");
+            if (columns == null) return null;
+            int n = sizeOfObservableList(columns);
+            List<String> names = new ArrayList<>(n);
+            for (int i = 0; i < n; i++) {
+                Object col = getFromObservableList(columns, i);
+                if (col == null) { names.add("Column" + i); continue; }
+                String text = asString(invokeNoArg(col, "getText"));
+                if (text != null && !text.isEmpty()) { names.add(text); continue; }
+                Object header = invokeNoArg(col, "getGraphic"); // some use setGraphic(Label)
+                if (header != null) {
+                    String t = asString(invokeNoArg(header, "getText"));
+                    if (t != null && !t.isEmpty()) { names.add(t); continue; }
+                }
+                try {
+                    Method getCellValue = col.getClass().getMethod("getCellObservableValue", Object.class);
+                    Object rowItem = getFirstTableViewItem(tableView);
+                    if (rowItem != null) {
+                        Object obs = getCellValue.invoke(col, rowItem);
+                        if (obs != null) {
+                            Object v = invokeNoArg(obs, "getValue");
+                            names.add(v != null ? String.valueOf(v) : "Column" + i);
+                            continue;
+                        }
+                    }
+                } catch (Exception ignored) { }
+                String id = asString(invokeNoArg(col, "getId"));
+                names.add(id != null && !id.isEmpty() ? id : "Column" + i);
+            }
+            return names;
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "getFxTableColumnNames failed", e);
+            return null;
+        }
+    }
+
+    private static Object getFirstTableViewItem(Object tableView) {
+        if (tableView == null) return null;
+        Object items = invokeNoArg(tableView, "getItems");
+        if (items == null) return null;
+        int n = sizeOfObservableList(items);
+        return n > 0 ? getFromObservableList(items, 0) : null;
+    }
+
+    private static int sizeOfObservableList(Object list) {
+        if (list == null) return 0;
+        try {
+            Method sizeM = java.util.List.class.getMethod("size");
+            Object sz = sizeM.invoke(list);
+            return (sz instanceof Number) ? ((Number) sz).intValue() : 0;
+        } catch (Exception e) { return 0; }
+    }
+
+    /** Get cell values for a row, one per column (left to right). */
+    private static List<String> getFxTableRowValues(Object tableView, int row, int columnCount) {
+        if (tableView == null || row < 0) return null;
+        List<String> values = new ArrayList<>(columnCount);
+        try {
+            Object items = invokeNoArg(tableView, "getItems");
+            if (items == null) return new ArrayList<>();
+            int itemCount = sizeOfObservableList(items);
+            if (row >= itemCount) return new ArrayList<>();
+            Object rowItem = getFromObservableList(items, row);
+            Object columns = invokeNoArg(tableView, "getColumns");
+            if (columns == null) return new ArrayList<>();
+            for (int i = 0; i < columnCount; i++) {
+                Object col = getFromObservableList(columns, i);
+                if (col == null) { values.add(""); continue; }
+                String val = getFxTableCellValueFromColumn(tableView, col, rowItem, row);
+                values.add(val != null ? val : "");
+            }
+            return values;
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "getFxTableRowValues failed", e);
+            return new ArrayList<>();
+        }
+    }
+
+    private static String getFxTableCellValueFromColumn(Object tableView, Object tableColumn, Object rowItem, int row) {
+        if (tableColumn == null) return "";
+        try {
+            Method getCellObs = tableColumn.getClass().getMethod("getCellObservableValue", Object.class);
+            Object obs = getCellObs.invoke(tableColumn, rowItem);
+            if (obs != null) {
+                Object v = invokeNoArg(obs, "getValue");
+                return v != null ? String.valueOf(v) : "";
+            }
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "getCellObservableValue failed, try getCellValue", e);
+        }
+        try {
+            Method getCellValue = tableColumn.getClass().getMethod("getCellValue", Object.class);
+            Object v = getCellValue.invoke(tableColumn, rowItem);
+            return v != null ? String.valueOf(v) : "";
+        } catch (Exception ignored) { }
+        return "";
+    }
+
+    private static String getFxTableCellValue(Object tableView, int row, int col) {
+        if (tableView == null || row < 0 || col < 0) return "";
+        try {
+            Object items = invokeNoArg(tableView, "getItems");
+            if (items == null) return "";
+            Object rowItem = getFromObservableList(items, row);
+            if (rowItem == null) return "";
+            Object columns = invokeNoArg(tableView, "getColumns");
+            if (columns == null) return "";
+            Object tableColumn = getFromObservableList(columns, col);
+            return getFxTableCellValueFromColumn(tableView, tableColumn, rowItem, row);
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "getFxTableCellValue failed", e);
+            return "";
+        }
+    }
+
+    /** Parameter format: [conditionColumn1;conditionColumn2;...];TargetColumn */
+    private static String buildFxTableParameter(List<String> conditionColumns, int targetColIndex) {
+        if (conditionColumns == null || conditionColumns.isEmpty()) return "";
+        String targetName = targetColIndex >= 0 && targetColIndex < conditionColumns.size()
+                ? conditionColumns.get(targetColIndex) : (conditionColumns.isEmpty() ? "" : conditionColumns.get(0));
+        return "[" + String.join(";", conditionColumns) + "];" + targetName;
+    }
+
+    /** Data format for SearchAndUpdate: [conditionValue1;...];targetValue */
+    private static String buildFxTableSearchAndUpdateData(List<String> conditionValues, String targetValue) {
+        String prefix = (conditionValues != null && !conditionValues.isEmpty())
+                ? "[" + String.join(";", conditionValues) + "]" : "[]";
+        return prefix + ";" + (targetValue != null ? targetValue : "");
+    }
+
+    /** Data format for SearchAndClick: [conditionValue1;...];Action:RightClick or Action:DoubleClick */
+    private static String buildFxTableSearchAndClickData(List<String> conditionValues, String action) {
+        String prefix = (conditionValues != null && !conditionValues.isEmpty())
+                ? "[" + String.join(";", conditionValues) + "]" : "[]";
+        return prefix + ";" + (action != null ? action : "Action:RightClick");
     }
 
     /** Build parent identifier from semantic parent boundary (or window if parent is null). */
