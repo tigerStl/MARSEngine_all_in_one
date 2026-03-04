@@ -1,0 +1,2 @@
+Summary for C:\work\MARS\MarsPlugins\VSCode\JavaLoanIqDemo\build\loaniq-classes.jar
+Decompiled with CFR 0.152

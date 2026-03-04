@@ -40,3 +40,9 @@ used by this project.
 
 ## License
 [Apache 2.0](LICENSE)
+
+## 测试参数
+### Summit
+admin -S "Day 1a Swaps Trade Entry" 1115302 -App 1000011 -Mode Compare -Continue False -IgnoreError False -CurrentDB GEN_MARS_5
+### sophis
+admin -S "qa_sophis_1" 1122117 -App 1000070 -Mode compare -Continue False -IgnoreError False -CurrentDB GEN_MARS_5

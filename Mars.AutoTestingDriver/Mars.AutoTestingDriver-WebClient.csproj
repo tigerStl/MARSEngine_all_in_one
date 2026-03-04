@@ -26,14 +26,14 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>true</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <InstallUrl>http://MARSVERSION26:9152/MARSENGINE/</InstallUrl>
+    <InstallUrl>http://MARSVERSION26:8190/MARSENGINE/</InstallUrl>
     <ProductName>MARS ENGINE</ProductName>
     <PublisherName>Marquis Business Tech Solution LLC</PublisherName>
     <MinimumRequiredVersion>1.0.0.43</MinimumRequiredVersion>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
     <TrustUrlParameters>true</TrustUrlParameters>
-    <ApplicationRevision>248</ApplicationRevision>
+    <ApplicationRevision>251</ApplicationRevision>
     <ApplicationVersion>3.0.2.%2a</ApplicationVersion>
     <UseApplicationTrust>true</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>

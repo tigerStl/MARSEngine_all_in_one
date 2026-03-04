@@ -117,8 +117,8 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
         }
     }
     /**
-     * ²âÊÔ²½ÖèµÄ²ÎÊý¹ÜÀí
-     * 1£¬Í¨³£²ÎÊý·ÖÀàÓÃ¡°£»¡±·Ö¿ª£¬ÄÚ²¿Èç¹ûÓÐÐ¡Ïî£¬ÓÃ¡°£º¡±·Ö¿ª
+     * 测试步骤的参数管理
+     * 1，通常参数分类用"；"分开，内部如果有小项，用"："分开
      * */
     internal class MarsKeywordParameter
     {
@@ -184,7 +184,7 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
                     Parameters.Add(input);
                 }else
                 {
-                    // ÆÕÍ¨±äÁ¿
+                    // 普通变量
                     MarsKeywordParaItem keywordParaItem = dealWithOneParaItem(itm, ref isOk);
                     if ((!isOk) || (keywordParaItem == null))
                     {
@@ -227,9 +227,9 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
         }
     }
     /// <summary>
-    /// ²âÊÔ²½ÖèµÄoutputÊä³ö¸ñÊ½¡£
-    /// Èç¹û²ÉÓÃparameter×÷Îª±íÊ¾£¬½«Ê¹ÓÃ
-    /// Ê¾ÀýÈçÏÂ£º
+    /// 测试步骤的output输出格式。
+    /// 如果采用parameter作为表示，将使用
+    /// 示例如下：
     /// Output:(PID:SMTID):(MainHandle:MAINHANDL)....;
     /// </summary>
     //internal class MarsKeywordOutputParaSettings : MarsKeywordParameter
@@ -550,8 +550,8 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
             try
             {
                 //if (!isPreviewKeyword) { 
-                /// Ëã·¨£º
-                /// 1, keyword ÊÇ·ñÊÇÎÞÐëGUIÏà¹Ø£¬Èç¹ûÊÇ£¬ÔòÓÃNonGUIµÄ·½·¨
+                /// 算法：
+                /// 1, keyword 是否是无须GUI相关，如果是，则用NonGUI的方法
                 ///                 
                 isSkipped = false;
                 bool isGUIKeyword = false;
@@ -594,11 +594,11 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
                     return true;
                 }
 
-                //ÐèÒªÐÞÕý Êý¾Ý
+                //需要修正 数据
                 string strData = writebackObjectName = stepData == null ? null : stepData.DATA_VALUE;
                 string strDataFixed = strData;
 
-                //ÊÇ·ñÓÐ¼ÓÃÜµÄ
+                //是否有加密的
                 if ((stepsFromDB != null) && (!string.IsNullOrEmpty(stepsFromDB.COLUMN_ROW_SETTING))
                     && (
                         (stepsFromDB.COLUMN_ROW_SETTING.ToUpper().IndexOf("MARSPWD") >= 0)
@@ -755,7 +755,7 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
             }
             finally
             {
-                /// ÈÃÆÁ±£Ö®ÀàÊ§Ð§
+                /// 让屏幕保护之类失效
                 //MarsWindowsAPIsExtend.SimulateInputString((char)(VirtualKeyStates.VK_NUMLOCK)+"");
                 //MarsWindowsAPIsExtend.SimulateInputString(VirtualKeyStates.VK_NUMLOCK + "");
                 Logger.logEnd("DoTestStep", string.Format("[{0}] returns [{1}]", strKeyword, isOk));

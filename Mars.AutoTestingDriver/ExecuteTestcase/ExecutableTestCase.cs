@@ -458,7 +458,7 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase
                     MarsStatusVar itmStatus = (MarsStatusVar)itm;
                     for (int j = 0; j < itmStatus.varItems.Count; j++)
                     {
-                        /// ÏÈ½«Êý¾ÝÖ¸Õëµ½µ±Ç°Î»ÖÃ
+                        /// 先将数据指针移动到当前位置
                         iIdx++;
                         if (iIdx <= CurrentIdx) continue;
                         string strStatus = itmStatus.varItems[j].Value;
@@ -1262,6 +1262,8 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase
             if (lstTestStps.Count <= 0) return true;
 
             string strWriteBackName = "";
+            // 当前步骤错误时截取的全屏或窗口截图路径
+            string strFullScreenSnapshotPath = null;
             //int iResumeNextRunOrder = -1; /// 如果该变量大于-1表示存在resumenext
             MarsGlobalStatusMgr.resumeNextStatus.resumeNextRunOrder = -1;
             #region get resumeNext id
@@ -1317,11 +1319,11 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase
             string strCurSubLoopVar = ""; /// 该值仅在sub-loop或者endsubloop时候变化
             bool isdotNetFrameworkEngineRequired = false;
 
-            if (isLoopMode)
-            {
-                //获取该step的数据
-                Logger.Info("\t", string.Format("try to get loop var:[{0}]", loopStp[0].StepData));
-                string strData = loopStp[0].StepData == null ? null : loopStp[0].StepData.DATA_VALUE; //ÓÐ¿ÉÄÜloopdataÎª¿Õ£¬Îª¼´Ê±Ä£Ê½
+                if (isLoopMode)
+                {
+                    // 获取该 step 的数据
+                    Logger.Info("\t", string.Format("try to get loop var:[{0}]", loopStp[0].StepData));
+                    string strData = loopStp[0].StepData == null ? null : loopStp[0].StepData.DATA_VALUE; // 有可能 loopData 为空，为即时模式
                 string strLoopValue = "";
                 loopJump.loopBeginRunOrder = loopStp[0].RunId;
                 loopJump.loopEndRunOrder   = loopStp[loopStp.Count - 1].RunId;
@@ -2154,6 +2156,12 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase
 
                             if (!isOk)
                             {
+                                ///需要全屏幕截取，同时将信息存到记录中
+                                ///
+                                strFullScreenSnapshotPath =
+                                    Mars.AutoTestingDriver.MarsHelpers.MarsScreenHelper
+                                        .CaptureProcessGuiToBmp(MARSTestProcess.CurrentTestProcessId);
+
                                 if (isCommntIgnoreError)
                                     isOk = true;
                             }
@@ -2200,14 +2208,14 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase
                                 }
                                 else
                                 {
-                                    //Íê³ÉÁËÒ»´Îloop
-                                    ///算法：
-                                    /// 1, 判断是否最后一次,如果不是，转2
-                                    /// 2，设置iCurrentTestStepIdx 为启动的id，continue
-                                    /// 3，说明loop已经结束，清理loopJump
-                                    /// endloop 可以使用endat:number，
+                                    // 完成了一次 loop
+                                    /// 算法：
+                                    /// 1, 判断是否最后一次，如果不是，转 2
+                                    /// 2, 设置 iCurrentTestStepIdx 为启动的 id，continue
+                                    /// 3, 说明 loop 已经结束，清理 loopJump
+                                    /// endloop 可以使用 endat:number
                                     /// 11/22/24 
-                                    ///     Ôö¼Ó userIterationÄ£Ê½
+                                    ///     增加 userIteration 模式
                                     /// 
                                     //loopJump.currentIdx++;
                                     Logger.Debug("RunTestStepOneByOne-endloop", "after on loop");
@@ -2319,7 +2327,7 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase
                                     {
                                         itm.isSkip = isOk;
                                         Logger.Info("FindIF", string.Format("'if' returns [{0}] else skip change to [{1}]", isOk, itm.isSkip));
-                                    } // endif ÎÞÐëÐÞ¸Ä
+                                    } // endif 无需修改
                                 }
                                 #region to be deleted
 
@@ -2476,13 +2484,24 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase
                             {
                                 #region //error when deal with keyword
                                 if (!isNotRequiredToWriteBackToDB)
+                                {
+                                    byte[] picinfo = null;
+                                    // 如果有全屏/窗口截图路径，则读取为字节数组用于错误截图
+                                    if (!string.IsNullOrEmpty(strFullScreenSnapshotPath)
+                                        && System.IO.File.Exists(strFullScreenSnapshotPath))
+                                    {
+                                        bool isOKtmpFs = false;
+                                        string tmpErrorFs = "";
+                                        picinfo = recodeMgr.GetFileToBytes(strFullScreenSnapshotPath, ref isOKtmpFs, ref tmpErrorFs);
+                                    }
+
                                     recodeMgr.UpdateCurrentTestStepResult(1,
                                         itmStp.TestStepId,
                                         2,
                                         string.Format("result:[{0} {1}]", string.Format("{0} {1}", strError, strDataReturned), strDataReturned),
-                                        strActualInput,
-                                        null,
+                                        strActualInput, picinfo,
                                         currentDBIdx);
+                                }
                                 if (teststepDoneCallBack != null)
                                 {
                                     teststepDoneCallBack(itmStp, false,
@@ -2612,7 +2631,7 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase
                                     || (string.Compare(SystemConstant.CNST_RESERVED_KEYWORD_CAPTUREANDCOMPAREBYKEY, itmStp.Keyword, true) == 0)
                                     )
                                 {
-                                    Logger.Info("\t", $"current keyword after done:[{itmStp.Keyword}]£¬{itmStp.Row_Column}");
+                                    Logger.Info("\t", $"current keyword after done:[{itmStp.Keyword}]，{itmStp.Row_Column}");
                                     Logger.Info("\t", $"1 returned data:{strDataReturned}");
 
                                     // 是否是batchmode
