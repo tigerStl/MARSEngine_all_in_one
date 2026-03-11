@@ -1112,7 +1112,27 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     }
     let steps: Record<string, unknown>[] = [];
     if (Array.isArray(stepsFromPanel) && stepsFromPanel.length > 0) {
-      steps = stepsFromPanel as Record<string, unknown>[];
+      // Sanitize steps before sending to agent: drop empty index and bounds/screenBounds in identifiers.
+      steps = (stepsFromPanel as Record<string, unknown>[]).map((raw) => {
+        const step = { ...raw } as Record<string, unknown>;
+        const sanitizeId = (id: unknown): unknown => {
+          const obj = (id ?? {}) as Record<string, unknown>;
+          const copy: Record<string, unknown> = { ...obj };
+          if (copy.index === '' || copy.index == null) {
+            delete copy.index;
+          }
+          delete copy.bounds;
+          delete copy.screenBounds;
+          return copy;
+        };
+        if (step.parentIdentifier) {
+          step.parentIdentifier = sanitizeId(step.parentIdentifier);
+        }
+        if (step.objectIdentifier) {
+          step.objectIdentifier = sanitizeId(step.objectIdentifier);
+        }
+        return step;
+      });
     } else {
       this._log(webview, '[action] Execute: Test Steps \u4e3a\u7a7a\uff0c\u8bf7\u5148\u6dfb\u52a0\u6b65\u9aa4\u3002\r\n');
       this._safePost(webview, { type: 'log', data: '[info] Test Steps \u4e3a\u7a7a\uff0c\u8bf7\u5148\u5728 Visual \u6807\u7b7e\u70b9\u51fb\u6811\u8282\u70b9\u6dfb\u52a0\u6b65\u9aa4\u3002\r\n' });

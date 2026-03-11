@@ -130,6 +130,8 @@ public class RecordAgent {
         int debugPort = 0;
         /** When > 0, enable JVM debug (JDWP) on this port so a debugger can attach. */
         int jdwpPort = 0;
+        /** Max seconds to wait for object (parent/node) to become available in JavaFX replay when waitTime is 0. */
+        int maxWaitTimeForObjectAvailableSeconds = 15;
     }
 
     private static volatile RuntimeConfig runtimeConfig = new RuntimeConfig();
@@ -146,19 +148,25 @@ public class RecordAgent {
 
     public static void agentmain(String agentArgs, Instrumentation inst) {
         File logsDir = null;
-        try {
-            java.net.URL loc = RecordAgent.class.getProtectionDomain().getCodeSource().getLocation();
-            if (loc != null && "file".equals(loc.getProtocol())) {
-                File jarFile = new File(loc.toURI());
-                File jarDir = jarFile.getParentFile();
-                if (jarDir != null) {
-                    File underJar = new File(jarDir, "logs");
-                    if (underJar.exists() || underJar.mkdirs()) logsDir = underJar;
-                }
-            }
-        } catch (Exception ignored) { }
+        String logDirProp = System.getProperty(AgentLogger.SYS_PROP_LOG_DIR);
+        if (logDirProp != null && !logDirProp.isEmpty()) {
+            logsDir = new File(logDirProp.trim());
+        }
         if (logsDir == null) {
-            logsDir = new File(System.getProperty("java.io.tmpdir", ""), "mars-javaagent-logs");
+            try {
+                java.net.URL loc = RecordAgent.class.getProtectionDomain().getCodeSource().getLocation();
+                if (loc != null && "file".equals(loc.getProtocol())) {
+                    File jarFile = new File(loc.toURI());
+                    File jarDir = jarFile.getParentFile();
+                    if (jarDir != null) {
+                        File underJar = new File(jarDir, "logs");
+                        if (underJar.exists() || underJar.mkdirs()) logsDir = underJar;
+                    }
+                }
+            } catch (Exception ignored) { }
+        }
+        if (logsDir == null) {
+            logsDir = new File(System.getProperty("java.io.tmpdir", ""), "javaUIAutomationLog");
         }
         AgentLogger.setup(logsDir);
         AgentLogger.begin(LOG, "agentArgs=" + agentArgs);
@@ -243,6 +251,7 @@ public class RecordAgent {
         final AtomicReference<AWTEventListener> listenerRef = new AtomicReference<>();
         final AtomicReference<List<FxRecordSupport.FxFilterHook>> fxHooksRef = new AtomicReference<>();
         final AtomicReference<List<FxRecordSupport.FxFocusHook>> fxFocusHooksRef = new AtomicReference<>();
+        final AtomicReference<List<FxRecordSupport.FxWindowListHook>> fxWindowHooksRef = new AtomicReference<>();
         final AtomicReference<ExecutorService> fxStepExecutorRef = new AtomicReference<>();
         final Component[] lastRecordedComponentRef = new Component[1];
         final long[] lastRecordedTimeRef = new long[1];
@@ -327,6 +336,8 @@ public class RecordAgent {
         final Component[] lastFillEditComponentRef = new Component[1];
         final long[] lastFillEditTimeRef = new long[1];
         final long FILLEDIT_DEDUPE_MS = 500;
+        @SuppressWarnings("unchecked")
+        final Map<String, Object>[] pendingSelectMenuItemStepRef = new Map[1];
         final AtomicReference<TreeExpansionListener> treeExpansionListenerRef = new AtomicReference<>();
         final AtomicReference<java.util.List<JTree>> treeExpansionTreesRef = new AtomicReference<>();
 
@@ -352,6 +363,7 @@ public class RecordAgent {
                     }
                     FxRecordSupport.detachJavaFxRecordHooks(fxHooksRef.getAndSet(null));
                     FxRecordSupport.detachJavaFxFocusHooks(fxFocusHooksRef.getAndSet(null));
+                    FxRecordSupport.detachJavaFxWindowListHooks(fxWindowHooksRef.getAndSet(null));
                     shutdownFxStepExecutor(fxStepExecutorRef);
                 }
             }
@@ -408,7 +420,8 @@ public class RecordAgent {
                                 lastKeyDedupWhenRef, lastKeyDedupIdRef, lastKeyDedupCodeRef,
                                 lastKeyDedupModifiersRef, lastKeyDedupSourceRef,
                                 pressedKeyCodes, typedBuffer, lastTypedTimeRef, KEY_DEDUP_MS,
-                                lastFillEditComponentRef, lastFillEditTimeRef, FILLEDIT_DEDUPE_MS);
+                                lastFillEditComponentRef, lastFillEditTimeRef, FILLEDIT_DEDUPE_MS,
+                                pendingSelectMenuItemStepRef);
                         AWTEventListener listener = event -> {
                             if (!recording[0]) return;
                             try {
@@ -603,7 +616,7 @@ public class RecordAgent {
                         };
                         ExecutorService fxStepExecutor = Executors.newSingleThreadExecutor(daemonThreadFactory);
                         fxStepExecutorRef.set(fxStepExecutor);
-                        FxRecordSupport.attachJavaFxRecordHooks(recording, writerRef, clientConn, fxHooksRef, fxFocusHooksRef, step -> {
+                        FxRecordSupport.attachJavaFxRecordHooks(recording, writerRef, clientConn, fxHooksRef, fxFocusHooksRef, fxWindowHooksRef, step -> {
                             fxStepExecutor.execute(() -> {
                                 try {
                                     Writer w = writerRef.get();
@@ -659,6 +672,7 @@ public class RecordAgent {
                         }
                         FxRecordSupport.detachJavaFxRecordHooks(fxHooksRef.getAndSet(null));
                         FxRecordSupport.detachJavaFxFocusHooks(fxFocusHooksRef.getAndSet(null));
+                        FxRecordSupport.detachJavaFxWindowListHooks(fxWindowHooksRef.getAndSet(null));
                         shutdownFxStepExecutor(fxStepExecutorRef);
                         final TreeExpansionListener tel = treeExpansionListenerRef.getAndSet(null);
                         final java.util.List<JTree> treeList = treeExpansionTreesRef.getAndSet(null);
@@ -772,6 +786,7 @@ public class RecordAgent {
                     }
                     FxRecordSupport.detachJavaFxRecordHooks(fxHooksRef.getAndSet(null));
                     FxRecordSupport.detachJavaFxFocusHooks(fxFocusHooksRef.getAndSet(null));
+                    FxRecordSupport.detachJavaFxWindowListHooks(fxWindowHooksRef.getAndSet(null));
                     shutdownFxStepExecutor(fxStepExecutorRef);
                     try {
                         server.stop(1000);
@@ -944,9 +959,15 @@ public class RecordAgent {
                             boolean javaFxStep = FxReplaySupport.isJavaFxObjectKey(ok);
                             int waitSeconds = getJsonInt(step, "waitTime", 0);
                             if (waitSeconds < 0) waitSeconds = 0;
-                            // When waitTime is 0 or missing, use a sensible default (auto wait).
+                            // When waitTime is 0 or missing, use a sensible default (auto wait) for AWT/Swing.
                             final int DEFAULT_AUTO_WAIT_SECONDS = 5;
                             long waitMillis = (long) ((waitSeconds == 0 ? DEFAULT_AUTO_WAIT_SECONDS : waitSeconds) * 1000L);
+                            // For JavaFX, use configurable maxWaitTimeForObjectAvailable when waitTime is 0.
+                            int fxWaitSeconds = (waitSeconds == 0
+                                    ? runtimeConfig.maxWaitTimeForObjectAvailableSeconds
+                                    : waitSeconds);
+                            if (fxWaitSeconds < 0) fxWaitSeconds = 0;
+                            long fxWaitMillis = (long) fxWaitSeconds * 1000L;
                             String[] resolveErr = new String[1];
                             Component comp = javaFxStep ? null : resolveComponentWithWait(pk, ok, resolveErr, waitMillis);
                             if (!javaFxStep && comp == null) {
@@ -978,27 +999,40 @@ public class RecordAgent {
                                 };
                                 String fxErr;
                                 if (FxReplaySupport.isJavaFxTableStep(ok, keyword)) {
-                                    Object parent = FxReplayResolver.resolveParent(pk);
+                                    long deadline = fxWaitMillis > 0 ? System.currentTimeMillis() + fxWaitMillis : 0L;
+                                    Object parent = null;
+                                    Object tableNode = null;
+                                    do {
+                                        parent = FxReplayResolver.resolveParent(pk);
+                                        if (parent != null) {
+                                            tableNode = FxReplayResolver.resolveObject(parent, ok);
+                                            if (tableNode != null) break;
+                                        }
+                                        if (fxWaitMillis <= 0) break;
+                                        try {
+                                            Thread.sleep(200L);
+                                        } catch (InterruptedException ie) {
+                                            Thread.currentThread().interrupt();
+                                            break;
+                                        }
+                                    } while (System.currentTimeMillis() < deadline);
                                     if (parent == null) {
                                         fxErr = "JavaFX parent not found";
+                                    } else if (tableNode == null) {
+                                        fxErr = "JavaFX TableView not found under parent";
                                     } else {
-                                        Object tableNode = FxReplayResolver.resolveObject(parent, ok);
-                                        if (tableNode == null) {
-                                            fxErr = "JavaFX TableView not found under parent";
+                                        String para = getJsonStr(step, "parameter");
+                                        String data = getJsonStr(step, "data");
+                                        if ("SearchAndUpdate".equals(keyword)) {
+                                            fxErr = FxReplaySupport.replayJavaFxTableViewSearchAndUpdate(tableNode, para, data, robot, fxCallbacks);
+                                        } else if ("SearchAndClick".equals(keyword)) {
+                                            fxErr = FxReplaySupport.replayJavaFxTableViewSearchAndClick(tableNode, para, data, robot);
                                         } else {
-                                            String para = getJsonStr(step, "parameter");
-                                            String data = getJsonStr(step, "data");
-                                            if ("SearchAndUpdate".equals(keyword)) {
-                                                fxErr = FxReplaySupport.replayJavaFxTableViewSearchAndUpdate(tableNode, para, data, robot, fxCallbacks);
-                                            } else if ("SearchAndClick".equals(keyword)) {
-                                                fxErr = FxReplaySupport.replayJavaFxTableViewSearchAndClick(tableNode, para, data, robot);
-                                            } else {
-                                                fxErr = "Unsupported keyword for JavaFX table: " + keyword;
-                                            }
+                                            fxErr = "Unsupported keyword for JavaFX table: " + keyword;
                                         }
                                     }
                                 } else {
-                                    fxErr = FxReplaySupport.resolveAndReplayJavaFx(pk, ok, keyword, step, robot, fxCallbacks);
+                                    fxErr = FxReplaySupport.resolveAndReplayJavaFxWithWait(pk, ok, keyword, step, robot, fxCallbacks, fxWaitMillis);
                                     if (fxErr != null && FxReplaySupport.getScreenBoundsFromObjectKey(ok) != null) {
                                         fxErr = FxReplaySupport.replayJavaFxByBounds(ok, keyword, step, robot, fxCallbacks);
                                     }
@@ -1432,6 +1466,10 @@ public class RecordAgent {
         }
         if (obj != null && obj.has("JdwpPort")) {
             cfg.jdwpPort = parsePortLike(obj.get("JdwpPort"), 0);
+        }
+        if (obj != null && obj.has("maxWaitTimeForObjectAvailable")) {
+            cfg.maxWaitTimeForObjectAvailableSeconds = getJsonInt(obj, "maxWaitTimeForObjectAvailable",
+                    cfg.maxWaitTimeForObjectAvailableSeconds);
         }
         return cfg;
     }
@@ -2003,7 +2041,7 @@ public class RecordAgent {
             if (!s.isEmpty()) list.add(s);
         }
         if (list.isEmpty()) return false;
-        Collections.reverse(list); // root -> leaf
+        // data format: root;parent;...;selected (no reverse)
 
         TreeModel model = tree.getModel();
         Object node = model.getRoot();
@@ -2767,8 +2805,9 @@ private static String buildTreePathStringFromPath(TreePath path) {
     if (path == null) return "";
     Object[] arr = path.getPath();
     if (arr == null || arr.length == 0) return "";
+    // data = root to selected node, separated by ";"
     StringBuilder sb = new StringBuilder();
-    for (int i = arr.length - 1; i >= 0; i--) {
+    for (int i = 0; i < arr.length; i++) {
         String s = String.valueOf(arr[i]);
         if (sb.length() > 0) sb.append(';');
         sb.append(s);
@@ -2776,7 +2815,8 @@ private static String buildTreePathStringFromPath(TreePath path) {
     return sb.toString();
 }
 
-public static String buildMenuPathString(JMenuItem item) {
+/** Path from root menu to this item, "root;...;leaf". */
+public static String buildMenuPathFromRootToLeaf(JMenuItem item) {
     if (item == null) return "";
     java.util.List<String> parts = new ArrayList<>();
     String text = item.getText();
@@ -2799,7 +2839,17 @@ public static String buildMenuPathString(JMenuItem item) {
         if (p instanceof JMenuBar) break;
         p = p.getParent();
     }
+    Collections.reverse(parts);
     return String.join(";", parts);
+}
+
+public static String buildMenuPathString(JMenuItem item) {
+    return buildMenuPathFromRootToLeaf(item);
+}
+
+/** True if this is a JMenu that has submenu items (so clicking it opens submenu, not a leaf action). */
+public static boolean isMenuWithSubmenu(JMenuItem item) {
+    return item instanceof JMenu && ((JMenu) item).getMenuComponentCount() > 0;
 }
 
 public static boolean isToolButtonLike(Component c) {

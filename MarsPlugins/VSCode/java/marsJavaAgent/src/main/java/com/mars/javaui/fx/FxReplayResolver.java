@@ -3,7 +3,6 @@ package com.mars.javaui.fx;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -15,27 +14,58 @@ import java.util.regex.PatternSyntaxException;
  * Uses reflection only; no JavaFX API imports.
  * Locators: javaType, javaTypePath (semicolon or slash), javaName/Name, index, title, text.
  */
-public final class FxReplayResolver {
+public final class FxReplayResolver extends FxReflectionSupport {
+
+    private static volatile String lastParentError;
 
     private FxReplayResolver() {}
+
+    /** Returns the last error set by resolveParent when it returns null (ambiguous or index out of range). */
+    public static String getLastParentError() {
+        return lastParentError;
+    }
 
     /**
      * Resolve parent (top-level Window/Stage) from parent identifier.
      * Parent is the JavaFX top window/dialog that contains the target object.
      *
      * @param parentKey map with javaType, javaName/title, etc.; may be null/empty to mean "any window"
-     * @return the Window (Stage) that matches, or null if not found
+     * @return the Window (Stage) that matches, or null if not found (use getLastParentError() for reason)
      */
     public static Object resolveParent(Map<String, Object> parentKey) {
-        List<Object> windows = getJavaFxWindows();
-        if (windows == null || windows.isEmpty()) return null;
+        lastParentError = null;
+        List<Object> windows = getJavaFxWindows(false);
+        if (windows == null || windows.isEmpty()) {
+            lastParentError = "no JavaFX windows";
+            return null;
+        }
         if (parentKey == null || parentKey.isEmpty()) {
-            return windows.isEmpty() ? null : windows.get(0);
+            return windows.get(0);
         }
+        List<Object> matching = new ArrayList<>();
+        String lastMatchError = null;
         for (Object win : windows) {
-            if (windowMatchesKey(win, parentKey)) return win;
+            String err = windowMatchesKey(win, parentKey);
+            if (err == null) matching.add(win);
+            else lastMatchError = err;
         }
-        return null;
+        if (matching.isEmpty()) {
+            lastParentError = lastMatchError != null ? lastMatchError : "no matching window";
+            return null;
+        }
+        Integer index = parseIndex(parentKey.get("index"));
+        if (matching.size() > 1 && index == null) {
+            lastParentError = "multiple windows matched (" + matching.size() + "), specify index";
+            return null;
+        }
+        if (index != null) {
+            if (index < 0 || index >= matching.size()) {
+                lastParentError = "parent index out of range: " + index + " (valid 0.." + (matching.size() - 1) + ")";
+                return null;
+            }
+            return matching.get(index);
+        }
+        return matching.get(0);
     }
 
     /**
@@ -48,16 +78,32 @@ public final class FxReplayResolver {
      */
     public static Object resolveObject(Object parentWindow, Map<String, Object> objectKey) {
         if (parentWindow == null || objectKey == null || objectKey.isEmpty()) return null;
-        Object root = getSceneRoot(parentWindow);
-        if (root == null) return null;
-        List<Object> matches = new ArrayList<>();
-        collectMatchingNodes(root, objectKey, matches);
+        List<Object> matches = resolveObjects(parentWindow, objectKey);
         if (matches.isEmpty()) return null;
         Integer index = parseIndex(objectKey.get("index"));
         if (index != null && index >= 0 && index < matches.size()) {
             return matches.get(index);
         }
         return matches.get(0);
+    }
+
+    /**
+     * Resolve all matching child objects (Nodes) under the given parent window from object identifier.
+     * The parent must be the top-level window obtained from windowMatchesKey / resolveParent; this method
+     * does not re-resolve the window—it only collects nodes under that parent's scene root.
+     * Does NOT apply index filtering; caller can inspect matches.size() for ambiguity diagnostics.
+     *
+     * @param parent the top-level Window (from resolveParent / window matching)
+     * @param objectKey map with javaType, javaTypePath, javaName/Name, index, title, text
+     * @return list of matching Nodes under parent's scene
+     */
+    public static List<Object> resolveObjects(Object parent, Map<String, Object> objectKey) {
+        if (parent == null || objectKey == null || objectKey.isEmpty()) return Collections.emptyList();
+        Object root = getSceneRoot(parent);
+        if (root == null) return Collections.emptyList();
+        List<Object> matches = new ArrayList<>();
+        collectMatchingNodes(root, objectKey, matches);
+        return matches;
     }
 
     /**
@@ -85,17 +131,17 @@ public final class FxReplayResolver {
 
     // ---------- JavaFX window list (reflection) ----------
 
-    private static List<Object> getJavaFxWindows() {
+    private static List<Object> getJavaFxWindows(boolean onlyShowing) {
         try {
             Class<?> windowClz = Class.forName("javafx.stage.Window");
             Method getWindows = windowClz.getMethod("getWindows");
             Object listObj = getWindows.invoke(null);
             if (listObj == null) return Collections.emptyList();
             List<Object> all = listToJavaList(listObj);
+            if (!onlyShowing) return all;
             List<Object> visible = new ArrayList<>();
             for (Object w : all) {
-                Object showing = invokeNoArg(w, "isShowing");
-                if (Boolean.TRUE.equals(showing)) visible.add(w);
+                if (Boolean.TRUE.equals(invokeNoArg(w, "isShowing"))) visible.add(w);
             }
             return visible;
         } catch (Exception e) {
@@ -126,26 +172,74 @@ public final class FxReplayResolver {
         return invokeNoArg(scene, "getRoot");
     }
 
-    private static boolean windowMatchesKey(Object window, Map<String, Object> key) {
-        if (window == null || key == null) return false;
+    /**
+     * Checks whether a top-level window matches the given key.
+     * Only attributes present in the key are evaluated; not all need to be specified.
+     * Supported keys: javaType, javaName, title (or Title), isDialog, isShowing, index.
+     * javaType, javaName and title/Title are matched as regex if the value is not an exact match.
+     * index is not used here; it is applied in resolveParent when multiple windows match.
+     *
+     * @return null if the window matches; otherwise an error message describing which check failed
+     */
+    private static String windowMatchesKey(Object window, Map<String, Object> key) {
+        if (window == null || key == null) return "window or key is null";
+
         String keyType = stringVal(key.get("javaType"));
         if (keyType != null && !keyType.isEmpty()) {
-            if (!stringMatches(window.getClass().getName(), keyType)) return false;
+            String actual = window.getClass().getName();
+            if (!stringMatches(actual, keyType)) {
+                return "javaType mismatch: key='" + keyType + "', window='" + actual + "'";
+            }
         }
+
         String keyName = stringVal(key.get("javaName"));
         if (keyName == null || keyName.isEmpty()) keyName = stringVal(key.get("name"));
         if (keyName != null && !keyName.isEmpty()) {
             String title = asString(invokeNoArg(window, "getTitle"));
-            if (!stringMatches(title, keyName)) return false;
+            if (!stringMatches(title, keyName)) {
+                return "javaName mismatch: key='" + keyName + "', window title='" + (title != null ? title : "") + "'";
+            }
         }
+
         String keyTitle = stringVal(key.get("title"));
+        if (keyTitle == null || keyTitle.isEmpty()) keyTitle = stringVal(key.get("Title"));
         if (keyTitle != null && !keyTitle.isEmpty()) {
             String title = asString(invokeNoArg(window, "getTitle"));
-            if (!stringMatches(title, keyTitle)) return false;
+            if (!stringMatches(title, keyTitle)) {
+                return "title mismatch: key='" + keyTitle + "', window title='" + (title != null ? title : "") + "'";
+            }
         }
-        Object showing = invokeNoArg(window, "isShowing");
-        if (showing instanceof Boolean && !((Boolean) showing)) return false;
-        return true;
+
+        Object keyDialog = key.get("isDialog");
+        if (keyDialog != null) {
+            boolean wantDialog = Boolean.TRUE.equals(keyDialog) || "true".equalsIgnoreCase(String.valueOf(keyDialog));
+            boolean isDialog = isWindowDialog(window);
+            if (isDialog != wantDialog) {
+                return "isDialog mismatch: key=" + wantDialog + ", window isDialog=" + isDialog;
+            }
+        }
+
+        Object keyShowing = key.get("isShowing");
+        if (keyShowing != null) {
+            boolean wantShowing = Boolean.TRUE.equals(keyShowing) || "true".equalsIgnoreCase(String.valueOf(keyShowing));
+            Object showing = invokeNoArg(window, "isShowing");
+            boolean actualShowing = Boolean.TRUE.equals(showing);
+            if (actualShowing != wantShowing) {
+                return "isShowing mismatch: key=" + wantShowing + ", window isShowing=" + actualShowing;
+            }
+        }
+
+        return null;
+    }
+
+    private static boolean isWindowDialog(Object window) {
+        if (window == null) return false;
+        String cn = window.getClass().getName();
+        if (cn != null && cn.contains("Dialog")) return true;
+        Object mod = invokeNoArg(window, "getModality");
+        if (mod == null) return false;
+        String modStr = mod.toString();
+        return modStr != null && !modStr.contains("NONE");
     }
 
     // ---------- Scene graph walk ----------
@@ -297,13 +391,7 @@ public final class FxReplayResolver {
         return s.isEmpty() ? null : s;
     }
 
-    private static String asString(Object v) {
-        if (v == null) return null;
-        String s = String.valueOf(v).trim();
-        return s.isEmpty() ? null : s;
-    }
-
-    private static Integer parseIndex(Object v) {
+    public static Integer parseIndex(Object v) {
         if (v instanceof Number) return ((Number) v).intValue();
         if (v == null) return null;
         try {
@@ -313,23 +401,5 @@ public final class FxReplayResolver {
         }
     }
 
-    private static Integer asInt(Object v) {
-        if (v instanceof Number) return ((Number) v).intValue();
-        if (v == null) return null;
-        try {
-            return (int) Math.round(Double.parseDouble(String.valueOf(v)));
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private static Object invokeNoArg(Object target, String methodName) {
-        if (target == null || methodName == null) return null;
-        try {
-            Method m = target.getClass().getMethod(methodName);
-            return m.invoke(target);
-        } catch (Exception e) {
-            return null;
-        }
-    }
+    // asString/asInt/invokeNoArg are inherited from FxReflectionSupport
 }

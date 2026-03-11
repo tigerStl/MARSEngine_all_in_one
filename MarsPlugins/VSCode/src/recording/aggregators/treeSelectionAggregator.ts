@@ -1,5 +1,5 @@
 /**
- * Rule 4: TreeSelectionAggregator – TreeView click => SelectTreeList, data = "Leaf;Parent;Root".
+ * Rule 4: TreeSelectionAggregator – TreeView click => SelectTreeList, data = "Root;Parent;...;Selected" (path from root to selected node, ";" separated).
  */
 
 import type { ObjectRef } from '../../protocol/javaAgentProtocol';
@@ -49,7 +49,7 @@ export class TreeSelectionAggregator {
         this.pending = null;
         try {
           const path = await this.callbacks.readTreeSelection!(treeRef);
-          const pathStr = Array.isArray(path) ? path.slice().reverse().join(';') : '';
+          const pathStr = Array.isArray(path) ? path.join(';') : '';
           doEmit(pathStr);
         } catch {
           doEmit('');

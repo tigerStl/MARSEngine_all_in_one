@@ -40,6 +40,20 @@ Scope: **Injected Java Agent** for JavaFX apps — recording user actions and ge
 - **Fold**: ignore a node/object for step targeting (STRUCTURAL_CONTAINER, most DECORATION).
 - **Lift**: when event target lands on a folded/detail node, climb up to the nearest SEMANTIC_PART; if none, then to SEMANTIC_CONTROL.
 
+### 2.4 Terminal Semantic (可停止的语义)
+
+Some **SEMANTIC_CONTROL** nodes are *terminal*: once we hit them during lift, we **stop immediately** and use them as the step target—we do **not** keep walking ancestors to look for a composite (SEMANTIC_PART or COMPOSITE_BOUNDARY).
+
+**Why not treat them as composite?**  
+Composite semantics (SEMANTIC_PART) mean “part of a composite control” (e.g. TreeCell belongs to TreeView, Tab belongs to TabPane). A **MenuBarButton**’s parent is **MenuBar**, which is STRUCTURAL_CONTAINER, not a composite we prefer. So MenuBarButton is not a “part” of a composite; marking it as SEMANTIC_PART would misuse the category.
+
+**Why “terminal” instead of “just use simple semantic”?**  
+For ordinary simple semantics (Button, TextField), we *do* keep walking up: we might find a SEMANTIC_PART (e.g. Tab, TableCell) and prefer that as the target. For MenuBarButton / MenuItem, there is no such higher semantic—they are already the top-level menu entry or item. So we define a separate concept: **terminal semantic** = “stop here, no need to look up.”
+
+**Current terminal semantics**  
+- `semanticType == "MENUITEM"` (covers MenuBarButton, MenuItemContainer, MenuItem in rules).  
+Extensible later (e.g. more semanticTypes or a rule field like `stopsLift`).
+
 ---
 
 ## 3. High-level Architecture
@@ -195,7 +209,7 @@ resolveSemantic(eventTarget, cfg):
       attrs = resolvePartAttributes(part)
       return SemanticHit(owner, part, attrs)
 
-  // Else SEMANTIC_CONTROL
+  // Else SEMANTIC_CONTROL (see 2.4 for terminal semantic)
   ctrl = liftToCategory(n, SEMANTIC_CONTROL, cfg.MaxAncestorHops, cfg)
   if ctrl != null:
       return SemanticHit(ctrl, ctrl, {})
@@ -205,6 +219,15 @@ resolveSemantic(eventTarget, cfg):
 
   return null
 ```
+
+**Lift loop (ancestor walk)**  
+When walking ancestors from event target:
+
+1. If current node is **SEMANTIC_PART** (composite part) → use it as target, **break**.
+2. If current node is **SEMANTIC_CONTROL** and **terminal** (e.g. semanticType MENUITEM) → use it as target, **break** (see §2.4).
+3. If current node is SEMANTIC_CONTROL but not terminal → record as candidate, **continue** walking up to see if a composite part exists above.
+4. If no composite part found, use the candidate simple semantic as target.
+
 
 ### 6.3 Owner/Attribute Resolution
 
@@ -226,6 +249,24 @@ resolveSemantic(eventTarget, cfg):
 - owner: `tab.getTabPane()`
 - caption: `tab.getText()`
 
+### 6.4 Menu path (SelectMenuItem data)
+
+Step data for `SelectMenuItem` is a path string from top-level menu to the clicked item, e.g. `"File;Edit;Copy"`. Menu/semantic object is usually found by **lifting up** (e.g. the hit node is **MenuBarButton** or a popup menu node), so path building and text resolution work as follows.
+
+**Path chain (model)**  
+- If the semantic control is a **Skin** (e.g. MenuBarButton), resolve to the model first: `getSkinnable(control)` → Menu/MenuItem.  
+- Build the path by walking **up** from that model: `getParentMenu()` repeatedly to get the chain root → … → leaf.  
+- So the chain is always **model** objects (Menu/MenuItem), and `getParentMenu()` is available on each.
+
+**Segment text (look down when needed)**  
+For each segment in the path we need the **display text**. The semantic object we have may be the model (MenuItem/Menu have `getText()`) or a visual (e.g. MenuBarButton); for the visual, the text is often on a **child** node. Therefore:
+
+1. Try **model** `getText(node)` first.  
+2. If the node is a Skin, try `getText(getSkinnable(node))`.  
+3. If still no text, **look down**: from this node’s children (e.g. `getChildren()` on Parent), take the first non-empty `getText()` from any direct or nested child.
+
+So: **semantic object is resolved by going up; its text is resolved by going down when the object is a visual.**
+
 ---
 
 ## 7. Keyword Mapping Rules (Event-aware)
@@ -239,7 +280,7 @@ resolveSemantic(eventTarget, cfg):
   - edit commit events: `TableCell.commitEdit(...)`, Enter confirmation, focus-lost commit, or value/text change in editor + commit.
 
 ### 7.2 MenuItem
-- `SelectMenuItem(menuPath)` with menu path resolved from owner menu bar/context menu if available.
+- `SelectMenuItem(menuPath)` with menu path from root menu to leaf (e.g. `"File;Edit;Copy"`). Path building and segment text resolution: see **§6.4 Menu path (SelectMenuItem data)** (model chain via `getParentMenu`; text from model `getText` or by looking down into children when the semantic object is a visual).
 
 ### 7.3 Tab
 - `SelectTab(TabPanePattern, TabTextOrIndex)`

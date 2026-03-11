@@ -55,6 +55,10 @@ public final class MouseEventHandler {
         if (EventFilterConfig.shouldSkipMouseKeyboard(clickTarget)) return;
         if (!clickTarget.isShowing() || !clickTarget.isEnabled()) return;
 
+        if (!(clickTarget instanceof JMenuItem)) {
+            ctx.pendingSelectMenuItemStepRef[0] = null;
+        }
+
         long now = System.currentTimeMillis();
         int button = me.getButton();
         int x = me.getX();
@@ -119,17 +123,7 @@ public final class MouseEventHandler {
                     ctx.lastTableRightClickRef[0] = null;
                     ctx.lastTableRightClickTimeRef[0] = 0L;
                 } else {
-                    String data = RecordAgent.buildMenuPathString(mi);
-                    Map<String, Object> step = MarsKeyword.buildScriptStep("SelectMenuItem", mi, "", data, "");
-                    step.put("event", "selectMenuItem");
-                    step.put("timestamp", now);
-                    RecordAgent.putComponentInfo(step, mi);
-                    step.put("content", data);
-                    appendRightClickParameter(step, button);
-                    emitStep(ctx, step);
-                    if (button == MouseEvent.BUTTON3) {
-                        emitRightClickAtStep(ctx, now);
-                    }
+                    handleMenuItemClick(ctx, mi, now, button);
                 }
             }
             return;
@@ -424,6 +418,47 @@ public final class MouseEventHandler {
                     || ctx.currentTableColRef[0] != col;
             if (!changedCell) return;
             RecordAgent.ensureCurrentTableCell(ctx, table, row, col, now, changedCell);
+        }
+    }
+
+    /**
+     * Menu handling: only emit SelectMenuItem when the last-level (leaf) item is clicked.
+     * Data = path from top-level menu to leaf, ";". When clicking a Menu (submenu), create step and cache;
+     * when clicking a leaf MenuItem, update cached step object/data and emit then clear cache.
+     */
+    private static void handleMenuItemClick(RecordingContext ctx, JMenuItem mi, long now, int button) {
+        String data = RecordAgent.buildMenuPathFromRootToLeaf(mi);
+        if (RecordAgent.isMenuWithSubmenu(mi)) {
+            Map<String, Object> step = MarsKeyword.buildScriptStep("SelectMenuItem", mi, "", data, "");
+            step.put("event", "selectMenuItem");
+            step.put("timestamp", now);
+            RecordAgent.putComponentInfo(step, mi);
+            step.put("content", data);
+            appendRightClickParameter(step, button);
+            ctx.pendingSelectMenuItemStepRef[0] = step;
+            return;
+        }
+        Map<String, Object> step = ctx.pendingSelectMenuItemStepRef[0];
+        if (step != null && "SelectMenuItem".equals(step.get("keyword"))) {
+            step.put("objectIdentifier", MarsKeyword.buildObjectIdentifier(mi));
+            step.put("data", data);
+            step.put("content", data);
+            step.put("timestamp", now);
+            RecordAgent.putComponentInfo(step, mi);
+            appendRightClickParameter(step, button);
+            emitStep(ctx, step);
+            ctx.pendingSelectMenuItemStepRef[0] = null;
+        } else {
+            step = MarsKeyword.buildScriptStep("SelectMenuItem", mi, "", data, "");
+            step.put("event", "selectMenuItem");
+            step.put("timestamp", now);
+            RecordAgent.putComponentInfo(step, mi);
+            step.put("content", data);
+            appendRightClickParameter(step, button);
+            emitStep(ctx, step);
+        }
+        if (button == MouseEvent.BUTTON3) {
+            emitRightClickAtStep(ctx, now);
         }
     }
 

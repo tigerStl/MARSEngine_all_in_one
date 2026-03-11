@@ -17,7 +17,7 @@ import java.util.regex.PatternSyntaxException;
  * JavaFX replay: resolve parent/object from identifier, then simulate with Robot (mouse/keyboard).
  * Resolution is in FxReplayResolver; operations use screen bounds and Robot like AWT/Swing.
  */
-public final class FxReplaySupport {
+public final class FxReplaySupport extends FxReflectionSupport {
 
     private FxReplaySupport() {}
 
@@ -65,13 +65,56 @@ public final class FxReplaySupport {
             Object step,
             Robot robot,
             FxReplayCallbacks callbacks) {
-        Object parent = FxReplayResolver.resolveParent(parentKey);
+        return resolveAndReplayJavaFxWithWait(parentKey, objectKey, keyword, step, robot, callbacks, 0L);
+    }
+
+    /**
+     * JavaFX resolve+replay with optional wait:
+     * - When waitMillis > 0, repeatedly tries resolveParent/resolveObject until timeout.
+     * - If multiple nodes match and index is not specified, treats as error and reports count.
+     */
+    public static String resolveAndReplayJavaFxWithWait(
+            Map<String, Object> parentKey,
+            Map<String, Object> objectKey,
+            String keyword,
+            Object step,
+            Robot robot,
+            FxReplayCallbacks callbacks,
+            long waitMillis) {
+        long deadline = waitMillis > 0 ? System.currentTimeMillis() + waitMillis : 0L;
+        Object parent = null;
+        List<Object> matches = null;
+        do {
+            parent = FxReplayResolver.resolveParent(parentKey);
+            if (parent != null) {
+                matches = FxReplayResolver.resolveObjects(parent, objectKey);
+                if (matches != null && !matches.isEmpty()) break;
+            }
+            if (waitMillis <= 0) break;
+            try {
+                Thread.sleep(200L);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        } while (System.currentTimeMillis() < deadline);
+
         if (parent == null) {
-            return "JavaFX parent not found";
+            String err = FxReplayResolver.getLastParentError();
+            return err != null ? err : "JavaFX parent not found";
         }
-        Object node = FxReplayResolver.resolveObject(parent, objectKey);
-        if (node == null) {
+        if (matches == null || matches.isEmpty()) {
             return "JavaFX object not found under parent";
+        }
+        Integer index = FxReplayResolver.parseIndex(objectKey.get("index"));
+        Object node;
+        if (index != null && index >= 0 && index < matches.size()) {
+            node = matches.get(index);
+        } else if (matches.size() > 1) {
+            return "JavaFX object locator is ambiguous: " + matches.size()
+                    + " nodes matched. Please refine locator (e.g. add index or more specific name/text).";
+        } else {
+            node = matches.get(0);
         }
         int[] bounds = FxReplayResolver.getNodeScreenBounds(node);
         if (bounds == null || bounds[2] <= 0 || bounds[3] <= 0) {
@@ -140,6 +183,7 @@ public final class FxReplaySupport {
         try {
             if ("FillEdit".equals(keyword)) {
                 robot.mouseMove(cx, cy);
+                robot.delay(120);
                 robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                 robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                 robot.delay(120);
@@ -153,6 +197,7 @@ public final class FxReplaySupport {
             }
             if ("DoubleClickButton".equals(keyword) || "DoubleClick".equals(keyword)) {
                 robot.mouseMove(cx, cy);
+                robot.delay(120);
                 robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                 robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                 robot.delay(60);
@@ -163,6 +208,7 @@ public final class FxReplaySupport {
             }
             if ("SelectDropList".equals(keyword) || "SelectDropDown".equals(keyword)) {
                 robot.mouseMove(cx, cy);
+                robot.delay(120);
                 robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                 robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                 robot.delay(120);
@@ -179,12 +225,14 @@ public final class FxReplaySupport {
                     || "SelectTreeList".equals(keyword) || "SetRadioBox".equals(keyword) || "SetCheckBox".equals(keyword)
                     || "ClickButton".equals(keyword) || "SelectTab".equals(keyword)) {
                 robot.mouseMove(cx, cy);
+                robot.delay(120);
                 robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                 robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                 robot.delay(150);
                 return null;
             }
             robot.mouseMove(cx, cy);
+            robot.delay(120);
             robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
             robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
             robot.delay(120);
@@ -644,13 +692,5 @@ public final class FxReplaySupport {
         }
     }
 
-    private static Object invokeNoArg(Object target, String methodName) {
-        if (target == null || methodName == null) return null;
-        try {
-            Method m = target.getClass().getMethod(methodName);
-            return m.invoke(target);
-        } catch (Exception e) {
-            return null;
-        }
-    }
+    // invokeNoArg now comes from FxReflectionSupport
 }

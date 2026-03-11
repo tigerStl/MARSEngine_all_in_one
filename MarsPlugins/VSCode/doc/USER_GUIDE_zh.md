@@ -180,6 +180,16 @@ cd ..
 - `scanedfiles/license.latest.json`
 - `scanedfiles/license.declaration.latest.txt`
 
+### 10.1 MARS Java Agent 引擎日志（可选配置）
+
+用于排查“某控件被忽略”“分类不符合预期”等问题时查看引擎内部日志。
+
+- **默认位置**：系统临时目录下的 `javaUIAutomationLog`（Windows 一般为 `%TEMP%\javaUIAutomationLog\`），**默认文件名**：`MARSJavaEngineLog_yyyyMMdd.log`（按日一个文件，同一天多次运行会追加）。
+- **配置方式**（在**被 attach 的目标 Java 进程**的 JVM 参数中设置，若由扩展通过 attach 加载则需在扩展/启动脚本侧配置传入）：
+  - **mars.javaagent.log.dir**：日志目录的绝对路径。
+  - **mars.javaagent.log.file**：日志文件名（不含路径）；不设则使用默认的 `MARSJavaEngineLog_yyyyMMdd.log`。
+- 示例：`-Dmars.javaagent.log.dir=D:\Logs\JavaUI` 或 `-Dmars.javaagent.log.file=myagent.log`
+
 ---
 
 ## 11. 常见问题

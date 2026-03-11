@@ -10,6 +10,8 @@ package com.mars.javaui.fx;
  * - <b>Simple semantic</b> (简单语义): TextField, Button, CheckBox, ComboBox, etc. For these we
  *   always look upward (within MaxAncestorHops) for a composite-semantic context; only if none is
  *   found do we use the simple semantic object itself as the step target.
+ * - <b>Terminal semantic</b> (可停止的语义): e.g. MenuBarButton, MenuItem. Same as simple semantic
+ *   but we stop immediately—no need to look up, since they never sit under a composite we prefer.
  */
 public final class FxNodeCategory {
 

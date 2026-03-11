@@ -97,23 +97,44 @@ Table 以 **整个 TableView** 为语义对象，不以单独 cell/header 为对
 
 ---
 
-## 3. 如何扩展其他语义控件
+## 3. 基础语义控件 vs 组合语义控件
+
+### 3.1 组合语义只在容器内部生效
+
+- JavaFX 语义分两层：
+  - **基础语义控件**：CheckBox、RadioButton、Button、TextField、ComboBox 等，对应 keyword 如 `SetCheckBox`、`SetRadioBox`、`ClickButton`、`FillEdit`。
+  - **组合语义控件**：TableView / TreeView / ListView / TabPane 及其子部件（TableCell、TreeCell、ListCell、Tab / TabHeaderSkin 等），对应 keyword 如 `SearchAndUpdate`、`SearchAndClick`、`SelectTreeList`、`SelectTab` 等。
+- 规则（避免语义“串味”）：
+  - **只有当事件发生在组合容器内部时，才允许将基础控件“提升”为组合语义**。例如：
+    - TableCell 里的 Button / CheckBox，可按 Table 的 SearchAndUpdate / SearchAndClick 语义处理；
+    - TreeCell / ListCell 里的控件，可按 SelectTreeList 语义处理；
+    - TabPane 的 Tab / TabHeaderSkin，可按 SelectTab 语义处理。
+  - **否则，一律优先使用基础语义 keyword**，不做额外语义提升：
+    - 独立存在的 CheckBox，点击时始终生成 `SetCheckBox`，而不会生成 `SelectTab` 等；
+    - 独立的 TextField / TextArea，输入并提交时生成 `FillEdit`，而不会变成 Table/Tree 相关的步骤。
+- 实现要点：
+  - `FxNodeClassifier.foldAndLift` 在识别 `semanticTarget` 时，只在表格 / 树 / 列表 / 选项卡等容器上下文中，才把子节点（如单元格里的控件、Tab 头部）视为“组合语义的一部分”；
+  - `keywordForMouseClick` 根据 `semanticType` 决定 keyword 时，基础控件（CHECKBOX、RADIOBUTTON、TEXT_INPUT 等）仅在其 `semanticType` 或父链明确属于 Table/Tree/List/TabPane 时，才切换到组合语义的 keyword，否则保持基础 keyword。
+
+---
+
+## 4. 如何扩展其他语义控件
 
 按以下三步即可增加新的语义控件支持（仍不实现 DateTimePicker、Splitter）：
 
-### 3.1 规则中增加或调整 semanticType
+### 4.1 规则中增加或调整 semanticType
 
 在 **`fx-node-classifier-rules.json`** 中：
 
 - 为新控件增加一条规则，设置合适的 `pattern`、`category`、`boundary`、**`semanticType`**。
 - 若希望沿用现有类型（如 INPUT_CONTROL），可在 Record 代码中按 `control.getClass().getName()` 再细分 keyword。
 
-### 3.2 Record 扩展（FxRecordSupport）
+### 4.2 Record 扩展（FxRecordSupport）
 
 - **keywordForMouseClick**：为新的 `semanticType`（或 INPUT_CONTROL + 类名）返回对应的 **keyword**（如 SetDatePicker、SetSlider 等）。
 - **dataForMouseClick**：为每个新 **keyword** 增加分支，通过反射从 control 上取 **data**（如 `getValue()`、`getText()` 等），与 SetCheckBox、SelectTab 等写法一致。
 
-### 3.3 Replay 扩展（FxReplaySupport）
+### 4.3 Replay 扩展（FxReplaySupport）
 
 - 在 **replayJavaFxByBounds** 中为新 **keyword** 增加分支，使用 **Robot** 在 bounds 中心执行：点击、输入 data、回车等（可参考 SelectDropList、FillEdit）。
 
@@ -121,7 +142,7 @@ Table 以 **整个 TableView** 为语义对象，不以单独 cell/header 为对
 
 ---
 
-## 4. 可选：配置化扩展
+## 5. 可选：配置化扩展
 
 若希望后续扩展更多控件时少改代码，可增加配置（例如在 fx 目录下新增 JSON）：
 
@@ -132,7 +153,7 @@ Record 时根据配置查表得到 keyword 和 data 的取值方式；Replay 仍
 
 ---
 
-## 5. 相关文件
+## 6. 相关文件
 
 | 文件 | 作用 |
 |------|------|

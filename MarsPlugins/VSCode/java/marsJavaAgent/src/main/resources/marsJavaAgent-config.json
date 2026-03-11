@@ -1,6 +1,7 @@
 {
   "IsHighlightObjectWhileReplay": true,
   "JdwpPort": 0,
+  "maxWaitTimeForObjectAvailable": 15,
   "SemanticTracking": {
     "MaxAncestorHops": 5,
     "PreferPartOverControl": true,

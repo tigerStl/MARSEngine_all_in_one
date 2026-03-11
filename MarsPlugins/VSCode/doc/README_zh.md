@@ -43,8 +43,12 @@ VSCode/
 - **扫描与脚本**：统一存放在**插件安装目录**下的 `scanedfiles/`（不依赖工作区）
 - **Java Agent 日志**：
   - **agent-loader**：其 JAR 同目录下的 `javaagentLog/`（如 `java/agent-loader/target/javaagentLog/agent-loader.log`）
-  - **marsJavaAgent**：扩展会将 JAR 复制到临时目录再加载；扫描时日志在该**临时 JAR 同目录**的 `javaagentLog/`，录制时日志在**录制目录**（recordDir，通常位于 `scanedfiles/` 下）的 `record-debug.log`、`toolbutton-tooltips.log`
-    - 鼠标点击临时跟踪开关（坐标/对象类/父类）：`-Dmars.record.mouse.click.trace.enabled=true|false`（默认 `true`，设为 `false` 可关闭这类临时日志）
+  - **marsJavaAgent 引擎日志（MARS Java Engine log）**：用于排查扫描/录制/回放时节点被忽略、分类异常等问题。**默认路径**：`%TEMP%\javaUIAutomationLog\`（Windows）或 `$TMPDIR/javaUIAutomationLog/`（Linux/macOS），**默认文件名**：`MARSJavaEngineLog_yyyyMMdd.log`（按日期单文件追加）。可通过 JVM 系统属性配置：
+    - **mars.javaagent.log.dir**：日志目录绝对路径。未配置时优先使用 JAR 所在目录下的 `logs`，再回退到上述 temp 下的 `javaUIAutomationLog`。
+    - **mars.javaagent.log.file**：日志文件名（不含路径）。未配置时使用 `MARSJavaEngineLog_yyyyMMdd.log`。
+    - 示例（启动目标应用时加 JVM 参数）：`-Dmars.javaagent.log.dir=C:\MyLogs` 或 `-Dmars.javaagent.log.file=myagent.log`
+  - **marsJavaAgent 录制相关**：扩展将 JAR 复制到临时目录再加载；录制时日志在**录制目录**（recordDir）的 `record-debug.log`、`toolbutton-tooltips.log`。
+    - 鼠标点击临时跟踪开关：`-Dmars.record.mouse.click.trace.enabled=true|false`（默认 `true`）
 - **加密核心资源**：
   - 构建后位于 `java/marsJavaAgent/target/marsJavaResource.bin`
   - 运行时扩展会将 `marsJavaResource.bin` 与临时 agent JAR 放在同目录，由 bootstrap 在内存中解密加载

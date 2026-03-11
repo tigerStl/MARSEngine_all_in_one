@@ -43,7 +43,19 @@ public class UnifiedAgent {
             Class<?> fallback = Class.forName(DELEGATE_CLASS);
             Method method = fallback.getMethod(DELEGATE_METHOD, String.class, Instrumentation.class);
             method.invoke(null, agentArgs, inst);
-        } catch (Exception e) {
+        } catch (Throwable e) {
+            // Print cause so "Agent failed to initialize" shows the real reason when attach fails.
+            System.err.println("[UnifiedAgent] bootstrap failed: " + e.getMessage());
+            Throwable c = e.getCause();
+            if (c != null) {
+                System.err.println("[UnifiedAgent] cause: " + c.getClass().getName() + ": " + c.getMessage());
+                if (c.getCause() != null) {
+                    System.err.println("[UnifiedAgent] cause.cause: " + c.getCause().getClass().getName() + ": " + c.getCause().getMessage());
+                }
+                c.printStackTrace(System.err);
+            } else {
+                e.printStackTrace(System.err);
+            }
             throw new RuntimeException("Failed to bootstrap encrypted agent payload", e);
         }
     }

@@ -9,7 +9,8 @@ import java.util.logging.Logger;
 
 final class JavaLog {
 
-    private static final DateTimeFormatter TS_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss SSS");
+    // Log timestamp format: yyyyMMdd HH24:mm:ss fff
+    private static final DateTimeFormatter TS_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss SSS");
 
     private JavaLog() {
     }

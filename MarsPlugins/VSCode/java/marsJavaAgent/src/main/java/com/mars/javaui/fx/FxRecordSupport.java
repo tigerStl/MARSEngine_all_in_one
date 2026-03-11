@@ -1,29 +1,36 @@
 package com.mars.javaui.fx;
 
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * JavaFX recording hooks and step emission (isolated from Swing/AWT).
  * All logic for attaching/detaching FX event filters and mapping events to steps lives here.
  */
-public final class FxRecordSupport {
+public final class FxRecordSupport extends FxReflectionSupport {
 
     private static final Logger LOG = Logger.getLogger(FxRecordSupport.class.getName());
+    private static final DateTimeFormatter FX_TS_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss SSS");
+
+    private static String ts() {
+        return LocalDateTime.now().format(FX_TS_FORMAT);
+    }
 
     private FxRecordSupport() {}
 
@@ -53,6 +60,21 @@ public final class FxRecordSupport {
         }
     }
 
+    /** Holder for Window.getWindows() list listener; used to remove on detach. */
+    public static final class FxWindowListHook {
+        public final Object windowsList;
+        public final Object listener;
+
+        public FxWindowListHook(Object windowsList, Object listener) {
+            this.windowsList = windowsList;
+            this.listener = listener;
+        }
+    }
+
+    /** Identity set of Scene instances already registered; avoids duplicate hooks (e.g. ContextMenu show/hide). */
+    private static final Set<Object> REGISTERED_FX_SCENES =
+            Collections.newSetFromMap(new IdentityHashMap<>());
+
     /** Info for a TableView cell: table + row + column index. */
     private static final class TableCellInfo {
         final Object tableView;
@@ -72,6 +94,17 @@ public final class FxRecordSupport {
     private static volatile int fxTableContextCol = -1;
     private static volatile List<String> fxTableContextConditionColumns;
     private static volatile List<String> fxTableContextConditionValues;
+
+    // Context for JavaFX FillEdit dedupe between Enter/Tab and focus-lost.
+    private static volatile Object fxLastFillEditControl;
+    private static volatile long fxLastFillEditTimeMs;
+    private static final long FX_FILLEDIT_DEDUPE_MS = 500L;
+
+    // Optional reflection for addEventHandler and PickResult logging (set once in attachJavaFxRecordHooks).
+    private static volatile Method fxSceneAddEventHandler;
+    private static volatile Method fxMouseGetPickResult;
+    private static volatile Method fxPickGetIntersectedNode;
+    private static volatile Class<?> fxMouseEventClzForPick;
 
     /** Sends a recorded step (e.g. to file + WebSocket). Implemented by RecordAgent. */
     public interface FxStepSender {
@@ -101,6 +134,7 @@ public final class FxRecordSupport {
             AtomicReference<?> clientConnRef,
             AtomicReference<List<FxFilterHook>> fxHooksRef,
             AtomicReference<List<FxFocusHook>> fxFocusHooksRef,
+            AtomicReference<List<FxWindowListHook>> fxWindowHooksRef,
             FxStepSender stepSender) {
         try {
             Class<?> platformClz = Class.forName("javafx.application.Platform");
@@ -113,92 +147,57 @@ public final class FxRecordSupport {
             Class<?> keyEventClz = Class.forName("javafx.scene.input.KeyEvent");
             Method addEventFilter = sceneClz.getMethod("addEventFilter", Class.forName("javafx.event.EventType"), eventHandlerClz);
 
+            // Optional: addEventHandler + PickResult/intersectedNode for logging
+            try {
+                fxSceneAddEventHandler = sceneClz.getMethod("addEventHandler", Class.forName("javafx.event.EventType"), eventHandlerClz);
+                fxMouseGetPickResult = mouseEventClz.getMethod("getPickResult");
+                Class<?> pickResultClz = Class.forName("javafx.scene.input.PickResult");
+                fxPickGetIntersectedNode = pickResultClz.getMethod("getIntersectedNode");
+                fxMouseEventClzForPick = mouseEventClz;
+            } catch (Exception e) {
+                LOG.log(Level.FINE, "[JavaFXHook] optional addEventHandler/PickResult reflection failed", e);
+                fxSceneAddEventHandler = null;
+                fxMouseGetPickResult = null;
+                fxPickGetIntersectedNode = null;
+                fxMouseEventClzForPick = null;
+            }
+
             Object mouseClickedType = mouseEventClz.getField("MOUSE_CLICKED").get(null);
+            Object mp = null;
+            try {
+                mp = mouseEventClz.getField("MOUSE_PRESSED").get(null);
+            } catch (Exception ignored) { }
+            final Object mousePressedTypeRef = mp;
             Object keyPressedType = keyEventClz.getField("KEY_PRESSED").get(null);
             Object keyReleasedType = keyEventClz.getField("KEY_RELEASED").get(null);
 
             List<FxFilterHook> hooks = new ArrayList<>();
             List<FxFocusHook> focusHooks = new ArrayList<>();
-            Runnable register = () -> {
+
+            Runnable init = () -> {
                 try {
-                    Object winsObj = windowClz.getMethod("getWindows").invoke(null);
-                    if (!(winsObj instanceof Iterable<?>)) return;
-                    for (Object win : (Iterable<?>) winsObj) {
-                        if (win == null) continue;
-                        Object showingObj = invokeNoArg(win, "isShowing");
-                        if (!(showingObj instanceof Boolean) || !((Boolean) showingObj)) continue;
-                        Object scene = invokeNoArg(win, "getScene");
-                        if (scene == null) continue;
-                        // Defer handling to runLater so the event filter returns immediately: Tab/focus and
-                        // other default behavior run in the same dispatch; recording runs next pulse.
-                        Object mouseHandler = createHandlerProxy(event -> {
-                            if (!recording[0]) return;
-                            try {
-                                runLater.invoke(null, (Runnable) () -> handleJavaFxRecordEvent(event, stepSender));
-                            } catch (Exception e) {
-                                LOG.log(Level.WARNING, "FX runLater (mouse) failed", e);
-                            }
-                        });
-                        addEventFilter.invoke(scene, mouseClickedType, mouseHandler);
-                        hooks.add(new FxFilterHook(scene, mouseClickedType, mouseHandler));
-
-                        Object keyPressedHandler = createHandlerProxy(event -> {
-                            if (!recording[0]) return;
-                            try {
-                                runLater.invoke(null, (Runnable) () -> handleJavaFxRecordEvent(event, stepSender));
-                            } catch (Exception e) {
-                                LOG.log(Level.WARNING, "FX runLater (keyPressed) failed", e);
-                            }
-                        });
-                        addEventFilter.invoke(scene, keyPressedType, keyPressedHandler);
-                        hooks.add(new FxFilterHook(scene, keyPressedType, keyPressedHandler));
-
-                        Object keyHandler = createHandlerProxy(event -> {
-                            if (!recording[0]) return;
-                            try {
-                                runLater.invoke(null, (Runnable) () -> handleJavaFxRecordEvent(event, stepSender));
-                            } catch (Exception e) {
-                                LOG.log(Level.WARNING, "FX runLater (keyReleased) failed", e);
-                            }
-                        });
-                        addEventFilter.invoke(scene, keyReleasedType, keyHandler);
-                        hooks.add(new FxFilterHook(scene, keyReleasedType, keyHandler));
-
-                        // Focus listener: when focus leaves a table cell we recorded, emit SearchAndUpdate
-                        try {
-                            Method focusOwnerProp = sceneClz.getMethod("focusOwnerProperty");
-                            Object focusProp = focusOwnerProp.invoke(scene);
-                            if (focusProp != null) {
-                                Object focusListener = createFocusChangeListenerProxy((oldOwner, newOwner) -> {
-                                    if (!recording[0]) return;
-                                    try {
-                                        runLater.invoke(null, (Runnable) () -> onJavaFxFocusChange(oldOwner, newOwner, stepSender));
-                                    } catch (Exception e) {
-                                        LOG.log(Level.WARNING, "FX runLater (focus) failed", e);
-                                    }
-                                });
-                                Class<?> changeListenerClz = Class.forName("javafx.beans.value.ChangeListener");
-                                Method addListener = focusProp.getClass().getMethod("addListener", changeListenerClz);
-                                addListener.invoke(focusProp, focusListener);
-                                focusHooks.add(new FxFocusHook(scene, focusProp, focusListener));
-                            }
-                        } catch (Exception e) {
-                            LOG.log(Level.FINE, "FX focusOwnerProperty/addListener not available", e);
-                        }
-                    }
-                } catch (Exception e) {
-                    LOG.log(Level.WARNING, "attachJavaFxRecordHooks register.run failed", e);
+                    registerHooksForAllCurrentWindows(
+                            windowClz, sceneClz, addEventFilter,
+                            mouseClickedType, mousePressedTypeRef, keyPressedType, keyReleasedType,
+                            recording, runLater, hooks, focusHooks, stepSender);
+                    List<FxWindowListHook> windowHooks = attachJavaFxWindowListListener(
+                            windowClz, runLater, addEventFilter,
+                            mouseClickedType, mousePressedTypeRef, keyPressedType, keyReleasedType,
+                            recording, hooks, focusHooks, stepSender, sceneClz);
+                    if (fxWindowHooksRef != null) fxWindowHooksRef.set(windowHooks);
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "[ERROR] attachJavaFxRecordHooks init failed", e);
                 }
             };
 
             boolean fxThread = Boolean.TRUE.equals(isFxThread.invoke(null));
             if (fxThread) {
-                register.run();
+                init.run();
             } else {
                 CountDownLatch latch = new CountDownLatch(1);
                 runLater.invoke(null, (Runnable) () -> {
                     try {
-                        register.run();
+                        init.run();
                     } finally {
                         latch.countDown();
                     }
@@ -208,9 +207,345 @@ public final class FxRecordSupport {
             fxHooksRef.set(hooks);
             if (fxFocusHooksRef != null) fxFocusHooksRef.set(focusHooks);
         } catch (ClassNotFoundException e) {
-            LOG.log(Level.FINE, "JavaFX not present, skip FX record hooks", e);
+            LOG.log(Level.FINE, "[ERROR] JavaFX not present, skip FX record hooks", e);
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "attachJavaFxRecordHooks failed", e);
+            LOG.log(Level.WARNING, "[ERROR] attachJavaFxRecordHooks failed", e);
+        }
+    }
+
+    /**
+     * Register event filters and focus listener for a single Scene. Idempotent per scene (identity).
+     * If scene is null or already in REGISTERED_FX_SCENES, returns without registering.
+     */
+    private static void registerJavaFxSceneHooks(
+            Object scene,
+            Method addEventFilter,
+            Object mouseClickedType,
+            Object mousePressedType,
+            Object keyPressedType,
+            Object keyReleasedType,
+            boolean[] recording,
+            Method runLater,
+            List<FxFilterHook> hooks,
+            List<FxFocusHook> focusHooks,
+            FxStepSender stepSender,
+            Class<?> sceneClz) {
+        if (scene == null) return;
+        synchronized (REGISTERED_FX_SCENES) {
+            if (REGISTERED_FX_SCENES.contains(scene)) return;
+        }
+        try {
+            // Filter path: log PickResult/intersectedNode then run recording
+            Object mouseHandler = createHandlerProxy(event -> {
+                if (!recording[0]) return;
+                try {
+                    logJavaFxPickResult("[JavaFXHook][filter]", event);
+                    runLater.invoke(null, (Runnable) () -> handleJavaFxRecordEvent(event, stepSender));
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "[ERROR] FX runLater (mouse) failed", e);
+                }
+            });
+            addEventFilter.invoke(scene, mouseClickedType, mouseHandler);
+            hooks.add(new FxFilterHook(scene, mouseClickedType, mouseHandler));
+
+            if (mousePressedType != null) {
+                Object mousePressedHandler = createHandlerProxy(event -> {
+                    if (!recording[0]) return;
+                    try {
+                        logJavaFxPickResult("[JavaFXHook][filter]", event);
+                        runLater.invoke(null, (Runnable) () -> handleJavaFxRecordEvent(event, stepSender));
+                    } catch (Exception e) {
+                        LOG.log(Level.WARNING, "[ERROR] FX runLater (mousePressed) failed", e);
+                    }
+                });
+                addEventFilter.invoke(scene, mousePressedType, mousePressedHandler);
+                hooks.add(new FxFilterHook(scene, mousePressedType, mousePressedHandler));
+            }
+
+            // addEventHandler in addition to addEventFilter: log only (no second handleJavaFxRecordEvent)
+            Method addEventHandler = fxSceneAddEventHandler;
+            if (addEventHandler != null) {
+                Object handlerOnlyMouseClicked = createHandlerProxy(event -> {
+                    if (!recording[0]) return;
+                    logJavaFxPickResult("[JavaFXHook][handler]", event);
+                });
+                addEventHandler.invoke(scene, mouseClickedType, handlerOnlyMouseClicked);
+                if (mousePressedType != null) {
+                    Object handlerOnlyMousePressed = createHandlerProxy(event -> {
+                        if (!recording[0]) return;
+                        logJavaFxPickResult("[JavaFXHook][handler]", event);
+                    });
+                    addEventHandler.invoke(scene, mousePressedType, handlerOnlyMousePressed);
+                }
+            }
+
+            Object keyPressedHandler = createHandlerProxy(event -> {
+                if (!recording[0]) return;
+                try {
+                    runLater.invoke(null, (Runnable) () -> handleJavaFxRecordEvent(event, stepSender));
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "[ERROR] FX runLater (keyPressed) failed", e);
+                }
+            });
+            addEventFilter.invoke(scene, keyPressedType, keyPressedHandler);
+            hooks.add(new FxFilterHook(scene, keyPressedType, keyPressedHandler));
+
+            Object keyHandler = createHandlerProxy(event -> {
+                if (!recording[0]) return;
+                try {
+                    runLater.invoke(null, (Runnable) () -> handleJavaFxRecordEvent(event, stepSender));
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "[ERROR] FX runLater (keyReleased) failed", e);
+                }
+            });
+            addEventFilter.invoke(scene, keyReleasedType, keyHandler);
+            hooks.add(new FxFilterHook(scene, keyReleasedType, keyHandler));
+
+            try {
+                Method focusOwnerProp = sceneClz.getMethod("focusOwnerProperty");
+                Object focusProp = focusOwnerProp.invoke(scene);
+                if (focusProp != null) {
+                    Object focusListener = createFocusChangeListenerProxy((oldOwner, newOwner) -> {
+                        if (!recording[0]) return;
+                        try {
+                            runLater.invoke(null, (Runnable) () -> onJavaFxFocusChange(oldOwner, newOwner, stepSender));
+                        } catch (Exception e) {
+                            LOG.log(Level.WARNING, "[ERROR] FX runLater (focus) failed", e);
+                        }
+                    });
+                    Class<?> changeListenerClz = Class.forName("javafx.beans.value.ChangeListener");
+                    Method addListener = focusProp.getClass().getMethod("addListener", changeListenerClz);
+                    addListener.invoke(focusProp, focusListener);
+                    focusHooks.add(new FxFocusHook(scene, focusProp, focusListener));
+                }
+                        } catch (Exception e) {
+                            LOG.log(Level.FINE, "[ERROR] FX focusOwnerProperty/addListener not available", e);
+            }
+
+            synchronized (REGISTERED_FX_SCENES) {
+                REGISTERED_FX_SCENES.add(scene);
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "[ERROR] registerJavaFxSceneHooks failed for scene=" + (scene != null ? scene.getClass().getName() : "null"), e);
+        }
+    }
+
+    /** When window has null scene (e.g. HeavyweightDialog), retry getScene() via runLater up to retriesLeft times. */
+    private static void scheduleRegisterSceneWhenReady(
+            Object win,
+            int retriesLeft,
+            Method addEventFilter,
+            Object mouseClickedType,
+            Object mousePressedType,
+            Object keyPressedType,
+            Object keyReleasedType,
+            boolean[] recording,
+            Method runLater,
+            List<FxFilterHook> hooks,
+            List<FxFocusHook> focusHooks,
+            FxStepSender stepSender,
+            Class<?> sceneClz) {
+        if (win == null || retriesLeft < 0) return;
+        Runnable task = () -> {
+            Object scene = invokeNoArg(win, "getScene");
+            if (scene != null) {
+                try {
+                    registerJavaFxSceneHooks(scene, addEventFilter, mouseClickedType, mousePressedType,
+                            keyPressedType, keyReleasedType, recording, runLater, hooks, focusHooks, stepSender, sceneClz);
+                } catch (Exception ex) {
+                    LOG.log(Level.WARNING, "[ERROR] registerJavaFxSceneHooks for late scene failed", ex);
+                }
+                return;
+            }
+            if (retriesLeft > 0) {
+                try {
+                    runLater.invoke(null, (Runnable) () -> scheduleRegisterSceneWhenReady(win, retriesLeft - 1,
+                            addEventFilter, mouseClickedType, mousePressedType, keyPressedType, keyReleasedType,
+                            recording, runLater, hooks, focusHooks, stepSender, sceneClz));
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "[ERROR] scheduleRegisterSceneWhenReady runLater failed", e);
+                }
+            }
+        };
+        try {
+            runLater.invoke(null, task);
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "[ERROR] scheduleRegisterSceneWhenReady failed", e);
+        }
+    }
+
+    /** Initial scan: register hooks for all current showing windows' scenes. */
+    private static void registerHooksForAllCurrentWindows(
+            Class<?> windowClz,
+            Class<?> sceneClz,
+            Method addEventFilter,
+            Object mouseClickedType,
+            Object mousePressedType,
+            Object keyPressedType,
+            Object keyReleasedType,
+            boolean[] recording,
+            Method runLater,
+            List<FxFilterHook> hooks,
+            List<FxFocusHook> focusHooks,
+            FxStepSender stepSender) throws Exception {
+        Object winsObj = windowClz.getMethod("getWindows").invoke(null);
+        if (!(winsObj instanceof Iterable<?>)) return;
+        for (Object win : (Iterable<?>) winsObj) {
+            if (win == null) continue;
+            Object scene = invokeNoArg(win, "getScene");
+            if (scene == null) continue;
+            registerJavaFxSceneHooks(scene, addEventFilter, mouseClickedType, mousePressedType,
+                    keyPressedType, keyReleasedType, recording, runLater, hooks, focusHooks, stepSender, sceneClz);
+        }
+    }
+
+    /**
+     * Attach ListChangeListener to Window.getWindows(); on add runLater + registerJavaFxSceneHooks,
+     * on remove runLater + removeHooksForScenesOfWindows. Returns list of FxWindowListHook for detach.
+     */
+    private static List<FxWindowListHook> attachJavaFxWindowListListener(
+            Class<?> windowClz,
+            Method runLater,
+            Method addEventFilter,
+            Object mouseClickedType,
+            Object mousePressedType,
+            Object keyPressedType,
+            Object keyReleasedType,
+            boolean[] recording,
+            List<FxFilterHook> hooks,
+            List<FxFocusHook> focusHooks,
+            FxStepSender stepSender,
+            Class<?> sceneClz) {
+        List<FxWindowListHook> result = new ArrayList<>();
+        try {
+            Object winsObj = windowClz.getMethod("getWindows").invoke(null);
+            if (winsObj == null) return result;
+            Class<?> listChangeListenerClz = Class.forName("javafx.collections.ListChangeListener");
+            Method nextM = null;
+            Method wasAddedM = null;
+            Method wasRemovedM = null;
+            Method getAddedSubListM = null;
+            Method getRemovedM = null;
+            try {
+                Class<?> changeClz = Class.forName("javafx.collections.ListChangeListener$Change");
+                nextM = changeClz.getMethod("next");
+                wasAddedM = changeClz.getMethod("wasAdded");
+                wasRemovedM = changeClz.getMethod("wasRemoved");
+                getAddedSubListM = changeClz.getMethod("getAddedSubList");
+                getRemovedM = changeClz.getMethod("getRemoved");
+            } catch (Exception e) {
+                LOG.log(Level.FINE, "[ERROR] ListChangeListener.Change methods not available", e);
+                return result;
+            }
+            final Method nextMethod = nextM;
+            final Method wasAddedMethod = wasAddedM;
+            final Method wasRemovedMethod = wasRemovedM;
+            final Method getAddedSubListMethod = getAddedSubListM;
+            final Method getRemovedMethod = getRemovedM;
+
+            InvocationHandler ih = (proxy, method, args) -> {
+                if (!"onChanged".equals(method.getName()) || args == null || args.length == 0) return null;
+                Object change = args[0];
+                try {
+                    while (Boolean.TRUE.equals(nextMethod.invoke(change))) {
+                        if (Boolean.TRUE.equals(wasAddedMethod.invoke(change))) {
+                            Object added = getAddedSubListMethod.invoke(change);
+                            if (added instanceof Iterable<?>) {
+                                for (Object win : (Iterable<?>) added) {
+                                    if (win == null) continue;
+                                    Object scene = invokeNoArg(win, "getScene");
+                                    if (scene == null) {
+                                        // HeavyweightDialog etc.: scene may be set later; retry with delayed runLater (up to 2 retries).
+                                        scheduleRegisterSceneWhenReady(win, 2, addEventFilter, mouseClickedType, mousePressedType,
+                                                keyPressedType, keyReleasedType, recording, runLater, hooks, focusHooks, stepSender, sceneClz);
+                                        continue;
+                                    }
+                                    final Object sceneRef = scene;
+                                    runLater.invoke(null, (Runnable) () -> {
+                                        try {
+                                            registerJavaFxSceneHooks(sceneRef, addEventFilter, mouseClickedType, mousePressedType,
+                                                    keyPressedType, keyReleasedType, recording, runLater, hooks, focusHooks, stepSender, sceneClz);
+                                        } catch (Exception e) {
+                                            LOG.log(Level.WARNING, "registerJavaFxSceneHooks for added window failed", e);
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                        if (Boolean.TRUE.equals(wasRemovedMethod.invoke(change))) {
+                            Object removed = getRemovedMethod.invoke(change);
+                            if (removed instanceof Iterable<?>) {
+                                List<Object> wins = new ArrayList<>();
+                                for (Object w : (Iterable<?>) removed) wins.add(w);
+                                runLater.invoke(null, (Runnable) () -> removeHooksForScenesOfWindows(wins, hooks, focusHooks, sceneClz));
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "[ERROR] FX Window list onChanged failed", e);
+                }
+                return null;
+            };
+            Object listener = Proxy.newProxyInstance(
+                    listChangeListenerClz.getClassLoader(),
+                    new Class<?>[]{listChangeListenerClz},
+                    ih);
+            Method addListener = winsObj.getClass().getMethod("addListener", listChangeListenerClz);
+            addListener.invoke(winsObj, listener);
+            result.add(new FxWindowListHook(winsObj, listener));
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "[ERROR] attachJavaFxWindowListListener failed", e);
+        }
+        return result;
+    }
+
+    /** Remove hooks for scenes of the given (removed) windows; remove scenes from REGISTERED_FX_SCENES. */
+    private static void removeHooksForScenesOfWindows(
+            List<Object> windows,
+            List<FxFilterHook> hooks,
+            List<FxFocusHook> focusHooks,
+            Class<?> sceneClz) {
+        if (windows == null || windows.isEmpty()) return;
+        try {
+            Class<?> sceneClzRef = sceneClz;
+            Method removeEventFilter = sceneClzRef.getMethod("removeEventFilter", Class.forName("javafx.event.EventType"), Class.forName("javafx.event.EventHandler"));
+            Class<?> changeListenerClz = Class.forName("javafx.beans.value.ChangeListener");
+            for (Object win : windows) {
+                Object scene = invokeNoArg(win, "getScene");
+                if (scene == null) continue;
+                synchronized (REGISTERED_FX_SCENES) {
+                    REGISTERED_FX_SCENES.remove(scene);
+                }
+                List<FxFilterHook> toRemoveF = new ArrayList<>();
+                for (FxFilterHook h : hooks) {
+                    if (h.scene == scene) toRemoveF.add(h);
+                }
+                for (FxFilterHook h : toRemoveF) {
+                    try {
+                        removeEventFilter.invoke(h.scene, h.eventType, h.handler);
+                    } catch (Exception e) {
+                        LOG.log(Level.FINE, "removeEventFilter failed", e);
+                    }
+                    hooks.remove(h);
+                }
+                List<FxFocusHook> toRemoveFocus = new ArrayList<>();
+                for (FxFocusHook h : focusHooks) {
+                    if (h.scene == scene) toRemoveFocus.add(h);
+                }
+                for (FxFocusHook h : toRemoveFocus) {
+                    try {
+                        if (h.property != null && h.listener != null) {
+                            Method removeListener = h.property.getClass().getMethod("removeListener", changeListenerClz);
+                            removeListener.invoke(h.property, h.listener);
+                        }
+                    } catch (Exception e) {
+                        LOG.log(Level.FINE, "removeListener (focus) failed", e);
+                    }
+                    focusHooks.remove(h);
+                }
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "[ERROR] removeHooksForScenesOfWindows failed", e);
         }
     }
 
@@ -238,7 +573,7 @@ public final class FxRecordSupport {
                 runLater.invoke(null, remove);
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "detachJavaFxRecordHooks failed", e);
+            LOG.log(Level.WARNING, "[ERROR] detachJavaFxRecordHooks failed", e);
         }
     }
 
@@ -268,7 +603,37 @@ public final class FxRecordSupport {
                 runLater.invoke(null, remove);
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "detachJavaFxFocusHooks failed", e);
+            LOG.log(Level.WARNING, "[ERROR] detachJavaFxFocusHooks failed", e);
+        }
+    }
+
+    public static void detachJavaFxWindowListHooks(List<FxWindowListHook> windowHooks) {
+        if (windowHooks == null || windowHooks.isEmpty()) return;
+        try {
+            Class<?> listChangeListenerClz = Class.forName("javafx.collections.ListChangeListener");
+            Class<?> platformClz = Class.forName("javafx.application.Platform");
+            Method isFxThread = platformClz.getMethod("isFxApplicationThread");
+            Method runLater = platformClz.getMethod("runLater", Runnable.class);
+            Runnable remove = () -> {
+                for (FxWindowListHook h : windowHooks) {
+                    try {
+                        if (h.windowsList != null && h.listener != null) {
+                            Method removeListener = h.windowsList.getClass().getMethod("removeListener", listChangeListenerClz);
+                            removeListener.invoke(h.windowsList, h.listener);
+                        }
+                    } catch (Exception e) {
+                        LOG.log(Level.WARNING, "detachJavaFxWindowListHooks removeListener failed", e);
+                    }
+                }
+            };
+            boolean fxThread = Boolean.TRUE.equals(isFxThread.invoke(null));
+            if (fxThread) {
+                remove.run();
+            } else {
+                runLater.invoke(null, remove);
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "[ERROR] detachJavaFxWindowListHooks failed", e);
         }
     }
 
@@ -320,31 +685,68 @@ public final class FxRecordSupport {
         );
     }
 
-    /** Called on FX thread when focus changes; emit SearchAndUpdate if focus left our tracked table cell. */
+    /** Called on FX thread when focus changes; emit SearchAndUpdate when leaving tracked table cell,
+     *  and emit FillEdit when leaving a text input control (with dedupe vs Enter/Tab-triggered FillEdit). */
     private static void onJavaFxFocusChange(Object oldOwner, Object newOwner, FxStepSender stepSender) {
+        if (stepSender == null) return;
+
+        // 1) Table SearchAndUpdate on focus leaving the tracked cell.
         Object table = fxTableContextTableView;
-        if (table == null || oldOwner == null || stepSender == null) return;
-        TableCellInfo cell = getTableCellInfoFromNode(oldOwner);
-        if (cell == null || cell.tableView != table || cell.row != fxTableContextRow || cell.col != fxTableContextCol) return;
-        List<String> condCols = fxTableContextConditionColumns;
-        List<String> condVals = fxTableContextConditionValues;
-        if (condCols == null || condVals == null || condCols.size() != condVals.size()) return;
-        String targetValue = getFxTableCellValue(table, fxTableContextRow, fxTableContextCol);
-        if (targetValue == null) targetValue = "";
-        String param = buildFxTableParameter(condCols, fxTableContextCol);
-        String data = buildFxTableSearchAndUpdateData(condVals, targetValue);
+        if (table != null && oldOwner != null) {
+            TableCellInfo cell = getTableCellInfoFromNode(oldOwner);
+            if (cell != null
+                    && cell.tableView == table
+                    && cell.row == fxTableContextRow
+                    && cell.col == fxTableContextCol) {
+                List<String> condCols = fxTableContextConditionColumns;
+                List<String> condVals = fxTableContextConditionValues;
+                if (condCols != null && condVals != null && condCols.size() == condVals.size()) {
+                    String targetValue = getFxTableCellValue(table, fxTableContextRow, fxTableContextCol);
+                    if (targetValue == null) targetValue = "";
+                    String param = buildFxTableParameter(condCols, fxTableContextCol);
+                    String data = buildFxTableSearchAndUpdateData(condVals, targetValue);
+                    Map<String, Object> step = new LinkedHashMap<>();
+                    step.put("keyword", "SearchAndUpdate");
+                    step.put("event", "searchAndUpdate");
+                    step.put("timestamp", System.currentTimeMillis());
+                    step.put("parameter", param);
+                    step.put("data", data);
+                    step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(table, null));
+                    step.put("objectIdentifier", buildJavaFxObjectIdentifier(table));
+                    step.put("objectCategory", "javaFxTable");
+                    step.put("semanticType", "TABLEVIEW");
+                    stepSender.sendStep(step);
+                    clearFxTableContext();
+                    // Do not return here; same focus change might also correspond to leaving a text input control.
+                }
+            }
+        }
+
+        // 2) Text input FillEdit on focus lost, with dedupe vs Enter/Tab-generated FillEdit.
+        if (oldOwner == null) return;
+        if (!isInsideTextInput(oldOwner)) return;
+
+        long now = System.currentTimeMillis();
+        if (fxLastFillEditControl == oldOwner
+                && (now - fxLastFillEditTimeMs) >= 0
+                && (now - fxLastFillEditTimeMs) < FX_FILLEDIT_DEDUPE_MS) {
+            return;
+        }
+
+        String text = asString(invokeNoArg(oldOwner, "getText"));
+        if (text == null) text = "";
+
         Map<String, Object> step = new LinkedHashMap<>();
-        step.put("keyword", "SearchAndUpdate");
-        step.put("event", "searchAndUpdate");
-        step.put("timestamp", System.currentTimeMillis());
-        step.put("parameter", param);
-        step.put("data", data);
-        step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(table, null));
-        step.put("objectIdentifier", buildJavaFxObjectIdentifier(table));
-        step.put("objectCategory", "javaFxTable");
-        step.put("semanticType", "TABLEVIEW");
+        step.put("keyword", "FillEdit");
+        step.put("event", "FillEdit");
+        step.put("timestamp", now);
+        if (!text.isEmpty()) step.put("data", text);
+        step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(oldOwner, null));
+        step.put("objectIdentifier", buildJavaFxObjectIdentifier(oldOwner));
         stepSender.sendStep(step);
-        clearFxTableContext();
+
+        fxLastFillEditControl = oldOwner;
+        fxLastFillEditTimeMs = now;
     }
 
     private static void clearFxTableContext() {
@@ -353,6 +755,166 @@ public final class FxRecordSupport {
         fxTableContextCol = -1;
         fxTableContextConditionColumns = null;
         fxTableContextConditionValues = null;
+    }
+    private static int debugCount = 0;
+    // topcontroltext 是产生事件的对象的文本
+    private static String topControlText = "";
+
+    /** Resolve top-level control text for the given node (e.g. window title from scene/window). Used for conditional breakpoint and logging. */
+    private static String getTopControlText(Object node) {
+        if (node == null) return "";
+        try {
+            Object scene = invokeNoArg(node, "getScene");
+            if (scene == null) return "";
+            Object window = invokeNoArg(scene, "getWindow");
+            if (window == null) return "";
+            String title = asString(invokeNoArg(window, "getTitle"));
+            return title != null ? title : "";
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "getTopControlText failed", e);
+            return "";
+        }
+    }
+
+    // 调试：打印 node 自身、向上两层 parent、向下两层 children 的类型、name、屏幕位置
+    private static void debugFxNodeContext(Object node) {
+        try {
+            if (node == null) {
+                System.out.println("[FxDebug] node is null");
+                return;
+            }
+            String cn = node.getClass().getName();
+            if (!"javafx.scene.layout.StackPane".equals(cn)) {
+                // 只在需要时打印 StackPane 的上下文，避免刷屏
+                System.out.println("[FxDebug] node is not StackPane, class=" + cn);
+                return;
+            }
+
+            System.out.println("========== [FxDebug] StackPane context ==========");
+            // 1) 当前节点
+            printFxNodeInfo("[Self]", node);
+
+            // 2) 向上两层 parent
+            Object p = FxNodeClassifier.parentOf(node);
+            for (int i = 1; i <= 2 && p != null; i++) {
+                printFxNodeInfo("[Parent " + i + "]", p);
+                p = FxNodeClassifier.parentOf(p);
+            }
+
+            // 3) 向下两层 children（children + grandchildren）
+            List<Object> level1 = getFxNodeChildrenSafe(node);
+            if (!level1.isEmpty()) {
+                System.out.println("----- [FxDebug] Children (level 1) -----");
+                for (Object c1 : level1) {
+                    printFxNodeInfo("[Child 1]", c1);
+                }
+            }
+            List<Object> level2 = new ArrayList<>();
+            for (Object c1 : level1) {
+                level2.addAll(getFxNodeChildrenSafe(c1));
+            }
+            if (!level2.isEmpty()) {
+                System.out.println("----- [FxDebug] Children (level 2) -----");
+                for (Object c2 : level2) {
+                    printFxNodeInfo("[Child 2]", c2);
+                }
+            }
+            System.out.println("========== [FxDebug] End ==========");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 打印单个节点的：前缀、类名、name(javaName)、屏幕位置
+    private static void printFxNodeInfo(String prefix, Object node) {
+        if (node == null) {
+            System.out.println(prefix + " node=null");
+            return;
+        }
+        String cn = node.getClass().getName();
+        Map<String, Object> id = buildJavaFxObjectIdentifier(node);
+        Object javaName = id.get("javaName");
+
+        // 计算屏幕坐标（尽量重用现有逻辑）
+        Integer sx = null, sy = null, sw = null, sh = null;
+        try {
+            Object layoutBounds = invokeNoArg(node, "getLayoutBounds");
+            Object screenBounds = null;
+            if (layoutBounds != null) {
+                Class<?> boundsClass = Class.forName("javafx.geometry.Bounds");
+                Method localToScreen = node.getClass().getMethod("localToScreen", boundsClass);
+                screenBounds = localToScreen.invoke(node, layoutBounds);
+            }
+            if (screenBounds != null) {
+                sx = asInt(invokeNoArg(screenBounds, "getMinX"));
+                sy = asInt(invokeNoArg(screenBounds, "getMinY"));
+                sw = asInt(invokeNoArg(screenBounds, "getWidth"));
+                sh = asInt(invokeNoArg(screenBounds, "getHeight"));
+            }
+        } catch (Exception e) {
+            // 调试打印里忽略异常
+        }
+
+        System.out.println(prefix
+                + " class=" + cn
+                + ", name=" + (javaName != null ? javaName : "")
+                + ", screenBounds=("
+                + (sx != null ? sx : "null") + ","
+                + (sy != null ? sy : "null") + ","
+                + (sw != null ? sw : "null") + "x"
+                + (sh != null ? sh : "null") + ")"
+        );
+    }
+
+    // 安全获取 children 列表（优先 getChildrenUnmodifiable，然后 getChildren）
+    @SuppressWarnings("unchecked")
+    private static List<Object> getFxNodeChildrenSafe(Object node) {
+        if (node == null) return Collections.emptyList();
+        try {
+            // 优先尝试 getChildrenUnmodifiable()
+            Object listObj = invokeNoArg(node, "getChildrenUnmodifiable");
+            if (listObj == null) {
+                listObj = invokeNoArg(node, "getChildren");
+            }
+            if (listObj == null) return Collections.emptyList();
+            if (listObj instanceof java.util.List) {
+                return new ArrayList<>((List<Object>) listObj);
+            }
+            // 退化：通过 List 接口反射访问
+            Method size = java.util.List.class.getMethod("size");
+            Method get = java.util.List.class.getMethod("get", int.class);
+            int n = ((Number) size.invoke(listObj)).intValue();
+            List<Object> out = new ArrayList<>(n);
+            for (int i = 0; i < n; i++) {
+                out.add(get.invoke(listObj, i));
+            }
+            return out;
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+
+    /** Log MouseEvent.getPickResult() and PickResult.getIntersectedNode() for debugging; no-op if reflection not available. */
+    private static void logJavaFxPickResult(String prefix, Object event) {
+        if (event == null || fxMouseEventClzForPick == null || !fxMouseEventClzForPick.isInstance(event)) return;
+        Object pickResult = null;
+        Object intersected = null;
+        try {
+            if (fxMouseGetPickResult != null) pickResult = fxMouseGetPickResult.invoke(event);
+        } catch (Exception e) {
+            LOG.log(Level.FINE, prefix + " getPickResult failed", e);
+        }
+        try {
+            if (pickResult != null && fxPickGetIntersectedNode != null) intersected = fxPickGetIntersectedNode.invoke(pickResult);
+        } catch (Exception e) {
+            LOG.log(Level.FINE, prefix + " getIntersectedNode failed", e);
+        }
+        String prStr = pickResult != null ? pickResult.getClass().getName() : "null";
+        String inStr = intersected != null ? intersected.getClass().getName() : "null";
+        System.out.println(prefix + " pickResult=" + prStr + " intersectedNode=" + inStr);
+        if (LOG.isLoggable(Level.INFO)) LOG.info(prefix + " pickResult=" + prStr + " intersectedNode=" + inStr);
     }
 
     /**
@@ -364,12 +926,21 @@ public final class FxRecordSupport {
         String keyword = null;
         Object stepTarget = null;
         try {
+            debugCount++;
+            if (debugCount % 1000 == 0) {
+                LOG.info("[INFO] " + ts() + " [FxRecord] debugCount=" + debugCount);
+            }
             String eventTypeName = String.valueOf(invokeNoArg(event, "getEventType"));
             Object target = invokeNoArg(event, "getTarget");
             if (target == null) return;
 
+            if (target != null && "javafx.scene.layout.StackPane".equals(target.getClass().getName())) {
+                debugFxNodeContext(target);
+            }
+            topControlText = getTopControlText(target);
+
             if (LOG.isLoggable(Level.INFO)) {
-                LOG.info("[FxRecord] eventType=" + eventTypeName + " | target(sender)=" + describeNodeForLog(target));
+                LOG.info("[INFO] " + ts() + " [FxRecord] eventType=" + eventTypeName + " | target(sender)=" + describeNodeForLog(target) + " | topControlText=" + topControlText);
             }
 
             int maxHops = getSemanticTrackingConfig().getMaxAncestorHops();
@@ -385,14 +956,14 @@ public final class FxRecordSupport {
                         if (i > 0) folded.append(" <- ");
                         folded.append(describeNodeForLog(n));
                     }
-                    LOG.info("[FxRecord] foldAndLift foldedChain(" + lr.chainFoldedNodes.size() + ")= " + folded);
+                    LOG.info("[INFO] " + ts() + " [FxRecord] foldAndLift foldedChain(" + lr.chainFoldedNodes.size() + ")= " + folded);
                 }
-                LOG.info("[FxRecord] foldAndLift semanticTarget=" + (semanticTarget != null ? describeNodeForLog(semanticTarget) : "null"));
-                LOG.info("[FxRecord] foldAndLift semanticParent=" + (semanticParent != null ? describeNodeForLog(semanticParent) : "null"));
+                LOG.info("[INFO] " + ts() + " [FxRecord] foldAndLift semanticTarget=" + (semanticTarget != null ? describeNodeForLog(semanticTarget) : "null"));
+                LOG.info("[INFO] " + ts() + " [FxRecord] foldAndLift semanticParent=" + (semanticParent != null ? describeNodeForLog(semanticParent) : "null"));
                 if (semanticTarget != null) {
                     FxNodeCategory.NodeMeta meta = FxNodeClassifier.classify(semanticTarget);
                     if (meta != null) {
-                        LOG.info("[FxRecord] semanticTarget meta: category=" + meta.category + " boundary=" + meta.boundary + " semanticType=" + meta.semanticType);
+                        LOG.info("[INFO] " + ts() + " [FxRecord] semanticTarget meta: category=" + meta.category + " boundary=" + meta.boundary + " semanticType=" + meta.semanticType);
                     }
                 }
             }
@@ -440,13 +1011,27 @@ public final class FxRecordSupport {
             }
 
             String data = "";
+            // Type+event mapping: ContextMenuContent only responds to MOUSE_PRESSED; MenuBarButton etc. to MOUSE_CLICKED (avoid duplicate).
+            String semanticTargetClassName = semanticTarget != null ? semanticTarget.getClass().getName() : "";
+            boolean isContextMenuMenuItem = "MENUITEM".equals(semanticType) && semanticTargetClassName.contains("ContextMenuContent");
             if (eventTypeName.contains("MOUSE_CLICKED")) {
+                if (isContextMenuMenuItem) return; // already handled on MOUSE_PRESSED
                 if ("TEXT_INPUT".equals(semanticType) || isInsideTextInput(target) || isInsideTextInput(semanticTarget)) {
                     return;
                 }
                 keyword = keywordForMouseClick(semanticTarget, semanticType);
                 data = dataForMouseClick(semanticTarget, semanticType, keyword);
-            } else if (eventTypeName.contains("KEY_PRESSED")) {
+            } else if (eventTypeName.contains("MOUSE_PRESSED") && isContextMenuMenuItem) {
+                if ("TEXT_INPUT".equals(semanticType) || isInsideTextInput(target) || isInsideTextInput(semanticTarget)) {
+                    return;
+                }
+                keyword = keywordForMouseClick(semanticTarget, semanticType);
+                data = dataForMouseClick(semanticTarget, semanticType, keyword);
+            }
+            if (keyword != null && "SelectMenuItem".equals(keyword) && LOG.isLoggable(Level.INFO)) {
+                LOG.info("[INFO] " + ts() + " [FxRecord] SelectMenuItem data controlClass=" + semanticTargetClassName + " data=" + (data != null ? data : ""));
+            }
+            else if (eventTypeName.contains("KEY_PRESSED")) {
                 String code = String.valueOf(invokeNoArg(event, "getCode"));
 
                 // Case 1: In table context (TABLECELL/TABLEVIEW) and user presses Enter → emit SearchAndUpdate immediately.
@@ -491,12 +1076,52 @@ public final class FxRecordSupport {
                     keyword = "FillEdit";
                     String text = asString(invokeNoArg(target, "getText"));
                     data = text != null ? text : "";
+                    // Remember last FillEdit control/time so focus-lost handler can skip duplicate step.
+                    fxLastFillEditControl = target;
+                    fxLastFillEditTimeMs = System.currentTimeMillis();
                 }
             }
             if (keyword == null) return;
 
             stepTarget = "FillEdit".equals(keyword) ? target : semanticTarget;
             Object stepParent = "FillEdit".equals(keyword) ? null : semanticParent;
+
+            if (!"SelectMenuItem".equals(keyword)) {
+                pendingFxSelectMenuItemStep = null;
+            } else {
+                if (isFxMenuWithSubmenu(stepTarget)) {
+                    // Use latest menu path: update cached step if present, so extension can update display.
+                    Map<String, Object> step;
+                    if (pendingFxSelectMenuItemStep != null) {
+                        step = pendingFxSelectMenuItemStep;
+                        step.put("objectIdentifier", buildJavaFxObjectIdentifier(stepTarget));
+                        step.put("data", data != null ? data : "");
+                        step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(stepTarget, stepParent));
+                        step.put("timestamp", System.currentTimeMillis());
+                        if (semanticType != null && !semanticType.isEmpty()) step.put("semanticType", semanticType);
+                    } else {
+                        step = new LinkedHashMap<>();
+                        step.put("keyword", keyword);
+                        step.put("event", keyword);
+                        step.put("timestamp", System.currentTimeMillis());
+                        if (data != null && !data.isEmpty()) step.put("data", data);
+                        step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(stepTarget, stepParent));
+                        step.put("objectIdentifier", buildJavaFxObjectIdentifier(stepTarget));
+                        if (semanticType != null && !semanticType.isEmpty()) step.put("semanticType", semanticType);
+                        pendingFxSelectMenuItemStep = step;
+                    }
+                    stepSender.sendStep(step);
+                    return;
+                }
+                if (pendingFxSelectMenuItemStep != null) {
+                    pendingFxSelectMenuItemStep.put("objectIdentifier", buildJavaFxObjectIdentifier(stepTarget));
+                    pendingFxSelectMenuItemStep.put("data", data != null ? data : "");
+                    pendingFxSelectMenuItemStep.put("timestamp", System.currentTimeMillis());
+                    stepSender.sendStep(pendingFxSelectMenuItemStep);
+                    pendingFxSelectMenuItemStep = null;
+                    return;
+                }
+            }
 
             Map<String, Object> step = new LinkedHashMap<>();
             step.put("keyword", keyword);
@@ -508,7 +1133,7 @@ public final class FxRecordSupport {
             if (semanticType != null && !semanticType.isEmpty()) step.put("semanticType", semanticType);
             stepSender.sendStep(step);
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "emitStep failed: keyword=" + keyword + ", target=" + (stepTarget != null ? stepTarget.getClass().getName() : "null"), e);
+            LOG.log(Level.WARNING, "[ERROR] emitStep failed: keyword=" + keyword + ", target=" + (stepTarget != null ? stepTarget.getClass().getName() : "null"), e);
         }
     }
 
@@ -519,7 +1144,7 @@ public final class FxRecordSupport {
             java.lang.reflect.Method getMethod = java.util.List.class.getMethod("get", int.class);
             return getMethod.invoke(list, idx);
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "getFromObservableList failed: list=" + list.getClass().getName() + ", idx=" + idx, e);
+            LOG.log(Level.WARNING, "[ERROR] getFromObservableList failed: list=" + list.getClass().getName() + ", idx=" + idx, e);
             return null;
         }
     }
@@ -532,7 +1157,7 @@ public final class FxRecordSupport {
             Object r = m.invoke(list, item);
             if (r instanceof Number) return ((Number) r).intValue();
         } catch (Exception e) {
-            LOG.log(Level.FINE, "indexOfInObservableList indexOf failed, will try linear scan", e);
+            LOG.log(Level.FINE, "[ERROR] indexOfInObservableList indexOf failed, will try linear scan", e);
         }
         try {
             java.lang.reflect.Method sizeM = java.util.List.class.getMethod("size");
@@ -545,7 +1170,7 @@ public final class FxRecordSupport {
                 if (o == item || (o != null && o.equals(item))) return i;
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "indexOfInObservableList linear scan failed", e);
+            LOG.log(Level.WARNING, "[ERROR] indexOfInObservableList linear scan failed", e);
         }
         return -1;
     }
@@ -559,6 +1184,180 @@ public final class FxRecordSupport {
             cur = FxNodeClassifier.parentOf(cur);
         }
         return false;
+    }
+
+    /**
+     * Build SelectMenuItem data: path from top-level menu to this item, "root;...;leaf".
+     * Menu/semantic object is usually found by lifting up (e.g. MenuBarButton); text for that
+     * object may be on the model (getText) or on a child node. So we resolve text by trying
+     * model getText first, then looking down into children for a node with getText().
+     */
+    private static String buildFxMenuPathFromRootToLeaf(Object control) {
+        if (control == null) return "";
+        String controlClass = control.getClass().getName();
+        Object cur = resolveMenuModel(control);
+        if (cur == null) cur = control;
+        List<String> segments = new ArrayList<>();
+        while (cur != null) {
+            String text = getMenuSegmentText(cur);
+            if (LOG.isLoggable(Level.INFO)) {
+                LOG.info("[INFO] " + ts() + " [FxRecord] getMenuPath segment nodeClass=" + cur.getClass().getName() + " text=" + (text != null ? text : ""));
+            }
+            segments.add(0, text != null ? text : "");
+            cur = invokeNoArg(cur, "getParentMenu");
+        }
+        String path = String.join(";", segments);
+        if (LOG.isLoggable(Level.INFO)) {
+            LOG.info("[INFO] " + ts() + " [FxRecord] getMenuPath controlClass=" + controlClass + " path=" + path);
+        }
+        return path;
+    }
+
+    /** Resolve to Menu/MenuItem model when control is a Skin (e.g. MenuBarButton). */
+    private static Object resolveMenuModel(Object control) {
+        if (control == null) return null;
+        try {
+            Object skinnable = invokeNoArg(control, "getSkinnable");
+            if (skinnable != null) return skinnable;
+        } catch (Exception ignored) { }
+        return control;
+    }
+
+    /**
+     * Get display text for one segment (menu/menu item). Semantic object may be the model
+     * (MenuItem/Menu has getText) or a visual (e.g. MenuBarButton); for visual, text is
+     * resolved by rule textFrom (search child chain for matching class, invoke method) or look down.
+     */
+    private static String getMenuSegmentText(Object node) {
+        if (node == null) return null;
+        String text = asString(invokeNoArg(node, "getText"));
+        if (text != null) return text;
+        Object model = resolveMenuModel(node);
+        if (model != null && model != node) {
+            text = asString(invokeNoArg(model, "getText"));
+            if (text != null) return text;
+        }
+        List<String> textFromHints = FxNodeClassifier.getTextFromHints(node);
+        if (!textFromHints.isEmpty()) {
+            text = getTextFromDescendantByRule(node, textFromHints);
+            if (text != null) return text;
+        }
+        return getTextFromChild(node);
+    }
+
+    /**
+     * Search semantic object's child chain for a node whose class matches a textFrom entry
+     * (className#methodName), then invoke the method (e.g. getText) on that node.
+     */
+    private static String getTextFromDescendantByRule(Object semanticNode, List<String> textFromHints) {
+        if (semanticNode == null || textFromHints == null) return null;
+        for (String entry : textFromHints) {
+            int hash = entry.indexOf('#');
+            String className = hash >= 0 ? entry.substring(0, hash).trim() : entry;
+            String methodName = hash >= 0 && hash < entry.length() - 1 ? entry.substring(hash + 1).trim() : "getText";
+            if (className.isEmpty() || methodName.isEmpty()) continue;
+            Object found = findDescendantWithClass(semanticNode, className);
+            if (found != null) {
+                String t = asString(invokeNoArg(found, methodName));
+                if (t != null) return t;
+            }
+        }
+        return null;
+    }
+
+    /** Find first descendant of parent whose getClass().getName() contains the given className. */
+    private static Object findDescendantWithClass(Object parent, String className) {
+        if (parent == null || className == null || className.isEmpty()) return null;
+        try {
+            // JavaFX Parent exposes getChildrenUnmodifiable() as public; prefer that over getChildren().
+            Object children = invokeNoArg(parent, "getChildrenUnmodifiable");
+            if (children == null) {
+                children = invokeNoArg(parent, "getChildren");
+            }
+            if (children == null || !(children instanceof java.util.List)) return null;
+            @SuppressWarnings("unchecked")
+            java.util.List<Object> list = (java.util.List<Object>) children;
+            for (Object child : list) {
+                if (child == null) continue;
+                if (child.getClass().getName().contains(className)) return child;
+                Object deep = findDescendantWithClass(child, className);
+                if (deep != null) return deep;
+            }
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "[ERROR] findDescendantWithClass failed: parent=" + parent.getClass().getName(), e);
+        }
+        return null;
+    }
+
+    /** Get first non-empty getText() from a direct or nested child (look down). */
+    private static String getTextFromChild(Object parent) {
+        if (parent == null) return null;
+        try {
+            // Prefer JavaFX Parent.getChildrenUnmodifiable() when available.
+            Object children = invokeNoArg(parent, "getChildrenUnmodifiable");
+            if (children == null) {
+                children = invokeNoArg(parent, "getChildren");
+            }
+            if (children == null || !(children instanceof java.util.List)) return null;
+            @SuppressWarnings("unchecked")
+            java.util.List<Object> list = (java.util.List<Object>) children;
+            for (Object child : list) {
+                if (child == null) continue;
+                String t = asString(invokeNoArg(child, "getText"));
+                if (t != null) return t;
+                t = getTextFromChild(child);
+                if (t != null) return t;
+            }
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "[ERROR] getTextFromChild failed: parent=" + parent.getClass().getName(), e);
+        }
+        return null;
+    }
+
+    /** True if control is a Menu with submenu (getItems() non-empty). */
+    private static boolean isFxMenuWithSubmenu(Object control) {
+        if (control == null) return false;
+        try {
+            Object items = invokeNoArg(control, "getItems");
+            if (items == null) return false;
+            Object sz = java.util.List.class.getMethod("size").invoke(items);
+            return (sz instanceof Number) && ((Number) sz).intValue() > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** Cached SelectMenuItem step while user navigates submenus; emit when leaf is clicked. */
+    private static volatile Map<String, Object> pendingFxSelectMenuItemStep;
+
+    /** Build SelectTreeList data: path from root to selected node, segments separated by ";". */
+    private static String buildFxTreePathFromRootToNode(Object control) {
+        if (control == null) return "";
+        Object treeItem = null;
+        try {
+            treeItem = invokeNoArg(control, "getTreeItem");
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "[ERROR] buildFxTreePathFromRootToNode getTreeItem failed: " + control.getClass().getName(), e);
+        }
+        if (treeItem == null) {
+            Object selModel = invokeNoArg(control, "getSelectionModel");
+            if (selModel != null) treeItem = invokeNoArg(selModel, "getSelectedItem");
+        }
+        if (treeItem == null) return "";
+        List<String> segments = new ArrayList<>();
+        Object cur = treeItem;
+        while (cur != null) {
+            Object val = invokeNoArg(cur, "getValue");
+            segments.add(val != null ? String.valueOf(val) : "");
+            cur = invokeNoArg(cur, "getParent");
+        }
+        Collections.reverse(segments);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < segments.size(); i++) {
+            if (i > 0) sb.append(';');
+            sb.append(segments.get(i));
+        }
+        return sb.toString();
     }
 
     private static String keywordForMouseClick(Object control, String semanticType) {
@@ -589,12 +1388,10 @@ public final class FxRecordSupport {
             return text != null ? text : "";
         }
         if ("SelectTreeList".equals(keyword)) {
-            String text = asString(invokeNoArg(control, "getText"));
-            return text != null ? text : "";
+            return buildFxTreePathFromRootToNode(control);
         }
         if ("SelectMenuItem".equals(keyword)) {
-            String text = asString(invokeNoArg(control, "getText"));
-            return text != null ? text : "";
+            return buildFxMenuPathFromRootToLeaf(control);
         }
         if ("SelectDropList".equals(keyword)) {
             String value = asString(invokeNoArg(control, "getValue"));
@@ -606,8 +1403,8 @@ public final class FxRecordSupport {
             try {
                 String text = asString(invokeNoArg(control, "getText"));
                 if (text != null && !text.isEmpty()) return text;
-            } catch (Exception e) {
-                LOG.log(Level.FINE, "SelectTab fast path getText failed: control=" + (control != null ? control.getClass().getName() : "null"), e);
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "[ERROR] SelectTab fast path getText failed: control=" + (control != null ? control.getClass().getName() : "null"), e);
             }
         
             try {
@@ -621,8 +1418,8 @@ public final class FxRecordSupport {
                     if (skinnable != null && skinnable.getClass().getName().contains("javafx.scene.control.Tab")) {
                         tab = skinnable;
                     }
-                } catch (Exception e) {
-                    LOG.log(Level.FINE, "SelectTab getSkinnable failed: control=" + (control != null ? control.getClass().getName() : "null"), e);
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "[ERROR] SelectTab getSkinnable failed: control=" + (control != null ? control.getClass().getName() : "null"), e);
                 }
         
                 // 1.2 If control already looks like a Tab, accept it
@@ -682,8 +1479,8 @@ public final class FxRecordSupport {
                     }
                 }
         
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "SelectTab dataForMouseClick failed (getTabs/getSelectionModel/getFromObservableList): control=" + (control != null ? control.getClass().getName() : "null"), e);
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "[ERROR] SelectTab dataForMouseClick failed (getTabs/getSelectionModel/getFromObservableList): control=" + (control != null ? control.getClass().getName() : "null"), e);
             }
         
             return "";
@@ -703,7 +1500,7 @@ public final class FxRecordSupport {
                 if (ord instanceof Number && ((Number) ord).intValue() == 2) return true;
             }
         } catch (Exception e) {
-            LOG.log(Level.FINE, "isSecondaryMouseButton failed", e);
+            LOG.log(Level.FINE, "[ERROR] isSecondaryMouseButton failed", e);
         }
         return false;
     }
@@ -771,7 +1568,7 @@ public final class FxRecordSupport {
             }
             return names;
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "getFxTableColumnNames failed", e);
+            LOG.log(Level.WARNING, "[ERROR] getFxTableColumnNames failed", e);
             return null;
         }
     }
@@ -813,7 +1610,7 @@ public final class FxRecordSupport {
             }
             return values;
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "getFxTableRowValues failed", e);
+            LOG.log(Level.WARNING, "[ERROR] getFxTableRowValues failed", e);
             return new ArrayList<>();
         }
     }
@@ -828,7 +1625,7 @@ public final class FxRecordSupport {
                 return v != null ? String.valueOf(v) : "";
             }
         } catch (Exception e) {
-            LOG.log(Level.FINE, "getCellObservableValue failed, try getCellValue", e);
+            LOG.log(Level.FINE, "[ERROR] getCellObservableValue failed, try getCellValue", e);
         }
         try {
             Method getCellValue = tableColumn.getClass().getMethod("getCellValue", Object.class);
@@ -850,7 +1647,7 @@ public final class FxRecordSupport {
             Object tableColumn = getFromObservableList(columns, col);
             return getFxTableCellValueFromColumn(tableView, tableColumn, rowItem, row);
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "getFxTableCellValue failed", e);
+            LOG.log(Level.WARNING, "[ERROR] getFxTableCellValue failed", e);
             return "";
         }
     }
@@ -877,25 +1674,30 @@ public final class FxRecordSupport {
         return prefix + ";" + (action != null ? action : "Action:RightClick");
     }
 
-    /** Build parent identifier from semantic parent boundary (or window if parent is null). */
+    /**
+     * Build parent identifier for FX replay.
+     * <p>
+     * Parent is the <b>top-level container</b> for this interaction: Stage/Window/Dialog/Popup
+     * (e.g. ContextMenu window), not the semanticParent control (TableView, TreeView, etc.).
+     * semanticParent is only used as a better starting node to locate the top window.
+     */
     private static Map<String, Object> buildJavaFxParentIdentifierFrom(Object target, Object semanticParent) {
-        if (semanticParent != null) {
-            return buildJavaFxObjectIdentifier(semanticParent);
-        }
-        Object node = target;
+        // Base node to locate parent window from: prefer semanticParent when available
+        Object node = (semanticParent != null) ? semanticParent : target;
+        // Climb to topmost Parent in the scene graph
         Object parent = invokeNoArg(node, "getParent");
         while (parent != null) {
             node = parent;
             parent = invokeNoArg(node, "getParent");
         }
-        Object scene = invokeNoArg(target, "getScene");
+        // Prefer window for replay parent (Stage/Dialog/Popup/ContextMenu window)
+        Object scene = invokeNoArg(node, "getScene");
         Object window = scene != null ? invokeNoArg(scene, "getWindow") : null;
         if (window != null) {
             Map<String, Object> id = new LinkedHashMap<>();
             id.put("javaType", window.getClass().getName());
             String title = asString(invokeNoArg(window, "getTitle"));
             if (title != null && !title.isEmpty()) id.put("javaName", title);
-            fillJavaFxScreenBounds(window, id);
             return id;
         }
         return buildJavaFxObjectIdentifier(node);
@@ -906,12 +1708,19 @@ public final class FxRecordSupport {
         if (node == null) return id;
         id.put("javaType", node.getClass().getName());
         String nodeId = asString(invokeNoArg(node, "getId"));
-        if (nodeId != null && !nodeId.isEmpty()) id.put("javaName", nodeId);
+        if (nodeId != null && !nodeId.isEmpty()) {
+            id.put("javaName", nodeId);
+        }
         String text = asString(invokeNoArg(node, "getText"));
-        if (text != null && !text.isEmpty()) id.put("text", text);
+        if (text != null && !text.isEmpty()) {
+            id.put("text", text);
+            // 对于没有 id 的 JavaFX 控件，使用可见文本作为 javaName，便于在 Test Step 中统一通过 javaName 定位。
+            if (!id.containsKey("javaName")) {
+                id.put("javaName", text);
+            }
+        }
         String value = asString(invokeNoArg(node, "getValue"));
         if (value != null && !value.isEmpty()) id.put("value", value);
-        fillJavaFxScreenBounds(node, id);
         return id;
     }
 
@@ -953,18 +1762,7 @@ public final class FxRecordSupport {
                 id.put("screenBounds", sb);
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "fillJavaFxScreenBounds failed: node=" + (fxObject != null ? fxObject.getClass().getName() : "null"), e);
-        }
-    }
-
-    private static Object invokeNoArg(Object target, String methodName) {
-        if (target == null || methodName == null) return null;
-        try {
-            Method m = target.getClass().getMethod(methodName);
-            return m.invoke(target);
-        } catch (Exception e) {
-            LOG.log(Level.FINE, "invokeNoArg failed: target=" + target.getClass().getName() + " method=" + methodName, e);
-            return null;
+            LOG.log(Level.WARNING, "[ERROR] fillJavaFxScreenBounds failed: node=" + (fxObject != null ? fxObject.getClass().getName() : "null"), e);
         }
     }
 
@@ -1002,20 +1800,4 @@ public final class FxRecordSupport {
         return sb.toString();
     }
 
-    private static String asString(Object v) {
-        if (v == null) return null;
-        String s = String.valueOf(v).trim();
-        return s.isEmpty() ? null : s;
-    }
-
-    private static Integer asInt(Object v) {
-        if (v instanceof Number) return ((Number) v).intValue();
-        if (v == null) return null;
-        try {
-            return (int) Math.round(Double.parseDouble(String.valueOf(v)));
-        } catch (NumberFormatException e) {
-            LOG.log(Level.FINE, "asInt parse failed: v=" + v, e);
-            return null;
-        }
-    }
 }

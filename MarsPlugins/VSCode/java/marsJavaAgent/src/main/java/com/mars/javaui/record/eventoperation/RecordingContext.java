@@ -2,6 +2,7 @@ package com.mars.javaui.record.eventoperation;
 
 import java.awt.Component;
 import java.io.Writer;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JComboBox;
@@ -86,6 +87,9 @@ public final class RecordingContext {
     public final long[] lastFillEditTimeRef;
     public final long FILLEDIT_DEDUPE_MS;
 
+    /** Cached SelectMenuItem step while user navigates submenus; emit and clear when leaf item is clicked. */
+    public final Map<String, Object>[] pendingSelectMenuItemStepRef;
+
     public RecordingContext(
             AtomicReference<? extends Writer> writerRef,
             AtomicReference<WebSocket> clientConn,
@@ -150,7 +154,8 @@ public final class RecordingContext {
             long KEY_DEDUP_MS,
             Component[] lastFillEditComponentRef,
             long[] lastFillEditTimeRef,
-            long FILLEDIT_DEDUPE_MS) {
+            long FILLEDIT_DEDUPE_MS,
+            Map<String, Object>[] pendingSelectMenuItemStepRef) {
         this.writerRef = writerRef;
         this.clientConn = clientConn;
         this.outputDir = outputDir;
@@ -215,5 +220,6 @@ public final class RecordingContext {
         this.lastFillEditComponentRef = lastFillEditComponentRef;
         this.lastFillEditTimeRef = lastFillEditTimeRef;
         this.FILLEDIT_DEDUPE_MS = FILLEDIT_DEDUPE_MS;
+        this.pendingSelectMenuItemStepRef = pendingSelectMenuItemStepRef;
     }
 }
