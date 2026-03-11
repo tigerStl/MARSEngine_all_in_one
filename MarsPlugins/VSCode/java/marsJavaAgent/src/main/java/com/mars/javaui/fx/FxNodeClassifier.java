@@ -216,6 +216,24 @@ public final class FxNodeClassifier {
         return "MENUITEM".equals(meta.semanticType);
     }
 
+    /** True if node is a StackPane (by class name). Used for rule: when target is StackPane, prefer CheckBox etc. over Tab/TabPane. */
+    private static boolean isStackPane(Object node) {
+        return node != null && node.getClass().getName().contains("StackPane");
+    }
+
+    /** True if meta is a standard control semantic (CheckBox, RadioButton, Button, TextField, ComboBox). */
+    private static boolean isStandardControlSemantic(FxNodeCategory.NodeMeta meta) {
+        if (meta == null || meta.semanticType == null) return false;
+        String t = meta.semanticType;
+        return "CHECKBOX".equals(t) || "RADIOBUTTON".equals(t) || "BUTTON".equals(t)
+                || "TEXT_INPUT".equals(t) || "INPUT_CONTROL".equals(t);
+    }
+
+    /** True if meta is Tab or TabPane (composite we prefer to skip when target is StackPane and we have a standard control). */
+    private static boolean isTabLike(FxNodeCategory.NodeMeta meta) {
+        return meta != null && ("TAB".equals(meta.semanticType) || "TABPANE".equals(meta.semanticType));
+    }
+
     public static Object parentOf(Object node) {
         if (node == null) return null;
         try {
@@ -425,12 +443,17 @@ public final class FxNodeClassifier {
      * - <b>Simple-semantic control</b>: always look upward (within maxAncestorHops) for a composite-semantic
      *   part; if found, that part is the target (e.g. SearchAndUpdate); if not found, use the control
      *   itself as target (e.g. FillEdit, ClickButton).
+     * - <b>StackPane rule</b>: when the event target is a StackPane (e.g. Tab content area), if during the
+     *   upward walk we find a standard control (CheckBox, RadioButton, Button, TextField, ComboBox) and
+     *   further up would be Tab/TabPane, we use the standard control as the semantic target so that
+     *   clicking a CheckBox inside a tab produces SetCheckBox rather than SelectTab.
      *
      * @param maxAncestorHops max parent steps from normalized node (default 5); 0 = use 5
      */
     public static FxNodeCategory.LiftResult foldAndLift(Object eventTargetNode, int maxAncestorHops) {
         int maxHops = maxAncestorHops <= 0 ? 5 : maxAncestorHops;
         Object n0 = normalizeToMeaningfulNode(eventTargetNode);
+        boolean startIsStackPane = isStackPane(eventTargetNode);
         List<Object> folded = new ArrayList<>();
         FxNodeCategory.NodeMeta targetMeta = null;
         FxNodeCategory.NodeMeta candidateSimpleSemantic = null;
@@ -448,7 +471,12 @@ public final class FxNodeClassifier {
             }
 
             if (isCompositeSemanticPart(meta)) {
-                targetMeta = meta;
+                // Rule: when target is StackPane and we already found a standard control (CheckBox etc.), and current is Tab-like, use the standard control as semantic target.
+                if (startIsStackPane && candidateSimpleSemantic != null && isStandardControlSemantic(candidateSimpleSemantic) && isTabLike(meta)) {
+                    targetMeta = candidateSimpleSemantic;
+                } else {
+                    targetMeta = meta;
+                }
                 break;
             }
 
@@ -464,7 +492,13 @@ public final class FxNodeClassifier {
             }
 
             if (FxNodeCategory.SEMANTIC_CONTROL.equals(meta.category) && FxNodeCategory.COMPOSITE_BOUNDARY.equals(meta.boundary)) {
-                if (targetMeta == null) targetMeta = meta;
+                if (targetMeta == null) {
+                    if (startIsStackPane && candidateSimpleSemantic != null && isStandardControlSemantic(candidateSimpleSemantic) && isTabLike(meta)) {
+                        targetMeta = candidateSimpleSemantic;
+                    } else {
+                        targetMeta = meta;
+                    }
+                }
                 cur = parentOf(cur);
                 hopCount++;
                 continue;
