@@ -81,6 +81,9 @@
     .tab-content { display: none; flex: 1; flex-direction: column; overflow: hidden; min-height: 0; padding: 0; }
     .tab-content.active { display: flex; }
     .log-textarea { width: 100%; flex: 1; min-height: 80px; padding: 8px; font-size: 11px; font-family: monospace; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); border: none; resize: none; box-sizing: border-box; }
+    .log-content { width: 100%; flex: 1; min-height: 80px; padding: 8px; font-size: 11px; font-family: monospace; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); overflow: auto; box-sizing: border-box; white-space: pre-wrap; word-break: break-word; }
+    .log-content .log-line { margin: 0; padding: 0 0 2px 0; }
+    .log-content .log-line-error { color: var(--vscode-errorForeground); }
     .object-info { padding: 12px; font-size: 12px; overflow: auto; min-height: 0; flex: 1; }
     .object-info table { width: 100%; border-collapse: collapse; }
     .object-info td { padding: 4px 8px 4px 0; vertical-align: top; }
@@ -186,7 +189,7 @@
           </div>
           <div class="tab-row">
             <div class="tab-content" id="logTabContent">
-              <textarea class="log-textarea" id="logTextarea" readonly placeholder="Click Window Spy to start..."></textarea>
+              <div class="log-content log-textarea" id="logContent" placeholder="Click Window Spy to start..."></div>
             </div>
             <div class="tab-content active" id="objectInfoTabContent">
               <div class="object-info" id="objectInfo">
@@ -811,6 +814,10 @@
           appendLog(msg.data || '');
           switchTopTab('log');
           break;
+        case 'logError':
+          appendLogError(msg.data || '');
+          switchTopTab('log');
+          break;
         case 'logAnalyzing':
           appendAnalyzingLine(msg.pid, msg.name);
           break;
@@ -829,8 +836,16 @@
             resetReplayState(false);
             visualNodes = stepsToVisualNodes(steps);
             const logText = typeof msg.state.logText === 'string' ? msg.state.logText : '';
-            const ta = document.getElementById('logTextarea');
-            if (ta) ta.value = logText;
+            const logContent = document.getElementById('logContent');
+            if (logContent) {
+              logContent.innerHTML = '';
+              if (logText) {
+                const line = document.createElement('div');
+                line.className = 'log-line';
+                line.textContent = logText;
+                logContent.appendChild(line);
+              }
+            }
             if (processes.length > 0) {
               const c = document.getElementById('processCombo');
               if (c) {
@@ -858,15 +873,28 @@
       }
     });
 
-    let lastAnalyzingStart = -1;
+    let lastAnalyzingEl = null;
 
     function appendLog(text) {
-      const ta = document.getElementById('logTextarea');
-      if (ta) {
-        ta.value += text;
-        ta.scrollTop = ta.scrollHeight;
-      }
-      lastAnalyzingStart = -1;
+      const el = document.getElementById('logContent');
+      if (!el) return;
+      lastAnalyzingEl = null;
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      line.textContent = text;
+      el.appendChild(line);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function appendLogError(text) {
+      const el = document.getElementById('logContent');
+      if (!el) return;
+      lastAnalyzingEl = null;
+      const line = document.createElement('div');
+      line.className = 'log-line log-line-error';
+      line.textContent = text;
+      el.appendChild(line);
+      el.scrollTop = el.scrollHeight;
     }
 
     function applyLicenseStatus(data) {
@@ -884,26 +912,28 @@
     }
 
     function appendAnalyzingLine(pid, name) {
-      const ta = document.getElementById('logTextarea');
-      if (!ta) return;
-      lastAnalyzingStart = ta.value.length;
-      ta.value += 'Analyzing PID ' + pid + ': ' + name + '...\r\n';
-      ta.scrollTop = ta.scrollHeight;
+      const el = document.getElementById('logContent');
+      if (!el) return;
+      const line = document.createElement('div');
+      line.className = 'log-line log-analyzing';
+      line.textContent = 'Analyzing PID ' + pid + ': ' + name + '...\r\n';
+      el.appendChild(line);
+      el.scrollTop = el.scrollHeight;
+      lastAnalyzingEl = line;
     }
 
     function replaceLastWithFound(pid, display) {
-      const ta = document.getElementById('logTextarea');
-      if (!ta || lastAnalyzingStart < 0) return;
-      ta.value = ta.value.substring(0, lastAnalyzingStart) + 'Found Java: PID ' + pid + ': ' + (display || '').substring(0, 60) + '\r\n';
-      ta.scrollTop = ta.scrollHeight;
-      lastAnalyzingStart = -1;
+      if (!lastAnalyzingEl || !lastAnalyzingEl.parentNode) return;
+      lastAnalyzingEl.textContent = 'Found Java: PID ' + pid + ': ' + (display || '').substring(0, 60) + '\r\n';
+      lastAnalyzingEl.classList.remove('log-analyzing');
+      lastAnalyzingEl.parentNode.scrollTop = lastAnalyzingEl.parentNode.scrollHeight;
+      lastAnalyzingEl = null;
     }
 
     function removeLastLine() {
-      const ta = document.getElementById('logTextarea');
-      if (!ta || lastAnalyzingStart < 0) return;
-      ta.value = ta.value.substring(0, lastAnalyzingStart);
-      lastAnalyzingStart = -1;
+      if (!lastAnalyzingEl || !lastAnalyzingEl.parentNode) return;
+      lastAnalyzingEl.parentNode.removeChild(lastAnalyzingEl);
+      lastAnalyzingEl = null;
     }
 
     function getIconForType(javaType) {

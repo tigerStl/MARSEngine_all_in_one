@@ -10,6 +10,7 @@ import javax.swing.JComboBox;
 
 import org.java_websocket.WebSocket;
 
+import com.mars.javaui.keyword.KeywordConstants;
 import com.mars.javaui.keyword.MarsKeyword;
 import com.mars.javaui.record.AgentLogger;
 import com.mars.javaui.record.RecordAgent;
@@ -45,7 +46,7 @@ public final class ItemEventHandler {
         if (ctx.currentComboEmittedRef[0]) return;
 
         String data = ctx.currentComboSelectedRef[0] != null ? ctx.currentComboSelectedRef[0] : RecordAgent.getComboSelectedText(cb);
-        Map<String, Object> step = MarsKeyword.buildScriptStep("SelectDropList", cb, "", data, "");
+        Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.SELECT_DROP_LIST, cb, "", data, "");
         step.put("event", "selectDropList");
         step.put("timestamp", System.currentTimeMillis());
         RecordAgent.putComponentInfo(step, cb);

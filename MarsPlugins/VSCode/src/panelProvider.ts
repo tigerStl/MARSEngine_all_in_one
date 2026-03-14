@@ -13,7 +13,7 @@ import { spawn } from 'child_process';
 import { getJavaProcesses, findProcessInfoExe } from './processInfo';
 import { AGENT_LOADER_LOG_FILE, loadAgentAndScan, ReplayProgressEvent, runHighlightOverlay, replaySteps, startRecordAgent, stopRecordAgent } from './agentLoader';
 import { convertScanToUIObjects, convertScanToUIObjectTree, ScanOutput } from './objectConverter';
-import { JavaProcess, UIObject, TestScriptStep, ScriptKeyword } from './types';
+import { JavaProcess, UIObject, TestScriptStep, isScriptKeyword } from './types';
 import { RecordingEngine } from './recording/recorder';
 import { recordedStepToTestScriptStep } from './recording/stepAdapter';
 
@@ -552,6 +552,14 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     this._lastLogText += text;
     this._outputChannel.append(text);
     this._safePost(webview, { type: 'log', data: text });
+    this._persistStateDebounced();
+  }
+
+  /** Log from agent record (e.g. skip/error); extension panel shows in red when Log tab is active. */
+  private _logError(webview: vscode.Webview, text: string): void {
+    this._lastLogText += text;
+    this._outputChannel.append(text);
+    this._safePost(webview, { type: 'logError', data: text });
     this._persistStateDebounced();
   }
 
@@ -1676,6 +1684,11 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
     try {
       this._log(webview, `[begin] Injecting record agent and connecting (PID=${pid}).\r\n`);
       const result = await startRecordAgent(pid, outDir, (ev) => {
+        if (ev && (ev as Record<string, unknown>).type === 'recordLog') {
+          const webviewRef = this._recordingWebview;
+          if (webviewRef) this._logError(webviewRef, (ev.message != null ? String(ev.message) : '') + '\r\n');
+          return;
+        }
         this._recordingEngine?.onAgentEvent(ev as Record<string, unknown>);
         const webviewRef = this._recordingWebview;
         if (ev.event === 'componentProperties' && webviewRef) {
@@ -1691,8 +1704,11 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
           return;
         }
         // Events that produce a step are already synced via onStep -> type 'step'; webview derives visual from steps.
-        // Do not post a separate visualNode for these to avoid duplicate nodes. For text field we only get fillEdit
-        // on lost focus / Enter / Tab (no per-key events), so no intermediate nodes.
+        // Do not post a separate visualNode for these to avoid duplicate nodes. Agent sends event=MOUSE_PRESSED etc.,
+        // so we must treat "has keyword" as step (visual comes from steps, not from a separate visualNode).
+        const hasKeyword = typeof (ev as Record<string, unknown>).keyword === 'string' && ((ev as Record<string, unknown>).keyword as string).trim().length > 0;
+        if (hasKeyword) return;
+
         const stepEvent = ev.event as string | undefined;
         const isStepEvent =
           stepEvent === 'fillEdit' ||
@@ -1874,15 +1890,8 @@ export class JavaUIPanelProvider implements vscode.WebviewViewProvider {
       const hasBounds = oid.screenBounds && typeof oid.screenBounds === 'object';
       if (!hasType && !hasBounds) return null;
       const kw = obj.keyword as string;
-      const validKw: ScriptKeyword[] = [
-        'Click', 'ClickButton', 'DoubleClickButton', 'ClickMenuIcon', 'FillEdit',
-        'SelectDropDown', 'SelectDropList', 'SelectListItem', 'SelectMenuItem',
-        'SelectTreeList', 'SelectTab', 'SelectMenuIcon', 'SelectPopupMenu', 'ClickAT',
-        'SearchAndClick', 'SearchAndUpdate', 'SetRadioBox', 'SetCheckBox', 'Check', 'Uncheck'
-        , 'VerifyObjectValue'
-      ];
       return {
-        keyword: validKw.includes(kw as ScriptKeyword) ? (kw as ScriptKeyword) : 'Click',
+        keyword: isScriptKeyword(kw) ? kw : 'Click',
         parentIdentifier: (obj.parentIdentifier as object) || emptyId,
         objectIdentifier: obj.objectIdentifier as import('./types').ElementIdentifier,
         parameter: typeof obj.parameter === 'string' ? obj.parameter : '',

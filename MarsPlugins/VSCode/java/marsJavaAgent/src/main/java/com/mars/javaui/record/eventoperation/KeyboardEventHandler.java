@@ -11,6 +11,7 @@ import javax.swing.JTable;
 
 import org.java_websocket.WebSocket;
 
+import com.mars.javaui.keyword.KeywordConstants;
 import com.mars.javaui.keyword.MarsKeyword;
 import com.mars.javaui.record.RecordAgent;
 import com.mars.javaui.record.config.EventFilterConfig;
@@ -161,7 +162,7 @@ public final class KeyboardEventHandler {
                     ctx.lastFillEditTimeRef[0] = now;
                     String text = RecordAgent.getEditText(comp);
                     String data = RecordAgent.buildFillEditData(text);
-                    Map<String, Object> step = MarsKeyword.buildScriptStep("FillEdit", comp, "", data, "");
+                    Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.FILL_EDIT, comp, "", data, "");
                     step.put("event", "fillEdit");
                     step.put("timestamp", now);
                     RecordAgent.putComponentInfo(step, comp);

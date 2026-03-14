@@ -88,6 +88,7 @@ import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.table.TableCellEditor;
 import javax.swing.text.JTextComponent;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
@@ -102,6 +103,7 @@ import com.google.gson.JsonParser;
 import com.mars.javaui.fx.FxReplayResolver;
 import com.mars.javaui.fx.FxRecordSupport;
 import com.mars.javaui.fx.FxReplaySupport;
+import com.mars.javaui.keyword.KeywordConstants;
 import com.mars.javaui.keyword.MarsKeyword;
 import com.mars.javaui.protocol.AgentProtocol;
 import com.mars.javaui.record.eventoperation.ItemEventHandler;
@@ -510,7 +512,7 @@ public class RecordAgent {
                                                         + ", recording=" + recording[0]
                                                         + ", writer=" + hasWriter0
                                                         + ", wsOpen=" + wsOpen0);
-                                                Map<String, Object> step = MarsKeyword.buildScriptStep("SelectDropList", cb, "", data, "");
+                                                Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.SELECT_DROP_LIST, cb, "", data, "");
                                                 step.put("event", "selectDropList");
                                                 step.put("timestamp", nowFocus);
                                                 putComponentInfo(step, cb);
@@ -583,7 +585,7 @@ public class RecordAgent {
                                             boolean changed = !Objects.equals(finalText, initialText);
                                             if (currentEditHadKeyRef[0] || changed) {
                                                 String data = buildFillEditData(finalText);
-                                                Map<String, Object> step = MarsKeyword.buildScriptStep("FillEdit", edit, "", data, "");
+                                                Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.FILL_EDIT, edit, "", data, "");
                                                 step.put("event", "fillEdit");
                                                 step.put("timestamp", nowFocus);
                                                 putComponentInfo(step, edit);
@@ -616,17 +618,29 @@ public class RecordAgent {
                         };
                         ExecutorService fxStepExecutor = Executors.newSingleThreadExecutor(daemonThreadFactory);
                         fxStepExecutorRef.set(fxStepExecutor);
-                        FxRecordSupport.attachJavaFxRecordHooks(recording, writerRef, clientConn, fxHooksRef, fxFocusHooksRef, fxWindowHooksRef, step -> {
-                            fxStepExecutor.execute(() -> {
-                                try {
-                                    Writer w = writerRef.get();
-                                    if (w != null) writeLine(w, step);
-                                } catch (IOException e) {
-                                    AgentLogger.logException(LOG, Level.WARNING, "writeLine failed", e);
-                                }
+                        FxRecordSupport.attachJavaFxRecordHooks(recording, writerRef, clientConn, fxHooksRef, fxFocusHooksRef, fxWindowHooksRef, new FxRecordSupport.FxStepSender() {
+                            @Override
+                            public void sendStep(Map<String, Object> step) {
+                                fxStepExecutor.execute(() -> {
+                                    try {
+                                        Writer w = writerRef.get();
+                                        if (w != null) writeLine(w, step);
+                                    } catch (IOException e) {
+                                        AgentLogger.logException(LOG, Level.WARNING, "writeLine failed", e);
+                                    }
+                                    WebSocket c = clientConn.get();
+                                    if (c != null && c.isOpen()) c.send(toJson(step));
+                                });
+                            }
+                            @Override
+                            public void sendRecordLog(String level, String message) {
+                                Map<String, Object> msg = new LinkedHashMap<>();
+                                msg.put("type", "recordLog");
+                                msg.put("level", level != null ? level : "error");
+                                msg.put("message", message != null ? message : "");
                                 WebSocket c = clientConn.get();
-                                if (c != null && c.isOpen()) c.send(toJson(step));
-                            });
+                                if (c != null && c.isOpen()) c.send(toJson(msg));
+                            }
                         });
                         EventQueue.invokeLater(() -> {
                             java.util.List<JTree> treeList = new ArrayList<>();
@@ -644,7 +658,7 @@ public class RecordAgent {
                                     if (!(src instanceof JTree)) return;
                                     JTree tree = (JTree) src;
                                     String pathData = buildTreePathStringFromPath(e.getPath());
-                                    String keyword = expanded ? "ExpandTreeNode" : "CollapseTreeNode";
+                                    String keyword = expanded ? KeywordConstants.EXPAND_TREE_NODE : KeywordConstants.COLLAPSE_TREE_NODE;
                                     Map<String, Object> step = MarsKeyword.buildScriptStep(keyword, tree, "", pathData, "");
                                     step.put("event", expanded ? "expandTreeNode" : "collapseTreeNode");
                                     step.put("timestamp", System.currentTimeMillis());
@@ -856,11 +870,11 @@ public class RecordAgent {
                                     if (b == null || b[2] <= 0 || b[3] <= 0) { done[0] = false; return; }
                                     int cx = b[0] + b[2] / 2;
                                     int cy = b[1] + b[3] / 2;
-                                    if ("Click".equals(action)) {
+                                    if (KeywordConstants.CLICK.equals(action)) {
                                         robot.mouseMove(cx, cy);
                                         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                                         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-                                    } else if ("DoubleClick".equals(action)) {
+                                    } else if (KeywordConstants.DOUBLE_CLICK.equals(action)) {
                                         robot.mouseMove(cx, cy);
                                         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                                         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -929,7 +943,7 @@ public class RecordAgent {
                             JsonObject step = steps.get(i).getAsJsonObject();
                             keyword = getJsonStr(step, "keyword");
                             sendReplayProgress(conn, "stepStart", i, total, keyword, "running", stepStartedAt, null, null);
-                            if ("ClickAT".equals(keyword)) {
+                            if (KeywordConstants.CLICK_AT.equals(keyword)) {
                                 final String para = getJsonStr(step, "parameter");
                                 final String data = getJsonStr(step, "data");
                                 int mask = "Rightclick".equalsIgnoreCase(data) ? InputEvent.BUTTON3_DOWN_MASK : InputEvent.BUTTON1_DOWN_MASK;
@@ -1023,9 +1037,9 @@ public class RecordAgent {
                                     } else {
                                         String para = getJsonStr(step, "parameter");
                                         String data = getJsonStr(step, "data");
-                                        if ("SearchAndUpdate".equals(keyword)) {
+                                        if (KeywordConstants.SEARCH_AND_UPDATE.equals(keyword)) {
                                             fxErr = FxReplaySupport.replayJavaFxTableViewSearchAndUpdate(tableNode, para, data, robot, fxCallbacks);
-                                        } else if ("SearchAndClick".equals(keyword)) {
+                                        } else if (KeywordConstants.SEARCH_AND_CLICK.equals(keyword)) {
                                             fxErr = FxReplaySupport.replayJavaFxTableViewSearchAndClick(tableNode, para, data, robot);
                                         } else {
                                             fxErr = "Unsupported keyword for JavaFX table: " + keyword;
@@ -1080,11 +1094,11 @@ public class RecordAgent {
                                 sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
                                 continue;
                             }
-                            String action = "Click";
-                            if ("DoubleClickButton".equals(keyword) || "DoubleClick".equals(keyword)) action = "DoubleClick";
-                            else if ("FillEdit".equals(keyword)) action = "SetText";
-                            else if ("SelectTab".equals(keyword)) action = "SelectTab";
-                            if ("SearchAndUpdate".equals(keyword)) {
+                            String action = KeywordConstants.CLICK;
+                            if (KeywordConstants.DOUBLE_CLICK_BUTTON.equals(keyword) || KeywordConstants.DOUBLE_CLICK.equals(keyword)) action = "DoubleClick";
+                            else if (KeywordConstants.FILL_EDIT.equals(keyword)) action = "SetText";
+                            else if (KeywordConstants.SELECT_TAB.equals(keyword)) action = KeywordConstants.SELECT_TAB;
+                            if (KeywordConstants.SEARCH_AND_UPDATE.equals(keyword)) {
                                 if (!(comp instanceof JTable)) {
                                     int idx = i;
                                     long endedAt = System.currentTimeMillis();
@@ -1112,7 +1126,7 @@ public class RecordAgent {
                                 sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
                                 continue;
                             }
-                            if ("SearchAndClick".equals(keyword)) {
+                            if (KeywordConstants.SEARCH_AND_CLICK.equals(keyword)) {
                                 if (!(comp instanceof JTable)) {
                                     int idx = i;
                                     long endedAt = System.currentTimeMillis();
@@ -1141,7 +1155,7 @@ public class RecordAgent {
                                 continue;
                             }
                             final String data = getJsonStr(step, "data");
-                            if ("SelectTab".equals(keyword)) {
+                            if (KeywordConstants.SELECT_TAB.equals(keyword)) {
                                 if (!(comp instanceof JTabbedPane)) {
                                     int idx = i;
                                     long endedAt = System.currentTimeMillis();
@@ -1178,7 +1192,7 @@ public class RecordAgent {
                                 sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
                                 continue;
                             }
-                            if ("SelectDropList".equals(keyword) || "SelectDropDown".equals(keyword)) {
+                            if (KeywordConstants.SELECT_DROP_LIST.equals(keyword) || KeywordConstants.SELECT_DROP_DOWN.equals(keyword)) {
                                 if (comp instanceof JComboBox) {
                                     JComboBox<?> cb = (JComboBox<?>) comp;
                                     EventQueue.invokeAndWait(() -> selectComboValue(cb, data));
@@ -1204,7 +1218,7 @@ public class RecordAgent {
                                 sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
                                 continue;
                             }
-                            if ("SelectTreeList".equals(keyword)) {
+                            if (KeywordConstants.SELECT_TREE_LIST.equals(keyword)) {
                                 if (!(comp instanceof JTree)) {
                                     int idx = i;
                                     long endedAt = System.currentTimeMillis();
@@ -1243,7 +1257,7 @@ public class RecordAgent {
                                 sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
                                 continue;
                             }
-                            if ("SetRadioBox".equals(keyword)) {
+                            if (KeywordConstants.SET_RADIO_BOX.equals(keyword)) {
                                 if (!(comp instanceof AbstractButton)) {
                                     int idx = i;
                                     long endedAt = System.currentTimeMillis();
@@ -1270,7 +1284,7 @@ public class RecordAgent {
                                 sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
                                 continue;
                             }
-                            if ("SetCheckBox".equals(keyword)) {
+                            if (KeywordConstants.SET_CHECK_BOX.equals(keyword)) {
                                 if (!(comp instanceof AbstractButton)) {
                                     int idx = i;
                                     long endedAt = System.currentTimeMillis();
@@ -1298,7 +1312,7 @@ public class RecordAgent {
                                 sendReplayProgress(conn, "stepEnd", i, total, keyword, "success", stepStartedAt, endedAt, null);
                                 continue;
                             }
-                            if ("SelectMenuItem".equals(keyword) || "SelectPopupMenu".equals(keyword) || "SelectListItem".equals(keyword)) {
+                            if (KeywordConstants.SELECT_MENU_ITEM.equals(keyword) || KeywordConstants.SELECT_POPUP_MENU.equals(keyword) || KeywordConstants.SELECT_LIST_ITEM.equals(keyword)) {
                                 String clickErr = replayRightClickIfRequested(comp, keyword, step, robot);
                                 if (clickErr != null) {
                                     int idx = i;
@@ -1339,12 +1353,12 @@ public class RecordAgent {
                             }
                             int cx = b[0] + b[2] / 2;
                             int cy = b[1] + b[3] / 2;
-                            if ("Click".equals(action) || "SelectTab".equals(action)) {
+                            if (KeywordConstants.CLICK.equals(action) || KeywordConstants.SELECT_TAB.equals(action)) {
                                 robot.mouseMove(cx, cy);
                                 robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                                 robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                                 robot.delay(150);
-                            } else if ("DoubleClick".equals(action)) {
+                            } else if (KeywordConstants.DOUBLE_CLICK.equals(action)) {
                                 robot.mouseMove(cx, cy);
                                 robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                                 robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -2049,7 +2063,7 @@ public class RecordAgent {
         java.util.List<Object> path = new ArrayList<>();
         path.add(node);
         int idx = 0;
-        if (node != null && String.valueOf(node).equals(list.get(0))) {
+        if (node != null && list.get(0).equals(treeNodeText(node))) {
             idx = 1;
         }
         for (; idx < list.size(); idx++) {
@@ -2069,7 +2083,7 @@ public class RecordAgent {
         int count = model.getChildCount(parent);
         for (int i = 0; i < count; i++) {
             Object child = model.getChild(parent, i);
-            if (child != null && name.equals(String.valueOf(child))) return child;
+            if (child != null && name.equals(treeNodeText(child))) return child;
         }
         return null;
     }
@@ -2196,6 +2210,15 @@ private static Integer getStepTabIndex(JsonObject step) {
     if (step == null) return null;
     Integer topIndex = getJsonInteger(step, "index");
     if (topIndex != null) return topIndex;
+    // Unified format: object.objectKey
+    if (step.has("object") && step.get("object").isJsonObject()) {
+        JsonObject obj = step.get("object").getAsJsonObject();
+        if (obj.has("objectKey") && obj.get("objectKey").isJsonObject()) {
+            Integer objIndex = getJsonInteger(obj.get("objectKey").getAsJsonObject(), "index");
+            if (objIndex != null) return objIndex;
+        }
+    }
+    // Legacy: top-level objectIdentifier
     if (step.has("objectIdentifier") && step.get("objectIdentifier").isJsonObject()) {
         Integer objIndex = getJsonInteger(step.get("objectIdentifier").getAsJsonObject(), "index");
         if (objIndex != null) return objIndex;
@@ -2547,7 +2570,7 @@ public static boolean emitTableSearchAndUpdate(RecordingContext ctx, long timest
         AgentLogger.info(LOG, "[" + method + ":L1128] trigger=" + trigger + ", row=" + row + ", col=" + col
                 + ", parameter=" + param + ", data=" + data);
 
-        Map<String, Object> step = MarsKeyword.buildScriptStep("SearchAndUpdate", table, param, data, "");
+        Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.SEARCH_AND_UPDATE, table, param, data, "");
         step.put("event", "searchAndUpdate");
         step.put("timestamp", timestamp);
         putComponentInfo(step, table);
@@ -2805,14 +2828,24 @@ private static String buildTreePathStringFromPath(TreePath path) {
     if (path == null) return "";
     Object[] arr = path.getPath();
     if (arr == null || arr.length == 0) return "";
-    // data = root to selected node, separated by ";"
+    // data = root to selected node, separated by ";"; use treeNodeText so recording matches replay
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < arr.length; i++) {
-        String s = String.valueOf(arr[i]);
+        String s = treeNodeText(arr[i]);
         if (sb.length() > 0) sb.append(';');
         sb.append(s);
     }
     return sb.toString();
+}
+
+/** Unified tree node display text for recording and replay (JTree). DefaultMutableTreeNode uses getUserObject(). */
+private static String treeNodeText(Object node) {
+    if (node == null) return "";
+    if (node instanceof DefaultMutableTreeNode) {
+        Object uo = ((DefaultMutableTreeNode) node).getUserObject();
+        return uo != null ? String.valueOf(uo).trim() : "";
+    }
+    return String.valueOf(node).trim();
 }
 
 /** Path from root menu to this item, "root;...;leaf". */
@@ -2947,7 +2980,7 @@ private static void attachComboPopupListener(JComboBox<?> cb, com.mars.javaui.re
                         + ", recording=" + ctx.recording[0]
                         + ", writer=" + hasWriter0
                         + ", wsOpen=" + wsOpen0);
-                Map<String, Object> step = MarsKeyword.buildScriptStep("SelectDropList", cb, "", data, "");
+                Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.SELECT_DROP_LIST, cb, "", data, "");
                 step.put("event", "selectDropList");
                 step.put("timestamp", System.currentTimeMillis());
                 putComponentInfo(step, cb);

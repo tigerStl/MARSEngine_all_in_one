@@ -19,6 +19,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.mars.javaui.keyword.KeywordConstants;
+
 /**
  * JavaFX recording hooks and step emission (isolated from Swing/AWT).
  * All logic for attaching/detaching FX event filters and mapping events to steps lives here.
@@ -30,6 +32,14 @@ public final class FxRecordSupport extends FxReflectionSupport {
 
     private static String ts() {
         return LocalDateTime.now().format(FX_TS_FORMAT);
+    }
+
+    /** Unified step format: object.parentKey, object.objectKey (same as AWT/Swing and extension protocol). */
+    private static void putStepObject(Map<String, Object> step, Map<String, Object> parentKey, Map<String, Object> objectKey) {
+        Map<String, Object> object = new LinkedHashMap<>();
+        object.put("parentKey", parentKey != null ? parentKey : new LinkedHashMap<>());
+        object.put("objectKey", objectKey != null ? objectKey : new LinkedHashMap<>());
+        step.put("object", object);
     }
 
     private FxRecordSupport() {}
@@ -109,6 +119,8 @@ public final class FxRecordSupport extends FxReflectionSupport {
     /** Sends a recorded step (e.g. to file + WebSocket). Implemented by RecordAgent. */
     public interface FxStepSender {
         void sendStep(Map<String, Object> step);
+        /** Send a record log line to the extension (e.g. skip/error); extension may show in red. No-op if not implemented. */
+        default void sendRecordLog(String level, String message) {}
     }
 
     private static volatile FxSemanticTrackingConfig semanticTrackingConfig;
@@ -706,13 +718,12 @@ public final class FxRecordSupport extends FxReflectionSupport {
                     String param = buildFxTableParameter(condCols, fxTableContextCol);
                     String data = buildFxTableSearchAndUpdateData(condVals, targetValue);
                     Map<String, Object> step = new LinkedHashMap<>();
-                    step.put("keyword", "SearchAndUpdate");
+                    step.put("keyword", KeywordConstants.SEARCH_AND_UPDATE);
                     step.put("event", "searchAndUpdate");
                     step.put("timestamp", System.currentTimeMillis());
                     step.put("parameter", param);
                     step.put("data", data);
-                    step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(table, null));
-                    step.put("objectIdentifier", buildJavaFxObjectIdentifier(table));
+                    putStepObject(step, buildJavaFxParentIdentifierFrom(table, null), buildJavaFxObjectIdentifier(table));
                     step.put("objectCategory", "javaFxTable");
                     step.put("semanticType", "TABLEVIEW");
                     stepSender.sendStep(step);
@@ -737,12 +748,11 @@ public final class FxRecordSupport extends FxReflectionSupport {
         if (text == null) text = "";
 
         Map<String, Object> step = new LinkedHashMap<>();
-        step.put("keyword", "FillEdit");
-        step.put("event", "FillEdit");
+        step.put("keyword", KeywordConstants.FILL_EDIT);
+        step.put("event", KeywordConstants.FILL_EDIT);
         step.put("timestamp", now);
         if (!text.isEmpty()) step.put("data", text);
-        step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(oldOwner, null));
-        step.put("objectIdentifier", buildJavaFxObjectIdentifier(oldOwner));
+        putStepObject(step, buildJavaFxParentIdentifierFrom(oldOwner, null), buildJavaFxObjectIdentifier(oldOwner));
         stepSender.sendStep(step);
 
         fxLastFillEditControl = oldOwner;
@@ -922,7 +932,12 @@ public final class FxRecordSupport extends FxReflectionSupport {
      * Structural containers are folded; parts hang under composite boundary.
      */
     private static void handleJavaFxRecordEvent(Object event, FxStepSender stepSender) {
-        if (event == null || stepSender == null) return;
+        if (event == null || stepSender == null) {
+            String msg = "[FxRecord] skip: event=" + (event != null) + ", stepSender=" + (stepSender != null);
+            LOG.log(Level.FINE, msg);
+            stepSender.sendRecordLog("error", msg);
+            return;
+        }
         String keyword = null;
         Object stepTarget = null;
         try {
@@ -932,7 +947,12 @@ public final class FxRecordSupport extends FxReflectionSupport {
             }
             String eventTypeName = String.valueOf(invokeNoArg(event, "getEventType"));
             Object target = invokeNoArg(event, "getTarget");
-            if (target == null) return;
+            if (target == null) {
+                String msg = "[FxRecord] skip: event target is null, eventType=" + eventTypeName;
+                LOG.log(Level.FINE, msg);
+                stepSender.sendRecordLog("error", msg);
+                return;
+            }
 
             if (target != null && "javafx.scene.layout.StackPane".equals(target.getClass().getName())) {
                 debugFxNodeContext(target);
@@ -968,7 +988,12 @@ public final class FxRecordSupport extends FxReflectionSupport {
                 }
             }
 
-            if (semanticTarget == null) return;
+            if (semanticTarget == null) {
+                String msg = "[FxRecord] skip: foldAndLift semanticTarget is null, eventType=" + eventTypeName + ", target=" + describeNodeForLog(target);
+                LOG.log(Level.FINE, msg);
+                stepSender.sendRecordLog("error", msg);
+                return;
+            }
 
             FxNodeCategory.NodeMeta targetMeta = FxNodeClassifier.classify(semanticTarget);
             String semanticType = targetMeta != null ? targetMeta.semanticType : "UNKNOWN";
@@ -986,13 +1011,12 @@ public final class FxRecordSupport extends FxReflectionSupport {
                         if (rightClick) {
                             String dataClick = buildFxTableSearchAndClickData(condVals, "Action:RightClick");
                             Map<String, Object> step = new LinkedHashMap<>();
-                            step.put("keyword", "SearchAndClick");
+                            step.put("keyword", KeywordConstants.SEARCH_AND_CLICK);
                             step.put("event", "searchAndClick");
                             step.put("timestamp", System.currentTimeMillis());
                             step.put("parameter", param);
                             step.put("data", dataClick);
-                            step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(tableView, null));
-                            step.put("objectIdentifier", buildJavaFxObjectIdentifier(tableView));
+                            putStepObject(step, buildJavaFxParentIdentifierFrom(tableView, null), buildJavaFxObjectIdentifier(tableView));
                             step.put("objectCategory", "javaFxTable");
                             step.put("semanticType", "TABLEVIEW");
                             stepSender.sendStep(step);
@@ -1011,24 +1035,47 @@ public final class FxRecordSupport extends FxReflectionSupport {
             }
 
             String data = "";
-            // Type+event mapping: ContextMenuContent only responds to MOUSE_PRESSED; MenuBarButton etc. to MOUSE_CLICKED (avoid duplicate).
+            // Type+event mapping: some controls use MOUSE_PRESSED for selection (no or late MOUSE_CLICKED).
+            // - ContextMenuContent (popup menu item): responds to MOUSE_PRESSED.
+            // - Tab/TabPane (tab header): JDK-8101994 — tab selection is on mouse press, not click.
+            // - MenuBarButton, Button, CheckBox, TreeCell, ListCell, TableCell, etc.: use MOUSE_CLICKED
+            //   (they typically receive both PRESSED and CLICKED; we use CLICKED to avoid duplicate).
             String semanticTargetClassName = semanticTarget != null ? semanticTarget.getClass().getName() : "";
             boolean isContextMenuMenuItem = "MENUITEM".equals(semanticType) && semanticTargetClassName.contains("ContextMenuContent");
+            boolean isTabSemantic = "TAB".equals(semanticType) || "TABPANE".equals(semanticType);
+            boolean usePressedEvent = isContextMenuMenuItem || isTabSemantic;
             if (eventTypeName.contains("MOUSE_CLICKED")) {
-                if (isContextMenuMenuItem) return; // already handled on MOUSE_PRESSED
+                if (isContextMenuMenuItem) {
+                    String msg = "[FxRecord] skip: ContextMenu already handled on MOUSE_PRESSED";
+                    LOG.log(Level.FINE, msg);
+                    stepSender.sendRecordLog("error", msg);
+                    return;
+                }
+                if (isTabSemantic) {
+                    String msg = "[FxRecord] skip: Tab selection on MOUSE_PRESSED, ignore MOUSE_CLICKED";
+                    LOG.log(Level.FINE, msg);
+                    stepSender.sendRecordLog("error", msg);
+                    return;
+                }
                 if ("TEXT_INPUT".equals(semanticType) || isInsideTextInput(target) || isInsideTextInput(semanticTarget)) {
+                    String msg = "[FxRecord] skip: inside text input, eventType=" + eventTypeName;
+                    LOG.log(Level.FINE, msg);
+                    stepSender.sendRecordLog("error", msg);
                     return;
                 }
                 keyword = keywordForMouseClick(semanticTarget, semanticType);
                 data = dataForMouseClick(semanticTarget, semanticType, keyword);
-            } else if (eventTypeName.contains("MOUSE_PRESSED") && isContextMenuMenuItem) {
+            } else if (eventTypeName.contains("MOUSE_PRESSED") && usePressedEvent) {
                 if ("TEXT_INPUT".equals(semanticType) || isInsideTextInput(target) || isInsideTextInput(semanticTarget)) {
+                    String msg = "[FxRecord] skip: inside text input on MOUSE_PRESSED";
+                    LOG.log(Level.FINE, msg);
+                    stepSender.sendRecordLog("error", msg);
                     return;
                 }
                 keyword = keywordForMouseClick(semanticTarget, semanticType);
                 data = dataForMouseClick(semanticTarget, semanticType, keyword);
             }
-            if (keyword != null && "SelectMenuItem".equals(keyword) && LOG.isLoggable(Level.INFO)) {
+            if (keyword != null && KeywordConstants.SELECT_MENU_ITEM.equals(keyword) && LOG.isLoggable(Level.INFO)) {
                 LOG.info("[INFO] " + ts() + " [FxRecord] SelectMenuItem data controlClass=" + semanticTargetClassName + " data=" + (data != null ? data : ""));
             }
             else if (eventTypeName.contains("KEY_PRESSED")) {
@@ -1052,13 +1099,12 @@ public final class FxRecordSupport extends FxReflectionSupport {
                             String dataSU = buildFxTableSearchAndUpdateData(condVals, targetValue);
 
                             Map<String, Object> step = new LinkedHashMap<>();
-                            step.put("keyword", "SearchAndUpdate");
+                            step.put("keyword", KeywordConstants.SEARCH_AND_UPDATE);
                             step.put("event", "searchAndUpdate");
                             step.put("timestamp", System.currentTimeMillis());
                             step.put("parameter", param);
                             step.put("data", dataSU);
-                            step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(tableView, null));
-                            step.put("objectIdentifier", buildJavaFxObjectIdentifier(tableView));
+                            putStepObject(step, buildJavaFxParentIdentifierFrom(tableView, null), buildJavaFxObjectIdentifier(tableView));
                             step.put("objectCategory", "javaFxTable");
                             step.put("semanticType", "TABLEVIEW");
                             stepSender.sendStep(step);
@@ -1073,7 +1119,7 @@ public final class FxRecordSupport extends FxReflectionSupport {
                 // Case 2: Simple text input control (semantic TEXT_INPUT) → FillEdit on Enter/Tab.
                 if (("ENTER".equalsIgnoreCase(code) || "TAB".equalsIgnoreCase(code))
                         && "TEXT_INPUT".equals(semanticType)) {
-                    keyword = "FillEdit";
+                    keyword = KeywordConstants.FILL_EDIT;
                     String text = asString(invokeNoArg(target, "getText"));
                     data = text != null ? text : "";
                     // Remember last FillEdit control/time so focus-lost handler can skip duplicate step.
@@ -1081,12 +1127,17 @@ public final class FxRecordSupport extends FxReflectionSupport {
                     fxLastFillEditTimeMs = System.currentTimeMillis();
                 }
             }
-            if (keyword == null) return;
+            if (keyword == null) {
+                String msg = "[FxRecord] skip: no keyword for eventType=" + eventTypeName + ", semanticType=" + semanticType + ", target=" + describeNodeForLog(semanticTarget);
+                LOG.log(Level.FINE, msg);
+                stepSender.sendRecordLog("error", msg);
+                return;
+            }
 
-            stepTarget = "FillEdit".equals(keyword) ? target : semanticTarget;
-            Object stepParent = "FillEdit".equals(keyword) ? null : semanticParent;
+            stepTarget = KeywordConstants.FILL_EDIT.equals(keyword) ? target : semanticTarget;
+            Object stepParent = KeywordConstants.FILL_EDIT.equals(keyword) ? null : semanticParent;
 
-            if (!"SelectMenuItem".equals(keyword)) {
+            if (!KeywordConstants.SELECT_MENU_ITEM.equals(keyword)) {
                 pendingFxSelectMenuItemStep = null;
             } else {
                 if (isFxMenuWithSubmenu(stepTarget)) {
@@ -1094,19 +1145,17 @@ public final class FxRecordSupport extends FxReflectionSupport {
                     Map<String, Object> step;
                     if (pendingFxSelectMenuItemStep != null) {
                         step = pendingFxSelectMenuItemStep;
-                        step.put("objectIdentifier", buildJavaFxObjectIdentifier(stepTarget));
+                        putStepObject(step, buildJavaFxParentIdentifierFrom(stepTarget, stepParent), buildJavaFxObjectIdentifier(stepTarget));
                         step.put("data", data != null ? data : "");
-                        step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(stepTarget, stepParent));
                         step.put("timestamp", System.currentTimeMillis());
                         if (semanticType != null && !semanticType.isEmpty()) step.put("semanticType", semanticType);
                     } else {
                         step = new LinkedHashMap<>();
                         step.put("keyword", keyword);
-                        step.put("event", keyword);
+                        step.put("event", eventTypeName);
                         step.put("timestamp", System.currentTimeMillis());
                         if (data != null && !data.isEmpty()) step.put("data", data);
-                        step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(stepTarget, stepParent));
-                        step.put("objectIdentifier", buildJavaFxObjectIdentifier(stepTarget));
+                        putStepObject(step, buildJavaFxParentIdentifierFrom(stepTarget, stepParent), buildJavaFxObjectIdentifier(stepTarget));
                         if (semanticType != null && !semanticType.isEmpty()) step.put("semanticType", semanticType);
                         pendingFxSelectMenuItemStep = step;
                     }
@@ -1114,7 +1163,9 @@ public final class FxRecordSupport extends FxReflectionSupport {
                     return;
                 }
                 if (pendingFxSelectMenuItemStep != null) {
-                    pendingFxSelectMenuItemStep.put("objectIdentifier", buildJavaFxObjectIdentifier(stepTarget));
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> obj = (Map<String, Object>) pendingFxSelectMenuItemStep.get("object");
+                    if (obj != null) obj.put("objectKey", buildJavaFxObjectIdentifier(stepTarget));
                     pendingFxSelectMenuItemStep.put("data", data != null ? data : "");
                     pendingFxSelectMenuItemStep.put("timestamp", System.currentTimeMillis());
                     stepSender.sendStep(pendingFxSelectMenuItemStep);
@@ -1123,18 +1174,34 @@ public final class FxRecordSupport extends FxReflectionSupport {
                 }
             }
 
+            Map<String, Object> objectIdentifier = buildJavaFxObjectIdentifier(stepTarget);
+            if (!isObjectIdentifierMeaningful(objectIdentifier)) {
+                String msg = "[FxRecord] skip: objectIdentifier not meaningful, keyword=" + keyword + ", stepTarget=" + describeNodeForLog(stepTarget);
+                LOG.log(Level.FINE, msg);
+                stepSender.sendRecordLog("error", msg);
+                return;
+            }
             Map<String, Object> step = new LinkedHashMap<>();
             step.put("keyword", keyword);
-            step.put("event", keyword);
+            step.put("event", eventTypeName);
             step.put("timestamp", System.currentTimeMillis());
             if (data != null && !data.isEmpty()) step.put("data", data);
-            step.put("parentIdentifier", buildJavaFxParentIdentifierFrom(stepTarget, stepParent));
-            step.put("objectIdentifier", buildJavaFxObjectIdentifier(stepTarget));
+            putStepObject(step, buildJavaFxParentIdentifierFrom(stepTarget, stepParent), objectIdentifier);
             if (semanticType != null && !semanticType.isEmpty()) step.put("semanticType", semanticType);
             stepSender.sendStep(step);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "[ERROR] emitStep failed: keyword=" + keyword + ", target=" + (stepTarget != null ? stepTarget.getClass().getName() : "null"), e);
         }
+    }
+
+    /** True if object identifier is considered meaningful (we send the step). Temporarily always true: many controls are unique by javaType alone. */
+    private static boolean isObjectIdentifierMeaningful(Map<String, Object> id) {
+        // if (id == null) return false;
+        // String name = id.get("javaName") != null ? String.valueOf(id.get("javaName")).trim() : "";
+        // String text = id.get("text") != null ? String.valueOf(id.get("text")).trim() : "";
+        // String value = id.get("value") != null ? String.valueOf(id.get("value")).trim() : "";
+        // return !name.isEmpty() || !text.isEmpty() || !value.isEmpty();
+        return true;
     }
 
     /** Use java.util.List interface for reflection to avoid touching com.sun.javafx.collections (not exported by javafx.base). */
@@ -1348,7 +1415,7 @@ public final class FxRecordSupport extends FxReflectionSupport {
         Object cur = treeItem;
         while (cur != null) {
             Object val = invokeNoArg(cur, "getValue");
-            segments.add(val != null ? String.valueOf(val) : "");
+            segments.add(val != null ? String.valueOf(val).trim() : "");
             cur = invokeNoArg(cur, "getParent");
         }
         Collections.reverse(segments);
@@ -1361,43 +1428,43 @@ public final class FxRecordSupport extends FxReflectionSupport {
     }
 
     private static String keywordForMouseClick(Object control, String semanticType) {
-        if ("CHECKBOX".equals(semanticType)) return "SetCheckBox";
-        if ("RADIOBUTTON".equals(semanticType)) return "SetRadioBox";
-        if ("TREECELL".equals(semanticType) || "TREEVIEW".equals(semanticType)) return "SelectTreeList";
-        if ("MENUITEM".equals(semanticType)) return "SelectMenuItem";
+        if ("CHECKBOX".equals(semanticType)) return KeywordConstants.SET_CHECK_BOX;
+        if ("RADIOBUTTON".equals(semanticType)) return KeywordConstants.SET_RADIO_BOX;
+        if ("TREECELL".equals(semanticType) || "TREEVIEW".equals(semanticType)) return KeywordConstants.SELECT_TREE_LIST;
+        if ("MENUITEM".equals(semanticType)) return KeywordConstants.SELECT_MENU_ITEM;
         if ("INPUT_CONTROL".equals(semanticType)) {
             String cn = control.getClass().getName();
-            if (cn.contains("ComboBox") || cn.contains("ChoiceBox")) return "SelectDropList";
+            if (cn.contains("ComboBox") || cn.contains("ChoiceBox")) return KeywordConstants.SELECT_DROP_LIST;
         }
-        if ("TABLECELL".equals(semanticType) || "TABLEVIEW".equals(semanticType)) return "ClickButton";
-        if ("LISTCELL".equals(semanticType) || "LISTVIEW".equals(semanticType)) return "ClickButton";
-        if ("TAB".equals(semanticType) || "TABPANE".equals(semanticType)) return "SelectTab";
+        if ("TABLECELL".equals(semanticType) || "TABLEVIEW".equals(semanticType)) return KeywordConstants.CLICK_BUTTON;
+        if ("LISTCELL".equals(semanticType) || "LISTVIEW".equals(semanticType)) return KeywordConstants.CLICK_BUTTON;
+        if ("TAB".equals(semanticType) || "TABPANE".equals(semanticType)) return KeywordConstants.SELECT_TAB;
         if ("COLUMN_HEADER".equals(semanticType) || "BUTTON".equals(semanticType)
                 || "DECORATION_AS_CONTROL".equals(semanticType) || "CUSTOM_INTERACTIVE".equals(semanticType))
-            return "ClickButton";
-        return "ClickButton";
+            return KeywordConstants.CLICK_BUTTON;
+        return KeywordConstants.CLICK_BUTTON;
     }
 
     private static String dataForMouseClick(Object control, String semanticType, String keyword) {
-        if ("SetCheckBox".equals(keyword)) {
+        if (KeywordConstants.SET_CHECK_BOX.equals(keyword)) {
             Object selected = invokeNoArg(control, "isSelected");
             return String.valueOf(Boolean.TRUE.equals(selected));
         }
-        if ("SetRadioBox".equals(keyword)) {
+        if (KeywordConstants.SET_RADIO_BOX.equals(keyword)) {
             String text = asString(invokeNoArg(control, "getText"));
             return text != null ? text : "";
         }
-        if ("SelectTreeList".equals(keyword)) {
+        if (KeywordConstants.SELECT_TREE_LIST.equals(keyword)) {
             return buildFxTreePathFromRootToNode(control);
         }
-        if ("SelectMenuItem".equals(keyword)) {
+        if (KeywordConstants.SELECT_MENU_ITEM.equals(keyword)) {
             return buildFxMenuPathFromRootToLeaf(control);
         }
-        if ("SelectDropList".equals(keyword)) {
+        if (KeywordConstants.SELECT_DROP_LIST.equals(keyword)) {
             String value = asString(invokeNoArg(control, "getValue"));
             return value != null ? value : "";
         }
-        if ("SelectTab".equals(keyword)) {
+        if (KeywordConstants.SELECT_TAB.equals(keyword)) {
 
             // 0) Fast path: if control itself has getText and returns non-empty (works for Tab / Label sometimes)
             try {

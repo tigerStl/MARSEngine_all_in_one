@@ -27,6 +27,7 @@ import javax.swing.SwingUtilities;
 
 import org.java_websocket.WebSocket;
 
+import com.mars.javaui.keyword.KeywordConstants;
 import com.mars.javaui.keyword.MarsKeyword;
 import com.mars.javaui.record.AgentLogger;
 import com.mars.javaui.record.RecordAgent;
@@ -110,7 +111,7 @@ public final class MouseEventHandler {
                 boolean isPopup = isPopupMenuItem(mi);
                 if (isPopup && isRecentTableRightClick(ctx, now)) {
                     String data = mi.getText() != null ? mi.getText() : "";
-                    Map<String, Object> step = MarsKeyword.buildScriptStep("SelectPopupMenu", mi, "", data, "");
+                    Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.SELECT_POPUP_MENU, mi, "", data, "");
                     step.put("event", "selectPopupMenu");
                     step.put("timestamp", now);
                     RecordAgent.putComponentInfo(step, mi);
@@ -134,7 +135,7 @@ public final class MouseEventHandler {
             if (id == MouseEvent.MOUSE_RELEASED) {
                 String data = RecordAgent.buildTreePathString(tree);
                 if (data != null && !data.isEmpty()) {
-                    Map<String, Object> step = MarsKeyword.buildScriptStep("SelectTreeList", tree, "", data, "");
+                    Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.SELECT_TREE_LIST, tree, "", data, "");
                     step.put("event", "selectTreeList");
                     step.put("timestamp", now);
                     RecordAgent.putComponentInfo(step, tree);
@@ -150,7 +151,7 @@ public final class MouseEventHandler {
             if (id == MouseEvent.MOUSE_RELEASED) {
                 Component obj = RecordAgent.findToolbarParentOrSelf(clickTarget);
                 String data = RecordAgent.getToolButtonSemanticText(clickTarget);
-                Map<String, Object> step = MarsKeyword.buildScriptStep("SelectMenuIcon", obj, "", data, "");
+                Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.SELECT_MENU_ICON, obj, "", data, "");
                 step.put("event", "selectMenuIcon");
                 step.put("timestamp", now);
                 RecordAgent.putComponentInfo(step, obj);
@@ -171,7 +172,7 @@ public final class MouseEventHandler {
                 if (tabIndex >= 0 && tabIndex < tabbedPane.getTabCount()) {
                     String header = tabbedPane.getTitleAt(tabIndex);
                     if (header == null) header = "";
-                    Map<String, Object> step = MarsKeyword.buildScriptStep("SelectTab", tabbedPane, "", header, "");
+                    Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.SELECT_TAB, tabbedPane, "", header, "");
                     step.put("event", "selectTab");
                     step.put("timestamp", now);
                     step.put("index", tabIndex);
@@ -188,7 +189,7 @@ public final class MouseEventHandler {
             if (id == MouseEvent.MOUSE_RELEASED && button == MouseEvent.BUTTON1) {
                 JRadioButton radio = (JRadioButton) clickTarget;
                 String text = resolveSelectedRadioText(radio);
-                Map<String, Object> step = MarsKeyword.buildScriptStep("SetRadioBox", radio, "", text, "");
+                Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.SET_RADIO_BOX, radio, "", text, "");
                 step.put("event", "clickButton");
                 step.put("timestamp", now);
                 RecordAgent.putComponentInfo(step, radio);
@@ -202,7 +203,7 @@ public final class MouseEventHandler {
             if (id == MouseEvent.MOUSE_RELEASED && button == MouseEvent.BUTTON1) {
                 JCheckBox checkBox = (JCheckBox) clickTarget;
                 String checked = String.valueOf(checkBox.isSelected());
-                Map<String, Object> step = MarsKeyword.buildScriptStep("SetCheckBox", checkBox, "", checked, "");
+                Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.SET_CHECK_BOX, checkBox, "", checked, "");
                 step.put("event", "clickButton");
                 step.put("timestamp", now);
                 RecordAgent.putComponentInfo(step, checkBox);
@@ -250,13 +251,13 @@ public final class MouseEventHandler {
 
             int clickCount = 2;
             String param = "button=" + ctx.pendingClickButtonRef[0] + ",clickCount=" + clickCount;
-            String keyword = "ClickButton";
+            String keyword = KeywordConstants.CLICK_BUTTON;
             String data = "";
             if (isRadioButtonLike(pressComp)) {
-                keyword = "SetRadioBox";
+                keyword = KeywordConstants.SET_RADIO_BOX;
                 data = resolveSelectedRadioText(pressComp);
             } else if (isCheckBoxLike(pressComp)) {
-                keyword = "SetCheckBox";
+                keyword = KeywordConstants.SET_CHECK_BOX;
                 data = String.valueOf(isButtonSelected(pressComp));
             }
             Map<String, Object> step = MarsKeyword.buildScriptStep(keyword, pressComp, param, data, "");
@@ -300,18 +301,20 @@ public final class MouseEventHandler {
             ctx.pendingClickComponentRef[0] = null;
             int clickCount = 1;
             String param = "button=" + emitButton + ",clickCount=" + clickCount;
-            String keyword = "ClickButton";
+            String keyword = KeywordConstants.CLICK_BUTTON;
             String data = "";
             if (isRadioButtonLike(emitComp)) {
-                keyword = "SetRadioBox";
+                keyword = KeywordConstants.SET_RADIO_BOX;
                 data = resolveSelectedRadioText(emitComp);
             } else if (isCheckBoxLike(emitComp)) {
-                keyword = "SetCheckBox";
+                keyword = KeywordConstants.SET_CHECK_BOX;
                 data = String.valueOf(isButtonSelected(emitComp));
             }
             Map<String, Object> step = MarsKeyword.buildScriptStep(keyword, emitComp, param, data, "");
             if (emitParentIdentifier != null && !emitParentIdentifier.isEmpty()) {
-                step.put("parentIdentifier", emitParentIdentifier);
+                @SuppressWarnings("unchecked")
+                Map<String, Object> obj = (Map<String, Object>) step.get("object");
+                if (obj != null) obj.put("parentKey", emitParentIdentifier);
             }
             step.put("event", "clickButton");
             step.put("timestamp", System.currentTimeMillis());
@@ -389,7 +392,7 @@ public final class MouseEventHandler {
             String[] condVals = RecordAgent.getTableConditionValues(table, row, condCols);
             String param = "RightClick;" + RecordAgent.buildTableParameter(targetColumn, condCols);
             String data = RecordAgent.buildTableDataWithConditions(condVals, cellValue);
-            Map<String, Object> step = MarsKeyword.buildScriptStep("SearchAndClick", table, param, data, "");
+            Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.SEARCH_AND_CLICK, table, param, data, "");
             step.put("event", "searchAndClick");
             step.put("timestamp", now);
             RecordAgent.putComponentInfo(step, table);
@@ -429,7 +432,7 @@ public final class MouseEventHandler {
     private static void handleMenuItemClick(RecordingContext ctx, JMenuItem mi, long now, int button) {
         String data = RecordAgent.buildMenuPathFromRootToLeaf(mi);
         if (RecordAgent.isMenuWithSubmenu(mi)) {
-            Map<String, Object> step = MarsKeyword.buildScriptStep("SelectMenuItem", mi, "", data, "");
+            Map<String, Object> step = MarsKeyword.buildScriptStep(KeywordConstants.SELECT_MENU_ITEM, mi, "", data, "");
             step.put("event", "selectMenuItem");
             step.put("timestamp", now);
             RecordAgent.putComponentInfo(step, mi);
@@ -439,8 +442,10 @@ public final class MouseEventHandler {
             return;
         }
         Map<String, Object> step = ctx.pendingSelectMenuItemStepRef[0];
-        if (step != null && "SelectMenuItem".equals(step.get("keyword"))) {
-            step.put("objectIdentifier", MarsKeyword.buildObjectIdentifier(mi));
+        if (step != null && KeywordConstants.SELECT_MENU_ITEM.equals(step.get("keyword"))) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> obj = (Map<String, Object>) step.get("object");
+            if (obj != null) obj.put("objectKey", MarsKeyword.buildObjectIdentifier(mi));
             step.put("data", data);
             step.put("content", data);
             step.put("timestamp", now);
@@ -490,11 +495,13 @@ public final class MouseEventHandler {
 
     private static void emitRightClickAtStep(RecordingContext ctx, long timestamp) {
         Map<String, Object> clickAt = new LinkedHashMap<>();
-        clickAt.put("keyword", "ClickAT");
+        clickAt.put("keyword", KeywordConstants.CLICK_AT);
         clickAt.put("parameter", "CURRENT_POSITION");
         clickAt.put("data", "Rightclick");
-        clickAt.put("parentIdentifier", new LinkedHashMap<>());
-        clickAt.put("objectIdentifier", new LinkedHashMap<>());
+        Map<String, Object> emptyObj = new LinkedHashMap<>();
+        emptyObj.put("parentKey", new LinkedHashMap<>());
+        emptyObj.put("objectKey", new LinkedHashMap<>());
+        clickAt.put("object", emptyObj);
         clickAt.put("event", "clickAt");
         clickAt.put("timestamp", timestamp);
         emitStep(ctx, clickAt);
@@ -505,13 +512,13 @@ public final class MouseEventHandler {
         Object keywordObj = step.get("keyword");
         String keyword = keywordObj != null ? String.valueOf(keywordObj) : "";
         if (keyword.isEmpty()) return;
-        boolean isSelectKeyword = "SelectMenuItem".equals(keyword)
-            || "SelectPopupMenu".equals(keyword)
-            || "SelectTreeList".equals(keyword)
-            || "SelectTab".equals(keyword)
-            || "SelectDropList".equals(keyword)
-            || "SelectDropDown".equals(keyword)
-            || "SelectListItem".equals(keyword);
+        boolean isSelectKeyword = KeywordConstants.SELECT_MENU_ITEM.equals(keyword)
+            || KeywordConstants.SELECT_POPUP_MENU.equals(keyword)
+            || KeywordConstants.SELECT_TREE_LIST.equals(keyword)
+            || KeywordConstants.SELECT_TAB.equals(keyword)
+            || KeywordConstants.SELECT_DROP_LIST.equals(keyword)
+            || KeywordConstants.SELECT_DROP_DOWN.equals(keyword)
+            || KeywordConstants.SELECT_LIST_ITEM.equals(keyword);
         if (!isSelectKeyword) return;
         String para = step.get("parameter") != null ? String.valueOf(step.get("parameter")) : "";
         if (containsParameterTokenIgnoreCase(para, "rightclick")) return;

@@ -409,6 +409,10 @@ export async function startRecordAgent(
           }
           return;
         }
+        if (msg.type === 'recordLog') {
+          onEvent(msg);
+          return;
+        }
         const ev = msg.event;
         const isRecordEvent =
           typeof ev === 'string' &&

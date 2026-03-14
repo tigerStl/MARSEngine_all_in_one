@@ -36,15 +36,17 @@ public abstract class MarsKeyword {
 		return buildScriptStep(getKeyword(), comp, parameter, data, assertValue);
 	}
 
-	/** Static: build standard step given keyword name. */
+	/** Static: build standard step given keyword name. Unified format: object.parentKey, object.objectKey (same as extension protocol). */
 	public static Map<String, Object> buildScriptStep(String keyword, Component comp, String parameter, String data, String assertValue) {
 		Map<String, Object> step = new LinkedHashMap<>();
 		step.put("keyword", keyword);
 		if (parameter != null && !parameter.isEmpty()) step.put("parameter", parameter);
 		if (data != null && !data.isEmpty()) step.put("data", data);
 		if (assertValue != null && !assertValue.isEmpty()) step.put("assertValue", assertValue);
-		step.put("parentIdentifier", buildParentIdentifier(comp));
-		step.put("objectIdentifier", buildObjectIdentifier(comp));
+		Map<String, Object> object = new LinkedHashMap<>();
+		object.put("parentKey", buildParentIdentifier(comp));
+		object.put("objectKey", buildObjectIdentifier(comp));
+		step.put("object", object);
 		return step;
 	}
 

@@ -71,6 +71,19 @@ export type ScriptKeyword =
   | 'Check'
   | 'Uncheck';
 
+/** Single source of truth for all step keywords (runtime list). */
+export const SCRIPT_KEYWORDS: readonly ScriptKeyword[] = [
+  'Click', 'ClickButton', 'DoubleClickButton', 'ClickMenuIcon', 'FillEdit',
+  'SelectDropDown', 'SelectDropList', 'SelectListItem', 'SelectMenuItem',
+  'SelectTreeList', 'SelectTab', 'SelectMenuIcon', 'SelectPopupMenu', 'ClickAT',
+  'SearchAndClick', 'SearchAndUpdate', 'VerifyObjectValue',
+  'SetRadioBox', 'SetCheckBox', 'Check', 'Uncheck',
+] as const;
+
+export function isScriptKeyword(s: string): s is ScriptKeyword {
+  return (SCRIPT_KEYWORDS as readonly string[]).includes(s);
+}
+
 export interface TestScriptStep {
   keyword: ScriptKeyword;
   parentIdentifier: ElementIdentifier;

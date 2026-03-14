@@ -229,6 +229,13 @@ public final class FxNodeClassifier {
                 || "TEXT_INPUT".equals(t) || "INPUT_CONTROL".equals(t);
     }
 
+    /** True if meta is CheckBox or RadioButton only. Used to narrow StackPane rule so Tab header clicks still produce SelectTab. */
+    private static boolean isCheckboxOrRadioSemantic(FxNodeCategory.NodeMeta meta) {
+        if (meta == null || meta.semanticType == null) return false;
+        String t = meta.semanticType;
+        return "CHECKBOX".equals(t) || "RADIOBUTTON".equals(t);
+    }
+
     /** True if meta is Tab or TabPane (composite we prefer to skip when target is StackPane and we have a standard control). */
     private static boolean isTabLike(FxNodeCategory.NodeMeta meta) {
         return meta != null && ("TAB".equals(meta.semanticType) || "TABPANE".equals(meta.semanticType));
@@ -471,8 +478,8 @@ public final class FxNodeClassifier {
             }
 
             if (isCompositeSemanticPart(meta)) {
-                // Rule: when target is StackPane and we already found a standard control (CheckBox etc.), and current is Tab-like, use the standard control as semantic target.
-                if (startIsStackPane && candidateSimpleSemantic != null && isStandardControlSemantic(candidateSimpleSemantic) && isTabLike(meta)) {
+                // Rule: when target is StackPane and we already found CheckBox/Radio only, and current is Tab-like, use that control (so CheckBox in tab content -> SetCheckBox). Tab header clicks keep Tab as target -> SelectTab.
+                if (startIsStackPane && candidateSimpleSemantic != null && isCheckboxOrRadioSemantic(candidateSimpleSemantic) && isTabLike(meta)) {
                     targetMeta = candidateSimpleSemantic;
                 } else {
                     targetMeta = meta;
@@ -493,7 +500,7 @@ public final class FxNodeClassifier {
 
             if (FxNodeCategory.SEMANTIC_CONTROL.equals(meta.category) && FxNodeCategory.COMPOSITE_BOUNDARY.equals(meta.boundary)) {
                 if (targetMeta == null) {
-                    if (startIsStackPane && candidateSimpleSemantic != null && isStandardControlSemantic(candidateSimpleSemantic) && isTabLike(meta)) {
+                    if (startIsStackPane && candidateSimpleSemantic != null && isCheckboxOrRadioSemantic(candidateSimpleSemantic) && isTabLike(meta)) {
                         targetMeta = candidateSimpleSemantic;
                     } else {
                         targetMeta = meta;

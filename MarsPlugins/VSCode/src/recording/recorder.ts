@@ -26,10 +26,12 @@ export interface RecordingCallbacks {
   readMenuPath?: (itemRef: ObjectRef) => Promise<string[]>;
 }
 
-/** Legacy agent message (e.g. from Java record agent). */
+/** Legacy agent message (e.g. from Java record agent). Unified format uses object.parentKey/objectKey; legacy uses parentIdentifier/objectIdentifier. */
 export interface LegacyRecordMessage {
   event: string;
   keyword?: string;
+  /** Unified format (AWT/Swing/JavaFX): same as RecordedStep.object */
+  object?: { parentKey?: Record<string, unknown> | null; objectKey?: Record<string, unknown> };
   parentIdentifier?: Record<string, unknown>;
   objectIdentifier?: Record<string, unknown>;
   parameter?: string;
@@ -203,15 +205,21 @@ export class RecordingEngine {
       : keywordFromLegacyEvent(msg.event, msg.clickCount);
     if (!resolvedKeyword) return;
 
+    // Prefer unified format (object.parentKey / object.objectKey); fallback to legacy parentIdentifier/objectIdentifier
+    const obj = msg.object;
+    const parentKey = obj?.parentKey != null && typeof obj.parentKey === 'object'
+      ? (legacyIdentifierToObjectKey(obj.parentKey as Record<string, unknown>) as unknown as ObjectKey)
+      : (msg.parentIdentifier
+          ? (legacyIdentifierToObjectKey(msg.parentIdentifier as Record<string, unknown>) as unknown as ObjectKey)
+          : null);
+    const objectKey = obj?.objectKey != null && typeof obj.objectKey === 'object'
+      ? (legacyIdentifierToObjectKey(obj.objectKey as Record<string, unknown>) as unknown as ObjectKey)
+      : (legacyIdentifierToObjectKey(msg.objectIdentifier as Record<string, unknown>) as unknown as ObjectKey);
+
     const step: RecordedStepOutput = {
       id: 'step-' + (++this.stepId),
       keyword: resolvedKeyword,
-      object: {
-        parentKey: msg.parentIdentifier
-          ? (legacyIdentifierToObjectKey(msg.parentIdentifier as Record<string, unknown>) as unknown as ObjectKey)
-          : null,
-        objectKey: legacyIdentifierToObjectKey(msg.objectIdentifier as Record<string, unknown>) as unknown as ObjectKey,
-      },
+      object: { parentKey, objectKey },
       parameter: typeof msg.parameter === 'string' ? msg.parameter : '',
       data: typeof msg.data === 'string' ? msg.data : (typeof msg.content === 'string' ? msg.content : ''),
       meta: { ts },

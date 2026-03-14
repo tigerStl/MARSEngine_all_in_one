@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import com.mars.javaui.keyword.KeywordConstants;
+
 /**
  * JavaFX replay: resolve parent/object from identifier, then simulate with Robot (mouse/keyboard).
  * Resolution is in FxReplayResolver; operations use screen bounds and Robot like AWT/Swing.
@@ -39,7 +41,7 @@ public final class FxReplaySupport extends FxReflectionSupport {
 
     /** Whether this step is JavaFX Table SearchAndUpdate/SearchAndClick (object = TableView). */
     public static boolean isJavaFxTableStep(Map<String, Object> objectKey, String keyword) {
-        if (!"SearchAndUpdate".equals(keyword) && !"SearchAndClick".equals(keyword)) return false;
+        if (!KeywordConstants.SEARCH_AND_UPDATE.equals(keyword) && !KeywordConstants.SEARCH_AND_CLICK.equals(keyword)) return false;
         if (objectKey == null) return false;
         Object cat = objectKey.get("objectCategory");
         if ("javaFxTable".equals(cat)) return true;
@@ -181,7 +183,7 @@ public final class FxReplaySupport extends FxReflectionSupport {
         int cy = b[1] + b[3] / 2;
         String data = callbacks != null ? callbacks.getStepData(step) : null;
         try {
-            if ("FillEdit".equals(keyword)) {
+            if (KeywordConstants.FILL_EDIT.equals(keyword)) {
                 robot.mouseMove(cx, cy);
                 robot.delay(120);
                 robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
@@ -195,7 +197,7 @@ public final class FxReplaySupport extends FxReflectionSupport {
                 robot.delay(120);
                 return null;
             }
-            if ("DoubleClickButton".equals(keyword) || "DoubleClick".equals(keyword)) {
+            if (KeywordConstants.DOUBLE_CLICK_BUTTON.equals(keyword) || KeywordConstants.DOUBLE_CLICK.equals(keyword)) {
                 robot.mouseMove(cx, cy);
                 robot.delay(120);
                 robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
@@ -206,7 +208,7 @@ public final class FxReplaySupport extends FxReflectionSupport {
                 robot.delay(120);
                 return null;
             }
-            if ("SelectDropList".equals(keyword) || "SelectDropDown".equals(keyword)) {
+            if (KeywordConstants.SELECT_DROP_LIST.equals(keyword) || KeywordConstants.SELECT_DROP_DOWN.equals(keyword)) {
                 robot.mouseMove(cx, cy);
                 robot.delay(120);
                 robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
@@ -221,9 +223,9 @@ public final class FxReplaySupport extends FxReflectionSupport {
                 robot.delay(120);
                 return null;
             }
-            if ("SelectMenuItem".equals(keyword) || "SelectPopupMenu".equals(keyword) || "SelectListItem".equals(keyword)
-                    || "SelectTreeList".equals(keyword) || "SetRadioBox".equals(keyword) || "SetCheckBox".equals(keyword)
-                    || "ClickButton".equals(keyword) || "SelectTab".equals(keyword)) {
+            if (KeywordConstants.SELECT_MENU_ITEM.equals(keyword) || KeywordConstants.SELECT_POPUP_MENU.equals(keyword) || KeywordConstants.SELECT_LIST_ITEM.equals(keyword)
+                    || KeywordConstants.SELECT_TREE_LIST.equals(keyword) || KeywordConstants.SET_RADIO_BOX.equals(keyword) || KeywordConstants.SET_CHECK_BOX.equals(keyword)
+                    || KeywordConstants.CLICK_BUTTON.equals(keyword) || KeywordConstants.SELECT_TAB.equals(keyword)) {
                 robot.mouseMove(cx, cy);
                 robot.delay(120);
                 robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
@@ -240,6 +242,87 @@ public final class FxReplaySupport extends FxReflectionSupport {
         } catch (Exception e) {
             return "JavaFX replay failed: " + e.getMessage();
         }
+    }
+
+    private static boolean isTreeViewNode(Object node) {
+        return node != null && node.getClass().getName().contains("TreeView");
+    }
+
+    /**
+     * Replay SelectTreeList on JavaFX TreeView: select node by path string "root;parent;...;leaf".
+     * Expands ancestors and selects the target item via selection model.
+     */
+    public static String replayJavaFxTreeViewSelectByPath(Object treeView, String pathData, Robot robot) {
+        if (treeView == null) return "TreeView is null";
+        if (pathData == null || pathData.trim().isEmpty()) return "SelectTreeList data (path) is empty";
+        String raw = pathData.trim();
+        String[] parts = raw.split(";");
+        List<String> segments = new ArrayList<>();
+        for (String p : parts) {
+            String s = p.trim();
+            if (!s.isEmpty()) segments.add(s);
+        }
+        if (segments.isEmpty()) return "SelectTreeList path has no segments";
+
+        Object root = invokeNoArg(treeView, "getRoot");
+        if (root == null) return "TreeView has no root";
+
+        Object cur = root;
+        int startIdx = 0;
+        if (segments.size() > 0 && segments.get(0).equals(treeItemValueText(root))) {
+            startIdx = 1;
+        }
+        for (int i = startIdx; i < segments.size(); i++) {
+            setExpanded(cur, true);
+            Object child = findChildTreeItem(cur, segments.get(i));
+            if (child == null) return "SelectTreeList path not found at segment: " + segments.get(i);
+            cur = child;
+        }
+        setExpanded(cur, true);
+        Object selModel = invokeNoArg(treeView, "getSelectionModel");
+        if (selModel == null) return "TreeView selection model is null";
+        try {
+            for (Method m : selModel.getClass().getMethods()) {
+                if ("select".equals(m.getName()) && m.getParameterCount() == 1) {
+                    m.invoke(selModel, cur);
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            return "SelectTreeList select failed: " + (e.getMessage() != null ? e.getMessage() : e.toString());
+        }
+        if (robot != null) robot.delay(150);
+        return null;
+    }
+
+    private static String treeItemValueText(Object treeItem) {
+        if (treeItem == null) return "";
+        Object v = invokeNoArg(treeItem, "getValue");
+        return v != null ? String.valueOf(v).trim() : "";
+    }
+
+    private static void setExpanded(Object treeItem, boolean expanded) {
+        if (treeItem == null) return;
+        try {
+            Method m = treeItem.getClass().getMethod("setExpanded", boolean.class);
+            m.invoke(treeItem, expanded);
+        } catch (Exception ignored) { }
+    }
+
+    private static Object findChildTreeItem(Object parentItem, String segment) {
+        if (parentItem == null || segment == null) return null;
+        Object children = invokeNoArg(parentItem, "getChildren");
+        if (children == null) return null;
+        try {
+            Method sizeM = java.util.List.class.getMethod("size");
+            Method getM = java.util.List.class.getMethod("get", int.class);
+            int n = ((Number) sizeM.invoke(children)).intValue();
+            for (int i = 0; i < n; i++) {
+                Object child = getM.invoke(children, i);
+                if (segment.equals(treeItemValueText(child))) return child;
+            }
+        } catch (Exception ignored) { }
+        return null;
     }
 
     // ---------- JavaFX TableView SearchAndUpdate / SearchAndClick ----------
