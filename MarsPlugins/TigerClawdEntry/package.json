@@ -1,0 +1,98 @@
+{
+  "name": "TigerClawdEntry",
+  "displayName": "TigerClawdEntry",
+  "description": "Unified AI Runtime Entry and Installer Assistant",
+  "version": "0.1.0",
+  "publisher": "mars-labs",
+  "icon": "image/TigerClawFrame.png",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished",
+    "onView:tigerClawdEntry.sidebar",
+    "onCommand:tigerClawdEntry.openDashboard",
+    "onCommand:tigerClawdEntry.refreshStatus",
+    "onCommand:tigerClawdEntry.runHealthCheck",
+    "onCommand:tigerClawdEntry.openSetupWizard",
+    "onCommand:tigerClawdEntry.openScenarioCenter"
+  ],
+  "contributes": {
+  "commands": [
+      {
+        "command": "tigerClawdEntry.openDashboard",
+        "title": "TigerClawdEntry: Open Dashboard",
+        "category": "TigerClawdEntry"
+      },
+      {
+        "command": "tigerClawdEntry.refreshStatus",
+        "title": "TigerClawdEntry: Refresh Environment Status",
+        "category": "TigerClawdEntry"
+      },
+      {
+        "command": "tigerClawdEntry.runHealthCheck",
+        "title": "TigerClawdEntry: Open Health Center",
+        "category": "TigerClawdEntry"
+      },
+      {
+        "command": "tigerClawdEntry.openSetupWizard",
+        "title": "TigerClawdEntry: Open Setup Wizard",
+        "category": "TigerClawdEntry"
+      },
+      {
+        "command": "tigerClawdEntry.openScenarioCenter",
+        "title": "TigerClawdEntry: Open Scenario Center",
+        "category": "TigerClawdEntry"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "tigerClawdEntry",
+          "title": "TigerClawdEntry",
+          "icon": "image/TigerClawFrame.png"
+        }
+      ]
+    },
+    "views": {
+      "tigerClawdEntry": [
+        {
+          "id": "tigerClawdEntry.sidebar",
+          "name": "TigerClawdEntry",
+          "type": "webview"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "TigerClawdEntry",
+      "properties": {
+        "tigerClawdEntry.userConfig": {
+          "type": "object",
+          "default": {
+            "installedModules": {}
+          },
+          "description": "TigerClawdEntry internal install configuration. Do not edit manually.",
+          "scope": "application"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "echo \"No linter configured\"",
+    "test": "echo \"No tests yet\""
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+  }
+}
