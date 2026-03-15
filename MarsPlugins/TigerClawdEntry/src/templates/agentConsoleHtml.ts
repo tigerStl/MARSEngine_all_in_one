@@ -129,6 +129,8 @@ export function getAgentConsoleHtml(
     </div>
   </div>
 
+  <input type="hidden" id="tce-ac-data" value="${escapeHtmlAttr(dataB64)}" />
+
   <script nonce="${nonce}">
     (function () {
       var vscode;
@@ -137,7 +139,8 @@ export function getAgentConsoleHtml(
       } catch (e) {
         vscode = null;
       }
-      var dataB64 = '${dataB64}';
+      var dataEl = document.getElementById("tce-ac-data");
+      var dataB64 = (dataEl && dataEl.getAttribute("value")) || "";
       console.log('dataB64', dataB64);
       var data = {};
       try {

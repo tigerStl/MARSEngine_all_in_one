@@ -7,6 +7,13 @@ function escapeForScriptEmbed(s: string): string {
   return s.replace(/<\/script/gi, "<\\/script");
 }
 
+function escapeHtmlText(s: string): string {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 export function getDashboardHtml(
   webview: vscode.Webview,
   extensionUri: vscode.Uri,
@@ -58,6 +65,9 @@ export function getDashboardHtml(
             </div>
             <button class="tce-btn tce-btn-ghost" data-header-action="refresh" data-lang-key="headerRefresh">
               ${lang.headerRefresh}
+            </button>
+            <button class="tce-btn tce-btn-ghost" data-header-action="disclaimer" data-lang-key="headerDisclaimer">
+              ${lang.headerDisclaimer}
             </button>
             <div class="tce-dropdown">
               <button
@@ -163,6 +173,19 @@ export function getDashboardHtml(
     </div>
   </div>
 
+  <div class="tce-modal-backdrop" id="tce-disclaimer-modal" hidden>
+    <div class="tce-modal" role="dialog" aria-modal="true" aria-labelledby="tce-disclaimer-title">
+      <div class="tce-modal-header">
+        <h2 class="tce-modal-title" id="tce-disclaimer-title" data-lang-key="disclaimerPopupTitle">${escapeHtmlText(lang.disclaimerPopupTitle)}</h2>
+        <button type="button" class="tce-console-btn" id="tce-disclaimer-close" aria-label="Close">✕</button>
+      </div>
+      <div class="tce-modal-body" id="tce-disclaimer-body" data-lang-key="disclaimerPopupBody">${escapeHtmlText(lang.disclaimerPopupBody)}</div>
+      <div class="tce-modal-footer">
+        <button type="button" class="tce-btn tce-btn-primary" id="tce-disclaimer-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
   <script nonce="${nonce}">
     (function () {
       const vscode = acquireVsCodeApi();
@@ -170,9 +193,51 @@ export function getDashboardHtml(
 
       const strings = ${safeStringsEn};
       const stringsZh = ${safeStringsZh};
-      var currentLang = (navigator.language || "en").toLowerCase().startsWith("zh") ? "zh" : "en";
+      var currentLang = initialState.locale === "zh" ? "zh" : "en";
       var lang = currentLang === "zh" ? stringsZh : strings;
       var lastState = initialState;
+      var disclaimerModal = document.getElementById("tce-disclaimer-modal");
+      var disclaimerWasAutoShown = false;
+      var disclaimerAckSent = false;
+
+      try {
+        var persistedState = vscode.getState();
+        if (persistedState && typeof persistedState.disclaimerAckSent === "boolean") {
+          disclaimerAckSent = persistedState.disclaimerAckSent;
+        }
+      } catch (e) {
+        console.warn("Failed to restore webview state:", e);
+      }
+
+      function persistViewState() {
+        try {
+          vscode.setState({ disclaimerAckSent: disclaimerAckSent, currentLang: currentLang });
+        } catch (e) {
+          console.warn("Failed to persist webview state:", e);
+        }
+      }
+
+      function acknowledgeDisclaimer() {
+        if (disclaimerAckSent) return;
+        disclaimerAckSent = true;
+        persistViewState();
+        vscode.postMessage({ type: "disclaimerAcknowledged" });
+      }
+
+      function hideDisclaimerModal() {
+        if (!disclaimerModal) return;
+        disclaimerModal.setAttribute("hidden", "");
+        if (disclaimerWasAutoShown) {
+          acknowledgeDisclaimer();
+          disclaimerWasAutoShown = false;
+        }
+      }
+
+      function showDisclaimerModal(autoShow) {
+        if (!disclaimerModal) return;
+        disclaimerWasAutoShown = !!autoShow;
+        disclaimerModal.removeAttribute("hidden");
+      }
 
       function updatePageLang() {
         document.querySelectorAll("[data-lang-key]").forEach(function (el) {
@@ -195,9 +260,17 @@ export function getDashboardHtml(
           lang = currentLang === "zh" ? stringsZh : strings;
           document.querySelectorAll(".tce-lang-btn").forEach(function (b) { b.classList.remove("tce-lang-btn-active"); });
           btn.classList.add("tce-lang-btn-active");
+          persistViewState();
           updatePageLang();
           render(lastState);
         });
+      });
+
+      document.querySelectorAll('.tce-lang-btn[data-lang="' + currentLang + '"]').forEach(function (btn) {
+        btn.classList.add("tce-lang-btn-active");
+      });
+      document.querySelectorAll('.tce-lang-btn:not([data-lang="' + currentLang + '"])').forEach(function (btn) {
+        btn.classList.remove("tce-lang-btn-active");
       });
 
       window.addEventListener("message", function (event) {
@@ -310,12 +383,34 @@ export function getDashboardHtml(
       document.querySelectorAll("[data-header-action]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           var action = btn.getAttribute("data-header-action");
+          if (action === "disclaimer") {
+            showDisclaimerModal(false);
+            return;
+          }
           vscode.postMessage({ type: "headerAction", action: action });
           if (actionsPanel && btn.closest("#tce-actions-panel")) {
             actionsPanel.setAttribute("hidden", "");
             if (actionsTrigger) actionsTrigger.setAttribute("aria-expanded", "false");
           }
         });
+      });
+
+      document.addEventListener("click", function (e) {
+        var target = e.target;
+        if (!(target instanceof Element)) return;
+        if (target.closest("#tce-disclaimer-close") || target.closest("#tce-disclaimer-ok")) {
+          hideDisclaimerModal();
+          return;
+        }
+        if (disclaimerModal && target === disclaimerModal) {
+          hideDisclaimerModal();
+        }
+      });
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && disclaimerModal && disclaimerModal.getAttribute("hidden") === null) {
+          hideDisclaimerModal();
+        }
       });
 
       function render(state) {
@@ -703,6 +798,10 @@ export function getDashboardHtml(
       });
       updatePageLang();
       render(initialState);
+      persistViewState();
+      if (initialState.shouldAutoShowDisclaimer && !disclaimerAckSent) {
+        showDisclaimerModal(true);
+      }
     })();
   </script>
 </body>

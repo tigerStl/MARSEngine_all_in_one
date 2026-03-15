@@ -1,42 +1,95 @@
-## TigerClawdEntry
+# TigerClawdEntry
 
-**TigerClawdEntry** is a unified AI Runtime Entry and Installer Assistant for VS Code / Cursor.
+`TigerClawdEntry` is a unified AI Runtime Entry and Installer Assistant for VS Code / Cursor.
 
-It provides:
+## English
 
-- **Guided environment overview** for AI development (LLM, Agent, Code, Vector DB, Tools).
-- **Scenario-based templates** that recommend typical stacks for coding, RAG, media workflows, and automation.
-- **Mock installers and validators** (V1 mock implementation – replace with real installer later).
+### Features
 
-### Running the extension
+- Environment overview for AI stacks: `LLM`, `Agent`, `Code`, `Vector DB`, `Tools`
+- Scenario-based recommendations and setup flow
+- Dashboard, Setup Wizard, Scenario Center, Health Center, and Agent Console
 
-1. Install dependencies:
+### Install
 
-```bash
-npm install
-```
+Install from Marketplace, or install from VSIX:
 
-2. Compile:
+1. Open `Extensions: Install from VSIX...`
+2. Select the `.vsix` package
 
-```bash
-npm run compile
-```
+### Commands
 
-3. Press **F5** in VS Code / Cursor to launch the Extension Development Host.
+Open Command Palette (`Ctrl+Shift+P`) and run:
 
-### Known issues / Troubleshooting
+- `TigerClawdEntry: Open Dashboard`
+- `TigerClawdEntry: Open Agent Console`
+- `TigerClawdEntry: Reveal Agent Console`
+- `TigerClawdEntry: Refresh Environment Status`
+- `TigerClawdEntry: Open Health Center`
+- `TigerClawdEntry: Open Setup Wizard`
+- `TigerClawdEntry: Open Scenario Center`
 
-- **"Found unexpected service worker controller"**  
-  This message comes from the editor (Cursor / VS Code) when loading a webview. The extension does **not** register any service worker; the host may reuse a previous webview’s controller. It is usually harmless. If the Agent Console or dashboard behaves oddly, close the panel and open it again (e.g. run “TigerClawdEntry: Open Agent Console” again).
+### Quick Start
 
-- **Agent Console: "Unexpected identifier 'tce'" or blank panel**  
-  Fixed by escaping all locale/text in the HTML and passing initial data via Base64. Ensure you have the latest build (`npm run compile`) and reopen the Agent Console.
+1. Run `TigerClawdEntry: Open Dashboard`
+2. Run `Refresh Environment Status`
+3. Open `Setup Wizard` and choose a scenario
+4. Run `Health Center` checks
+5. Use `Open Agent Console` for prompt-driven actions
 
-### Core Concepts
+### Notes
 
-- **Module Knowledge Base**: Describes LLM, Agent, Code, Vector DB, and Tools options.
-- **Scenarios**: Predefined stacks (e.g., Basic Coding Setup, AI Coding Assistant, RAG).
-- **Setup Wizard**: Guides the user through selecting and customizing a scenario.
-- **Health Center**: Runs mock health checks for LLM, Agent runtime, Vector DB, Tools, and workspace.
-- **MARS Integration (Future)**: Placeholder `MARS` module category and comments in services indicate where future MARS runtimes and tools can plug in.
+- Some installer/validator flows are mock behavior in current V1.
 
+### Troubleshooting
+
+- If a command does not respond, reload the window and retry.
+- If Agent Console looks stale or blank, close it and open again.
+- `Found unexpected service worker controller` is usually a host webview reuse warning.
+
+---
+
+## 中文
+
+### 功能简介
+
+- 提供 AI 技术栈环境总览：`LLM`、`Agent`、`Code`、`Vector DB`、`Tools`
+- 提供场景化推荐与安装流程
+- 包含 Dashboard、Setup Wizard、Scenario Center、Health Center、Agent Console
+
+### 安装方式
+
+可通过 Marketplace 安装，或通过 VSIX 安装：
+
+1. 执行 `Extensions: Install from VSIX...`
+2. 选择 `.vsix` 安装包
+
+### 主要命令
+
+打开命令面板（`Ctrl+Shift+P`）后执行：
+
+- `TigerClawdEntry: Open Dashboard`
+- `TigerClawdEntry: Open Agent Console`
+- `TigerClawdEntry: Reveal Agent Console`
+- `TigerClawdEntry: Refresh Environment Status`
+- `TigerClawdEntry: Open Health Center`
+- `TigerClawdEntry: Open Setup Wizard`
+- `TigerClawdEntry: Open Scenario Center`
+
+### 快速上手
+
+1. 执行 `Open Dashboard`
+2. 执行 `Refresh Environment Status`
+3. 打开 `Setup Wizard` 选择场景模板
+4. 打开 `Health Center` 进行检查
+5. 打开 `Agent Console` 执行提示词任务
+
+### 说明
+
+- 当前 V1 版本中，部分安装/校验流程仍为 mock 行为。
+
+### 常见问题
+
+- 命令无响应：重载窗口后重试。
+- Agent Console 显示异常或空白：关闭后重新打开。
+- 出现 `Found unexpected service worker controller`：通常为宿主 webview 复用提示。

@@ -30,7 +30,10 @@ export interface LocaleStrings {
   headerRefresh: string;
   headerValidate: string;
   headerWizard: string;
+  headerDisclaimer: string;
   headerActionsLabel: string;
+  disclaimerPopupTitle: string;
+  disclaimerPopupBody: string;
   recommended: string;
   linkedToWorkspace: string;
   readyToConfigure: string;
@@ -153,7 +156,10 @@ const EN: LocaleStrings = {
   headerRefresh: "Refresh",
   headerValidate: "Run Full Validation",
   headerWizard: "Open Setup Wizard",
+  headerDisclaimer: "Disclaimer",
   headerActionsLabel: "Actions",
+  disclaimerPopupTitle: "Privacy and Disclaimer",
+  disclaimerPopupBody: "This extension does not intentionally collect, upload, or store passwords, API keys, access tokens, or other secret credentials.\n\nPlease avoid pasting secrets into prompts or logs. Use at your own risk.",
   recommended: "Recommended",
   linkedToWorkspace: "Linked to current workspace.",
   readyToConfigure: "Ready to configure.",
@@ -290,7 +296,10 @@ const ZH: LocaleStrings = {
   headerRefresh: "刷新",
   headerValidate: "运行全量校验",
   headerWizard: "打开安装向导",
+  headerDisclaimer: "免责声明",
   headerActionsLabel: "操作",
+  disclaimerPopupTitle: "隐私与免责声明",
+  disclaimerPopupBody: "本扩展按设计不会主动采集、上传或存储密码、API Key、访问令牌或其他敏感凭据。\n\n请不要在提示词或日志中粘贴密钥。使用风险由您自行承担。",
   recommended: "推荐",
   linkedToWorkspace: "已关联当前工作区。",
   readyToConfigure: "待配置。",

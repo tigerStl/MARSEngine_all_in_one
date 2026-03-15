@@ -47,6 +47,7 @@ export async function activate(
 
   const sidebarProvider = new TigerClawdSidebarProvider(
     context.extensionUri,
+    context.globalState,
     envService,
     knowledge,
     scenarios,

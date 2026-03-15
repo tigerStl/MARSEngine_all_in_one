@@ -20,9 +20,11 @@ import type { ScenarioApplyResult } from "../models/ScenarioApplyResult";
 
 export class TigerClawdSidebarProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = SIDEBAR_VIEW_ID;
+  private static readonly disclaimerSeenKey = "tigerClawdEntry.disclaimerSeen";
 
   constructor(
     private readonly extensionUri: vscode.Uri,
+    private readonly globalState: vscode.Memento,
     private readonly envService: EnvironmentDetectionService,
     private readonly knowledge: KnowledgeBaseService,
     private readonly scenarios: ScenarioService,
@@ -91,6 +93,8 @@ export class TigerClawdSidebarProvider implements vscode.WebviewViewProvider {
           } else if (action === "wizard") {
             await vscode.commands.executeCommand("tigerClawdEntry.openSetupWizard");
           }
+        } else if (message.type === "disclaimerAcknowledged") {
+          await this.globalState.update(TigerClawdSidebarProvider.disclaimerSeenKey, true);
         } else if (message.type === "openAgentConsole") {
           await vscode.commands.executeCommand("tigerClawdEntry.openAgentConsole");
         } else if (message.type === "moduleAction") {
@@ -142,6 +146,11 @@ export class TigerClawdSidebarProvider implements vscode.WebviewViewProvider {
   private buildInitialState(config?: { installedModules: Record<string, { version: string; configured: boolean }> }) {
     const state = this.state.getState();
     return {
+      locale: resolveLocale(vscode.env.language),
+      shouldAutoShowDisclaimer: !this.globalState.get<boolean>(
+        TigerClawdSidebarProvider.disclaimerSeenKey,
+        false
+      ),
       environment: state.environment,
       scenarios: this.scenarios.listScenarios(),
       stack: this.knowledge.getAllCategories(),
