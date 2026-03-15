@@ -24,6 +24,14 @@ npm run compile
 
 3. Press **F5** in VS Code / Cursor to launch the Extension Development Host.
 
+### Known issues / Troubleshooting
+
+- **"Found unexpected service worker controller"**  
+  This message comes from the editor (Cursor / VS Code) when loading a webview. The extension does **not** register any service worker; the host may reuse a previous webview’s controller. It is usually harmless. If the Agent Console or dashboard behaves oddly, close the panel and open it again (e.g. run “TigerClawdEntry: Open Agent Console” again).
+
+- **Agent Console: "Unexpected identifier 'tce'" or blank panel**  
+  Fixed by escaping all locale/text in the HTML and passing initial data via Base64. Ensure you have the latest build (`npm run compile`) and reopen the Agent Console.
+
 ### Core Concepts
 
 - **Module Knowledge Base**: Describes LLM, Agent, Code, Vector DB, and Tools options.

@@ -80,6 +80,7 @@ export interface LocaleStrings {
   agentConsoleSubtitle: string;
   agentPlaceholder: string;
   agentRun: string;
+  agentRunning: string;
   agentClear: string;
   agentPlan: string;
   executionLog: string;
@@ -90,6 +91,9 @@ export interface LocaleStrings {
   agentPromptValidation: string;
   agentPromptPython: string;
   agentPromptTools: string;
+  openAgentConsole: string;
+  revealAgentConsole: string;
+  agentRuntimeStatus: string;
   healthTitle: string;
   healthSubtitle: string;
   btnRun: string;
@@ -214,6 +218,7 @@ const EN: LocaleStrings = {
   agentConsoleSubtitle: "Use natural language to execute coding tasks through the runtime.",
   agentPlaceholder: "Create a hello world node script; Explain this project structure; Run basic coding validation",
   agentRun: "Run Agent",
+  agentRunning: "Running…",
   agentClear: "Clear",
   agentPlan: "Agent Plan",
   executionLog: "Execution Log",
@@ -224,6 +229,9 @@ const EN: LocaleStrings = {
   agentPromptValidation: "Run basic validation",
   agentPromptPython: "Create sample Python script",
   agentPromptTools: "Show available tools",
+  openAgentConsole: "Open Agent Console",
+  revealAgentConsole: "Reveal Agent Console",
+  agentRuntimeStatus: "Runtime Status",
   healthTitle: "Health",
   healthSubtitle: "Click Run to verify installation (global use).",
   btnRun: "Run",
@@ -347,6 +355,7 @@ const ZH: LocaleStrings = {
   agentConsoleSubtitle: "使用自然语言通过运行时执行编程任务。",
   agentPlaceholder: "创建 hello world 脚本；解释项目结构；运行基础校验",
   agentRun: "运行代理",
+  agentRunning: "运行中…",
   agentClear: "清空",
   agentPlan: "执行计划",
   executionLog: "执行日志",
@@ -357,6 +366,9 @@ const ZH: LocaleStrings = {
   agentPromptValidation: "运行基础校验",
   agentPromptPython: "创建示例 Python 脚本",
   agentPromptTools: "显示可用工具",
+  openAgentConsole: "打开代理控制台",
+  revealAgentConsole: "显示代理控制台",
+  agentRuntimeStatus: "运行时状态",
   healthTitle: "健康",
   healthSubtitle: "点击「运行」验证是否安装成功（全局可用）。",
   btnRun: "运行",

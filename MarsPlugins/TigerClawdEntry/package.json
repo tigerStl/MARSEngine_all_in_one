@@ -19,13 +19,25 @@
     "onCommand:tigerClawdEntry.refreshStatus",
     "onCommand:tigerClawdEntry.runHealthCheck",
     "onCommand:tigerClawdEntry.openSetupWizard",
-    "onCommand:tigerClawdEntry.openScenarioCenter"
+    "onCommand:tigerClawdEntry.openScenarioCenter",
+    "onCommand:tigerClawdEntry.openAgentConsole",
+    "onCommand:tigerClawdEntry.revealAgentConsole"
   ],
   "contributes": {
   "commands": [
       {
         "command": "tigerClawdEntry.openDashboard",
         "title": "TigerClawdEntry: Open Dashboard",
+        "category": "TigerClawdEntry"
+      },
+      {
+        "command": "tigerClawdEntry.openAgentConsole",
+        "title": "TigerClawdEntry: Open Agent Console",
+        "category": "TigerClawdEntry"
+      },
+      {
+        "command": "tigerClawdEntry.revealAgentConsole",
+        "title": "TigerClawdEntry: Reveal Agent Console",
         "category": "TigerClawdEntry"
       },
       {

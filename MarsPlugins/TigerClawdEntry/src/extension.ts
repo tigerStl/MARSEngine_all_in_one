@@ -4,7 +4,9 @@ import { registerRefreshStatusCommand } from "./commands/refreshStatus";
 import { registerRunHealthCheckCommand } from "./commands/runHealthCheck";
 import { registerOpenSetupWizardCommand } from "./commands/openSetupWizard";
 import { registerOpenScenarioCenterCommand } from "./commands/openScenarioCenter";
+import { registerOpenAgentConsoleCommand } from "./commands/openAgentConsole";
 import { TigerClawdSidebarProvider } from "./views/TigerClawdSidebarProvider";
+import { AgentConsolePanel } from "./views/AgentConsolePanel";
 import { NodeEnvironmentDetectionService } from "./services/environment/NodeEnvironmentDetectionService";
 import { DefaultKnowledgeBaseService } from "./services/knowledge/DefaultKnowledgeBaseService";
 import { DefaultScenarioService } from "./services/scenarios/DefaultScenarioService";
@@ -58,18 +60,26 @@ export async function activate(
     toolExec
   );
 
+  const agentConsolePanel = new AgentConsolePanel(
+    context.extensionUri,
+    agentService,
+    logger
+  );
+
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       TigerClawdSidebarProvider.viewType,
       sidebarProvider
     )
   );
+  context.subscriptions.push(agentConsolePanel);
 
   registerOpenDashboardCommand(context);
   registerRefreshStatusCommand(context);
   registerRunHealthCheckCommand(context, validator, config, stateManager);
   registerOpenSetupWizardCommand(context, setupOrchestrator);
   registerOpenScenarioCenterCommand(context, scenarios);
+  registerOpenAgentConsoleCommand(context, agentConsolePanel);
 
 }
 

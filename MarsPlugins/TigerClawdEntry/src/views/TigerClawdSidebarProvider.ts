@@ -91,6 +91,8 @@ export class TigerClawdSidebarProvider implements vscode.WebviewViewProvider {
           } else if (action === "wizard") {
             await vscode.commands.executeCommand("tigerClawdEntry.openSetupWizard");
           }
+        } else if (message.type === "openAgentConsole") {
+          await vscode.commands.executeCommand("tigerClawdEntry.openAgentConsole");
         } else if (message.type === "moduleAction") {
           const moduleId = message.moduleId as string;
           const action = message.action as "install" | "uninstall" | "configure";
@@ -118,19 +120,6 @@ export class TigerClawdSidebarProvider implements vscode.WebviewViewProvider {
           this.logger.info(result.summaryMessage);
           result.warnings.forEach(w => this.logger.warn(w));
           this.pushState(webviewView);
-        } else if (message.type === "agentAction") {
-          const prompt = String(message.prompt || "");
-          this.logger.info(`Agent task requested: ${prompt}`);
-          const workspacePath =
-            this.state.getState().environment?.workspacePath ?? undefined;
-          const result = await this.agentService.runAgentTask({
-            prompt,
-            workspacePath
-          });
-          webviewView.webview.postMessage({
-            type: "agentResult",
-            result
-          });
         } else if (message.type === "runInstallCheck") {
           const checkId = message.checkId as string;
           const result = await this.runInstallCheck(checkId);
@@ -146,21 +135,6 @@ export class TigerClawdSidebarProvider implements vscode.WebviewViewProvider {
         const stack = err instanceof Error ? err.stack : undefined;
         this.logger.error(`Webview message handler error: ${messageText}`);
         if (stack) this.logger.error(stack);
-        if (message.type === "agentAction") {
-          webviewView.webview.postMessage({
-            type: "agentResult",
-            result: {
-              request: { prompt: String((message as { prompt?: string }).prompt ?? "") },
-              plan: [],
-              logs: [],
-              resultSummary: "",
-              error: {
-                message: messageText,
-                suggestion: "Check the Output channel (TigerClawdEntry) for details."
-              }
-            }
-          });
-        }
       }
     });
   }

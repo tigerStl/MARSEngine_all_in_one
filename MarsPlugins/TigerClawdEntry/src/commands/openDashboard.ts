@@ -8,9 +8,11 @@ export function registerOpenDashboardCommand(
     "tigerClawdEntry.openDashboard",
     async () => {
       await vscode.commands.executeCommand("workbench.view.extension.tigerClawdEntry");
-      await vscode.commands.executeCommand(
-        `workbench.view.extension.${SIDEBAR_VIEW_ID}`
-      );
+      try {
+        await vscode.commands.executeCommand(`${SIDEBAR_VIEW_ID}.focus`);
+      } catch {
+        // The container is already opened above; ignore focus failures for compatibility.
+      }
     }
   );
   context.subscriptions.push(disposable);

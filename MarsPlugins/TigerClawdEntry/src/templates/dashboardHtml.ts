@@ -103,7 +103,6 @@ export function getDashboardHtml(
       <div class="tce-tabs-header tce-tabs-header-full" id="tce-tabs-header">
         <button class="tce-tab tce-tab-active" data-tab="overview" data-lang-key="tabOverview">${lang.tabOverview}</button>
         <button class="tce-tab" data-tab="runtime" data-lang-key="tabRuntime">${lang.tabRuntime}</button>
-        <button class="tce-tab" data-tab="agent" data-lang-key="tabAgent">${lang.tabAgent}</button>
         <button class="tce-tab" data-tab="templates" data-lang-key="tabTemplates">${lang.tabTemplates}</button>
         <button class="tce-tab" data-tab="health" data-lang-key="tabHealth">${lang.tabHealth}</button>
         <button class="tce-tab" data-tab="settings" data-lang-key="tabSettings">${lang.tabSettings}</button>
@@ -111,6 +110,10 @@ export function getDashboardHtml(
 
       <section class="tce-section tce-tab-panel tce-tab-panel-active" data-tab-panel="overview">
         <div class="tce-overview-grid">
+          <div class="tce-card tce-card-metric-block tce-hero-agent">
+            <p class="tce-section-subtitle" data-lang-key="agentConsoleSubtitle">${lang.agentConsoleSubtitle}</p>
+            <button type="button" class="tce-btn tce-btn-primary" id="tce-open-agent-console" data-lang-key="openAgentConsole">${lang.openAgentConsole}</button>
+          </div>
           <div class="tce-card tce-card-metric-block">
             <div id="tce-env" class="tce-grid tce-grid-2 tce-metric-grid"></div>
           </div>
@@ -120,55 +123,6 @@ export function getDashboardHtml(
       <section class="tce-section tce-tab-panel" data-tab-panel="runtime">
         <h2 class="tce-section-title" data-lang-key="sectionModules">${lang.sectionModules}</h2>
         <div id="tce-modules" class="tce-modules-container"></div>
-      </section>
-
-      <section class="tce-section tce-tab-panel" data-tab-panel="agent">
-        <div class="tce-agent-layout">
-          <div class="tce-agent-left">
-            <div class="tce-card">
-              <h2 class="tce-section-title" data-lang-key="agentConsoleTitle">${lang.agentConsoleTitle}</h2>
-              <p class="tce-section-subtitle" data-lang-key="agentConsoleSubtitle">${lang.agentConsoleSubtitle}</p>
-              <textarea
-                id="tce-agent-input"
-                class="tce-agent-input"
-                rows="3"
-                data-lang-key="agentPlaceholder"
-                data-lang-attr="placeholder"
-                placeholder="${lang.agentPlaceholder}"
-              ></textarea>
-              <div class="tce-agent-actions">
-                <button id="tce-agent-run" class="tce-btn tce-btn-primary" data-lang-key="agentRun">${lang.agentRun}</button>
-                <button id="tce-agent-clear" class="tce-btn tce-btn-ghost" data-lang-key="agentClear">${lang.agentClear}</button>
-              </div>
-              <div class="tce-agent-suggestions" id="tce-agent-suggestions">
-                <button class="tce-chip" data-agent-prompt="Create a hello world node script" data-lang-key="agentPromptHello">${lang.agentPromptHello}</button>
-                <button class="tce-chip" data-agent-prompt="Explain this project structure" data-lang-key="agentPromptExplain">${lang.agentPromptExplain}</button>
-                <button class="tce-chip" data-agent-prompt="Run basic coding validation" data-lang-key="agentPromptValidation">${lang.agentPromptValidation}</button>
-                <button class="tce-chip" data-agent-prompt="Create a Python script that prints numbers 1 to 5" data-lang-key="agentPromptPython">${lang.agentPromptPython}</button>
-                <button class="tce-chip" data-agent-prompt="Show available tools" data-lang-key="agentPromptTools">${lang.agentPromptTools}</button>
-              </div>
-            </div>
-          </div>
-          <div class="tce-agent-right">
-            <div class="tce-card">
-              <h3 class="tce-section-title" data-lang-key="agentPlan">${lang.agentPlan}</h3>
-              <ol id="tce-agent-plan" class="tce-plan-list"></ol>
-            </div>
-            <div class="tce-card">
-              <h3 class="tce-section-title" data-lang-key="executionLog">${lang.executionLog}</h3>
-              <ul id="tce-agent-log" class="tce-log-list"></ul>
-            </div>
-            <div class="tce-card">
-              <h3 class="tce-section-title" data-lang-key="result">${lang.result}</h3>
-              <div id="tce-agent-result" class="tce-agent-result"></div>
-            </div>
-            <div class="tce-card tce-agent-error" id="tce-agent-error" hidden>
-              <h3 class="tce-section-title" data-lang-key="error">${lang.error}</h3>
-              <div id="tce-agent-error-message" class="tce-agent-error-message"></div>
-              <div id="tce-agent-error-suggestion" class="tce-agent-error-suggestion"></div>
-            </div>
-          </div>
-        </div>
       </section>
 
       <section class="tce-section tce-tab-panel" data-tab-panel="templates">
@@ -251,8 +205,6 @@ export function getDashboardHtml(
         if (msg.type === "stateUpdate") {
           lastState = msg.state;
           render(msg.state);
-        } else if (msg.type === "agentResult") {
-          renderAgent(msg.result);
         } else if (msg.type === "installCheckResult") {
           var row = document.querySelector('.tce-install-check-row[data-check-id="' + (msg.checkId || "") + '"]');
           if (!row) return;
@@ -684,61 +636,14 @@ export function getDashboardHtml(
           "</ul>";
       }
 
-      function renderAgent(result) {
-        var planEl = document.getElementById("tce-agent-plan");
-        var logEl = document.getElementById("tce-agent-log");
-        var resultEl = document.getElementById("tce-agent-result");
-        var errorCard = document.getElementById("tce-agent-error");
-        var errorMsgEl = document.getElementById("tce-agent-error-message");
-        var errorSuggestionEl = document.getElementById(
-          "tce-agent-error-suggestion"
-        );
-        if (!planEl || !logEl || !resultEl || !errorCard) return;
-
-        planEl.innerHTML = (result.plan || [])
-          .map(function (step) {
-            return (
-              "<li>" +
-              "<strong>" +
-              step.title +
-              ".</strong> " +
-              step.description +
-              "</li>"
-            );
-          })
-          .join("");
-
-        logEl.innerHTML = (result.logs || [])
-          .map(function (log) {
-            return (
-              '<li class="tce-log-item">' +
-              '<span class="tce-log-item-meta">[' +
-              log.timestamp +
-              "] " +
-              log.level.toUpperCase() +
-              ":</span>" +
-              '<span class="tce-log-item-message">' +
-              log.message +
-              "</span>" +
-              "</li>"
-            );
-          })
-          .join("");
-
-        resultEl.textContent = result.resultSummary || "";
-
-        if (result.error) {
-          errorCard.removeAttribute("hidden");
-          if (errorMsgEl) {
-            errorMsgEl.textContent = result.error.message;
-          }
-          if (errorSuggestionEl) {
-            errorSuggestionEl.textContent = result.error.suggestion || "";
-          }
-        } else {
-          errorCard.setAttribute("hidden", "");
+      (function setupOpenAgentConsole() {
+        var btn = document.getElementById("tce-open-agent-console");
+        if (btn) {
+          btn.addEventListener("click", function () {
+            vscode.postMessage({ type: "openAgentConsole" });
+          });
         }
-      }
+      })();
 
       (function setupConsoleResize() {
         var consoleEl = document.getElementById("tce-console");
@@ -791,48 +696,6 @@ export function getDashboardHtml(
           var current = consoleEl.getAttribute("data-console-size") || "normal";
           setSize(current === "maximized" ? "normal" : "maximized");
         });
-      })();
-
-      (function setupAgentConsole() {
-        var input = document.getElementById("tce-agent-input");
-        var runBtn = document.getElementById("tce-agent-run");
-        var clearBtn = document.getElementById("tce-agent-clear");
-        if (runBtn && input) {
-          runBtn.addEventListener("click", function () {
-            var prompt = input.value || "";
-            vscode.postMessage({
-              type: "agentAction",
-              action: "runTask",
-              prompt: prompt
-            });
-          });
-        }
-        if (clearBtn && input) {
-          clearBtn.addEventListener("click", function () {
-            input.value = "";
-            renderAgent({
-              request: { prompt: "" },
-              plan: [],
-              logs: [],
-              resultSummary: ""
-            });
-          });
-        }
-        document
-          .querySelectorAll("[data-agent-prompt]")
-          .forEach(function (chip) {
-            chip.addEventListener("click", function () {
-              var prompt = chip.getAttribute("data-agent-prompt") || "";
-              if (input) {
-                input.value = prompt;
-              }
-              vscode.postMessage({
-                type: "agentAction",
-                action: "runTask",
-                prompt: prompt
-              });
-            });
-          });
       })();
 
       document.querySelectorAll(".tce-lang-btn").forEach(function (b) {
