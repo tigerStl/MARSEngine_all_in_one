@@ -1,29 +1,28 @@
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using Mars.MessageCenter.RabbitClient;
 
 namespace MARSMessageAgent
 {
     /// <summary>
     /// 在系统任务栏右下角创建并管理托盘图标。
-    /// 右键菜单：About..., Exit（退出并销毁 COM 实例）, Engine Path（在 Explorer 中打开引擎所在目录）。
+    /// 右键菜单：About..., Message Navigate, Exit。双击托盘图标可打开 Message Navigate。
     /// </summary>
     public class TrayIconManager : IDisposable
     {
         private NotifyIcon _notifyIcon;
+        private Icon _trayIconOwned; // 持有图标引用，避免被 GC 回收导致托盘不显示
         private bool _disposed;
         private Action _onExit;
+        private Form _messageNavigateForm;
 
         public bool IsVisible => _notifyIcon != null && _notifyIcon.Visible;
 
         /// <summary>
         /// 在任务栏右下角显示托盘图标。
         /// </summary>
-        /// <param name="toolTip">悬停提示文字</param>
-        /// <param name="icon">图标，为 null 时使用默认应用图标</param>
-        /// <param name="onExit">点击 Exit 时调用（通常先 Shutdown COM 实例再 Application.Exit）</param>
         public void Show(string toolTip = "MARS Message Agent", Icon icon = null, Action onExit = null)
         {
             _onExit = onExit;
@@ -35,12 +34,21 @@ namespace MARSMessageAgent
                 return;
             }
 
+            // 优先使用传入的 icon，否则从文件加载（先 .ico 再 .png），保证托盘一定有有效图标
+            Icon trayIcon = icon ?? LoadTrayIcon();
+            if (trayIcon == null)
+                trayIcon = SystemIcons.Application;
+
+            _trayIconOwned = trayIcon;
+
             _notifyIcon = new NotifyIcon
             {
                 Text = toolTip ?? "MARS Message Agent",
-                Icon = icon ?? SystemIcons.Application,
+                Icon = _trayIconOwned,
                 Visible = true
             };
+
+            _notifyIcon.DoubleClick += (s, e) => ShowMessageNavigate();
 
             var menu = new ContextMenuStrip();
 
@@ -52,9 +60,9 @@ namespace MARSMessageAgent
             };
             menu.Items.Add(aboutItem);
 
-            var enginePathItem = new ToolStripMenuItem("Engine Path");
-            enginePathItem.Click += (s, e) => OpenEnginePathInExplorer();
-            menu.Items.Add(enginePathItem);
+            var messageNavItem = new ToolStripMenuItem("Message Navigate");
+            messageNavItem.Click += (s, e) => ShowMessageNavigate();
+            menu.Items.Add(messageNavItem);
 
             menu.Items.Add(new ToolStripSeparator());
 
@@ -69,21 +77,19 @@ namespace MARSMessageAgent
             _notifyIcon.ContextMenuStrip = menu;
         }
 
-        private static void OpenEnginePathInExplorer()
+        private void ShowMessageNavigate()
         {
-            var dir = MarsEngineLauncher.GetMarsEngineInstallDirectory();
-            if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir))
+            if (_messageNavigateForm == null || _messageNavigateForm.IsDisposed)
             {
-                MessageBox.Show("Engine install directory not found.", "Engine Path", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                _messageNavigateForm = new MessageNavigateForm();
+                _messageNavigateForm.StartPosition = FormStartPosition.CenterScreen;
+                _messageNavigateForm.Show();
             }
-            try
+            else
             {
-                Process.Start("explorer.exe", "\"" + dir + "\"");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Could not open Explorer: " + ex.Message, "Engine Path", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                if (_messageNavigateForm.WindowState == FormWindowState.Minimized)
+                    _messageNavigateForm.WindowState = FormWindowState.Normal;
+                _messageNavigateForm.Activate();
             }
         }
 
@@ -108,8 +114,67 @@ namespace MARSMessageAgent
                 _notifyIcon.Dispose();
                 _notifyIcon = null;
             }
+            if (_trayIconOwned != null && _trayIconOwned != SystemIcons.Application)
+            {
+                _trayIconOwned.Dispose();
+                _trayIconOwned = null;
+            }
             _disposed = true;
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// 加载托盘图标：先尝试 .ico（最稳定），再尝试 .png，保证返回可用的 Icon 或 null。
+        /// </summary>
+        private static Icon LoadTrayIcon()
+        {
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            if (string.IsNullOrEmpty(baseDir))
+                return null;
+
+            // 1. 优先使用 .ico，Windows 托盘对 ICO 支持最好
+            var icoPath = Path.Combine(baseDir, "images", "mars_message_center_icon.ico");
+            if (File.Exists(icoPath))
+            {
+                try
+                {
+                    return new Icon(icoPath, 16, 16);
+                }
+                catch
+                {
+                    try
+                    {
+                        return new Icon(icoPath);
+                    }
+                    catch { }
+                }
+            }
+
+            // 2. 备选：mars_tray_icon.png，转为 Icon 并 Clone 成独立副本
+            var pngPath = Path.Combine(baseDir, "images", "mars_exe.png");
+            if (File.Exists(pngPath))
+            {
+                try
+                {
+                    using (var bmp = new Bitmap(pngPath))
+                    {
+                        IntPtr hIcon = bmp.GetHicon();
+                        var icon = Icon.FromHandle(hIcon);
+                        Icon clone = (Icon)icon.Clone();
+                        NativeMethods.DestroyIcon(hIcon);
+                        return clone;
+                    }
+                }
+                catch { }
+            }
+
+            return null;
+        }
+
+        private static class NativeMethods
+        {
+            [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+            public static extern bool DestroyIcon(IntPtr handle);
         }
     }
 }

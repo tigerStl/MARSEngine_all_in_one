@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../Mars.Inter.MQCenter"
+		},
+		{
+			"path": "../Mars.LogCommon"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {}
+}

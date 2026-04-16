@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using MARSMessageAgent.MessageCenter.MarsWebSocketServer;
 
 namespace MARSMessageAgent
 {
@@ -19,6 +20,10 @@ namespace MARSMessageAgent
                 AgentServer.SendHandshakeToDriver(sessionId, marsWebSocketServerPort);
             }
 
+            // 启动本地 WebSocket Server（用于本地引擎状态与握手）
+            MarsLocalWebSocketServer.Start();
+
+            new TrayIconManager().Show();
             Application.Run(new HiddenMainForm());
         }
 

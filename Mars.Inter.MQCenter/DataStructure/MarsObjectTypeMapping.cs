@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.ServiceModel.Security;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Mars.message.Inter.MQCenter.simpleLog;
 using MarsUFTAddins.IMars.tiger;
@@ -36,11 +35,12 @@ namespace Mars.Inter.MQCenter.DataStructure
             {
                 marsObjectTypeMappingManagment = new MarsObjectTypeMappingManagment();
                 var txt = System.IO.File.ReadAllText(fn);
-                marsObjectTypeMappingManagment.marsObjTypeMappingInst = JsonSerializer.Deserialize<MarsObjectTypeMappingRoot>(txt);
+                marsObjectTypeMappingManagment.marsObjTypeMappingInst = Newtonsoft.Json.JsonConvert.DeserializeObject<MarsObjectTypeMappingRoot>(txt);
                 isOk = true;
                 return marsObjectTypeMappingManagment;
 
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 strError = $"Can't load MARS config file|{fn}";
                 strStack = e.StackTrace;
@@ -83,11 +83,11 @@ namespace Mars.Inter.MQCenter.DataStructure
                     return false;
                 }
                 var nodes = marsObjTypeMappingInst.imageButtonConvert
-                    .Where(p => (p.type != null) 
-                        && (p.type.Equals(strTypeName, StringComparison.OrdinalIgnoreCase)) 
+                    .Where(p => (p.type != null)
+                        && (p.type.Equals(strTypeName, StringComparison.OrdinalIgnoreCase))
                         && (!string.IsNullOrEmpty(p.propertyName))
                         && (!string.IsNullOrEmpty(p.objectHappyName))
-                        && (p.objectHappyName.Equals(strPegName,StringComparison.OrdinalIgnoreCase)))
+                        && (p.objectHappyName.Equals(strPegName, StringComparison.OrdinalIgnoreCase)))
                     .FirstOrDefault();
                 if (nodes == null)
                 {
@@ -126,7 +126,8 @@ namespace Mars.Inter.MQCenter.DataStructure
                 }
                 strDataReturned = rslt.t;
                 return true;
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 strError = $"can't mapping the objects";
                 strAdv = "";
@@ -187,6 +188,6 @@ namespace Mars.Inter.MQCenter.DataStructure
         public string v { get; set; } // value, for example "yes"
         public string t { get; set; } // text
     }
-   
-    
+
+
 }

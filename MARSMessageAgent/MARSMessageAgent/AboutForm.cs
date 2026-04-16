@@ -1,5 +1,7 @@
 using System;
 using System.Reflection;
+using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 namespace MARSMessageAgent
@@ -25,6 +27,8 @@ namespace MARSMessageAgent
             Size = new System.Drawing.Size(360, 160);
             ShowInTaskbar = false;
 
+            Icon = LoadExeIconFromPng() ?? Icon;
+
             var label = new Label
             {
                 Text = product + "\r\nVersion " + version + "\r\n\r\nCOM+ Message Agent with WebSocket server.",
@@ -42,6 +46,26 @@ namespace MARSMessageAgent
             Controls.Add(label);
             Controls.Add(ok);
             AcceptButton = ok;
+        }
+
+        private static Icon LoadExeIconFromPng()
+        {
+            try
+            {
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var imgPath = Path.Combine(baseDir, "images", "mars_exe.png");
+                if (!File.Exists(imgPath))
+                    return null;
+
+                using (var bmp = new Bitmap(imgPath))
+                {
+                    return Icon.FromHandle(bmp.GetHicon());
+                }
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="loaniqApp">
+<head>
+  <meta charset="UTF-8" />
+  <title>LoanIQ Style Deal Screen - AngularJS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: #0b1220; color: #e5e7eb; }
+    .shell { min-height: 100vh; display: flex; flex-direction: column; }
+    header { padding: 10px 16px; background: linear-gradient(90deg, #0f172a, #1d4ed8); border-bottom: 1px solid #1f2937; display: flex; justify-content: space-between; align-items: center; }
+    header .title { font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #bfdbfe; }
+    header .meta { font-size: 11px; color: #cbd5f5; }
+    .toolbar { display: flex; gap: 6px; align-items: center; }
+    .toolbar button { font-size: 11px; border-radius: 4px; padding: 4px 10px; border: 1px solid #1f2937; background: #020617; color: #e5e7eb; cursor: pointer; }
+    .toolbar button.primary { background: #22c55e; border-color: #16a34a; color: #022c22; }
+    .toolbar button.danger { background: #b91c1c; border-color: #7f1d1d; color: #fee2e2; }
+    .toolbar button:hover { filter: brightness(1.05); }
+    main { flex: 1; display: grid; grid-template-columns: 2.2fr 1.8fr; gap: 12px; padding: 10px 14px 14px; }
+    .card { background: #020617; border-radius: 8px; border: 1px solid #1f2937; padding: 10px 12px; box-shadow: 0 6px 20px rgba(15,23,42,0.7); }
+    .card h2 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; }
+    .grid-3 { display: grid; grid-template-columns: 1.4fr 1.4fr 1.2fr; gap: 6px 12px; }
+    .field { display: flex; flex-direction: column; font-size: 11px; text-transform: uppercase; color: #6b7280; letter-spacing: 0.06em; }
+    .field-row { display: flex; gap: 10px; }
+    input, select { margin-top: 2px; padding: 4px 6px; border-radius: 4px; border: 1px solid #1f2937; background: #020617; color: #e5e7eb; font-size: 12px; }
+    input:focus, select:focus { outline: 1px solid #38bdf8; border-color: #38bdf8; }
+    .subheader { margin: 8px 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: #9ca3af; border-top: 1px solid #111827; padding-top: 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 4px; }
+    th, td { padding: 4px 4px; border-bottom: 1px solid #111827; text-align: left; }
+    th { text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; background: #020617; }
+    tr:nth-child(even) { background: rgba(15,23,42,0.7); }
+    .status-line { margin-top: 6px; font-size: 11px; color: #9ca3af; display: flex; justify-content: space-between; }
+    .status-pill { padding: 2px 8px; border-radius: 999px; border: 1px solid #374151; background: rgba(15,23,42,0.7); }
+    .tree { font-size: 11px; border-radius: 6px; padding: 6px; border: 1px dashed #374151; background: rgba(15,23,42,0.6); }
+    .tree ul { margin: 0; padding-left: 16px; }
+    .tree li { margin: 2px 0; }
+    .form-buttons { margin-top: 8px; display: flex; gap: 6px; justify-content: flex-end; }
+    .pill { font-size: 11px; padding: 2px 7px; border-radius: 999px; border: 1px solid #374151; color: #9ca3af; }
+  </style>
+</head>
+<body ng-controller="DealController as vm">
+  <div class="shell">
+    <header>
+      <div>
+        <div class="title">LoanIQ – Facility / Deal Entry</div>
+        <div class="meta">AngularJS 1.x mock – key LoanIQ-style sections only</div>
+      </div>
+      <div class="toolbar">
+        <button class="primary" ng-click="vm.calculateSchedule()">Price Deal</button>
+        <button ng-click="vm.addDrawdown()">Add Drawdown</button>
+        <button ng-click="vm.reset()">Reset</button>
+        <button class="danger" ng-click="vm.cancel()">Cancel</button>
+      </div>
+    </header>
+    <main>
+      <section class="card">
+        <h2>Deal Header</h2>
+        <div class="grid-3">
+          <div class="field">
+            <span>Deal Reference</span>
+            <input ng-model="vm.deal.dealRef" placeholder="LNQ-2026-0001" />
+          </div>
+          <div class="field">
+            <span>Borrower</span>
+            <input ng-model="vm.deal.borrower" placeholder="ACME CORP" />
+          </div>
+          <div class="field">
+            <span>Portfolio</span>
+            <input ng-model="vm.deal.portfolio" placeholder="SYDNEY-LOAN-BOOK" />
+          </div>
+          <div class="field">
+            <span>Currency</span>
+            <select ng-model="vm.deal.ccy" ng-options="c for c in vm.ccys"></select>
+          </div>
+          <div class="field">
+            <span>Committed Amount</span>
+            <input type="number" ng-model="vm.deal.commitment" />
+          </div>
+          <div class="field">
+            <span>Margin (bps)</span>
+            <input type="number" ng-model="vm.deal.marginBps" />
+          </div>
+          <div class="field">
+            <span>Start Date</span>
+            <input type="date" ng-model="vm.deal.startDate" />
+          </div>
+          <div class="field">
+            <span>Maturity Date</span>
+            <input type="date" ng-model="vm.deal.maturityDate" />
+          </div>
+          <div class="field">
+            <span>Interest Basis</span>
+            <select ng-model="vm.deal.basis">
+              <option value="ACT/360">ACT/360</option>
+              <option value="30/360">30/360</option>
+              <option value="ACT/365">ACT/365</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="subheader">Drawdowns</div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Value Date</th>
+              <th>Amount</th>
+              <th>Spread (bps)</th>
+              <th>Tenor (m)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="d in vm.drawdowns">
+              <td>{{$index + 1}}</td>
+              <td><input type="date" ng-model="d.valueDate" /></td>
+              <td><input type="number" ng-model="d.amount" style="width: 100%;" /></td>
+              <td><input type="number" ng-model="d.spreadBps" style="width: 100%;" /></td>
+              <td><input type="number" ng-model="d.tenorMonths" style="width: 100%;" /></td>
+            </tr>
+            <tr ng-if="!vm.drawdowns.length">
+              <td colspan="5" style="color:#6b7280;">No drawdowns. Click "Add Drawdown" to create one.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="form-buttons">
+          <button ng-click="vm.addDrawdown()">Add Drawdown</button>
+          <button ng-click="vm.removeLastDrawdown()" ng-disabled="!vm.drawdowns.length">Remove Last</button>
+        </div>
+
+        <div class="status-line">
+          <span class="status-pill">
+            {{vm.drawdowns.length}} drawdown(s) • Commitment {{vm.deal.commitment | number:0}} {{vm.deal.ccy}}
+          </span>
+          <span>All rates/schedule simplified for demo only</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Cash Flow Schedule</h2>
+        <div class="tree">
+          <strong>Facility Tree</strong>
+          <ul>
+            <li>Deal {{vm.deal.dealRef || 'N/A'}} – {{vm.deal.borrower || 'Borrower ?'}}</li>
+            <li>Facility {{vm.deal.commitment | number:0}} {{vm.deal.ccy}} – Margin {{vm.deal.marginBps}} bps</li>
+            <li ng-repeat="d in vm.drawdowns">
+              Drawdown {{$index+1}} – {{d.amount | number:0}} {{vm.deal.ccy}} for {{d.tenorMonths}}m
+            </li>
+          </ul>
+        </div>
+
+        <div class="subheader">Interest Periods (simplified)</div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Period Start</th>
+              <th>Period End</th>
+              <th>Days</th>
+              <th>Rate %</th>
+              <th>Interest {{vm.deal.ccy}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="p in vm.periods">
+              <td>{{p.index}}</td>
+              <td>{{p.start | date:'yyyy-MM-dd'}}</td>
+              <td>{{p.end | date:'yyyy-MM-dd'}}</td>
+              <td>{{p.days}}</td>
+              <td>{{p.rate | number:3}}</td>
+              <td>{{p.interest | number:2}}</td>
+            </tr>
+            <tr ng-if="!vm.periods.length">
+              <td colspan="6" style="color:#6b7280;">Click "Price Deal" to build a simple interest schedule.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="status-line">
+          <span>Total interest: <strong>{{vm.totalInterest | number:2}} {{vm.deal.ccy}}</strong></span>
+          <span>Avg. rate: <strong>{{vm.avgRate | number:3}} %</strong></span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    angular.module('loaniqApp', [])
+      .controller('DealController', function($scope) {
+        var vm = this;
+        vm.ccys = ['USD','EUR','GBP','AUD'];
+
+        function todayISO() {
+          var d = new Date();
+          return d.toISOString().slice(0,10);
+        }
+        function addMonths(date, months) {
+          var d = new Date(date.getTime());
+          var day = d.getDate();
+          d.setMonth(d.getMonth() + months);
+          if (d.getDate() < day) d.setDate(0);
+          return d;
+        }
+
+        vm.deal = {
+          dealRef: 'LNQ-2026-0001',
+          borrower: 'ACME CORP',
+          portfolio: 'SYDNEY-LOAN-BOOK',
+          ccy: 'USD',
+          commitment: 20000000,
+          marginBps: 180,
+          startDate: todayISO(),
+          maturityDate: addMonths(new Date(), 60).toISOString().slice(0,10),
+          basis: 'ACT/360'
+        };
+
+        vm.drawdowns = [];
+        vm.periods = [];
+        vm.totalInterest = 0;
+        vm.avgRate = 0;
+
+        vm.addDrawdown = function() {
+          vm.drawdowns.push({
+            valueDate: vm.deal.startDate,
+            amount: vm.deal.commitment,
+            spreadBps: vm.deal.marginBps,
+            tenorMonths: 3
+          });
+        };
+
+        vm.removeLastDrawdown = function() {
+          vm.drawdowns.pop();
+        };
+
+        vm.reset = function() {
+          vm.drawdowns = [];
+          vm.periods = [];
+          vm.totalInterest = 0;
+          vm.avgRate = 0;
+        };
+
+        vm.cancel = function() {
+          alert('Cancel pressed – in real LoanIQ this would close the deal screen.');
+        };
+
+        vm.calculateSchedule = function() {
+          vm.periods = [];
+          vm.totalInterest = 0;
+          vm.avgRate = 0;
+          if (!vm.drawdowns.length) return;
+          var periods = [];
+          var totalRate = 0;
+          var periodCount = 0;
+          vm.drawdowns.forEach(function(d, idx) {
+            var start = new Date(d.valueDate);
+            var end = addMonths(start, d.tenorMonths);
+            var days = Math.round((end - start) / (1000*60*60*24));
+            var baseRate = 0.03; // 3% floating placeholder
+            var rate = baseRate + d.spreadBps / 10000;
+            var yearFrac = days / 360;
+            var interest = d.amount * rate * yearFrac;
+            periods.push({
+              index: idx + 1,
+              start: start,
+              end: end,
+              days: days,
+              rate: rate * 100,
+              interest: interest
+            });
+            vm.totalInterest += interest;
+            totalRate += rate * 100;
+            periodCount++;
+          });
+          vm.periods = periods;
+          vm.avgRate = periodCount ? totalRate / periodCount : 0;
+        };
+      });
+  </script>
+</body>
+</html>
+

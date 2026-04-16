@@ -1,0 +1,10 @@
+{
+  "HostName": "127.0.0.1",
+  "Port": 5672,
+  "UserName": "guest",
+  "Password": "guest",
+  "VirtualHost": "/",
+  "DownQueueName": "MARsserverDownQueue",
+  "UpQueueName": "MARSServerUpperQueue"
+}
+

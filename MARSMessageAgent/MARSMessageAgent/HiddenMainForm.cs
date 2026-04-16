@@ -24,7 +24,20 @@ namespace MARSMessageAgent
         private void HiddenMainForm_Load(object sender, EventArgs e)
         {
             if (!AgentServer.IsRunning)
-                AgentServer.Start();
+            {
+                try
+                {
+                    AgentServer.Start();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this,
+                        "Failed to start MARS Message Agent:\r\n" + ex.Message,
+                        "MARS Message Agent",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
+            }
         }
 
         protected override void SetVisibleCore(bool value)

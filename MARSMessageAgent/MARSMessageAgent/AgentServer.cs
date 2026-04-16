@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using MARSMessageAgent.Packets;
+using MARSMessageAgent.MessageCenter.StatusMgr;
 
 namespace MARSMessageAgent
 {
@@ -57,8 +58,22 @@ namespace MARSMessageAgent
                     _tray.SetToolTip($"MARS Message Agent (WS: {_wsServer.BoundPort})");
                 }
 
+                StartRegistrationHeartbeatWorker();
                 StartDiscovery();
             }
+        }
+
+        private static Thread _registrationHeartbeatThread;
+        private static void StartRegistrationHeartbeatWorker()
+        {
+            if (_registrationHeartbeatThread != null && _registrationHeartbeatThread.IsAlive)
+                return;
+            _registrationHeartbeatThread = new Thread(RegistrationHeartbeatWorker.RunLoop)
+            {
+                IsBackground = true,
+                Name = "MessageCenter-RegisterHeartbeat"
+            };
+            _registrationHeartbeatThread.Start();
         }
 
         private static void StartDiscovery()

@@ -957,6 +957,15 @@ namespace Mars.AutoTestingDriver
                     string strCurMarsAccount = args[0];
                     bool isExitItself = false;
                     Array.Copy(args, 2, arrParaWithoutApp, 0, arrParaWithoutApp.Length);
+
+                    isOk = new MARSMessageCenterAgentStarter().ConnectToMQStub(out strError);
+                    if (!isOk)
+                    {
+                        Console.WriteLine($"Can't connect to MQStub with error:{strError}");
+                        Logger.Warnning("Main", $"Can't connect to MQStub with error:{strError}");
+                        //return MarsDriverConst.exit_code_error_cantConnectMQStub;
+                    }
+
 #if _demo_for_14
                     if (MarsKeywordBase.IsInDateTimeX())
                     {

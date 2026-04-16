@@ -1,0 +1,15 @@
+{
+  "name": "mars-vsextension-for-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Demo web UIs (Vue, React, Angular-style, jQuery) and a VS Code webview-style panel for MARS.",
+  "scripts": {
+    "serve:vue-swap": "serve vue-summit-swap",
+    "serve:react-swap": "serve react-summit-swap",
+    "serve:angular-loaniq": "serve angular-loaniq",
+    "serve:jquery-bond": "serve jquery-bond"
+  },
+  "devDependencies": {
+    "serve": "^14.2.3"
+  }
+}

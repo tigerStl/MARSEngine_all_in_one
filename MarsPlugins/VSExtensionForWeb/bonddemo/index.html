@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="bondDemoApp">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bond Trade Ticket - AngularJS Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: #020617; color: #e5e7eb; }
+    .shell { min-height: 100vh; display: flex; flex-direction: column; }
+    header { padding: 10px 16px; background: radial-gradient(circle at top left, #0ea5e9, #020617); border-bottom: 1px solid #0f172a; display:flex; justify-content:space-between; align-items:center; }
+    header h1 { margin: 0; font-size: 16px; color: #f9fafb; }
+    header span { font-size: 11px; color: #d1d5db; }
+    .toolbar { display:flex; gap:6px; }
+    .toolbar button { font-size: 11px; padding:4px 10px; border-radius:999px; border:1px solid #0f172a; background:#020617; color:#e5e7eb; cursor:pointer; }
+    .toolbar button.primary { background:#22c55e; border-color:#16a34a; color:#022c22; }
+    .toolbar button.danger { background:#b91c1c; border-color:#7f1d1d; color:#fee2e2; }
+    main { flex:1; padding:12px 16px 16px; display:grid; grid-template-columns: 2.2fr 1.8fr; gap:12px; }
+    .card { background:#020617; border-radius:8px; border:1px solid #1e293b; padding:10px 12px; box-shadow:0 8px 24px rgba(15,23,42,0.8); }
+    .card h2 { margin:0 0 6px; font-size:13px; text-transform:uppercase; letter-spacing:0.08em; color:#9ca3af; }
+    .form-grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px 10px; }
+    label { display:flex; flex-direction:column; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:#6b7280; }
+    input, select { margin-top:2px; padding:4px 6px; border-radius:5px; border:1px solid #1f2937; background:#020617; color:#e5e7eb; font-size:12px; }
+    .yield-input { color:#4ade80; border-color:#15803d; }
+    input:focus, select:focus { outline:1px solid #38bdf8; border-color:#38bdf8; }
+    .side { display:grid; grid-template-rows:auto 1fr; gap:10px; height:100%; }
+    .ticket-summary { font-size:12px; padding:8px; border-radius:6px; border:1px dashed #374151; background:rgba(15,23,42,0.6); }
+    table { width:100%; border-collapse:collapse; font-size:11px; margin-top:4px; }
+    th, td { padding:4px 4px; border-bottom:1px solid #111827; text-align:left; }
+    th { text-transform:uppercase; letter-spacing:0.08em; color:#6b7280; background:#020617; }
+    tr:nth-child(even) { background:rgba(15,23,42,0.7); }
+    .status { margin-top:6px; font-size:11px; color:#9ca3af; display:flex; justify-content:space-between; }
+    .status-pill { padding:2px 8px; border-radius:999px; border:1px solid #374151; background:rgba(15,23,42,0.7); }
+  </style>
+</head>
+<body ng-controller="BondController as vm">
+  <div class="shell">
+    <header>
+      <div>
+        <h1>Bond Trade Ticket (AngularJS)</h1>
+        <span>Simplified pricing demo – price / yield / DV01</span>
+      </div>
+      <div class="toolbar">
+        <button class="primary" ng-click="vm.price()">Price</button>
+        <button ng-click="vm.reset()">Clear</button>
+        <button class="danger" ng-click="vm.cancel()">Cancel</button>
+      </div>
+    </header>
+    <main>
+      <section class="card">
+        <h2>Trade Details</h2>
+        <div class="form-grid">
+          <label>
+            ISIN
+            <input ng-model="vm.trade.isin" />
+          </label>
+          <label>
+            Side
+            <select ng-model="vm.trade.side">
+              <option value="BUY">BUY</option>
+              <option value="SELL">SELL</option>
+            </select>
+          </label>
+          <label>
+            Quantity (MM)
+            <input type="number" ng-model="vm.trade.qtyMm" />
+          </label>
+          <label>
+            Currency
+            <select ng-model="vm.trade.ccy">
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </label>
+          <label>
+            Coupon %
+            <input type="number" ng-model="vm.trade.coupon" />
+          </label>
+          <label>
+            Maturity
+            <input type="date" ng-model="vm.trade.maturity" />
+          </label>
+          <label>
+            Clean Price
+            <input type="number" ng-model="vm.trade.price" />
+          </label>
+          <label>
+            Yield %
+            <input class="yield-input" type="number" ng-model="vm.trade.yield" />
+          </label>
+          <label>
+            Settlement
+            <input type="date" ng-model="vm.trade.settle" />
+          </label>
+        </div>
+        <div class="status">
+          <span class="status-pill">{{vm.statusText}}</span>
+          <span>Not a real pricing engine – UI only</span>
+        </div>
+      </section>
+      <section class="side">
+        <div class="card">
+          <h2>Ticket Summary</h2>
+          <div class="ticket-summary">
+            {{vm.summary}}
+          </div>
+        </div>
+        <div class="card">
+          <h2>Risk (Toy)</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>NPV</td><td>{{vm.risk.npv | number:2}} {{vm.trade.ccy}}</td></tr>
+              <tr><td>Accrued</td><td>{{vm.risk.accrued | number:2}} {{vm.trade.ccy}}</td></tr>
+              <tr><td>DV01</td><td>{{vm.risk.dv01 | number:2}} {{vm.trade.ccy}}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    angular.module('bondDemoApp', [])
+      .controller('BondController', function() {
+        var vm = this;
+
+        function todayISO() {
+          return new Date().toISOString().slice(0,10);
+        }
+        function plusYears(years) {
+          var d = new Date();
+          d.setFullYear(d.getFullYear() + years);
+          return d.toISOString().slice(0,10);
+        }
+
+        vm.trade = {
+          isin: 'US0000000001',
+          side: 'BUY',
+          qtyMm: 5,
+          ccy: 'USD',
+          coupon: 3.50,
+          maturity: plusYears(5),
+          price: 99.25,
+          yield: 3.65,
+          settle: todayISO()
+        };
+
+        vm.risk = { npv: 0, accrued: 0, dv01: 0 };
+        vm.summary = 'Enter trade info and click Price.';
+        vm.statusText = 'Ready';
+
+        vm.price = function() {
+          var notional = (vm.trade.qtyMm || 0) * 1000000;
+          var price = vm.trade.price || 0;
+          var coupon = vm.trade.coupon || 0;
+          var yld = vm.trade.yield || 0;
+
+          var cleanNPV = notional * (price / 100);
+          var accrued = notional * (coupon/100) * 0.5; // simple 6M accrual
+          var dv01 = notional * 0.0001 * 5; // assume 5y duration
+
+          vm.risk.npv = cleanNPV + accrued;
+          vm.risk.accrued = accrued;
+          vm.risk.dv01 = dv01;
+
+          vm.summary =
+            'Trade ' + vm.trade.side + ' ' + (vm.trade.qtyMm || 0).toFixed(2) + 'mm ' + vm.trade.isin +
+            ' @ ' + price.toFixed(3) + ' (' + yld.toFixed(3) + '%) coupon ' + coupon.toFixed(3) + '% ' +
+            '\\nNotional ' + notional.toLocaleString() + ' ' + vm.trade.ccy +
+            '\\nSettle ' + vm.trade.settle + ' • Maturity ' + vm.trade.maturity +
+            '\\n\\nNPV ≈ ' + vm.risk.npv.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ' + vm.trade.ccy;
+
+          vm.statusText = 'Priced at ' + price.toFixed(3) + ' / ' + yld.toFixed(3) + '%';
+        };
+
+        vm.reset = function() {
+          vm.trade.qtyMm = 5;
+          vm.trade.price = 99.25;
+          vm.trade.yield = 3.65;
+          vm.trade.coupon = 3.50;
+          vm.summary = 'Enter trade info and click Price.';
+          vm.risk = { npv: 0, accrued: 0, dv01: 0 };
+          vm.statusText = 'Ready';
+        };
+
+        vm.cancel = function() {
+          alert('Cancel pressed – this would normally close the ticket.');
+        };
+
+        // initial price
+        vm.price();
+      });
+  </script>
+</body>
+</html>
+

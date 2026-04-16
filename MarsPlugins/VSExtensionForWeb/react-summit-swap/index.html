@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Finastra Summit Swap Trade - React</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #020617; color: #e5e7eb; }
+    .shell { min-height: 100vh; display: flex; flex-direction: column; }
+    header { padding: 12px 20px; border-bottom: 1px solid #1e293b; background: radial-gradient(circle at top left, #4f46e5, #020617); }
+    header h1 { margin: 0; font-size: 18px; color: #a5b4fc; }
+    header span { font-size: 12px; color: #9ca3af; display: block; margin-top: 4px; }
+    main { flex: 1; display: grid; grid-template-columns: 2.1fr 1.9fr; gap: 16px; padding: 16px 20px 20px; }
+    .card { background: #020617; border: 1px solid #1e293b; border-radius: 10px; padding: 14px 16px; box-shadow: 0 10px 30px rgba(15,23,42,0.8); }
+    .card h2 { margin: 0 0 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; color: #9ca3af; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+    label { display: flex; flex-direction: column; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; }
+    input, select { margin-top: 3px; padding: 6px 8px; border-radius: 7px; border: 1px solid #1f2937; background: #020617; color: #e5e7eb; font-size: 13px; }
+    input:focus, select:focus { outline: 1px solid #6366f1; border-color: #6366f1; box-shadow: 0 0 0 1px rgba(99,102,241,0.4); }
+    .row { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+    .row label { flex-direction: row; align-items: center; gap: 4px; text-transform: none; letter-spacing: normal; font-size: 12px; color: #d1d5db; }
+    .actions { margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end; }
+    button { border-radius: 999px; border: 0; padding: 7px 14px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: linear-gradient(135deg, #f97316, #ea580c); color: #fef3c7; box-shadow: 0 8px 22px rgba(249,115,22,0.35); }
+    .btn-secondary { background: #020617; color: #e5e7eb; border: 1px solid #374151; }
+    .btn-primary:hover { filter: brightness(1.05); }
+    .btn-secondary:hover { border-color: #4b5563; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
+    th, td { padding: 6px 4px; text-align: right; border-bottom: 1px solid #111827; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7280; background: #020617; position: sticky; top: 0; z-index: 1; }
+    th:first-child, td:first-child { text-align: left; }
+    tbody tr:nth-child(even) { background: rgba(15,23,42,0.6); }
+    .summary { margin-top: 8px; display: flex; justify-content: space-between; font-size: 12px; color: #9ca3af; }
+    .summary span strong { color: #e5e7eb; }
+    .pill { font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid #374151; color: #9ca3af; }
+    .flows { max-height: 340px; overflow: auto; border-radius: 10px; border: 1px solid #1e293b; background: radial-gradient(circle at top left, #020617, #000000); margin-top: 4px; }
+    .tree-box { font-size: 12px; color: #9ca3af; border-radius: 8px; padding: 10px; border: 1px dashed #374151; background: rgba(15,23,42,0.5); }
+    .side { display: grid; grid-template-rows: auto 1fr; gap: 12px; height: 100%; }
+    .status { margin-top: 6px; font-size: 11px; color: #6b7280; display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    function addMonths(date, months) {
+      const d = new Date(date.getTime());
+      const day = d.getDate();
+      d.setMonth(d.getMonth() + months);
+      if (d.getDate() < day) d.setDate(0);
+      return d;
+    }
+
+    function buildSchedule(trade) {
+      if (!trade.startDate || !trade.maturityDate || !trade.notional || !trade.fixedRate) {
+        return { legs: [], npv: null };
+      }
+      const start = new Date(trade.startDate);
+      const end = new Date(trade.maturityDate);
+      const stepMonths = trade.frequency === "3M" ? 3 : (trade.frequency === "12M" ? 12 : 6);
+      const dates = [];
+      let current = addMonths(start, stepMonths);
+      while (current <= end) {
+        dates.push(new Date(current.getTime()));
+        current = addMonths(current, stepMonths);
+      }
+      if (!dates.length || dates[dates.length-1].getTime() !== end.getTime()) {
+        dates.push(end);
+      }
+      const legs = [];
+      let prev = start;
+      const annualRate = trade.fixedRate / 100;
+      dates.forEach((d, idx) => {
+        const days = Math.round((d - prev) / (1000*60*60*24));
+        const yearFrac = days / 360;
+        const cash = trade.notional * annualRate * yearFrac * (trade.direction === "PAY" ? -1 : 1);
+        legs.push({
+          index: idx + 1,
+          date: d,
+          dateStr: d.toISOString().slice(0,10),
+          days,
+          rate: trade.fixedRate,
+          cash
+        });
+        prev = d;
+      });
+      const df = 1 / (1 + annualRate);
+      const npv = legs.reduce((sum, l, i) => sum + l.cash * Math.pow(df, i + 1), 0);
+      return { legs, npv };
+    }
+
+    function App() {
+      const today = new Date();
+      const start0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const mat0 = addMonths(start0, 24);
+      const [trade, setTrade] = useState({
+        tradeId: "SWAP-2026-REACT",
+        book: "LONDON-SWAP-BOOK",
+        counterparty: "GLOBAL FUND LP",
+        ccy: "USD",
+        notional: 5_000_000,
+        fixedRate: 2.85,
+        startDate: start0.toISOString().slice(0,10),
+        maturityDate: mat0.toISOString().slice(0,10),
+        direction: "RECEIVE",
+        frequency: "3M"
+      });
+      const [version, setVersion] = useState(0); // to trigger explicit recompute
+
+      const { legs, npv } = useMemo(() => buildSchedule(trade), [trade, version]);
+      const totalCash = useMemo(() => legs.reduce((s,l)=>s+l.cash,0), [legs]);
+      const avgRate = useMemo(() => legs.length ? legs.reduce((s,l)=>s+l.rate,0)/legs.length : 0, [legs]);
+
+      const onChange = (field) => (e) => {
+        const value = e.target.type === "number" ? Number(e.target.value) : e.target.value;
+        setTrade(prev => ({ ...prev, [field]: value }));
+      };
+
+      const onRadioChange = (field) => (e) => {
+        setTrade(prev => ({ ...prev, [field]: e.target.value }));
+      };
+
+      const reset = () => {
+        const s = new Date();
+        const m = new Date(s.getFullYear() + 3, s.getMonth(), s.getDate());
+        setTrade({
+          tradeId: "SWAP-2026-REACT",
+          book: "LONDON-SWAP-BOOK",
+          counterparty: "GLOBAL FUND LP",
+          ccy: "USD",
+          notional: 5_000_000,
+          fixedRate: 2.85,
+          startDate: s.toISOString().slice(0,10),
+          maturityDate: m.toISOString().slice(0,10),
+          direction: "RECEIVE",
+          frequency: "3M"
+        });
+        setVersion(v => v + 1);
+      };
+
+      const recalc = () => setVersion(v => v + 1);
+
+      const npvColor = npv == null ? "#e5e7eb" : (npv >= 0 ? "#22c55e" : "#f97316");
+      const npvDisplay = npv == null ? "" : npv.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) + " " + trade.ccy;
+
+      return (
+        <div className="shell">
+          <header>
+            <h1>Finastra Summit – Swap Ticket (React)</h1>
+            <span>React demo mirroring the Vue swap trade + cash flow UI</span>
+          </header>
+          <main>
+            <section className="card">
+              <h2>Trade Entry</h2>
+              <div className="grid">
+                <label>
+                  Trade ID
+                  <input value={trade.tradeId} onChange={onChange("tradeId")} />
+                </label>
+                <label>
+                  Portfolio
+                  <input value={trade.book} onChange={onChange("book")} />
+                </label>
+                <label>
+                  Counterparty
+                  <input value={trade.counterparty} onChange={onChange("counterparty")} />
+                </label>
+                <label>
+                  Currency
+                  <select value={trade.ccy} onChange={onChange("ccy")}>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="JPY">JPY</option>
+                  </select>
+                </label>
+                <label>
+                  Notional
+                  <input type="number" min="0" step="100000" value={trade.notional} onChange={onChange("notional")} />
+                </label>
+                <label>
+                  Fixed Rate (%)
+                  <input type="number" step="0.01" value={trade.fixedRate} onChange={onChange("fixedRate")} />
+                </label>
+                <label>
+                  Start Date
+                  <input type="date" value={trade.startDate} onChange={onChange("startDate")} />
+                </label>
+                <label>
+                  Maturity Date
+                  <input type="date" value={trade.maturityDate} onChange={onChange("maturityDate")} />
+                </label>
+                <label>
+                  Pay / Receive
+                  <div className="row">
+                    <label>
+                      <input type="radio" value="PAY" checked={trade.direction === "PAY"} onChange={onRadioChange("direction")} /> Pay fixed
+                    </label>
+                    <label>
+                      <input type="radio" value="RECEIVE" checked={trade.direction === "RECEIVE"} onChange={onRadioChange("direction")} /> Receive fixed
+                    </label>
+                  </div>
+                </label>
+                <label>
+                  Leg Frequency
+                  <select value={trade.frequency} onChange={onChange("frequency")}>
+                    <option value="3M">Quarterly (3M)</option>
+                    <option value="6M">Semi-annual (6M)</option>
+                    <option value="12M">Annual (12M)</option>
+                  </select>
+                </label>
+              </div>
+              <div className="actions">
+                <button className="btn-secondary" onClick={reset}>Reset</button>
+                <button className="btn-primary" onClick={recalc}>Recalculate Cash Flows</button>
+              </div>
+              <div className="status">
+                <span className="pill">{legs.length} cash flow(s) • 30/360</span>
+                <span>NPV (simple): <strong style={{ color: npvColor }}>{npvDisplay}</strong></span>
+              </div>
+            </section>
+            <section className="side">
+              <div className="card">
+                <h2>Swap Structure</h2>
+                <div className="tree-box">
+                  Trade {trade.tradeId || "N/A"} – {trade.direction} fixed {trade.notional.toLocaleString()} {trade.ccy}<br />
+                  {trade.startDate || "Start ?"} → {trade.maturityDate || "End ?"} • {trade.frequency} schedule
+                </div>
+              </div>
+              <div className="card">
+                <h2>Cash Flow Projection</h2>
+                <div className="flows">
+                  {legs.length ? (
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Payment Date</th>
+                          <th>Accrual (d)</th>
+                          <th>Rate %</th>
+                          <th>Cash Flow ({trade.ccy})</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {legs.map(leg => (
+                          <tr key={leg.index}>
+                            <td>{leg.index}</td>
+                            <td>{leg.dateStr}</td>
+                            <td>{leg.days}</td>
+                            <td>{leg.rate.toFixed(3)}</td>
+                            <td>{leg.cash.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="tree-box" style={{ margin: 8 }}>
+                      Enter dates / notional / rate and click <strong>Recalculate Cash Flows</strong>.
+                    </div>
+                  )}
+                </div>
+                {legs.length ? (
+                  <div className="summary">
+                    <span>Total fixed leg: <strong>{totalCash.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} {trade.ccy}</strong></span>
+                    <span>Avg. coupon: <strong>{avgRate.toFixed(3)} %</strong></span>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          </main>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
+

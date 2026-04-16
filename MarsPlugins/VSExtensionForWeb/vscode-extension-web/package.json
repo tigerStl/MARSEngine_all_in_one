@@ -1,0 +1,25 @@
+{
+  "name": "mars-vscode-web-automation-engine",
+  "displayName": "MARS Web Automation Engine",
+  "description": "Simple VS Code extension that shows a webview panel with object tree, toolbar, object info, and test steps layout similar to the existing MARS extension.",
+  "version": "0.0.1",
+  "publisher": "mars-demo",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:marsWebviewDemo.openPanel"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "marsWebviewDemo.openPanel",
+        "title": "MARS Web Automation Engine: Open Panel"
+      }
+    ]
+  }
+}

@@ -1,6 +1,0 @@
-# TigerClawdEntry build / runtime
-out/
-node_modules/
-
-# Temporary files
-.tigerclawd-temp-*.txt
