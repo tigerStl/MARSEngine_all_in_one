@@ -8,6 +8,12 @@
 		},
 		{
 			"path": "."
+		},
+		{
+			"path": "../MarsSpyTool"
+		},
+		{
+			"path": "../MARS.WebAutomation"
 		}
 	],
 	"settings": {}

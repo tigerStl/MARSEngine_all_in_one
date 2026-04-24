@@ -13,7 +13,7 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace AppiumCSharp
+namespace AppiumCSharp.Tests
 {
     public class TestBase
     {      

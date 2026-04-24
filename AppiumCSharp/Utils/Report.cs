@@ -6,7 +6,7 @@ using System;
 using ExtentReport = AventStack.ExtentReports.ExtentReports;
 
 
-namespace AppiumCSharp
+namespace AppiumCSharp.Utils
 {
     public class Report
     {

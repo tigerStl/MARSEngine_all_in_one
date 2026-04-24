@@ -385,6 +385,326 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_CICDTEST|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release_CICDTEST\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_CICDTEST|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Release_CICDTEST\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_CICDTEST|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Release_CICDTEST\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_FHLB|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release_FHLB\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_FHLB|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Release_FHLB\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_FHLB|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Release_FHLB\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_MARS26|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release_MARS26\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_MARS26|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Release_MARS26\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_MARS26|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Release_MARS26\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For FHLB|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release For FHLB\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For FHLB|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Release For FHLB\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For FHLB|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Release For FHLB\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For MARS26|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release For MARS26\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For MARS26|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Release For MARS26\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For MARS26|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Release For MARS26\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Hundsun|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release For Hundsun\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Hundsun|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Release For Hundsun\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Hundsun|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Release For Hundsun\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For Hundsun|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug For Hundsun\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For Hundsun|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug For Hundsun\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For Hundsun|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug For Hundsun\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For CICD|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug For CICD\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For CICD|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug For CICD\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For CICD|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug For CICD\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For FHLB|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug For FHLB\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For FHLB|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug For FHLB\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For FHLB|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug For FHLB\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For MARS26|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug For MARS26\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For MARS26|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug For MARS26\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For MARS26|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug For MARS26\</OutputPath>
+    <DefineConstants>TRACE;_marsMonitor;_tigerDebug;_ver1_5;_NORMAL_FORM_;_VEDIO_TIGER_;_TMP_DEBUGER_;_Datafrom_Database;_Generate_Scripts;v_16AndUp;ExcelSupport;_TestStepUnit</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="CustomMarshalers" />
     <Reference Include="log4net, Version=2.0.17.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">

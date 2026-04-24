@@ -1291,7 +1291,7 @@ namespace Mars.message.Inter.MQCenter.interProcess
                         Thread.Sleep(100);
                 }
                 List<object> lstFrm = new List<object>();
-                bool isContinueToGet = true, isControlVisible = false, isOkTmp = false;
+                bool isContinueToGet = true, isOkTmp = false;
                 string strErrorTmp = "",
                     strAdvTmp = "", strStackTmp = "";
                 long dt = DateTime.Now.Ticks;

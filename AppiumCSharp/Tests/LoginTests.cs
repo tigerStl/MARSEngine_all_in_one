@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using AppiumCSharp.Utils;
+using NUnit.Framework;
 
 namespace AppiumCSharp.Tests
 {

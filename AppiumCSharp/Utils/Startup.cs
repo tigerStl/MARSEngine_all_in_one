@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
 
-namespace AppiumCSharp
+namespace AppiumCSharp.Utils
 {
     public static class Startup
     {

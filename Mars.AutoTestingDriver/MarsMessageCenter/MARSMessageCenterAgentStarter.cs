@@ -22,7 +22,7 @@ namespace Mars.AutoTestingDriver.MarsMessageCenter
 
         public const string CmdStartMessageAgent = "startMessageAgent";
         private const string AgentExeName = "MARSMessageAgent.exe";
-        private const string ReinstallMessage = "MARSMessageAgent.exe was not found. Please reinstall the latest version of MaRS engine.";
+        private const string ReinstallMessage = "MARSMessageAgent.exe was not found. Please reinstall the latest version of MARS engine.";
 
         private readonly string _sessionId;
         private readonly int _marsWebSocketServerPort;
@@ -65,7 +65,7 @@ namespace Mars.AutoTestingDriver.MarsMessageCenter
 
             if (!File.Exists(agentPath))
             {
-                MessageBox.Show(ReinstallMessage, "MaRS Engine", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ReinstallMessage, "MARS Engine", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 errorMessage = ReinstallMessage;
                 return false;
             }

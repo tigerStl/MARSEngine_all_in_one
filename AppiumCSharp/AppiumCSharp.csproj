@@ -1,11 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
-    <Configurations>Debug;Release;Android</Configurations>
+    <Configurations>Debug;Release;Android;Release_CICDTEST;Release_FHLB;Release_MARS26;Release For FHLB;Release For MARS26;Release For Hundsun;Debug For Hundsun;Debug For CICD;Debug For FHLB;Debug For MARS26</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

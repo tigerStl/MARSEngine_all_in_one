@@ -530,6 +530,7 @@ namespace Mars.AutoTestingDriver
                     string strCmdVal = options.GetOptionStringValue("-cmd");
                     if (string.Equals(strCmdVal, MARSMessageCenterAgentStarter.CmdStartMessageAgent, StringComparison.OrdinalIgnoreCase))
                     {
+                        Console.WriteLine($"-cmd find with value:{strCmdVal}");
                         string sessionId = options.GetOptionStringValue("-sessionId") ?? string.Empty;
                         string portStr = options.GetOptionStringValue("-marsWebSocketServerPort")?.Trim() ?? "0";
                         if (!int.TryParse(portStr, out int marsWebSocketServerPort) || marsWebSocketServerPort <= 0)
@@ -957,7 +958,7 @@ namespace Mars.AutoTestingDriver
                     string strCurMarsAccount = args[0];
                     bool isExitItself = false;
                     Array.Copy(args, 2, arrParaWithoutApp, 0, arrParaWithoutApp.Length);
-
+#if mars_Agent
                     isOk = new MARSMessageCenterAgentStarter().ConnectToMQStub(out strError);
                     if (!isOk)
                     {
@@ -965,6 +966,7 @@ namespace Mars.AutoTestingDriver
                         Logger.Warnning("Main", $"Can't connect to MQStub with error:{strError}");
                         //return MarsDriverConst.exit_code_error_cantConnectMQStub;
                     }
+#endif
 
 #if _demo_for_14
                     if (MarsKeywordBase.IsInDateTimeX())

@@ -1,4 +1,5 @@
-﻿using OpenQA.Selenium;
+﻿using AppiumCSharp.Utils;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Appium;
 using OpenQA.Selenium.Appium.MultiTouch;
 using OpenQA.Selenium.Support.UI;
@@ -6,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace AppiumCSharp
+namespace AppiumCSharp.Pages
 {
     public class BasePage
     {
