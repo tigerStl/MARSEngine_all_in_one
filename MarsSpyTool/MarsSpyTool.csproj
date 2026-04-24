@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>MarsSpyTool</RootNamespace>
     <AssemblyName>MarsSpyTool</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -31,6 +31,7 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -126,6 +127,164 @@
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_CICDTEST|AnyCPU'">
+    <OutputPath>bin\Release_CICDTEST\</OutputPath>
+    <DefineConstants>TRACE;_NOQTP</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_CICDTEST|x64'">
+    <OutputPath>bin\x64\Release_CICDTEST\</OutputPath>
+    <DefineConstants>TRACE;_NOQTP</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_FHLB|AnyCPU'">
+    <OutputPath>bin\Release_FHLB\</OutputPath>
+    <DefineConstants>TRACE;_NOQTP</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_FHLB|x64'">
+    <OutputPath>bin\x64\Release_FHLB\</OutputPath>
+    <DefineConstants>TRACE;_NOQTP</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_MARS26|AnyCPU'">
+    <OutputPath>bin\Release_MARS26\</OutputPath>
+    <DefineConstants>TRACE;_NOQTP</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_MARS26|x64'">
+    <OutputPath>bin\x64\Release_MARS26\</OutputPath>
+    <DefineConstants>TRACE;_NOQTP</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For FHLB|AnyCPU'">
+    <OutputPath>bin\Release For FHLB\</OutputPath>
+    <DefineConstants>TRACE;_NOQTP</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For FHLB|x64'">
+    <OutputPath>bin\x64\Release For FHLB\</OutputPath>
+    <DefineConstants>TRACE;_NOQTP</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For MARS26|AnyCPU'">
+    <OutputPath>bin\Release For MARS26\</OutputPath>
+    <DefineConstants>TRACE;_NOQTP</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For MARS26|x64'">
+    <OutputPath>bin\x64\Release For MARS26\</OutputPath>
+    <DefineConstants>TRACE;_NOQTP</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Hundsun|AnyCPU'">
+    <OutputPath>bin\Release For Hundsun\</OutputPath>
+    <DefineConstants>TRACE;_NOQTP</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Hundsun|x64'">
+    <OutputPath>bin\x64\Release For Hundsun\</OutputPath>
+    <DefineConstants>TRACE;_NOQTP</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For Hundsun|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug For Hundsun\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_NOQTP;_EngineDriver;debug_summitOnly_</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For Hundsun|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug For Hundsun\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_NOQTP;_EngineDriver</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For MARS26|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug For MARS26\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_NOQTP;_EngineDriver;debug_summitOnly_</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For MARS26|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug For MARS26\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_NOQTP;_EngineDriver</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.8, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.8\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
@@ -143,7 +302,7 @@
       <HintPath>..\..\Mars1.6\MarsTestingFrame\Mars.AutoTestingDriver\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.5.3.2\lib\net46\NLog.dll</HintPath>
+      <HintPath>..\Mars.AutoTestingDriver\packages\NLog.5.3.4\lib\net46\NLog.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -249,6 +408,7 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="WebSpyIntegration.cs" />
     <Page Include="subToolWindows\hintWindows\MarsHintWindowSelectApplication.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -331,6 +491,10 @@
     <Resource Include="icons8-my-location-32.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ManagedInjector\ManagedInjector64-4.0.vcxproj">
+      <Project>{a27c8b34-2527-4258-8c07-d2720c576b90}</Project>
+      <Name>ManagedInjector64-4.0</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Mars.DB\Mars.DB.Extend - WebclientStub.csproj">
       <Project>{7c5cf93c-16be-4dbf-a88e-8aa5f63d0416}</Project>
       <Name>Mars.DB.Extend - WebclientStub</Name>
@@ -339,13 +503,13 @@
       <Project>{f19edda6-3624-4ba6-a91e-dbcb2da7fe38}</Project>
       <Name>Mars.LogCommon</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ManagedInjector\ManagedInjector64-4.0.vcxproj">
-      <Project>{a27c8b34-2527-4258-8c07-d2720c576b90}</Project>
-      <Name>ManagedInjector64-4.0</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Mars.Inter.MQCenter\Mars.Inter.MQCenter.csproj">
       <Project>{d923e1be-48c8-47da-8a7d-c3b518e6c4b6}</Project>
       <Name>Mars.Inter.MQCenter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MARS.WebAutomation\MARS.WebAutomation.csproj">
+      <Project>{a1b2c3d4-e5f6-7890-abcd-ef1234567890}</Project>
+      <Name>MARS.WebAutomation</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -355,6 +519,10 @@
     <Folder Include="referenceCode\" />
     <Folder Include="Utility\webapiclicent\" />
   </ItemGroup>
+  <PropertyGroup>
+    <BaseOutputPath>C:\automationTest\Automation Workbooks\bin\</BaseOutputPath>
+    <OutputPath>C:\automationTest\Automation Workbooks\bin\</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\CrosshairsCursor.cur" />
   </ItemGroup>

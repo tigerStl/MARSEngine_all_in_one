@@ -11,7 +11,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Mars.AutoTestingDriver</RootNamespace>
     <AssemblyName>Mars.AutoTestingDriver</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>true</IsWebBootstrapper>
     <NuGetPackageImportStamp>
@@ -186,6 +186,99 @@
     <Prefer32Bit>false</Prefer32Bit>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For FHLB|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release For FHLB\</OutputPath>
+    <DefineConstants>TRACE;_MarsCDriver;_Datafrom_Database;_remoteDebug_1;_EngineDriver;_forWebClient;_noLocalApplications;_demoLicense_1;_EnableChrome;_demo_for_14_</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>9.0</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For FHLB|x64'">
+    <OutputPath>bin\x64\Release For FHLB\</OutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For MARS26|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release For MARS26\</OutputPath>
+    <DefineConstants>TRACE;_MarsCDriver;_Datafrom_Database;_remoteDebug_1;_EngineDriver;_forWebClient;_noLocalApplications;_demoLicense_1;_EnableChrome;_demo_for_14_</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>9.0</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For MARS26|x64'">
+    <OutputPath>bin\x64\Release For MARS26\</OutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Hundsun|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release For Hundsun\</OutputPath>
+    <DefineConstants>TRACE;_MarsCDriver;_Datafrom_Database;_remoteDebug_1;_EngineDriver;_forWebClient;_noLocalApplications;_demoLicense_1;_EnableChrome;_demo_for_14_</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>9.0</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release For Hundsun|x64'">
+    <OutputPath>bin\x64\Release For Hundsun\</OutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For Hundsun|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug For Hundsun\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_MarsCDriver;_Datafrom_Database;_remoteDebug_1;_EngineDriver;_forWebClient;_noLocalApplications;_EnableChrome;_demo_for_14</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>9.0</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For Hundsun|x64'">
+    <OutputPath>bin\x64\Debug For Hundsun\</OutputPath>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For FHLB|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug For FHLB\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_MarsCDriver;_Datafrom_Database;_remoteDebug_1;_EngineDriver;_forWebClient;_noLocalApplications;_EnableChrome;_demo_for_14</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>9.0</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For FHLB|x64'">
+    <OutputPath>bin\x64\Debug For FHLB\</OutputPath>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For MARS26|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug For MARS26\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_MarsCDriver;_Datafrom_Database;_remoteDebug_1;_EngineDriver;_forWebClient;_noLocalApplications;_EnableChrome;_demo_for_14</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>9.0</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug For MARS26|x64'">
+    <OutputPath>bin\x64\Debug For MARS26\</OutputPath>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Accessibility" />
     <Reference Include="Axe.Windows.Actions, Version=2.4.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -258,7 +351,7 @@
       <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.5.3.2\lib\net46\NLog.dll</HintPath>
+      <HintPath>packages\NLog.5.3.4\lib\net46\NLog.dll</HintPath>
     </Reference>
     <Reference Include="OpenCvSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=6adad1e807fea099, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenCvSharp4.4.10.0.20241108\lib\netstandard2.0\OpenCvSharp.dll</HintPath>
@@ -619,9 +712,14 @@
     <Folder Include="MarsUISupport\AxeWinSupport\" />
     <Folder Include="notifyManagement\" />
     <Folder Include="packages\" />
+    <Folder Include="scripts\" />
     <Folder Include="webClientStub\dbWebClientStub\" />
     <Folder Include="win32\" />
   </ItemGroup>
+  <PropertyGroup>
+    <BaseOutputPath>C:\automationTest\Automation Workbooks\bin\</BaseOutputPath>
+    <OutputPath>C:\automationTest\Automation Workbooks\bin\</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\MarsErrorMessageBox\MarsErrorMessageBox.resx">
       <Link>ErrorMessage\MarsErrorMessageBox.resx</Link>
@@ -807,6 +905,21 @@
   <Import Project="..\MarsExceptionManagement\MarsExceptionManagement.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="packages\Selenium.WebDriver.MSEdgeDriver.114.0.1823.18\build\Selenium.WebDriver.MSEdgeDriver.targets" Condition="Exists('packages\Selenium.WebDriver.MSEdgeDriver.114.0.1823.18\build\Selenium.WebDriver.MSEdgeDriver.targets')" />
+  <PropertyGroup>
+    <ConfigUpper>$([System.String]::Copy('$(Configuration)').ToUpperInvariant())</ConfigUpper>
+    <EnvConfig Condition="$(ConfigUpper.Contains('CICDTEST'))">app.cicdtest.config</EnvConfig>
+    <EnvConfig Condition="$(ConfigUpper.Contains('CICD'))">app.cicdtest.config</EnvConfig>
+    <EnvConfig Condition="$(ConfigUpper.Contains('FHLB'))">app.fhlb.config</EnvConfig>
+    <EnvConfig Condition="$(ConfigUpper.Contains('HUNDSUNDEMO'))">app.HundsunDemo.config</EnvConfig>
+    <EnvConfig Condition="$(ConfigUpper.Contains('HUNDSUN'))">app.HundsunDemo.config</EnvConfig>
+    <EnvConfig Condition="$(ConfigUpper.Contains('MARS26'))">app.mars26.config</EnvConfig>
+    <SelectedAppConfig Condition="'$(EnvConfig)' != ''">$(MSBuildProjectDirectory)\$(EnvConfig)</SelectedAppConfig>
+    <SelectedAppConfig Condition="'$(SelectedAppConfig)' == ''">$(MSBuildProjectDirectory)\App.config</SelectedAppConfig>
+  </PropertyGroup>
+  <Target Name="ForceReplaceOutputConfigByEnvironment" AfterTargets="Build" Condition="Exists('$(SelectedAppConfig)')">
+    <Message Text="Force replacing output config: $(SelectedAppConfig) -&gt; $(TargetDir)$(TargetFileName).config (Configuration=$(Configuration))" Importance="High" />
+    <Copy SourceFiles="$(SelectedAppConfig)" DestinationFiles="$(TargetDir)$(TargetFileName).config" OverwriteReadOnlyFiles="true" />
+  </Target>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>

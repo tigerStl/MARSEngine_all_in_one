@@ -511,6 +511,13 @@ namespace MarsSpyTool
                 Process p = Process.GetProcessById(pid);
                 if (p.Id == Process.GetCurrentProcess().Id) 
                     return;
+
+                if (this.current_tool_func == Mars_spy_tool_function._find_obj
+                    && WebSpyIntegration.TryHandleFinderWebDrop(p, hwnd, x, y))
+                {
+                    return;
+                }
+
                 var is64_2 = !MarsWindowsAPIsExtend.IsProcess32(p.Handle);
                 //MarsWindowsAPIs.IsWow64Process(p.Handle, out is64);
                 logger.Info("\t", $"It is 64? {is64_2}|{p.ProcessName}");
