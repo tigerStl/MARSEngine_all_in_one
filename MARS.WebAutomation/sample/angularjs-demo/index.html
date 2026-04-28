@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="marsSample">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MARS Sample — AngularJS</title>
+  <script src="https://cdn.jsdelivr.net/npm/angular@1.8.3/angular.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-ui-dist@1.13.3/jquery-ui.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pqgridf@3.5.1/pqgrid.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-ui-dist@1.13.3/jquery-ui.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pqgridf@3.5.1/pqgrid.min.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; color: #0f172a; background: #f8fafc; }
+    .app { max-width: 960px; margin: 0 auto; padding: 1rem; }
+    .hdr h1 { font-size: 1.35rem; margin: 0 0 0.25rem; }
+    .hdr p { margin: 0 0 1rem; color: #64748b; font-size: 0.9rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+    .menubar { display: flex; align-items: center; gap: 0.5rem; background: #1e293b; color: #fff; padding: 0.35rem 0.75rem; border-radius: 6px; margin-bottom: 1rem; position: relative; z-index: 5; }
+    .brand { font-weight: 600; margin-right: 0.5rem; }
+    .menu-item { position: relative; }
+    .menu-btn { background: transparent; color: inherit; border: none; padding: 0.4rem 0.75rem; cursor: pointer; border-radius: 4px; }
+    .menu-btn:hover { background: #334155; }
+    .popup { position: absolute; top: 100%; left: 0; min-width: 160px; background: #fff; color: #0f172a; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.12); list-style: none; margin: 0; padding: 0.25rem; z-index: 10; }
+    .popup button { width: 100%; text-align: left; border: none; background: none; padding: 0.4rem 0.5rem; cursor: pointer; border-radius: 4px; display: block; }
+    .popup button:hover { background: #f1f5f9; }
+    .card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; background: #fff; }
+    .card h2, .card h3 { margin-top: 0; font-size: 1.05rem; }
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid #e2e8f0; margin-bottom: 0.75rem; }
+    .tabs button { border: none; background: #f8fafc; padding: 0.5rem 1rem; cursor: pointer; border-radius: 6px 6px 0 0; }
+    .tabs button.on { background: #3b82f6; color: #fff; }
+    .tab-panel { min-height: 120px; }
+    .table-wrap { overflow: auto; }
+    .datatable { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .datatable th, .datatable td { border: 1px solid #cbd5e1; padding: 0.45rem 0.6rem; text-align: left; }
+    .datatable thead { background: #f1f5f9; }
+    .th-hint { font-weight: 400; color: #64748b; font-size: 0.75rem; }
+    .cell-display { cursor: text; display: inline-block; min-width: 4rem; padding: 2px 6px; border-radius: 4px; }
+    .cell-display:hover { background: #e0f2fe; outline: 1px solid #7dd3fc; }
+    .cell-input { width: 100%; min-width: 6rem; box-sizing: border-box; padding: 0.25rem 0.35rem; border: 1px solid #2563eb; border-radius: 4px; }
+    .cell-input-narrow { min-width: 3.5rem; max-width: 5rem; }
+    .cell-select { min-width: 8.5rem; padding: 0.3rem 0.4rem; border-radius: 4px; border: 1px solid #cbd5e1; }
+    .cell-center { text-align: center; vertical-align: middle; }
+    .tree { list-style: none; padding-left: 0; margin: 0; }
+    .tree-node { margin: 0.25rem 0; }
+    .twisty { border: none; background: #e2e8f0; width: 1.5rem; cursor: pointer; border-radius: 4px; margin-right: 0.25rem; }
+    .tree ul { list-style: none; padding-left: 1.5rem; margin: 0.25rem 0; }
+    .grid-form { display: grid; gap: 0.75rem; max-width: 640px; }
+    .grid-form label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; }
+    .grid-form input[type="text"], .grid-form select, .grid-form textarea { padding: 0.4rem; border: 1px solid #cbd5e1; border-radius: 4px; }
+    .row { grid-column: 1 / -1; }
+    .full { width: 100%; box-sizing: border-box; }
+    fieldset { border: 1px solid #e2e8f0; border-radius: 6px; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .primary { background: #2563eb; color: #fff; border: none; padding: 0.5rem 0.85rem; border-radius: 6px; cursor: pointer; }
+    .img-btn { border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; padding: 2px; background: #fff; }
+    dialog.dlg { border: none; border-radius: 8px; padding: 1rem; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+    dialog.dlg::backdrop { background: rgba(15,23,42,.45); }
+    .pseudo-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .pseudo-box { background: #fff; padding: 1.25rem; border-radius: 8px; min-width: 280px; box-shadow: 0 20px 50px rgba(0,0,0,.2); }
+    .fake-select { position: relative; max-width: 280px; }
+    .fake-select-btn { width: 100%; text-align: left; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; cursor: pointer; }
+    .fake-select-list { position: absolute; left: 0; right: 0; top: 100%; margin: 2px 0 0; padding: 0.25rem; list-style: none; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; z-index: 3; box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+    .fake-select-list li { padding: 0.35rem 0.5rem; cursor: pointer; border-radius: 4px; }
+    .fake-select-list li:hover { background: #f1f5f9; }
+    .hint { font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem; }
+    .tab-panel-form { margin: 0; }
+    .iframe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem; }
+    .iframe-grid iframe { width: 100%; min-height: 240px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; }
+    .pq-host { width: 100%; min-height: 268px; }
+    .faux-grid { display: flex; flex-direction: column; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; max-width: 720px; }
+    .faux-head, .faux-row { display: grid; grid-template-columns: 72px 1fr 88px 64px; align-items: center; }
+    .faux-head { background: #f1f5f9; font-weight: 600; font-size: 0.8rem; }
+    .faux-head > div, .faux-cell { padding: 0.4rem 0.55rem; border-bottom: 1px solid #e2e8f0; }
+    .faux-row:last-child .faux-cell { border-bottom: none; }
+    .faux-center { text-align: center; }
+    .faux-edit .cell-display { min-width: 2rem; }
+  </style>
+</head>
+<body ng-controller="MainCtrl">
+  <div class="app">
+    <header class="hdr">
+      <h1>MARS WebAutomation — AngularJS 1.x sample</h1>
+      <p>Data table, form controls, tree, tabs, menus, native dialog, pseudo dialog.</p>
+    </header>
+
+    <nav class="menubar" role="menubar" aria-label="Main menu">
+      <span class="brand">Menu</span>
+      <div class="menu-item" ng-mouseenter="fileOpen=true" ng-mouseleave="fileOpen=false">
+        <button type="button" class="menu-btn" aria-haspopup="true" ng-attr-aria-expanded="{{fileOpen}}">File</button>
+        <ul class="popup" role="menu" ng-show="fileOpen">
+          <li role="none"><button type="button" role="menuitem" ng-click="fileOpen=false">New</button></li>
+          <li role="none"><button type="button" role="menuitem" ng-click="fileOpen=false">Open…</button></li>
+          <li role="none"><button type="button" role="menuitem" ng-click="fileOpen=false">Exit</button></li>
+        </ul>
+      </div>
+      <div class="menu-item" ng-mouseenter="helpOpen=true" ng-mouseleave="helpOpen=false">
+        <button type="button" class="menu-btn" aria-haspopup="true" ng-attr-aria-expanded="{{helpOpen}}">Help</button>
+        <ul class="popup" role="menu" ng-show="helpOpen">
+          <li role="none"><button type="button" role="menuitem" ng-click="helpOpen=false">About</button></li>
+        </ul>
+      </div>
+    </nav>
+
+    <section class="card" aria-labelledby="tabs-h">
+      <h2 id="tabs-h" class="sr-only">Tabs</h2>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" ng-repeat="t in tabLabels track by $index"
+          ng-attr-aria-selected="{{activeTab === $index}}"
+          ng-class="{on: activeTab === $index}"
+          ng-click="activeTab = $index">{{t}}</button>
+      </div>
+      <div class="tab-panel" role="tabpanel" ng-show="activeTab === 0">
+        <h3>Orders</h3>
+        <form class="tab-panel-form" ng-submit="$event.preventDefault()">
+        <div class="table-wrap">
+          <table class="datatable" aria-label="Sample orders">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Customer <span class="th-hint">(click)</span></th>
+                <th>Product <span class="th-hint">(click)</span></th>
+                <th>Qty <span class="th-hint">(click)</span></th>
+                <th>Status</th>
+                <th>Rush</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="row in tableRows track by row.id">
+                <td>{{row.id}}</td>
+                <td class="cell-edit">
+                  <input ng-if="isEditing(row,'customer')" ng-attr-id="{{cellId(row,'customer')}}" type="text" class="cell-input" ng-model="row.customer" ng-blur="clearEdit()" ng-keydown="$event.key==='Enter' && clearEdit()" />
+                  <span ng-if="!isEditing(row,'customer')" class="cell-display" ng-click="startEdit(row,'customer')">{{row.customer}}</span>
+                </td>
+                <td class="cell-edit">
+                  <input ng-if="isEditing(row,'product')" ng-attr-id="{{cellId(row,'product')}}" type="text" class="cell-input" ng-model="row.product" ng-blur="clearEdit()" ng-keydown="$event.key==='Enter' && clearEdit()" />
+                  <span ng-if="!isEditing(row,'product')" class="cell-display" ng-click="startEdit(row,'product')">{{row.product}}</span>
+                </td>
+                <td class="cell-edit">
+                  <input ng-if="isEditing(row,'qty')" ng-attr-id="{{cellId(row,'qty')}}" type="number" min="0" class="cell-input cell-input-narrow" ng-model="row.qty" ng-blur="clearEdit()" ng-keydown="$event.key==='Enter' && clearEdit()" />
+                  <span ng-if="!isEditing(row,'qty')" class="cell-display" ng-click="startEdit(row,'qty')">{{row.qty}}</span>
+                </td>
+                <td>
+                  <select class="cell-select" ng-model="row.status" ng-options="s for s in statusOptions" ng-attr-aria-label="{{'Status for order ' + row.id}}"></select>
+                </td>
+                <td class="cell-center"><input type="checkbox" ng-model="row.rush" ng-attr-aria-label="{{'Rush order ' + row.id}}" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </form>
+      </div>
+      <div class="tab-panel" role="tabpanel" ng-show="activeTab === 1">
+        <h3>Regions (tree)</h3>
+        <form class="tab-panel-form" ng-submit="$event.preventDefault()" aria-label="Tree panel">
+        <ul class="tree" role="tree" aria-label="Regions">
+          <li ng-repeat="n in tree track by n.label" role="treeitem" ng-attr-aria-expanded="{{n.open}}" class="tree-node">
+            <button type="button" class="twisty" ng-click="n.open = !n.open">{{n.open ? '▼' : '▶'}}</button>
+            {{n.label}}
+            <ul role="group" ng-show="n.open">
+              <li ng-repeat="c in n.children track by c" role="treeitem">{{c}}</li>
+            </ul>
+          </li>
+        </ul>
+        </form>
+      </div>
+      <div class="tab-panel" role="tabpanel" ng-show="activeTab === 2">
+        <h3>Notes</h3>
+        <form class="tab-panel-form" ng-submit="$event.preventDefault()">
+        <textarea ng-model="notes" rows="5" class="full" placeholder="Multi-line notes…" aria-label="Notes" name="tabNotes"></textarea>
+        </form>
+      </div>
+      <div class="tab-panel" role="tabpanel" ng-show="activeTab === 3">
+        <h3>PQ Grid (ParamQuery / pqgridf)</h3>
+        <p class="hint">GPL ParamQuery grid — editable cells.</p>
+        <form class="tab-panel-form" ng-submit="$event.preventDefault()">
+        <div id="pqGridAng" class="pq-host"></div>
+        </form>
+      </div>
+      <div class="tab-panel" role="tabpanel" ng-show="activeTab === 4">
+        <h3>Div-based “datagrid”</h3>
+        <p class="hint">CSS grid + div rows; click to edit.</p>
+        <form class="tab-panel-form" ng-submit="$event.preventDefault()">
+        <div class="faux-grid" role="grid" aria-label="Stock (div grid)">
+          <div class="faux-head" role="row">
+            <div role="columnheader">Code</div>
+            <div role="columnheader">Name</div>
+            <div role="columnheader">Units</div>
+            <div role="columnheader">OK</div>
+          </div>
+          <div class="faux-row" role="row" ng-repeat="r in divGridRows track by r.id">
+            <div class="faux-cell" role="gridcell">{{r.code}}</div>
+            <div class="faux-cell faux-edit" role="gridcell">
+              <input ng-if="isDivEditing(r,'name')" type="text" class="cell-input" ng-attr-data-div-edit="{{r.id}}-name" ng-model="r.name" ng-blur="divEditing=null" ng-keydown="$event.key==='Enter' && (divEditing=null)" />
+              <span ng-if="!isDivEditing(r,'name')" class="cell-display" ng-click="startDivEdit(r,'name')">{{r.name}}</span>
+            </div>
+            <div class="faux-cell faux-edit" role="gridcell">
+              <input ng-if="isDivEditing(r,'units')" type="number" min="0" class="cell-input cell-input-narrow" ng-attr-data-div-edit="{{r.id}}-units" ng-model="r.units" ng-blur="divEditing=null" ng-keydown="$event.key==='Enter' && (divEditing=null)" />
+              <span ng-if="!isDivEditing(r,'units')" class="cell-display" ng-click="startDivEdit(r,'units')">{{r.units}}</span>
+            </div>
+            <div class="faux-cell faux-center" role="gridcell"><input type="checkbox" ng-model="r.ok" ng-attr-aria-label="{{'OK '+r.code}}" /></div>
+          </div>
+        </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Form controls</h2>
+      <form class="grid-form" ng-submit="$event.preventDefault()">
+        <label>Text field <input type="text" id="text-field" ng-model="textField" name="username" autocomplete="username" /></label>
+        <label>File <input type="file" name="doc" accept=".txt,.pdf,.png" /></label>
+        <label class="row">Textarea <textarea ng-model="notes" rows="3"></textarea></label>
+        <label>Select (native)
+          <select id="country-select" name="country" ng-model="country">
+            <option value="">— choose —</option>
+            <option value="us">United States</option>
+            <option value="cn">China</option>
+            <option value="de">Germany</option>
+          </select>
+        </label>
+        <div>
+          <span id="fake-lbl">Select (div-rendered)</span>
+          <div class="fake-select" role="group" aria-labelledby="fake-lbl">
+            <button type="button" class="fake-select-btn" ng-click="fakeOpen = !fakeOpen">{{ fakeLabel }}</button>
+            <ul class="fake-select-list" role="listbox" ng-show="fakeOpen">
+              <li role="option" ng-repeat="o in fakeOptions track by o.v" ng-click="pickFake(o)">{{o.t}}</li>
+            </ul>
+          </div>
+        </div>
+        <fieldset>
+          <legend>Checkbox group</legend>
+          <label><input type="checkbox" ng-model="optEmail" name="notify" /> Email alerts</label>
+          <label><input type="checkbox" ng-model="optSms" name="sms" /> SMS alerts</label>
+        </fieldset>
+        <fieldset>
+          <legend>Radio group</legend>
+          <label><input type="radio" ng-model="tier" name="tier" value="basic" /> Basic</label>
+          <label><input type="radio" ng-model="tier" name="tier" value="pro" /> Pro</label>
+          <label><input type="radio" ng-model="tier" name="tier" value="ent" /> Enterprise</label>
+        </fieldset>
+        <div class="btn-row">
+          <button type="button" class="primary" ng-click="openDialog()">Open native &lt;dialog&gt;</button>
+          <button type="button" ng-click="pseudoOpen = true">Open pseudo dialog (div)</button>
+          <button type="submit">Submit (demo)</button>
+          <input type="image" class="img-btn" src="https://www.w3.org/assets/logos/w3c/w3c-no-bars.svg" alt="W3C image button" width="72" height="24" title="Image submit" />
+        </div>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="pw-sim-title">
+      <h2 id="pw-sim-title">Playwright simulation</h2>
+      <form class="tab-panel-form" ng-submit="$event.preventDefault()">
+      <div class="btn-row">
+        <label><input type="checkbox" name="pwSimPseudo" ng-model="pwSimPseudo" /> Use pseudo dialog (div)</label>
+        <button type="button" class="primary" ng-click="openPwSim()">Open Playwright simulation dialog</button>
+      </div>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="cross-url-title">
+      <h2 id="cross-url-title">Cross-URL / iframe duplicate controls</h2>
+      <p class="hint">The popup page and iframes expose the same name/id on text and select as this page (for Playwright disambiguation tests).</p>
+      <form class="tab-panel-form" ng-submit="$event.preventDefault()">
+      <div class="btn-row">
+        <button type="button" class="primary" ng-click="openMirrorWindow()">Open mirror page (new window)</button>
+      </div>
+      </form>
+      <div class="iframe-grid">
+        <iframe title="same-obj-frame-1" src="./mirror-controls.html?slot=1"></iframe>
+        <iframe title="same-obj-frame-2" src="./mirror-controls.html?slot=2"></iframe>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="loc-lab-title">
+      <h2 id="loc-lab-title">Locator lab (duplicate &amp; dynamic ids)</h2>
+      <p class="hint">Reused template ids across rows/cells. Locator generation should compound aria-label / data-col / data-row-index instead of bare id.</p>
+      <form class="tab-panel-form" ng-submit="$event.preventDefault()">
+        <table class="datatable" aria-label="Dynamic id grid">
+          <thead>
+            <tr><th scope="col">Row</th><th scope="col">A</th><th scope="col">B</th></tr>
+          </thead>
+          <tbody>
+            <tr id="rowId" data-row-index="0">
+              <td><input id="cellId" name="dynField" type="text" data-col="A" aria-label="Row 0 column A" placeholder="r0a" /></td>
+              <td><input id="cellId" name="dynField" type="text" data-col="B" aria-label="Row 0 column B" placeholder="r0b" /></td>
+            </tr>
+            <tr id="rowId" data-row-index="1">
+              <td><input id="cellId" name="dynField" type="text" data-col="A" aria-label="Row 1 column A" placeholder="r1a" /></td>
+              <td><input id="cellId" name="dynField" type="text" data-col="B" aria-label="Row 1 column B" placeholder="r1b" /></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="hint">Stable reference (unique id + data-testid):</p>
+        <label>Stable field <input type="text" id="stable-lab-field" name="stableLab" data-testid="stable-lab-field" aria-label="Stable lab field" /></label>
+        <p class="hint">Algorithmic id (treated as volatile):</p>
+        <label>Volatile field <input type="text" id="row-92817" name="volatileRow" aria-label="Volatile row field" /></label>
+      </form>
+    </section>
+
+    <dialog id="nativeDlg" class="dlg" aria-labelledby="dlg-title">
+      <h2 id="dlg-title">Native dialog</h2>
+      <p>This is a real <code>&lt;dialog&gt;</code> opened with <code>showModal()</code>.</p>
+      <button type="button" ng-click="closeDialog()">Close</button>
+    </dialog>
+
+    <div class="pseudo-overlay" ng-show="pseudoOpen" role="presentation" ng-click="pseudoOpen = false">
+      <div class="pseudo-box" role="dialog" aria-modal="true" aria-labelledby="pseudo-title" ng-click="$event.stopPropagation()">
+        <h2 id="pseudo-title">Pseudo dialog</h2>
+        <p>Overlay + <code>div</code> (not <code>&lt;dialog&gt;</code>).</p>
+        <button type="button" ng-click="pseudoOpen = false">Close</button>
+      </div>
+    </div>
+
+    <dialog id="pwSimNativeDlg" class="dlg" aria-labelledby="pw-sim-native-title">
+      <h2 id="pw-sim-native-title">Playwright simulation (native dialog)</h2>
+      <p>Mode: native <code>&lt;dialog&gt;</code>.</p>
+      <button type="button" ng-click="closePwSimNative()">Close</button>
+    </dialog>
+
+    <div class="pseudo-overlay" ng-show="pwSimOpen" role="presentation" ng-click="pwSimOpen = false">
+      <div class="pseudo-box" role="dialog" aria-modal="true" aria-labelledby="pw-sim-pseudo-title" ng-click="$event.stopPropagation()">
+        <h2 id="pw-sim-pseudo-title">Playwright simulation (pseudo dialog)</h2>
+        <p>Mode: div overlay (pseudo dialog).</p>
+        <button type="button" ng-click="pwSimOpen = false">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    angular.module('marsSample', []).controller('MainCtrl', function ($scope, $timeout) {
+      $scope.activeTab = 0;
+      $scope.tabLabels = ['Table', 'Tree', 'Textarea', 'PQ Grid', 'Div grid'];
+      $scope.divGridRows = [
+        { id: 1, code: 'N-01', name: 'Nail box', units: 50, ok: true },
+        { id: 2, code: 'N-02', name: 'Screw M4', units: 200, ok: false },
+        { id: 3, code: 'N-03', name: 'Bracket', units: 8, ok: true }
+      ];
+      $scope.divEditing = null;
+      $scope.isDivEditing = function (row, field) {
+        return $scope.divEditing && $scope.divEditing.id === row.id && $scope.divEditing.field === field;
+      };
+      $scope.startDivEdit = function (row, field) {
+        $scope.divEditing = { id: row.id, field: field };
+        $timeout(function () {
+          var el = document.querySelector('[data-div-edit="' + row.id + '-' + field + '"]');
+          if (el) {
+            el.focus();
+            if (el.select) el.select();
+          }
+        }, 0);
+      };
+      $scope.pqJq = null;
+      $scope.pqData = [
+        { sku: 'A-10', label: 'Gear', qty: 6, bin: 'P1' },
+        { sku: 'A-11', label: 'Shaft', qty: 14, bin: 'P2' },
+        { sku: 'A-12', label: 'Bearing', qty: 30, bin: 'P3' }
+      ];
+      $scope.$watch('activeTab', function (tab) {
+        if (tab !== 3) {
+          if ($scope.pqJq) {
+            try { $scope.pqJq.pqGrid('destroy'); } catch (e1) {}
+            $scope.pqJq = null;
+          }
+          return;
+        }
+        $timeout(function () {
+          var jq = window.jQuery;
+          var host = document.getElementById('pqGridAng');
+          if (!jq || !jq.fn || !jq.fn.pqGrid || !host || $scope.pqJq) return;
+          var w = Math.max(320, host.clientWidth || 640);
+          $scope.pqJq = jq(host).pqGrid({
+            width: w,
+            height: 260,
+            editable: true,
+            dataModel: { location: 'local', data: $scope.pqData },
+            colModel: [
+              { title: 'SKU', dataIndx: 'sku', width: 90, editable: true },
+              { title: 'Label', dataIndx: 'label', width: 200, editable: true },
+              { title: 'Qty', dataIndx: 'qty', width: 70, dataType: 'integer', editable: true },
+              { title: 'Bin', dataIndx: 'bin', width: 70, editable: true }
+            ]
+          });
+        }, 0);
+      });
+      $scope.textField = '';
+      $scope.notes = '';
+      $scope.country = '';
+      $scope.optEmail = true;
+      $scope.optSms = false;
+      $scope.tier = 'pro';
+      $scope.fileOpen = false;
+      $scope.helpOpen = false;
+      $scope.pseudoOpen = false;
+      $scope.pwSimPseudo = false;
+      $scope.pwSimOpen = false;
+      $scope.fakeOpen = false;
+      $scope.fakeLabel = '— choose —';
+      $scope.fakeOptions = [
+        { v: 'us', t: 'United States' },
+        { v: 'cn', t: 'China' },
+        { v: 'de', t: 'Germany' }
+      ];
+      $scope.pickFake = function (o) {
+        $scope.fakeLabel = o.t;
+        $scope.fakeOpen = false;
+      };
+      $scope.statusOptions = ['Shipped', 'Pending', 'Processing', 'Cancelled'];
+      $scope.editing = null;
+      $scope.cellId = function (row, field) {
+        return 'cell-' + row.id + '-' + field;
+      };
+      $scope.isEditing = function (row, field) {
+        return $scope.editing && $scope.editing.id === row.id && $scope.editing.field === field;
+      };
+      $scope.startEdit = function (row, field) {
+        $scope.editing = { id: row.id, field: field };
+        $timeout(function () {
+          var el = document.getElementById($scope.cellId(row, field));
+          if (el) {
+            el.focus();
+            if (el.select) el.select();
+          }
+        }, 0);
+      };
+      $scope.clearEdit = function () {
+        $scope.editing = null;
+      };
+      $scope.tableRows = [
+        { id: 3001, customer: 'Acme', product: 'Sensor A', qty: 4, status: 'Shipped', rush: false },
+        { id: 3002, customer: 'Globex', product: 'Cable kit', qty: 12, status: 'Pending', rush: true },
+        { id: 3003, customer: 'Initech', product: 'Bracket', qty: 50, status: 'Shipped', rush: false },
+        { id: 3004, customer: 'Umbrella', product: 'Mount plate', qty: 7, status: 'Cancelled', rush: false },
+        { id: 3005, customer: 'Stark', product: 'Power module', qty: 2, status: 'Processing', rush: true }
+      ];
+      $scope.tree = [
+        { label: 'North America', open: true, children: ['USA', 'Canada', 'Mexico'] },
+        { label: 'Europe', open: false, children: ['DE', 'FR', 'UK'] },
+        { label: 'Asia', open: false, children: ['CN', 'JP', 'KR'] }
+      ];
+      $scope.openDialog = function () {
+        document.getElementById('nativeDlg').showModal();
+      };
+      $scope.closeDialog = function () {
+        document.getElementById('nativeDlg').close();
+      };
+      $scope.openPwSim = function () {
+        if ($scope.pwSimPseudo) {
+          $scope.pwSimOpen = true;
+          return;
+        }
+        document.getElementById('pwSimNativeDlg').showModal();
+      };
+      $scope.closePwSimNative = function () {
+        document.getElementById('pwSimNativeDlg').close();
+      };
+      $scope.openMirrorWindow = function () {
+        window.open('./mirror-window.html', 'mars_mirror_window', 'width=920,height=700,resizable=yes,scrollbars=yes');
+      };
+    });
+  </script>
+</body>
+</html>

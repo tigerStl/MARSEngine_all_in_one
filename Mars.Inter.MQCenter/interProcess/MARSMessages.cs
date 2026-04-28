@@ -141,7 +141,11 @@ namespace Mars.message.AutoTestingDriver.interProcess
                     isOk = true;
                     return (MARSMessageHeartBeat)serializer.Deserialize(xr);
                 }
+ #if MESSAGESVC_FROM_GUI || _NOQTP
                 catch (Exception e)
+ #else
+                catch (Exception)
+ #endif
                 {
 #if MESSAGESVC_FROM_GUI
                     Logger.Error("GetMsgObjViaRawXmlDoc", strError = string.Format("MARSMessageHeartBeat Exception:[{0}] stackTrace:[{1}]", e.Message, e.StackTrace));

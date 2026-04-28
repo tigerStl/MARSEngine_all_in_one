@@ -2756,7 +2756,7 @@ namespace Mars.Inter.MQCenter.MSAASupport
                 strError = "two number should be set";
                 isOk = false;
                 return null;
-            } catch (Exception e)
+            } catch (Exception)
             {
                 strError = $"two numbers should be set but there are |{positionInfo}";
                 isOk = false;
@@ -4647,7 +4647,7 @@ namespace Mars.Inter.MQCenter.MSAASupport
                             try
                             {
                                 curPegUI.SetFocus();
-                            } catch (Exception e)
+                            } catch (Exception)
                             {
 
                             }

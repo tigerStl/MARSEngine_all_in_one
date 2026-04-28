@@ -184,7 +184,7 @@ namespace Mars.message.DataLayer.multipleDBSupport
                 try
                 {
                     connection.Close();
-                }catch(Exception e)
+                }catch(Exception)
                 {
 
                 }

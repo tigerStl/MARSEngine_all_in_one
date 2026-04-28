@@ -544,7 +544,7 @@ namespace Mars.message.Inter.MQCenter.interProcess
                     ClientWriteQ.Send(msg);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //((MLogger)Logger).Error("Init",string.Format("Exception:[{0}]",e.Message),e);
             }
@@ -569,7 +569,11 @@ namespace Mars.message.Inter.MQCenter.interProcess
                 MarsLoggerSimple.Info("Mars_AssemblyResolveInstall", "installed");
 #endif
             }
+ #if _ForClickOnce
             catch (Exception e)
+ #else
+            catch (Exception)
+ #endif
             {
 #if !_ForClickOnce
                 //System.Diagnostics.EventLog.WriteEntry("MarsEvent", string.Format("Exception:[{0}] stackTrace:[{1}]", e.Message, e.StackTrace));
@@ -920,7 +924,7 @@ namespace Mars.message.Inter.MQCenter.interProcess
             try
             {
                 return currentStepCheckError = System.Text.Json.JsonSerializer.Deserialize<TestStepErrorCheckSetting>(strAttach);
-            }catch(Exception e)
+            }catch(Exception)
             {
                 return currentStepCheckError = null;
             }
@@ -1119,7 +1123,7 @@ namespace Mars.message.Inter.MQCenter.interProcess
                             {
                                 Thread.Sleep(1000);
                             }
-                            catch (Exception e)
+                            catch (Exception)
                             {
 
                             }
@@ -1528,7 +1532,7 @@ namespace Mars.message.Inter.MQCenter.interProcess
                             {
                                 unFindHandlers.Add(windowsHdlLst[i]);
                             }
-                        }catch(Exception e)
+                        }catch(Exception)
                         {
 
                         }
@@ -1550,7 +1554,7 @@ namespace Mars.message.Inter.MQCenter.interProcess
                                 lstWindows.Add(tmpFrm);
                             }
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
 
                         }
@@ -2499,7 +2503,7 @@ namespace Mars.message.Inter.MQCenter.interProcess
                             isOk = false;
                             return false;
                         }
-                    }catch(Exception e)
+                    }catch(Exception)
                     {
                         /// 很可能是正则表达式错误
                         /// 
@@ -2827,7 +2831,7 @@ namespace Mars.message.Inter.MQCenter.interProcess
                 }));
                 t.SetApartmentState(ApartmentState.STA);
                 t.Join();
-            }catch(Exception e)
+            }catch(Exception)
             {
 
             }
@@ -3930,7 +3934,7 @@ namespace Mars.message.Inter.MQCenter.interProcess
                         x1 = int.Parse(arrPos[0]);
                         y1 = int.Parse(arrPos[1]);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         simpleLog.MarsLoggerSimple.Error("AppsideKeywordDeal_PressKey", strError = string.Format("PressKeys parameter should be two numbers with [X],[Y],format, but it is :[{0}]", strParaMeter));
                         StackFrame stck = (new StackFrame());

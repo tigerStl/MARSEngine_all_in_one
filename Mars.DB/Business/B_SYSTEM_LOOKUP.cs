@@ -423,7 +423,7 @@ namespace Mars.message.Business
                 }
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
 
                 throw;

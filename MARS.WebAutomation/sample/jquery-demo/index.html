@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MARS Sample — jQuery</title>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-ui-dist@1.13.3/jquery-ui.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pqgridf@3.5.1/pqgrid.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/jquery-ui-dist@1.13.3/jquery-ui.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pqgridf@3.5.1/pqgrid.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="hdr">
+      <h1>MARS WebAutomation — jQuery sample</h1>
+      <p>Data table, form controls, tree, tabs, menus, native dialog, pseudo dialog.</p>
+    </header>
+
+    <nav class="menubar" role="menubar" aria-label="Main menu">
+      <span class="brand">Menu</span>
+      <div class="menu-item" data-menu="file">
+        <button type="button" class="menu-btn" aria-haspopup="true" aria-expanded="false" id="btn-file-menu">File</button>
+        <ul class="popup" role="menu" id="popup-file" hidden>
+          <li role="none"><button type="button" role="menuitem">New</button></li>
+          <li role="none"><button type="button" role="menuitem">Open…</button></li>
+          <li role="none"><button type="button" role="menuitem">Exit</button></li>
+        </ul>
+      </div>
+      <div class="menu-item" data-menu="help">
+        <button type="button" class="menu-btn" aria-haspopup="true" aria-expanded="false">Help</button>
+        <ul class="popup" role="menu" id="popup-help" hidden>
+          <li role="none"><button type="button" role="menuitem">About</button></li>
+        </ul>
+      </div>
+    </nav>
+
+    <section class="card" aria-labelledby="tabs-h">
+      <h2 id="tabs-h" class="sr-only">Tabs</h2>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" aria-selected="true" data-tab="0" class="on">Table</button>
+        <button type="button" role="tab" aria-selected="false" data-tab="1">Tree</button>
+        <button type="button" role="tab" aria-selected="false" data-tab="2">Textarea</button>
+        <button type="button" role="tab" aria-selected="false" data-tab="3">PQ Grid</button>
+        <button type="button" role="tab" aria-selected="false" data-tab="4">Div grid</button>
+      </div>
+      <div class="tab-panel" role="tabpanel" data-panel="0">
+        <h3>Orders</h3>
+        <form id="form-tab-orders" class="tab-panel-form" onsubmit="return false;">
+        <div class="table-wrap">
+          <table class="datatable" aria-label="Sample orders">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Customer <span class="th-hint">(click)</span></th>
+                <th>Product <span class="th-hint">(click)</span></th>
+                <th>Qty <span class="th-hint">(click)</span></th>
+                <th>Status</th>
+                <th>Rush</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+        </form>
+      </div>
+      <div class="tab-panel" role="tabpanel" data-panel="1" hidden>
+        <h3>Regions (tree)</h3>
+        <form id="form-tab-tree" class="tab-panel-form" onsubmit="return false;" aria-label="Tree panel">
+        <ul class="tree" role="tree" aria-label="Regions" id="tree-root"></ul>
+        </form>
+      </div>
+      <div class="tab-panel" role="tabpanel" data-panel="2" hidden>
+        <h3>Notes</h3>
+        <form id="form-tab-notes" class="tab-panel-form" onsubmit="return false;">
+        <textarea id="notes-area" rows="5" class="full" placeholder="Multi-line notes…" aria-label="Notes" name="tabNotes"></textarea>
+        </form>
+      </div>
+      <div class="tab-panel" role="tabpanel" data-panel="3" hidden>
+        <h3>PQ Grid (ParamQuery / pqgridf)</h3>
+        <p class="hint">GPL ParamQuery grid — editable cells.</p>
+        <form id="form-tab-pq" class="tab-panel-form" onsubmit="return false;">
+        <div id="pq-grid-host" class="pq-host"></div>
+        </form>
+      </div>
+      <div class="tab-panel" role="tabpanel" data-panel="4" hidden>
+        <h3>Div-based “datagrid”</h3>
+        <p class="hint">CSS grid + div rows; click to edit.</p>
+        <form id="form-tab-divgrid" class="tab-panel-form" onsubmit="return false;">
+        <div id="div-grid-root" class="faux-grid" role="grid" aria-label="Stock (div grid)">
+          <div class="faux-head" role="row">
+            <div role="columnheader">Code</div>
+            <div role="columnheader">Name</div>
+            <div role="columnheader">Units</div>
+            <div role="columnheader">OK</div>
+          </div>
+          <div id="div-grid-body"></div>
+        </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Form controls</h2>
+      <form class="grid-form" id="main-form">
+        <label>Text field <input type="text" id="text-field" name="username" autocomplete="username" /></label>
+        <label>File <input type="file" name="doc" accept=".txt,.pdf,.png" /></label>
+        <label class="row">Textarea <textarea id="notes-sync" rows="3"></textarea></label>
+        <label>Select (native)
+          <select id="country-select" name="country">
+            <option value="">— choose —</option>
+            <option value="us">United States</option>
+            <option value="cn">China</option>
+            <option value="de">Germany</option>
+          </select>
+        </label>
+        <div>
+          <span id="fake-lbl">Select (div-rendered)</span>
+          <div class="fake-select" role="group" aria-labelledby="fake-lbl">
+            <button type="button" class="fake-select-btn" id="fake-select-btn" aria-haspopup="listbox" aria-expanded="false">— choose —</button>
+            <ul class="fake-select-list" role="listbox" id="fake-select-list" hidden>
+              <li role="option" data-v="us">United States</li>
+              <li role="option" data-v="cn">China</li>
+              <li role="option" data-v="de">Germany</li>
+            </ul>
+          </div>
+        </div>
+        <fieldset>
+          <legend>Checkbox group</legend>
+          <label><input type="checkbox" name="notify" id="cb-email" checked /> Email alerts</label>
+          <label><input type="checkbox" name="sms" id="cb-sms" /> SMS alerts</label>
+        </fieldset>
+        <fieldset>
+          <legend>Radio group</legend>
+          <label><input type="radio" name="tier" value="basic" /> Basic</label>
+          <label><input type="radio" name="tier" value="pro" checked /> Pro</label>
+          <label><input type="radio" name="tier" value="ent" /> Enterprise</label>
+        </fieldset>
+        <div class="btn-row">
+          <button type="button" class="primary" id="btn-native-dlg">Open native &lt;dialog&gt;</button>
+          <button type="button" id="btn-pseudo-dlg">Open pseudo dialog (div)</button>
+          <button type="submit">Submit (demo)</button>
+          <input type="image" class="img-btn" src="https://www.w3.org/assets/logos/w3c/w3c-no-bars.svg" alt="W3C image button" width="72" height="24" title="Image submit" />
+        </div>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="pw-sim-title">
+      <h2 id="pw-sim-title">Playwright simulation</h2>
+      <form id="form-pw-sim" class="tab-panel-form" onsubmit="return false;">
+      <div class="btn-row">
+        <label><input type="checkbox" id="pw-sim-toggle" name="pwSimPseudo" /> Use pseudo dialog (div)</label>
+        <button type="button" id="btn-open-pw-sim" class="primary">Open Playwright simulation dialog</button>
+      </div>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="cross-url-title">
+      <h2 id="cross-url-title">Cross-URL / iframe duplicate controls</h2>
+      <p class="hint">The popup page and iframes expose the same name/id on text and select as this page (for Playwright disambiguation tests).</p>
+      <form id="form-mirror-launch" class="tab-panel-form" onsubmit="return false;">
+      <div class="btn-row">
+        <button type="button" id="btn-open-mirror-window" class="primary">Open mirror page (new window)</button>
+      </div>
+      </form>
+      <div class="iframe-grid">
+        <iframe title="same-obj-frame-1" src="./mirror-controls.html?slot=1"></iframe>
+        <iframe title="same-obj-frame-2" src="./mirror-controls.html?slot=2"></iframe>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="loc-lab-title">
+      <h2 id="loc-lab-title">Locator lab (duplicate &amp; dynamic ids)</h2>
+      <p class="hint">Reused template ids across rows/cells (invalid HTML but seen in real apps). Locator generation should compound aria-label / data-col / data-row-index instead of bare id.</p>
+      <form id="form-locator-lab" class="tab-panel-form" onsubmit="return false;">
+        <table class="datatable" aria-label="Dynamic id grid">
+          <thead>
+            <tr><th scope="col">Row</th><th scope="col">A</th><th scope="col">B</th></tr>
+          </thead>
+          <tbody>
+            <tr id="rowId" data-row-index="0">
+              <td><input id="cellId" name="dynField" type="text" data-col="A" aria-label="Row 0 column A" placeholder="r0a" /></td>
+              <td><input id="cellId" name="dynField" type="text" data-col="B" aria-label="Row 0 column B" placeholder="r0b" /></td>
+            </tr>
+            <tr id="rowId" data-row-index="1">
+              <td><input id="cellId" name="dynField" type="text" data-col="A" aria-label="Row 1 column A" placeholder="r1a" /></td>
+              <td><input id="cellId" name="dynField" type="text" data-col="B" aria-label="Row 1 column B" placeholder="r1b" /></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="hint">Stable reference (unique id + data-testid):</p>
+        <label>Stable field <input type="text" id="stable-lab-field" name="stableLab" data-testid="stable-lab-field" aria-label="Stable lab field" /></label>
+        <p class="hint">Algorithmic id (treated as volatile; prefer role/name/label):</p>
+        <label>Volatile field <input type="text" id="row-92817" name="volatileRow" aria-label="Volatile row field" /></label>
+      </form>
+    </section>
+
+    <dialog id="nativeDlg" class="dlg" aria-labelledby="dlg-title">
+      <h2 id="dlg-title">Native dialog</h2>
+      <p>This is a real <code>&lt;dialog&gt;</code> opened with <code>showModal()</code>.</p>
+      <button type="button" id="btn-close-native">Close</button>
+    </dialog>
+
+    <div class="pseudo-overlay" id="pseudo-overlay" role="presentation" hidden>
+      <div class="pseudo-box" role="dialog" aria-modal="true" aria-labelledby="pseudo-title">
+        <h2 id="pseudo-title">Pseudo dialog</h2>
+        <p>Overlay + <code>div</code> (not <code>&lt;dialog&gt;</code>).</p>
+        <button type="button" id="btn-close-pseudo">Close</button>
+      </div>
+    </div>
+
+    <dialog id="pwSimNativeDlg" class="dlg" aria-labelledby="pw-sim-native-title">
+      <h2 id="pw-sim-native-title">Playwright simulation (native dialog)</h2>
+      <p>Mode: native <code>&lt;dialog&gt;</code>.</p>
+      <button type="button" id="btn-close-pw-native">Close</button>
+    </dialog>
+
+    <div class="pseudo-overlay" id="pw-sim-overlay" role="presentation" hidden>
+      <div class="pseudo-box" role="dialog" aria-modal="true" aria-labelledby="pw-sim-pseudo-title">
+        <h2 id="pw-sim-pseudo-title">Playwright simulation (pseudo dialog)</h2>
+        <p>Mode: div overlay (pseudo dialog).</p>
+        <button type="button" id="btn-close-pw-pseudo">Close</button>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

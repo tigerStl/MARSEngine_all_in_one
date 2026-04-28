@@ -344,7 +344,7 @@ namespace Mars.message.Inter.MQCenter.keywordOperation
                     isOk = true;
                     return strTargetMemberInfo;
                 }
-                catch(Exception e)
+                catch(Exception)
                 {
                     isOk = false;
                     strError = $"internal Error when get |{memberIndex}| from type |{oSourceControl.GetType()}";

@@ -209,7 +209,7 @@ namespace Mars.message.Inter.MQCenter.keywordOperation
                 isOk = true;
                 return strFile;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 strError = $"Error while searching for a control  [{strPegName}][{strObjName}]";//string.Format("Exception:[{0}]  stacktrace:\r\n[{1}]", ex.Message, ex.StackTrace);
                 strStack = MarsErrorStacks.StackTraceDump();
@@ -262,7 +262,7 @@ namespace Mars.message.Inter.MQCenter.keywordOperation
                 isOk = true;
                 return strFile;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 strError = $"Error while capturing region for object [{strObjName}]"; //string.Format("Exception:[{0}]  stacktrace:\r\n[{1}]",ex.Message,ex.StackTrace);
                 StackFrame stck = (new StackFrame());

@@ -190,7 +190,7 @@ namespace Mars.message.Business
                 dbCmmd.ExecuteNonQuery();
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
 
                 throw;

@@ -221,7 +221,7 @@ namespace Mars.message.Inter.MQCenter.objectSpy
                             }
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
 
                     }
@@ -3757,7 +3757,7 @@ namespace Mars.message.Inter.MQCenter.objectSpy
 
                 return info;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // 可根据需要记录日志
                 return null;

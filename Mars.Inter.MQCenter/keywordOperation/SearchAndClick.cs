@@ -268,7 +268,7 @@ namespace Mars.message.Inter.MQCenter.keywordOperation
                             subRowsOfAll = arrAll;
                             break;
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             System.Threading.Thread.Sleep(200);
                         }
@@ -471,7 +471,7 @@ namespace Mars.message.Inter.MQCenter.keywordOperation
                                 }
                             }
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             isRowAllMatched = false;
                             break;

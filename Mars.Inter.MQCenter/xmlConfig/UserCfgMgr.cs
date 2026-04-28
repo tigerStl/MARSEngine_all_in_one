@@ -63,7 +63,11 @@ namespace MarsEngineInProcess.SourceCode.xmlConfig
                         System.IO.FileStream fs = System.IO.File.Create(strUserNameFile);
                         fs.Close();
                     }
+ #if !_MarsInOtherProcess
                     catch (Exception e)
+ #else
+                    catch (Exception)
+ #endif
                     {
 #if !_MarsInOtherProcess
                         Logger.Error("UserCfgMgr", string.Format("Exception:[{0}]", e.Message), e);
@@ -159,7 +163,11 @@ namespace MarsEngineInProcess.SourceCode.xmlConfig
             {
                 XmlHelper.XmlSerializeToFile(currentUserEnv, strFullFileName, Encoding.UTF8);
             }
+ #if !_MarsInOtherProcess
             catch (Exception e)
+ #else
+            catch (Exception)
+ #endif
             {
 #if !_MarsInOtherProcess
                 Logger.Error("SaveUserEnvToFile", e.Message, e);
@@ -190,7 +198,7 @@ namespace MarsEngineInProcess.SourceCode.xmlConfig
 
                 return tmpUserEnv.UserTestMode;
             }
-            catch (Exception e)
+            catch (Exception)
             {
 #if !_MarsInOtherProcess
                 return SystemConstant.CNST_APPCONFIG_APPSETTING_BASELINEMODE_BUILD;

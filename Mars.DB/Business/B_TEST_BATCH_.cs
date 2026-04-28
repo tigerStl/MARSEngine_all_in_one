@@ -279,7 +279,7 @@ namespace Mars.message.Business
 
                 throw new NotImplementedException();
             }
-            catch (Exception e)
+            catch (Exception)
             {
 
                 throw;

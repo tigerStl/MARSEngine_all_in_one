@@ -324,7 +324,7 @@ namespace Mars.Inter.MQCenter.MSAASupport.MarsAccessibleKeywords
                 }
                 
             }
-            catch (Exception xe)
+            catch (Exception)
             {
                 return false;
             }

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mirror controls (iframe)</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; color: #0f172a; background: #f8fafc; }
+    .app { padding: 12px; }
+    .card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background: #fff; }
+    .grid-form { display: grid; gap: 0.75rem; max-width: 640px; }
+    .grid-form label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; }
+    .grid-form input[type="text"], .grid-form select { padding: 0.4rem; border: 1px solid #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="card">
+      <h2>Iframe duplicate controls</h2>
+      <form class="grid-form">
+        <label>Text field <input type="text" id="text-field" name="username" autocomplete="username" value="mirror-iframe-value" /></label>
+        <label>Select (native)
+          <select id="country-select" name="country">
+            <option value="">— choose —</option>
+            <option value="us">United States</option>
+            <option value="cn">China</option>
+            <option value="de">Germany</option>
+          </select>
+        </label>
+      </form>
+    </section>
+  </div>
+</body>
+</html>

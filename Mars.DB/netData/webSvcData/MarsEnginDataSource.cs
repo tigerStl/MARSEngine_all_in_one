@@ -203,7 +203,7 @@ namespace Mars.message.AutoTestingDriver.ExecuteTestcase.keywordOp
             try
             {
                 return para.Any(p => string.Compare(p.f, strParaName) == 0);
-            }catch(Exception e)
+            }catch(Exception)
             {
                 return false;
             }
@@ -221,7 +221,7 @@ namespace Mars.message.AutoTestingDriver.ExecuteTestcase.keywordOp
                 DBQueryDataSettingRoot rslt=  JsonSerializer.Deserialize<DBQueryDataSettingRoot>(strData);
                 isOk = true;
                 return rslt;
-            }catch(Exception e)
+            }catch(Exception)
             {
                 isOk = false;
                 return null;

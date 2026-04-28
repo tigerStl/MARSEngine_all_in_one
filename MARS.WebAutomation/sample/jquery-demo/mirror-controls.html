@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mirror controls (iframe)</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { margin: 0; }
+    .container { padding: 12px; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="card" aria-labelledby="iframe-form-title">
+      <h2 id="iframe-form-title">Iframe duplicate controls</h2>
+      <form class="grid-form">
+        <label>Text field <input type="text" id="text-field" name="username" autocomplete="username" value="mirror-iframe-value" /></label>
+        <label>Select (native)
+          <select id="country-select" name="country">
+            <option value="">— choose —</option>
+            <option value="us">United States</option>
+            <option value="cn">China</option>
+            <option value="de">Germany</option>
+          </select>
+        </label>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

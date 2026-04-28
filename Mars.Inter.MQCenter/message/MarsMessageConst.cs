@@ -26,7 +26,7 @@ namespace Mars.message.AutoTestingDriver.message
                 
                 return $"{MESSAGE_SERVICE_QUEUE_NAME}_{strUserName}";
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return MESSAGE_SERVICE_QUEUE_NAME;
             }

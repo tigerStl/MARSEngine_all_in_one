@@ -181,7 +181,7 @@ and steps_id in (
 
                     return true;
                 }
-                catch (Exception et)
+                catch (Exception)
                 {
                     if (trans != null)
                     {

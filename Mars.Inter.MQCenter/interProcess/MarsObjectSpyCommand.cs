@@ -89,7 +89,7 @@ namespace Mars.message.Inter.MQCenter.interProcess
                     System.Windows.Forms.Control.FromHandle(hdl);
                     return hdl;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     continue;
                 }
@@ -858,7 +858,7 @@ namespace Mars.message.Inter.MQCenter.interProcess
                 screenshot.Save(targetFileName, ImageFormat.Jpeg);
                 return targetFileName;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }

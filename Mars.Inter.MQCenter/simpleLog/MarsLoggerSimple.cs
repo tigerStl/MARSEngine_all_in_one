@@ -308,7 +308,7 @@ namespace Mars.message.Inter.MQCenter.simpleLog
                         //logger.CurrentLogFileName = string.Format("{0}log", logger.CurrentLogFileName_Prefix);
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // logger.currentLogFs.WriteLine("{0}",e.Message);
                 }
