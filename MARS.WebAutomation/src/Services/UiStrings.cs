@@ -55,6 +55,7 @@ namespace MARS.WebAutomation.Services
             ["ToolbarSync"] = ("Sync", "同步"),
             ["SkipInjectPrefixes"] = ("Skip inject URL prefixes", "跳过注入的 URL 前缀"),
             ["RecorderTabDepth"] = ("Recorder: tab context ancestor depth (1–12)", "录制：Tab 语义向上查找层数 (1–12)"),
+            ["PerformanceFilterTokens"] = ("Performance filter tokens (semicolon-separated; match filter tag or resource type)", "性能筛选词（分号分隔；匹配 FilterTag 或资源类型）"),
             ["Prop.OuterHtml"] = ("outerHTML", "outerHTML"),
             ["RecordHint"] = ("Record: semantic steps in the grid (left); workflow map (right). Drag nodes to arrange; positions are saved with the test JSON.", "录制：左侧为语义步骤表，右侧为流程图。可拖动节点排版，位置随测试 JSON 保存。"),
             ["PreviewTitle"] = ("Preview", "预览"),

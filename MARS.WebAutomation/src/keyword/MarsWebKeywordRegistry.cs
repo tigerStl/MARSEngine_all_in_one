@@ -24,7 +24,9 @@ namespace MARS.WebAutomation.Keyword
                 case "SelectTab":
                     return new MarsWebSelectTabImpl();
                 case "Pegwindow":
+                case "PegwindowMove":
                 case "WindowGeometry":
+                case "FileBrowser":
                     return new MarsWebNoOpImpl();
                 case "ClickButton":
                 case "SearchAndClick":

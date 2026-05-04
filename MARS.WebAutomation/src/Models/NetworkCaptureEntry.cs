@@ -11,6 +11,8 @@ namespace MARS.WebAutomation.Models
         public string Url { get; set; }
         public string ResourceType { get; set; }
         public int? Status { get; set; }
+        public string RequestBody { get; set; }
+        public string ResponseBody { get; set; }
         public Dictionary<string, string> RequestHeaders { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, string> ResponseHeaders { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         public string CookiesSummary { get; set; }

@@ -43,6 +43,7 @@ namespace MARS.WebAutomation.Services
         private IBrowserContext _pageEventSubscribedContext;
         private readonly HashSet<IPage> _pagesWithFrameNavListener = new HashSet<IPage>();
         private WorkbenchSettings _listenerSettings;
+        private SemanticStepRecord _lastPegwindowMoveStep;
 
         public async Task InstallAsync(IPage page, WorkbenchSettings settings = null)
         {
@@ -99,6 +100,18 @@ namespace MARS.WebAutomation.Services
                 try
                 {
                     await p.EvaluateAsync(scriptWithDepth).ConfigureAwait(false);
+                    var frames = p.Frames?.ToList() ?? new List<IFrame>();
+                    foreach (var f in frames)
+                    {
+                        try
+                        {
+                            await f.EvaluateAsync(scriptWithDepth).ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Debug(ex, "Evaluate recorder script skipped on one frame.");
+                        }
+                    }
                 }
                 catch (Exception ex) when (IsTargetClosed(ex))
                 {
@@ -299,7 +312,26 @@ namespace MARS.WebAutomation.Services
                         IsSyncRequest = string.Equals(kind, "sync", StringComparison.OrdinalIgnoreCase)
                     });
                 else
+                {
+                    if (step != null
+                        && string.Equals(step.Keyword, "PegwindowMove", StringComparison.OrdinalIgnoreCase)
+                        && _lastPegwindowMoveStep != null
+                        && string.Equals(_lastPegwindowMoveStep.RecordedPageUrl ?? string.Empty, step.RecordedPageUrl ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _lastPegwindowMoveStep.TimestampUtc = DateTime.UtcNow;
+                        _lastPegwindowMoveStep.Data = step.Data;
+                        _lastPegwindowMoveStep.Parameter = step.Parameter;
+                        _lastPegwindowMoveStep.RecordedPageTitle = step.RecordedPageTitle;
+                        _lastPegwindowMoveStep.SourceEvent = "update";
+                        RecordedStep?.Invoke(this, new RecorderEventArgs { Step = _lastPegwindowMoveStep });
+                        return;
+                    }
+                    if (step != null && string.Equals(step.Keyword, "PegwindowMove", StringComparison.OrdinalIgnoreCase))
+                        _lastPegwindowMoveStep = step;
+                    else if (step != null && !string.Equals(step.Keyword, "PegwindowMove", StringComparison.OrdinalIgnoreCase))
+                        _lastPegwindowMoveStep = null;
                     RecordedStep?.Invoke(this, new RecorderEventArgs { Step = step });
+                }
             }
             catch (Exception ex)
             {
@@ -397,27 +429,46 @@ namespace MARS.WebAutomation.Services
             if (string.Equals(logicalKind, "webMenu", StringComparison.OrdinalIgnoreCase)
                 && !string.Equals(keyword, "SelectMenuItem", StringComparison.OrdinalIgnoreCase))
                 keyword = "SelectMenuItem";
+            if (string.Equals(logicalKind, "webCombobox", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(keyword, "SelectDropDown", StringComparison.OrdinalIgnoreCase))
+                keyword = "SelectDropDown";
+            if (string.Equals(logicalKind, "webTable", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(keyword, "FillTable", StringComparison.OrdinalIgnoreCase))
+                keyword = "FillTable";
             if (string.Equals(logicalKind, "webRadio", StringComparison.OrdinalIgnoreCase)
                 && !string.Equals(keyword, "SetBox", StringComparison.OrdinalIgnoreCase))
                 keyword = "SetBox";
             if (string.Equals(logicalKind, "webCheckbox", StringComparison.OrdinalIgnoreCase)
                 && !string.Equals(keyword, "SetBox", StringComparison.OrdinalIgnoreCase))
                 keyword = "SetBox";
+            if (string.Equals(logicalKind, "webButton", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(keyword, "ClickButton", StringComparison.OrdinalIgnoreCase))
+                keyword = "ClickButton";
             if (string.Equals(logicalKind, "webSelect", StringComparison.OrdinalIgnoreCase)
                 && !string.Equals(keyword, "SelectDropDown", StringComparison.OrdinalIgnoreCase))
                 keyword = "SelectDropDown";
             if (string.Equals(logicalKind, "webWindow", StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(keyword, "Pegwindow", StringComparison.OrdinalIgnoreCase))
+                && !string.Equals(keyword, "Pegwindow", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(keyword, "PegwindowMove", StringComparison.OrdinalIgnoreCase))
                 keyword = "Pegwindow";
+            if (string.Equals(logicalKind, "webFileBrowser", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(keyword, "FileBrowser", StringComparison.OrdinalIgnoreCase))
+                keyword = "FileBrowser";
             if (string.Equals(keyword, "SelectTab", StringComparison.OrdinalIgnoreCase))
                 logicalKind = "webTab";
             if (string.Equals(keyword, "SelectMenuItem", StringComparison.OrdinalIgnoreCase))
                 logicalKind = "webMenu";
-            if (string.Equals(keyword, "Pegwindow", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(keyword, "Pegwindow", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(keyword, "PegwindowMove", StringComparison.OrdinalIgnoreCase))
                 logicalKind = "webWindow";
+            if (string.Equals(keyword, "FileBrowser", StringComparison.OrdinalIgnoreCase))
+                logicalKind = "webFileBrowser";
 
             var data = BuildData(keyword, text, value, chk, pageTitle, jo);
             var param = BuildParameter(keyword, tableCtx, tag, role);
+            var incomingParam = ((string)jo["Parameter"] ?? string.Empty).Trim();
+            if (!string.IsNullOrEmpty(incomingParam))
+                param = incomingParam;
 
             string targetTag = null;
             string targetRole = null;
@@ -481,6 +532,8 @@ namespace MARS.WebAutomation.Services
                 return "webCheckbox";
             if (tag == "input" && typeAttr == "radio")
                 return "webRadio";
+            if (tag == "input" && typeAttr == "file")
+                return "webFileBrowser";
             if (string.Equals(role, "checkbox", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(role, "switch", StringComparison.OrdinalIgnoreCase))
                 return "webCheckbox";
@@ -492,7 +545,7 @@ namespace MARS.WebAutomation.Services
                 || string.Equals(role, "table", StringComparison.OrdinalIgnoreCase))
                 return "webTable";
             if (tag == "select" || role == "combobox" || role == "listbox")
-                return "webMenu";
+                return "webCombobox";
             if (role == "menu" || role == "menubar" || role == "menuitem")
                 return "webMenu";
             if (role == "tab")
@@ -506,6 +559,9 @@ namespace MARS.WebAutomation.Services
 
         private static string BuildData(string keyword, string text, string value, bool chk, string pageTitle, JObject jo = null)
         {
+            var srcTag = ((string)(jo?["Tag"] ?? string.Empty) ?? string.Empty).Trim();
+            var isInputTag = string.Equals(srcTag, "input", StringComparison.OrdinalIgnoreCase);
+
             if (string.Equals(keyword, "SelectTab", StringComparison.OrdinalIgnoreCase))
             {
                 var tabLabel = jo != null ? (string)jo["TabLabel"] : null;
@@ -526,6 +582,7 @@ namespace MARS.WebAutomation.Services
             }
 
             if (string.Equals(keyword, "Pegwindow", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(keyword, "PegwindowMove", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(keyword, "WindowGeometry", StringComparison.OrdinalIgnoreCase))
             {
                 if (jo != null && jo["Value"] != null && jo["Value"].Type != JTokenType.Null)
@@ -538,10 +595,18 @@ namespace MARS.WebAutomation.Services
                     return value;
                 return text ?? string.Empty;
             }
+            if (string.Equals(keyword, "FileBrowser", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!string.IsNullOrEmpty(value))
+                    return value;
+                return text ?? string.Empty;
+            }
 
             if (keyword == "SetBox")
                 return chk ? "true" : "false";
-            if (keyword == "FillEdit" || keyword == "SelectDropDown")
+            if (isInputTag && !string.IsNullOrEmpty(value))
+                return value;
+            if (keyword == "FillEdit" || keyword == "SelectDropDown" || keyword == "FillTable")
             {
                 if (!string.IsNullOrEmpty(value))
                     return value;
@@ -592,6 +657,8 @@ namespace MARS.WebAutomation.Services
 
             if (tag == "select" || role == "combobox" || role == "listbox")
                 return "SelectDropDown";
+            if (tag == "input" && typeAttr == "file")
+                return "FileBrowser";
             if (role == "menuitem" || role == "menuitemcheckbox" || role == "menuitemradio" || role == "menu" || role == "menubar")
                 return "SelectMenuItem";
 

@@ -21,10 +21,12 @@ namespace MARS.WebAutomation.Services
 
         public const string BuildObjectTreeJson = @"
 () => {
-  function rect(el) {
+  function rect(el, offX, offY) {
     try {
       var r = el.getBoundingClientRect();
-      return { X: r.x, Y: r.y, Width: r.width, Height: r.height };
+      var ox = (typeof offX === 'number') ? offX : 0;
+      var oy = (typeof offY === 'number') ? offY : 0;
+      return { X: r.x + ox, Y: r.y + oy, Width: r.width, Height: r.height };
     } catch (e) { return null; }
   }
   function esc(s) {
@@ -241,6 +243,12 @@ namespace MARS.WebAutomation.Services
     var t = (el.innerText || el.textContent || '').trim().replace(/\s+/g, ' ');
     return t.length > 200 ? t.substring(0, 200) + '…' : t;
   }
+  function appendPathArr(arr, cur) {
+    var out = arr ? arr.slice() : [];
+    var c = (cur == null) ? '' : String(cur).trim();
+    out.push(c);
+    return out;
+  }
   function interactiveKind(tag, role, el) {
     var t = tag ? tag.toUpperCase() : '';
     var r = (role || '').toLowerCase();
@@ -252,12 +260,20 @@ namespace MARS.WebAutomation.Services
     return 'container';
   }
   var idSeq = 0;
-  function walk(el, parentId, depth) {
-    if (!el || depth > 10) return null;
+  function walk(el, parentId, depth, offX, offY, framePath, rolePathArr, tagPathArr, idPathArr, namePathArr, textPathArr) {
+    if (!el || depth > 24) return null;
     if (el.nodeType !== 1) return null;
+    var ox = (typeof offX === 'number') ? offX : 0;
+    var oy = (typeof offY === 'number') ? offY : 0;
     var id = (window.__marsTreeNodeIdPrefix || '') + 'n' + (++idSeq);
+    var fp = framePath || '';
     var tag = el.tagName || '';
     var role = el.getAttribute('role') || '';
+    var currRolePathArr = appendPathArr(rolePathArr, role);
+    var currTagPathArr = appendPathArr(tagPathArr, tag);
+    var currIdPathArr = appendPathArr(idPathArr, attr(el, 'id'));
+    var currNamePathArr = appendPathArr(namePathArr, attr(el, 'name'));
+    var currTextPathArr = appendPathArr(textPathArr, shortText(el));
     var disp = tag + (el.id ? '#' + el.id : '') + (role ? '[role=' + role + ']' : '') + ' ' + shortText(el).substring(0, 80);
     var href = (tag === 'A' && el.href) ? String(el.href) : (attr(el, 'href') || '');
     var dis = false;
@@ -269,7 +285,7 @@ namespace MARS.WebAutomation.Services
       Tag: tag,
       Role: role,
       LocatorHint: locatorHint(el),
-      Bounds: rect(el),
+      Bounds: rect(el, ox, oy),
       InteractiveKind: interactiveKind(tag, role, el),
       ClassName: attr(el, 'class'),
       NameAttr: attr(el, 'name'),
@@ -307,18 +323,67 @@ namespace MARS.WebAutomation.Services
         } catch (e9) { return ''; }
       })(),
       PageInstanceId: (typeof window.__marsPageInstanceId === 'string' ? window.__marsPageInstanceId : ''),
+      FramePath: fp,
+      RolePath: currRolePathArr.join(';'),
+      HtmlTagPath: currTagPathArr.join(';'),
+      IdPath: currIdPathArr.join(';'),
+      NamePath: currNamePathArr.join(';'),
+      TextPath: currTextPathArr.join(';'),
       Children: []
     };
     var ch = el.children;
     for (var i = 0; i < ch.length; i++) {
-      var w = walk(ch[i], id, depth + 1);
+      var w = walk(ch[i], id, depth + 1, ox, oy, fp, currRolePathArr, currTagPathArr, currIdPathArr, currNamePathArr, currTextPathArr);
       if (w) node.Children.push(w);
+    }
+    // Include open shadow-root elements so controls inside custom cells are visible.
+    try {
+      var sr = el.shadowRoot;
+      var sch = sr ? sr.children : null;
+      if (sch && sch.length) {
+        for (var si = 0; si < sch.length; si++) {
+          var sw = walk(sch[si], id, depth + 1, ox, oy, fp, currRolePathArr, currTagPathArr, currIdPathArr, currNamePathArr, currTextPathArr);
+          if (sw) node.Children.push(sw);
+        }
+      }
+    } catch (e14) {
+      // closed shadow root / access denied
+    }
+    // Expand iframe/frame internal DOM when same-origin access is allowed.
+    if (tag === 'IFRAME' || tag === 'FRAME') {
+      try {
+        var fd = el.contentDocument;
+        var fr = fd ? (fd.body || fd.documentElement) : null;
+        if (fr && fr.nodeType === 1) {
+          var frRect = null;
+          try { frRect = el.getBoundingClientRect(); } catch (e11) { frRect = null; }
+          var nx = ox + (frRect ? frRect.left : 0);
+          var ny = oy + (frRect ? frRect.top : 0);
+          var idx = -1;
+          try {
+            var ff = fd.querySelectorAll ? fd.querySelectorAll('iframe,frame') : [];
+            idx = [].indexOf.call(ff, el);
+          } catch (e12) { idx = -1; }
+          if (idx < 0) {
+            try {
+              var ff2 = el.ownerDocument.querySelectorAll('iframe,frame');
+              for (var ii = 0; ii < ff2.length; ii++) { if (ff2[ii] === el) { idx = ii; break; } }
+            } catch (e13) { idx = -1; }
+          }
+          if (idx < 0) idx = 0;
+          var childPath = fp ? (fp + '/' + idx) : String(idx);
+          var fw = walk(fr, id, depth + 1, nx, ny, childPath, currRolePathArr, currTagPathArr, currIdPathArr, currNamePathArr, currTextPathArr);
+          if (fw) node.Children.push(fw);
+        }
+      } catch (e10) {
+        // Cross-origin frames are not accessible; keep frame element node only.
+      }
     }
     return node;
   }
   var root = document.body || document.documentElement;
   if (!root) return '[]';
-  var tree = walk(root, null, 0);
+  var tree = walk(root, null, 0, 0, 0, '', [], [], [], [], []);
   return JSON.stringify(tree ? [tree] : []);
 }";
 
@@ -333,14 +398,6 @@ namespace MARS.WebAutomation.Services
         /// <summary>Highlights a DOM node. Argument: hint, xpath, x,y,w,h, kind (container|interactive). Skips ambiguous tag-only CSS hints; resolves via xpath then bounds.</summary>
         public const string ApplyObjectHighlight = @"
 (p) => {
-  function elByXPath(path) {
-    if (!path || typeof document.evaluate === 'undefined') return null;
-    try {
-      var xr = document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-      var n = xr.singleNodeValue;
-      return n && n.nodeType === 1 ? n : null;
-    } catch (ex) { return null; }
-  }
   function hintLooksSpecific(h) {
     if (!h) return false;
     var t = String(h).trim();
@@ -349,19 +406,106 @@ namespace MARS.WebAutomation.Services
     if (t.charAt(0) === '.') return true;
     return false;
   }
+  function findInDoc(doc, hint, xpath) {
+    var el = null;
+    if (hint && hintLooksSpecific(hint)) {
+      try { el = doc.querySelector(hint); } catch (e0) { el = null; }
+    }
+    if (!el && xpath) {
+      try {
+        var xr = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+        var n = xr.singleNodeValue;
+        if (n && n.nodeType === 1) el = n;
+      } catch (e1) { el = null; }
+    }
+    return el;
+  }
+  function findWithFrames(doc, hint, xpath, offX, offY, depth) {
+    if (!doc || depth > 8) return null;
+    var el = findInDoc(doc, hint, xpath);
+    if (el) {
+      try {
+        var r = el.getBoundingClientRect();
+        return {
+          el: el,
+          rect: { left: r.left + offX, top: r.top + offY, width: r.width, height: r.height }
+        };
+      } catch (e2) {}
+    }
+    var fns = [];
+    try { fns = doc.querySelectorAll('iframe,frame'); } catch (e3) { fns = []; }
+    for (var i = 0; i < fns.length; i++) {
+      var fr = fns[i];
+      try {
+        var sub = fr.contentDocument;
+        if (!sub) continue;
+        var frRect = fr.getBoundingClientRect();
+        var got = findWithFrames(sub, hint, xpath, offX + frRect.left, offY + frRect.top, depth + 1);
+        if (got) return got;
+      } catch (e4) {
+        // cross-origin frame, skip
+      }
+    }
+    return null;
+  }
+  function resolveDocByFramePath(path) {
+    if (!path) return document;
+    var parts = String(path).split('/').filter(function(x){ return x.length > 0; });
+    var doc = document;
+    for (var i = 0; i < parts.length; i++) {
+      var idx = parseInt(parts[i], 10);
+      if (isNaN(idx) || idx < 0) return null;
+      var fns = [];
+      try { fns = doc.querySelectorAll('iframe,frame'); } catch (e0) { return null; }
+      if (idx >= fns.length) return null;
+      var fr = fns[idx];
+      try { doc = fr.contentDocument; } catch (e1) { return null; }
+      if (!doc) return null;
+    }
+    return doc;
+  }
+  function frameOffsetByPath(path) {
+    if (!path) return { x: 0, y: 0 };
+    var parts = String(path).split('/').filter(function(x){ return x.length > 0; });
+    var doc = document, ox = 0, oy = 0;
+    for (var i = 0; i < parts.length; i++) {
+      var idx = parseInt(parts[i], 10);
+      if (isNaN(idx) || idx < 0) break;
+      var fns = [];
+      try { fns = doc.querySelectorAll('iframe,frame'); } catch (e0) { break; }
+      if (idx >= fns.length) break;
+      var fr = fns[idx];
+      try {
+        var rr = fr.getBoundingClientRect();
+        ox += rr.left; oy += rr.top;
+        doc = fr.contentDocument;
+      } catch (e1) { break; }
+      if (!doc) break;
+    }
+    return { x: ox, y: oy };
+  }
   var old = document.getElementById('__mars_wa_inspect_hl');
   if (old) old.remove();
   var hint = (p && p.hint) ? String(p.hint) : '';
   var xpath = (p && p.xpath) ? String(p.xpath) : '';
-  var el = null;
-  if (hint && hintLooksSpecific(hint)) {
-    try { el = document.querySelector(hint); } catch (e) { el = null; }
+  var framePath = (p && p.framePath) ? String(p.framePath) : '';
+  var got = null;
+  if (framePath) {
+    var d0 = resolveDocByFramePath(framePath);
+    if (d0) {
+      var of0 = frameOffsetByPath(framePath);
+      var e0 = findInDoc(d0, hint, xpath);
+      if (e0) {
+        try {
+          var r0 = e0.getBoundingClientRect();
+          got = { el: e0, rect: { left: r0.left + of0.x, top: r0.top + of0.y, width: r0.width, height: r0.height } };
+        } catch (e2) {}
+      }
+    }
   }
-  if (!el && xpath) el = elByXPath(xpath);
-  var r = null;
-  if (el) {
-    try { r = el.getBoundingClientRect(); } catch (e2) { r = null; }
-  }
+  if (!got) got = findWithFrames(document, hint, xpath, 0, 0, 0);
+  var el = got ? got.el : null;
+  var r = got ? got.rect : null;
   if (!r && p && typeof p.x === 'number' && typeof p.y === 'number') {
     var w = (typeof p.w === 'number' && p.w > 0) ? p.w : 2;
     var h = (typeof p.h === 'number' && p.h > 0) ? p.h : 2;
@@ -370,7 +514,23 @@ namespace MARS.WebAutomation.Services
   if (!r || (r.width < 1 && r.height < 1)) return false;
   try {
     if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-  } catch (e3) {}
+    var got2 = null;
+    if (framePath) {
+      var d1 = resolveDocByFramePath(framePath);
+      if (d1) {
+        var of1 = frameOffsetByPath(framePath);
+        var e1 = findInDoc(d1, hint, xpath);
+        if (e1) {
+          try {
+            var r1 = e1.getBoundingClientRect();
+            got2 = { el: e1, rect: { left: r1.left + of1.x, top: r1.top + of1.y, width: r1.width, height: r1.height } };
+          } catch (e6) {}
+        }
+      }
+    }
+    if (!got2) got2 = findWithFrames(document, hint, xpath, 0, 0, 0);
+    if (got2 && got2.rect) r = got2.rect;
+  } catch (e5) {}
   var kind = (p && p.kind) ? String(p.kind) : '';
   var interactive = kind !== 'container';
   if (p && typeof p.interactive === 'boolean') interactive = p.interactive;

@@ -34,6 +34,17 @@ namespace MARS.WebAutomation.UI
         private System.Windows.Forms.TabPage tabObjects;
         private System.Windows.Forms.TabPage tabRecord;
         private System.Windows.Forms.TabPage tabSettings;
+        private System.Windows.Forms.SplitContainer splitRecordMainPreview;
+        private System.Windows.Forms.SplitContainer splitRecordWorkPreview;
+        private System.Windows.Forms.Panel panelRecordCanvasPreview;
+        private System.Windows.Forms.Label lblRecordCanvasPreview;
+        private System.Windows.Forms.Panel panelRecordPerfPreview;
+        private System.Windows.Forms.SplitContainer splitRecordPerfPreview;
+        private System.Windows.Forms.DataGridView gridPerfAnchorPreview;
+        private System.Windows.Forms.DataGridView gridPerfRuntimePreview;
+        private System.Windows.Forms.Label lblPerfDesignTitle;
+        private System.Windows.Forms.Label lblPerfDesignAnchorSummary;
+        private System.Windows.Forms.Label lblPerfDesignRuntime;
         private System.Windows.Forms.Panel panelObjectsToolbar;
         private System.Windows.Forms.FlowLayoutPanel flowObjectsToolbar;
         private System.Windows.Forms.TextBox txtTreeSearch;
@@ -112,6 +123,19 @@ namespace MARS.WebAutomation.UI
             this.chkTreeRegex = new System.Windows.Forms.CheckBox();
             this.btnRefreshTree = new System.Windows.Forms.Button();
             this.tabRecord = new System.Windows.Forms.TabPage();
+            this.splitRecordMainPreview = new System.Windows.Forms.SplitContainer();
+            this.splitRecordWorkPreview = new System.Windows.Forms.SplitContainer();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.gridSteps = new System.Windows.Forms.DataGridView();
+            this.panelRecordPerfPreview = new System.Windows.Forms.Panel();
+            this.splitRecordPerfPreview = new System.Windows.Forms.SplitContainer();
+            this.gridPerfAnchorPreview = new System.Windows.Forms.DataGridView();
+            this.lblPerfDesignAnchorSummary = new System.Windows.Forms.Label();
+            this.gridPerfRuntimePreview = new System.Windows.Forms.DataGridView();
+            this.lblPerfDesignRuntime = new System.Windows.Forms.Label();
+            this.lblPerfDesignTitle = new System.Windows.Forms.Label();
+            this.panelRecordCanvasPreview = new System.Windows.Forms.Panel();
+            this.lblRecordCanvasPreview = new System.Windows.Forms.Label();
             this.lblRecordHint = new System.Windows.Forms.Label();
             this.tabSettings = new System.Windows.Forms.TabPage();
             this.layoutSettings = new System.Windows.Forms.TableLayoutPanel();
@@ -127,8 +151,6 @@ namespace MARS.WebAutomation.UI
             this.numViewportW = new System.Windows.Forms.NumericUpDown();
             this.numViewportH = new System.Windows.Forms.NumericUpDown();
             this.btnSaveSettings = new System.Windows.Forms.Button();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.gridSteps = new System.Windows.Forms.DataGridView();
             this.menuMain.SuspendLayout();
             this.toolMain.SuspendLayout();
             this.statusMain.SuspendLayout();
@@ -145,13 +167,29 @@ namespace MARS.WebAutomation.UI
             this.panelObjectsToolbar.SuspendLayout();
             this.flowObjectsToolbar.SuspendLayout();
             this.tabRecord.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitRecordMainPreview)).BeginInit();
+            this.splitRecordMainPreview.Panel1.SuspendLayout();
+            this.splitRecordMainPreview.Panel2.SuspendLayout();
+            this.splitRecordMainPreview.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitRecordWorkPreview)).BeginInit();
+            this.splitRecordWorkPreview.Panel1.SuspendLayout();
+            this.splitRecordWorkPreview.Panel2.SuspendLayout();
+            this.splitRecordWorkPreview.SuspendLayout();
+            this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.gridSteps)).BeginInit();
+            this.panelRecordPerfPreview.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitRecordPerfPreview)).BeginInit();
+            this.splitRecordPerfPreview.Panel1.SuspendLayout();
+            this.splitRecordPerfPreview.Panel2.SuspendLayout();
+            this.splitRecordPerfPreview.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.gridPerfAnchorPreview)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.gridPerfRuntimePreview)).BeginInit();
+            this.panelRecordCanvasPreview.SuspendLayout();
             this.tabSettings.SuspendLayout();
             this.layoutSettings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numTimeout)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numViewportW)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numViewportH)).BeginInit();
-            this.panel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.gridSteps)).BeginInit();
             this.SuspendLayout();
             // 
             // menuMain
@@ -162,7 +200,8 @@ namespace MARS.WebAutomation.UI
             this.menuHelp});
             this.menuMain.Location = new System.Drawing.Point(0, 0);
             this.menuMain.Name = "menuMain";
-            this.menuMain.Size = new System.Drawing.Size(640, 24);
+            this.menuMain.Padding = new System.Windows.Forms.Padding(4, 2, 0, 2);
+            this.menuMain.Size = new System.Drawing.Size(636, 24);
             this.menuMain.TabIndex = 0;
             this.menuMain.Text = "menuStrip1";
             // 
@@ -266,7 +305,7 @@ namespace MARS.WebAutomation.UI
             this.tsbSave});
             this.toolMain.Location = new System.Drawing.Point(0, 24);
             this.toolMain.Name = "toolMain";
-            this.toolMain.Size = new System.Drawing.Size(640, 25);
+            this.toolMain.Size = new System.Drawing.Size(636, 25);
             this.toolMain.TabIndex = 1;
             // 
             // tslBrand
@@ -346,10 +385,9 @@ namespace MARS.WebAutomation.UI
             this.statusMain.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statusLabel});
-            this.statusMain.Location = new System.Drawing.Point(0, 458);
+            this.statusMain.Location = new System.Drawing.Point(0, 475);
             this.statusMain.Name = "statusMain";
-            this.statusMain.Padding = new System.Windows.Forms.Padding(1, 0, 19, 0);
-            this.statusMain.Size = new System.Drawing.Size(640, 22);
+            this.statusMain.Size = new System.Drawing.Size(636, 22);
             this.statusMain.TabIndex = 2;
             // 
             // statusLabel
@@ -366,20 +404,18 @@ namespace MARS.WebAutomation.UI
             this.tabMain.Controls.Add(this.tabSettings);
             this.tabMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabMain.Location = new System.Drawing.Point(0, 49);
-            this.tabMain.Margin = new System.Windows.Forms.Padding(4);
             this.tabMain.Name = "tabMain";
             this.tabMain.SelectedIndex = 0;
-            this.tabMain.Size = new System.Drawing.Size(640, 409);
+            this.tabMain.Size = new System.Drawing.Size(636, 426);
             this.tabMain.TabIndex = 3;
             // 
             // tabTarget
             // 
             this.tabTarget.Controls.Add(this.panelTargetCard);
-            this.tabTarget.Location = new System.Drawing.Point(4, 25);
-            this.tabTarget.Margin = new System.Windows.Forms.Padding(4);
+            this.tabTarget.Location = new System.Drawing.Point(4, 22);
             this.tabTarget.Name = "tabTarget";
-            this.tabTarget.Padding = new System.Windows.Forms.Padding(16, 12, 16, 12);
-            this.tabTarget.Size = new System.Drawing.Size(632, 380);
+            this.tabTarget.Padding = new System.Windows.Forms.Padding(12, 10, 12, 10);
+            this.tabTarget.Size = new System.Drawing.Size(628, 400);
             this.tabTarget.TabIndex = 0;
             this.tabTarget.Text = "Target";
             this.tabTarget.UseVisualStyleBackColor = true;
@@ -389,18 +425,17 @@ namespace MARS.WebAutomation.UI
             this.panelTargetCard.BackColor = System.Drawing.Color.White;
             this.panelTargetCard.Controls.Add(this.layoutTarget);
             this.panelTargetCard.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelTargetCard.Location = new System.Drawing.Point(16, 12);
-            this.panelTargetCard.Margin = new System.Windows.Forms.Padding(4);
+            this.panelTargetCard.Location = new System.Drawing.Point(12, 10);
             this.panelTargetCard.Name = "panelTargetCard";
-            this.panelTargetCard.Size = new System.Drawing.Size(600, 356);
+            this.panelTargetCard.Size = new System.Drawing.Size(604, 380);
             this.panelTargetCard.TabIndex = 0;
             // 
             // layoutTarget
             // 
             this.layoutTarget.ColumnCount = 3;
             this.layoutTarget.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.layoutTarget.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 188F));
-            this.layoutTarget.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 188F));
+            this.layoutTarget.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 141F));
+            this.layoutTarget.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 141F));
             this.layoutTarget.Controls.Add(this.lblSectionUrl, 0, 0);
             this.layoutTarget.Controls.Add(this.btnStartBrowser, 1, 1);
             this.layoutTarget.Controls.Add(this.txtUrl, 0, 1);
@@ -412,18 +447,17 @@ namespace MARS.WebAutomation.UI
             this.layoutTarget.Controls.Add(this.lblQuery, 0, 6);
             this.layoutTarget.Dock = System.Windows.Forms.DockStyle.Fill;
             this.layoutTarget.Location = new System.Drawing.Point(0, 0);
-            this.layoutTarget.Margin = new System.Windows.Forms.Padding(4);
             this.layoutTarget.Name = "layoutTarget";
             this.layoutTarget.RowCount = 8;
             this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
-            this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28F));
-            this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28F));
-            this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28F));
-            this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28F));
-            this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28F));
+            this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26F));
+            this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 23F));
+            this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 23F));
+            this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 23F));
+            this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 23F));
+            this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 23F));
             this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.layoutTarget.Size = new System.Drawing.Size(600, 356);
+            this.layoutTarget.Size = new System.Drawing.Size(604, 380);
             this.layoutTarget.TabIndex = 3;
             // 
             // lblSectionUrl
@@ -431,11 +465,10 @@ namespace MARS.WebAutomation.UI
             this.lblSectionUrl.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.layoutTarget.SetColumnSpan(this.lblSectionUrl, 3);
             this.lblSectionUrl.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(65)))), ((int)(((byte)(81)))));
-            this.lblSectionUrl.Location = new System.Drawing.Point(4, 0);
-            this.lblSectionUrl.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblSectionUrl.Location = new System.Drawing.Point(81, 0);
             this.lblSectionUrl.Name = "lblSectionUrl";
-            this.lblSectionUrl.Padding = new System.Windows.Forms.Padding(0, 0, 0, 5);
-            this.lblSectionUrl.Size = new System.Drawing.Size(592, 22);
+            this.lblSectionUrl.Padding = new System.Windows.Forms.Padding(0, 0, 0, 4);
+            this.lblSectionUrl.Size = new System.Drawing.Size(442, 18);
             this.lblSectionUrl.TabIndex = 9;
             this.lblSectionUrl.Text = "Page URL";
             this.lblSectionUrl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -443,10 +476,10 @@ namespace MARS.WebAutomation.UI
             // btnStartBrowser
             // 
             this.btnStartBrowser.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnStartBrowser.Location = new System.Drawing.Point(226, 24);
+            this.btnStartBrowser.Location = new System.Drawing.Point(324, 20);
             this.btnStartBrowser.Margin = new System.Windows.Forms.Padding(2);
             this.btnStartBrowser.Name = "btnStartBrowser";
-            this.btnStartBrowser.Size = new System.Drawing.Size(184, 28);
+            this.btnStartBrowser.Size = new System.Drawing.Size(137, 22);
             this.btnStartBrowser.TabIndex = 8;
             this.btnStartBrowser.Text = "Start browser";
             this.btnStartBrowser.UseVisualStyleBackColor = true;
@@ -455,19 +488,19 @@ namespace MARS.WebAutomation.UI
             // 
             this.txtUrl.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtUrl.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtUrl.Location = new System.Drawing.Point(8, 27);
-            this.txtUrl.Margin = new System.Windows.Forms.Padding(8, 5, 5, 5);
+            this.txtUrl.Location = new System.Drawing.Point(6, 22);
+            this.txtUrl.Margin = new System.Windows.Forms.Padding(6, 4, 4, 4);
             this.txtUrl.Name = "txtUrl";
-            this.txtUrl.Size = new System.Drawing.Size(211, 22);
+            this.txtUrl.Size = new System.Drawing.Size(312, 20);
             this.txtUrl.TabIndex = 0;
             // 
             // btnNavigate
             // 
             this.btnNavigate.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnNavigate.Location = new System.Drawing.Point(414, 24);
+            this.btnNavigate.Location = new System.Drawing.Point(465, 20);
             this.btnNavigate.Margin = new System.Windows.Forms.Padding(2);
             this.btnNavigate.Name = "btnNavigate";
-            this.btnNavigate.Size = new System.Drawing.Size(184, 28);
+            this.btnNavigate.Size = new System.Drawing.Size(137, 22);
             this.btnNavigate.TabIndex = 2;
             this.btnNavigate.Text = "Navigate";
             this.btnNavigate.UseVisualStyleBackColor = true;
@@ -477,10 +510,10 @@ namespace MARS.WebAutomation.UI
             this.lblScheme.AutoSize = true;
             this.layoutTarget.SetColumnSpan(this.lblScheme, 3);
             this.lblScheme.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblScheme.Location = new System.Drawing.Point(2, 56);
+            this.lblScheme.Location = new System.Drawing.Point(2, 46);
             this.lblScheme.Margin = new System.Windows.Forms.Padding(2);
             this.lblScheme.Name = "lblScheme";
-            this.lblScheme.Size = new System.Drawing.Size(596, 24);
+            this.lblScheme.Size = new System.Drawing.Size(600, 19);
             this.lblScheme.TabIndex = 3;
             this.lblScheme.Text = "Scheme:";
             this.lblScheme.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -490,10 +523,10 @@ namespace MARS.WebAutomation.UI
             this.lblHost.AutoSize = true;
             this.layoutTarget.SetColumnSpan(this.lblHost, 3);
             this.lblHost.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblHost.Location = new System.Drawing.Point(2, 84);
+            this.lblHost.Location = new System.Drawing.Point(2, 69);
             this.lblHost.Margin = new System.Windows.Forms.Padding(2);
             this.lblHost.Name = "lblHost";
-            this.lblHost.Size = new System.Drawing.Size(596, 24);
+            this.lblHost.Size = new System.Drawing.Size(600, 19);
             this.lblHost.TabIndex = 4;
             this.lblHost.Text = "Host:";
             this.lblHost.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -503,10 +536,10 @@ namespace MARS.WebAutomation.UI
             this.lblPort.AutoSize = true;
             this.layoutTarget.SetColumnSpan(this.lblPort, 3);
             this.lblPort.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblPort.Location = new System.Drawing.Point(2, 112);
+            this.lblPort.Location = new System.Drawing.Point(2, 92);
             this.lblPort.Margin = new System.Windows.Forms.Padding(2);
             this.lblPort.Name = "lblPort";
-            this.lblPort.Size = new System.Drawing.Size(596, 24);
+            this.lblPort.Size = new System.Drawing.Size(600, 19);
             this.lblPort.TabIndex = 5;
             this.lblPort.Text = "Port:";
             this.lblPort.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -516,10 +549,10 @@ namespace MARS.WebAutomation.UI
             this.lblPath.AutoSize = true;
             this.layoutTarget.SetColumnSpan(this.lblPath, 3);
             this.lblPath.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblPath.Location = new System.Drawing.Point(2, 140);
+            this.lblPath.Location = new System.Drawing.Point(2, 115);
             this.lblPath.Margin = new System.Windows.Forms.Padding(2);
             this.lblPath.Name = "lblPath";
-            this.lblPath.Size = new System.Drawing.Size(596, 24);
+            this.lblPath.Size = new System.Drawing.Size(600, 19);
             this.lblPath.TabIndex = 6;
             this.lblPath.Text = "Path:";
             this.lblPath.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -529,10 +562,10 @@ namespace MARS.WebAutomation.UI
             this.lblQuery.AutoSize = true;
             this.layoutTarget.SetColumnSpan(this.lblQuery, 3);
             this.lblQuery.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblQuery.Location = new System.Drawing.Point(2, 168);
+            this.lblQuery.Location = new System.Drawing.Point(2, 138);
             this.lblQuery.Margin = new System.Windows.Forms.Padding(2);
             this.lblQuery.Name = "lblQuery";
-            this.lblQuery.Size = new System.Drawing.Size(596, 24);
+            this.lblQuery.Size = new System.Drawing.Size(600, 19);
             this.lblQuery.TabIndex = 7;
             this.lblQuery.Text = "Query:";
             this.lblQuery.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -541,11 +574,10 @@ namespace MARS.WebAutomation.UI
             // 
             this.tabObjects.Controls.Add(this.splitObjects);
             this.tabObjects.Controls.Add(this.panelObjectsToolbar);
-            this.tabObjects.Location = new System.Drawing.Point(4, 25);
-            this.tabObjects.Margin = new System.Windows.Forms.Padding(4);
+            this.tabObjects.Location = new System.Drawing.Point(4, 22);
             this.tabObjects.Name = "tabObjects";
-            this.tabObjects.Padding = new System.Windows.Forms.Padding(5);
-            this.tabObjects.Size = new System.Drawing.Size(632, 380);
+            this.tabObjects.Padding = new System.Windows.Forms.Padding(4);
+            this.tabObjects.Size = new System.Drawing.Size(628, 400);
             this.tabObjects.TabIndex = 1;
             this.tabObjects.Text = "Objects";
             this.tabObjects.UseVisualStyleBackColor = true;
@@ -553,8 +585,7 @@ namespace MARS.WebAutomation.UI
             // splitObjects
             // 
             this.splitObjects.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitObjects.Location = new System.Drawing.Point(5, 45);
-            this.splitObjects.Margin = new System.Windows.Forms.Padding(4);
+            this.splitObjects.Location = new System.Drawing.Point(4, 36);
             this.splitObjects.Name = "splitObjects";
             // 
             // splitObjects.Panel1
@@ -564,18 +595,16 @@ namespace MARS.WebAutomation.UI
             // splitObjects.Panel2
             // 
             this.splitObjects.Panel2.Controls.Add(this.gridObjectProps);
-            this.splitObjects.Size = new System.Drawing.Size(622, 330);
-            this.splitObjects.SplitterDistance = 260;
-            this.splitObjects.SplitterWidth = 5;
+            this.splitObjects.Size = new System.Drawing.Size(620, 360);
+            this.splitObjects.SplitterDistance = 259;
             this.splitObjects.TabIndex = 1;
             // 
             // treeObjects
             // 
             this.treeObjects.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeObjects.Location = new System.Drawing.Point(0, 0);
-            this.treeObjects.Margin = new System.Windows.Forms.Padding(4);
             this.treeObjects.Name = "treeObjects";
-            this.treeObjects.Size = new System.Drawing.Size(260, 330);
+            this.treeObjects.Size = new System.Drawing.Size(259, 360);
             this.treeObjects.TabIndex = 0;
             this.treeObjects.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeObjects_AfterSelect);
             // 
@@ -587,22 +616,20 @@ namespace MARS.WebAutomation.UI
             this.gridObjectProps.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.gridObjectProps.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gridObjectProps.Location = new System.Drawing.Point(0, 0);
-            this.gridObjectProps.Margin = new System.Windows.Forms.Padding(4);
             this.gridObjectProps.Name = "gridObjectProps";
             this.gridObjectProps.ReadOnly = true;
             this.gridObjectProps.RowHeadersVisible = false;
             this.gridObjectProps.RowHeadersWidth = 51;
-            this.gridObjectProps.Size = new System.Drawing.Size(357, 330);
+            this.gridObjectProps.Size = new System.Drawing.Size(357, 360);
             this.gridObjectProps.TabIndex = 0;
             // 
             // panelObjectsToolbar
             // 
             this.panelObjectsToolbar.Controls.Add(this.flowObjectsToolbar);
             this.panelObjectsToolbar.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panelObjectsToolbar.Location = new System.Drawing.Point(5, 5);
-            this.panelObjectsToolbar.Margin = new System.Windows.Forms.Padding(4);
+            this.panelObjectsToolbar.Location = new System.Drawing.Point(4, 4);
             this.panelObjectsToolbar.Name = "panelObjectsToolbar";
-            this.panelObjectsToolbar.Size = new System.Drawing.Size(622, 40);
+            this.panelObjectsToolbar.Size = new System.Drawing.Size(620, 32);
             this.panelObjectsToolbar.TabIndex = 2;
             // 
             // flowObjectsToolbar
@@ -617,27 +644,26 @@ namespace MARS.WebAutomation.UI
             this.flowObjectsToolbar.Controls.Add(this.btnRefreshTree);
             this.flowObjectsToolbar.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowObjectsToolbar.Location = new System.Drawing.Point(0, 0);
-            this.flowObjectsToolbar.Margin = new System.Windows.Forms.Padding(4);
             this.flowObjectsToolbar.Name = "flowObjectsToolbar";
-            this.flowObjectsToolbar.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
-            this.flowObjectsToolbar.Size = new System.Drawing.Size(622, 40);
+            this.flowObjectsToolbar.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
+            this.flowObjectsToolbar.Size = new System.Drawing.Size(620, 32);
             this.flowObjectsToolbar.TabIndex = 0;
             this.flowObjectsToolbar.WrapContents = false;
             // 
             // txtTreeSearch
             // 
-            this.txtTreeSearch.Location = new System.Drawing.Point(4, 8);
-            this.txtTreeSearch.Margin = new System.Windows.Forms.Padding(4, 4, 6, 4);
+            this.txtTreeSearch.Location = new System.Drawing.Point(3, 6);
+            this.txtTreeSearch.Margin = new System.Windows.Forms.Padding(3, 3, 4, 3);
             this.txtTreeSearch.Name = "txtTreeSearch";
-            this.txtTreeSearch.Size = new System.Drawing.Size(220, 22);
+            this.txtTreeSearch.Size = new System.Drawing.Size(166, 20);
             this.txtTreeSearch.TabIndex = 0;
             // 
             // btnTreeSearchGo
             // 
-            this.btnTreeSearchGo.Location = new System.Drawing.Point(234, 6);
-            this.btnTreeSearchGo.Margin = new System.Windows.Forms.Padding(4, 2, 2, 2);
+            this.btnTreeSearchGo.Location = new System.Drawing.Point(176, 5);
+            this.btnTreeSearchGo.Margin = new System.Windows.Forms.Padding(3, 2, 2, 2);
             this.btnTreeSearchGo.Name = "btnTreeSearchGo";
-            this.btnTreeSearchGo.Size = new System.Drawing.Size(32, 26);
+            this.btnTreeSearchGo.Size = new System.Drawing.Size(24, 21);
             this.btnTreeSearchGo.TabIndex = 1;
             this.btnTreeSearchGo.Text = "▶";
             this.btnTreeSearchGo.UseVisualStyleBackColor = true;
@@ -645,10 +671,10 @@ namespace MARS.WebAutomation.UI
             // 
             // btnTreeSearchPrev
             // 
-            this.btnTreeSearchPrev.Location = new System.Drawing.Point(270, 6);
+            this.btnTreeSearchPrev.Location = new System.Drawing.Point(204, 5);
             this.btnTreeSearchPrev.Margin = new System.Windows.Forms.Padding(2);
             this.btnTreeSearchPrev.Name = "btnTreeSearchPrev";
-            this.btnTreeSearchPrev.Size = new System.Drawing.Size(32, 26);
+            this.btnTreeSearchPrev.Size = new System.Drawing.Size(24, 21);
             this.btnTreeSearchPrev.TabIndex = 2;
             this.btnTreeSearchPrev.Text = "＜";
             this.btnTreeSearchPrev.UseVisualStyleBackColor = true;
@@ -656,10 +682,10 @@ namespace MARS.WebAutomation.UI
             // 
             // btnTreeSearchNext
             // 
-            this.btnTreeSearchNext.Location = new System.Drawing.Point(306, 6);
+            this.btnTreeSearchNext.Location = new System.Drawing.Point(232, 5);
             this.btnTreeSearchNext.Margin = new System.Windows.Forms.Padding(2);
             this.btnTreeSearchNext.Name = "btnTreeSearchNext";
-            this.btnTreeSearchNext.Size = new System.Drawing.Size(32, 26);
+            this.btnTreeSearchNext.Size = new System.Drawing.Size(24, 21);
             this.btnTreeSearchNext.TabIndex = 3;
             this.btnTreeSearchNext.Text = "＞";
             this.btnTreeSearchNext.UseVisualStyleBackColor = true;
@@ -668,10 +694,10 @@ namespace MARS.WebAutomation.UI
             // chkTreeRegex
             // 
             this.chkTreeRegex.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chkTreeRegex.Location = new System.Drawing.Point(344, 6);
-            this.chkTreeRegex.Margin = new System.Windows.Forms.Padding(4, 2, 6, 2);
+            this.chkTreeRegex.Location = new System.Drawing.Point(261, 5);
+            this.chkTreeRegex.Margin = new System.Windows.Forms.Padding(3, 2, 4, 2);
             this.chkTreeRegex.Name = "chkTreeRegex";
-            this.chkTreeRegex.Size = new System.Drawing.Size(36, 26);
+            this.chkTreeRegex.Size = new System.Drawing.Size(27, 21);
             this.chkTreeRegex.TabIndex = 4;
             this.chkTreeRegex.Text = "*";
             this.chkTreeRegex.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -679,10 +705,10 @@ namespace MARS.WebAutomation.UI
             // 
             // btnRefreshTree
             // 
-            this.btnRefreshTree.Location = new System.Drawing.Point(390, 6);
-            this.btnRefreshTree.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
+            this.btnRefreshTree.Location = new System.Drawing.Point(295, 5);
+            this.btnRefreshTree.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnRefreshTree.Name = "btnRefreshTree";
-            this.btnRefreshTree.Size = new System.Drawing.Size(100, 26);
+            this.btnRefreshTree.Size = new System.Drawing.Size(75, 21);
             this.btnRefreshTree.TabIndex = 5;
             this.btnRefreshTree.Text = "Refresh tree";
             this.btnRefreshTree.UseVisualStyleBackColor = true;
@@ -690,25 +716,204 @@ namespace MARS.WebAutomation.UI
             // 
             // tabRecord
             // 
-            this.tabRecord.Controls.Add(this.panel1);
+            this.tabRecord.Controls.Add(this.splitRecordMainPreview);
             this.tabRecord.Controls.Add(this.lblRecordHint);
-            this.tabRecord.Location = new System.Drawing.Point(4, 25);
-            this.tabRecord.Margin = new System.Windows.Forms.Padding(4);
+            this.tabRecord.Location = new System.Drawing.Point(4, 22);
             this.tabRecord.Name = "tabRecord";
-            this.tabRecord.Padding = new System.Windows.Forms.Padding(5);
-            this.tabRecord.Size = new System.Drawing.Size(632, 380);
+            this.tabRecord.Padding = new System.Windows.Forms.Padding(4);
+            this.tabRecord.Size = new System.Drawing.Size(628, 400);
             this.tabRecord.TabIndex = 2;
             this.tabRecord.Text = "Record / Replay";
             this.tabRecord.UseVisualStyleBackColor = true;
             // 
+            // splitRecordMainPreview
+            // 
+            this.splitRecordMainPreview.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitRecordMainPreview.Location = new System.Drawing.Point(4, 37);
+            this.splitRecordMainPreview.Name = "splitRecordMainPreview";
+            // 
+            // splitRecordMainPreview.Panel1
+            // 
+            this.splitRecordMainPreview.Panel1.Controls.Add(this.splitRecordWorkPreview);
+            // 
+            // splitRecordMainPreview.Panel2
+            // 
+            this.splitRecordMainPreview.Panel2.Controls.Add(this.panelRecordCanvasPreview);
+            this.splitRecordMainPreview.Size = new System.Drawing.Size(620, 359);
+            this.splitRecordMainPreview.SplitterDistance = 390;
+            this.splitRecordMainPreview.TabIndex = 5;
+            // 
+            // splitRecordWorkPreview
+            // 
+            this.splitRecordWorkPreview.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitRecordWorkPreview.Location = new System.Drawing.Point(0, 0);
+            this.splitRecordWorkPreview.Name = "splitRecordWorkPreview";
+            this.splitRecordWorkPreview.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitRecordWorkPreview.Panel1
+            // 
+            this.splitRecordWorkPreview.Panel1.Controls.Add(this.panel1);
+            // 
+            // splitRecordWorkPreview.Panel2
+            // 
+            this.splitRecordWorkPreview.Panel2.Controls.Add(this.panelRecordPerfPreview);
+            this.splitRecordWorkPreview.Size = new System.Drawing.Size(390, 359);
+            this.splitRecordWorkPreview.SplitterDistance = 182;
+            this.splitRecordWorkPreview.TabIndex = 0;
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.gridSteps);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Margin = new System.Windows.Forms.Padding(2);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(390, 182);
+            this.panel1.TabIndex = 3;
+            // 
+            // gridSteps
+            // 
+            this.gridSteps.AllowUserToAddRows = false;
+            this.gridSteps.AllowUserToDeleteRows = false;
+            this.gridSteps.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.gridSteps.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.gridSteps.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.gridSteps.Location = new System.Drawing.Point(0, 0);
+            this.gridSteps.Name = "gridSteps";
+            this.gridSteps.ReadOnly = true;
+            this.gridSteps.RowHeadersVisible = false;
+            this.gridSteps.RowHeadersWidth = 51;
+            this.gridSteps.Size = new System.Drawing.Size(390, 182);
+            this.gridSteps.TabIndex = 1;
+            // 
+            // panelRecordPerfPreview
+            // 
+            this.panelRecordPerfPreview.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(250)))), ((int)(((byte)(252)))));
+            this.panelRecordPerfPreview.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelRecordPerfPreview.Controls.Add(this.splitRecordPerfPreview);
+            this.panelRecordPerfPreview.Controls.Add(this.lblPerfDesignTitle);
+            this.panelRecordPerfPreview.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelRecordPerfPreview.Location = new System.Drawing.Point(0, 0);
+            this.panelRecordPerfPreview.Name = "panelRecordPerfPreview";
+            this.panelRecordPerfPreview.Size = new System.Drawing.Size(390, 173);
+            this.panelRecordPerfPreview.TabIndex = 4;
+            // 
+            // splitRecordPerfPreview
+            // 
+            this.splitRecordPerfPreview.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitRecordPerfPreview.Location = new System.Drawing.Point(0, 28);
+            this.splitRecordPerfPreview.Name = "splitRecordPerfPreview";
+            this.splitRecordPerfPreview.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitRecordPerfPreview.Panel1
+            // 
+            this.splitRecordPerfPreview.Panel1.Controls.Add(this.gridPerfAnchorPreview);
+            this.splitRecordPerfPreview.Panel1.Controls.Add(this.lblPerfDesignAnchorSummary);
+            // 
+            // splitRecordPerfPreview.Panel2
+            // 
+            this.splitRecordPerfPreview.Panel2.Controls.Add(this.gridPerfRuntimePreview);
+            this.splitRecordPerfPreview.Panel2.Controls.Add(this.lblPerfDesignRuntime);
+            this.splitRecordPerfPreview.Size = new System.Drawing.Size(388, 143);
+            this.splitRecordPerfPreview.SplitterDistance = 88;
+            this.splitRecordPerfPreview.SplitterWidth = 5;
+            this.splitRecordPerfPreview.TabIndex = 2;
+            // 
+            // gridPerfAnchorPreview
+            // 
+            this.gridPerfAnchorPreview.AllowUserToAddRows = false;
+            this.gridPerfAnchorPreview.AllowUserToDeleteRows = false;
+            this.gridPerfAnchorPreview.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.gridPerfAnchorPreview.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.gridPerfAnchorPreview.Location = new System.Drawing.Point(0, 22);
+            this.gridPerfAnchorPreview.Name = "gridPerfAnchorPreview";
+            this.gridPerfAnchorPreview.ReadOnly = true;
+            this.gridPerfAnchorPreview.RowHeadersVisible = false;
+            this.gridPerfAnchorPreview.RowHeadersWidth = 51;
+            this.gridPerfAnchorPreview.Size = new System.Drawing.Size(388, 66);
+            this.gridPerfAnchorPreview.TabIndex = 1;
+            // 
+            // lblPerfDesignAnchorSummary
+            // 
+            this.lblPerfDesignAnchorSummary.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblPerfDesignAnchorSummary.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
+            this.lblPerfDesignAnchorSummary.Location = new System.Drawing.Point(0, 0);
+            this.lblPerfDesignAnchorSummary.Name = "lblPerfDesignAnchorSummary";
+            this.lblPerfDesignAnchorSummary.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblPerfDesignAnchorSummary.Size = new System.Drawing.Size(388, 22);
+            this.lblPerfDesignAnchorSummary.TabIndex = 0;
+            this.lblPerfDesignAnchorSummary.Text = "Anchor groups: (design preview)";
+            this.lblPerfDesignAnchorSummary.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // gridPerfRuntimePreview
+            // 
+            this.gridPerfRuntimePreview.AllowUserToAddRows = false;
+            this.gridPerfRuntimePreview.AllowUserToDeleteRows = false;
+            this.gridPerfRuntimePreview.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.gridPerfRuntimePreview.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.gridPerfRuntimePreview.Location = new System.Drawing.Point(0, 20);
+            this.gridPerfRuntimePreview.Name = "gridPerfRuntimePreview";
+            this.gridPerfRuntimePreview.ReadOnly = true;
+            this.gridPerfRuntimePreview.RowHeadersVisible = false;
+            this.gridPerfRuntimePreview.RowHeadersWidth = 51;
+            this.gridPerfRuntimePreview.Size = new System.Drawing.Size(388, 30);
+            this.gridPerfRuntimePreview.TabIndex = 1;
+            // 
+            // lblPerfDesignRuntime
+            // 
+            this.lblPerfDesignRuntime.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblPerfDesignRuntime.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
+            this.lblPerfDesignRuntime.Location = new System.Drawing.Point(0, 0);
+            this.lblPerfDesignRuntime.Name = "lblPerfDesignRuntime";
+            this.lblPerfDesignRuntime.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblPerfDesignRuntime.Size = new System.Drawing.Size(388, 20);
+            this.lblPerfDesignRuntime.TabIndex = 1;
+            this.lblPerfDesignRuntime.Text = "Runtime progress (throughput/error rate)";
+            this.lblPerfDesignRuntime.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // lblPerfDesignTitle
+            // 
+            this.lblPerfDesignTitle.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(245)))), ((int)(((byte)(249)))));
+            this.lblPerfDesignTitle.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblPerfDesignTitle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblPerfDesignTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
+            this.lblPerfDesignTitle.Location = new System.Drawing.Point(0, 0);
+            this.lblPerfDesignTitle.Name = "lblPerfDesignTitle";
+            this.lblPerfDesignTitle.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblPerfDesignTitle.Size = new System.Drawing.Size(388, 28);
+            this.lblPerfDesignTitle.TabIndex = 0;
+            this.lblPerfDesignTitle.Text = "Perform Test anchors / Runtime progress";
+            this.lblPerfDesignTitle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // panelRecordCanvasPreview
+            // 
+            this.panelRecordCanvasPreview.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelRecordCanvasPreview.Controls.Add(this.lblRecordCanvasPreview);
+            this.panelRecordCanvasPreview.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelRecordCanvasPreview.Location = new System.Drawing.Point(0, 0);
+            this.panelRecordCanvasPreview.Name = "panelRecordCanvasPreview";
+            this.panelRecordCanvasPreview.Size = new System.Drawing.Size(226, 359);
+            this.panelRecordCanvasPreview.TabIndex = 0;
+            // 
+            // lblRecordCanvasPreview
+            // 
+            this.lblRecordCanvasPreview.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblRecordCanvasPreview.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
+            this.lblRecordCanvasPreview.Location = new System.Drawing.Point(0, 0);
+            this.lblRecordCanvasPreview.Name = "lblRecordCanvasPreview";
+            this.lblRecordCanvasPreview.Padding = new System.Windows.Forms.Padding(12);
+            this.lblRecordCanvasPreview.Size = new System.Drawing.Size(224, 357);
+            this.lblRecordCanvasPreview.TabIndex = 0;
+            this.lblRecordCanvasPreview.Text = "Canvas/WebView preview area (design only)";
+            this.lblRecordCanvasPreview.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // lblRecordHint
             // 
             this.lblRecordHint.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lblRecordHint.Location = new System.Drawing.Point(5, 5);
-            this.lblRecordHint.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblRecordHint.Location = new System.Drawing.Point(4, 4);
             this.lblRecordHint.Name = "lblRecordHint";
-            this.lblRecordHint.Padding = new System.Windows.Forms.Padding(13, 10, 13, 10);
-            this.lblRecordHint.Size = new System.Drawing.Size(622, 41);
+            this.lblRecordHint.Padding = new System.Windows.Forms.Padding(10, 8, 10, 8);
+            this.lblRecordHint.Size = new System.Drawing.Size(620, 33);
             this.lblRecordHint.TabIndex = 2;
             this.lblRecordHint.Text = "Toolbar: Record toggles capture; Replay runs the grid below. Steps use semantic k" +
     "eywords.";
@@ -716,20 +921,21 @@ namespace MARS.WebAutomation.UI
             // 
             // tabSettings
             // 
+            this.tabSettings.AutoScroll = true;
             this.tabSettings.Controls.Add(this.layoutSettings);
-            this.tabSettings.Location = new System.Drawing.Point(4, 25);
-            this.tabSettings.Margin = new System.Windows.Forms.Padding(4);
+            this.tabSettings.Location = new System.Drawing.Point(4, 22);
             this.tabSettings.Name = "tabSettings";
-            this.tabSettings.Padding = new System.Windows.Forms.Padding(11, 10, 11, 10);
-            this.tabSettings.Size = new System.Drawing.Size(632, 380);
+            this.tabSettings.Padding = new System.Windows.Forms.Padding(8);
+            this.tabSettings.Size = new System.Drawing.Size(628, 400);
             this.tabSettings.TabIndex = 3;
             this.tabSettings.Text = "Settings";
             this.tabSettings.UseVisualStyleBackColor = true;
             // 
             // layoutSettings
             // 
+            this.layoutSettings.AutoSize = true;
             this.layoutSettings.ColumnCount = 2;
-            this.layoutSettings.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 213F));
+            this.layoutSettings.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 160F));
             this.layoutSettings.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.layoutSettings.Controls.Add(this.lblDataRoot, 0, 0);
             this.layoutSettings.Controls.Add(this.txtDataRoot, 1, 0);
@@ -743,30 +949,28 @@ namespace MARS.WebAutomation.UI
             this.layoutSettings.Controls.Add(this.numViewportW, 1, 5);
             this.layoutSettings.Controls.Add(this.numViewportH, 1, 6);
             this.layoutSettings.Controls.Add(this.btnSaveSettings, 1, 7);
-            this.layoutSettings.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.layoutSettings.Location = new System.Drawing.Point(11, 10);
-            this.layoutSettings.Margin = new System.Windows.Forms.Padding(4);
+            this.layoutSettings.Dock = System.Windows.Forms.DockStyle.Top;
+            this.layoutSettings.Location = new System.Drawing.Point(8, 8);
             this.layoutSettings.Name = "layoutSettings";
             this.layoutSettings.RowCount = 8;
-            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 39F));
-            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 39F));
-            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 39F));
-            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 39F));
-            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 39F));
-            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 39F));
-            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 39F));
-            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 49F));
-            this.layoutSettings.Size = new System.Drawing.Size(610, 360);
+            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
+            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
+            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
+            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
+            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
+            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
+            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
+            this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
+            this.layoutSettings.Size = new System.Drawing.Size(612, 264);
             this.layoutSettings.TabIndex = 0;
             // 
             // lblDataRoot
             // 
             this.lblDataRoot.AutoSize = true;
             this.lblDataRoot.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblDataRoot.Location = new System.Drawing.Point(4, 0);
-            this.lblDataRoot.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblDataRoot.Location = new System.Drawing.Point(3, 0);
             this.lblDataRoot.Name = "lblDataRoot";
-            this.lblDataRoot.Size = new System.Drawing.Size(205, 39);
+            this.lblDataRoot.Size = new System.Drawing.Size(154, 32);
             this.lblDataRoot.TabIndex = 0;
             this.lblDataRoot.Text = "Data root folder";
             this.lblDataRoot.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -774,19 +978,17 @@ namespace MARS.WebAutomation.UI
             // txtDataRoot
             // 
             this.txtDataRoot.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtDataRoot.Location = new System.Drawing.Point(217, 4);
-            this.txtDataRoot.Margin = new System.Windows.Forms.Padding(4);
+            this.txtDataRoot.Location = new System.Drawing.Point(163, 3);
             this.txtDataRoot.Name = "txtDataRoot";
-            this.txtDataRoot.Size = new System.Drawing.Size(389, 22);
+            this.txtDataRoot.Size = new System.Drawing.Size(446, 20);
             this.txtDataRoot.TabIndex = 1;
             // 
             // chkHeadless
             // 
             this.chkHeadless.AutoSize = true;
-            this.chkHeadless.Location = new System.Drawing.Point(217, 43);
-            this.chkHeadless.Margin = new System.Windows.Forms.Padding(4);
+            this.chkHeadless.Location = new System.Drawing.Point(163, 35);
             this.chkHeadless.Name = "chkHeadless";
-            this.chkHeadless.Size = new System.Drawing.Size(123, 20);
+            this.chkHeadless.Size = new System.Drawing.Size(99, 17);
             this.chkHeadless.TabIndex = 2;
             this.chkHeadless.Text = "Headless mode";
             this.chkHeadless.UseVisualStyleBackColor = true;
@@ -795,10 +997,9 @@ namespace MARS.WebAutomation.UI
             // 
             this.lblTimeout.AutoSize = true;
             this.lblTimeout.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblTimeout.Location = new System.Drawing.Point(4, 78);
-            this.lblTimeout.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblTimeout.Location = new System.Drawing.Point(3, 64);
             this.lblTimeout.Name = "lblTimeout";
-            this.lblTimeout.Size = new System.Drawing.Size(205, 39);
+            this.lblTimeout.Size = new System.Drawing.Size(154, 32);
             this.lblTimeout.TabIndex = 3;
             this.lblTimeout.Text = "Default timeout (ms)";
             this.lblTimeout.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -806,8 +1007,7 @@ namespace MARS.WebAutomation.UI
             // numTimeout
             // 
             this.numTimeout.Dock = System.Windows.Forms.DockStyle.Left;
-            this.numTimeout.Location = new System.Drawing.Point(217, 82);
-            this.numTimeout.Margin = new System.Windows.Forms.Padding(4);
+            this.numTimeout.Location = new System.Drawing.Point(163, 67);
             this.numTimeout.Maximum = new decimal(new int[] {
             600000,
             0,
@@ -819,7 +1019,7 @@ namespace MARS.WebAutomation.UI
             0,
             0});
             this.numTimeout.Name = "numTimeout";
-            this.numTimeout.Size = new System.Drawing.Size(160, 22);
+            this.numTimeout.Size = new System.Drawing.Size(120, 20);
             this.numTimeout.TabIndex = 4;
             this.numTimeout.Value = new decimal(new int[] {
             30000,
@@ -830,10 +1030,9 @@ namespace MARS.WebAutomation.UI
             // chkPersistHeaders
             // 
             this.chkPersistHeaders.AutoSize = true;
-            this.chkPersistHeaders.Location = new System.Drawing.Point(217, 121);
-            this.chkPersistHeaders.Margin = new System.Windows.Forms.Padding(4);
+            this.chkPersistHeaders.Location = new System.Drawing.Point(163, 99);
             this.chkPersistHeaders.Name = "chkPersistHeaders";
-            this.chkPersistHeaders.Size = new System.Drawing.Size(312, 20);
+            this.chkPersistHeaders.Size = new System.Drawing.Size(253, 17);
             this.chkPersistHeaders.TabIndex = 5;
             this.chkPersistHeaders.Text = "Persist sensitive headers/cookies in network log";
             this.chkPersistHeaders.UseVisualStyleBackColor = true;
@@ -842,10 +1041,9 @@ namespace MARS.WebAutomation.UI
             // 
             this.lblChannel.AutoSize = true;
             this.lblChannel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblChannel.Location = new System.Drawing.Point(4, 156);
-            this.lblChannel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblChannel.Location = new System.Drawing.Point(3, 128);
             this.lblChannel.Name = "lblChannel";
-            this.lblChannel.Size = new System.Drawing.Size(205, 39);
+            this.lblChannel.Size = new System.Drawing.Size(154, 32);
             this.lblChannel.TabIndex = 6;
             this.lblChannel.Text = "Browser channel (opt.)";
             this.lblChannel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -853,20 +1051,18 @@ namespace MARS.WebAutomation.UI
             // txtBrowserChannel
             // 
             this.txtBrowserChannel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtBrowserChannel.Location = new System.Drawing.Point(217, 160);
-            this.txtBrowserChannel.Margin = new System.Windows.Forms.Padding(4);
+            this.txtBrowserChannel.Location = new System.Drawing.Point(163, 131);
             this.txtBrowserChannel.Name = "txtBrowserChannel";
-            this.txtBrowserChannel.Size = new System.Drawing.Size(389, 22);
+            this.txtBrowserChannel.Size = new System.Drawing.Size(446, 20);
             this.txtBrowserChannel.TabIndex = 7;
             // 
             // lblViewport
             // 
             this.lblViewport.AutoSize = true;
             this.lblViewport.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblViewport.Location = new System.Drawing.Point(4, 195);
-            this.lblViewport.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblViewport.Location = new System.Drawing.Point(3, 160);
             this.lblViewport.Name = "lblViewport";
-            this.lblViewport.Size = new System.Drawing.Size(205, 39);
+            this.lblViewport.Size = new System.Drawing.Size(154, 32);
             this.lblViewport.TabIndex = 8;
             this.lblViewport.Text = "Viewport W / H";
             this.lblViewport.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -874,8 +1070,7 @@ namespace MARS.WebAutomation.UI
             // numViewportW
             // 
             this.numViewportW.Dock = System.Windows.Forms.DockStyle.Left;
-            this.numViewportW.Location = new System.Drawing.Point(217, 199);
-            this.numViewportW.Margin = new System.Windows.Forms.Padding(4);
+            this.numViewportW.Location = new System.Drawing.Point(163, 163);
             this.numViewportW.Maximum = new decimal(new int[] {
             4000,
             0,
@@ -887,7 +1082,7 @@ namespace MARS.WebAutomation.UI
             0,
             0});
             this.numViewportW.Name = "numViewportW";
-            this.numViewportW.Size = new System.Drawing.Size(107, 22);
+            this.numViewportW.Size = new System.Drawing.Size(80, 20);
             this.numViewportW.TabIndex = 9;
             this.numViewportW.Value = new decimal(new int[] {
             1280,
@@ -898,8 +1093,7 @@ namespace MARS.WebAutomation.UI
             // numViewportH
             // 
             this.numViewportH.Dock = System.Windows.Forms.DockStyle.Left;
-            this.numViewportH.Location = new System.Drawing.Point(217, 238);
-            this.numViewportH.Margin = new System.Windows.Forms.Padding(4);
+            this.numViewportH.Location = new System.Drawing.Point(163, 195);
             this.numViewportH.Maximum = new decimal(new int[] {
             4000,
             0,
@@ -911,7 +1105,7 @@ namespace MARS.WebAutomation.UI
             0,
             0});
             this.numViewportH.Name = "numViewportH";
-            this.numViewportH.Size = new System.Drawing.Size(107, 22);
+            this.numViewportH.Size = new System.Drawing.Size(80, 20);
             this.numViewportH.TabIndex = 10;
             this.numViewportH.Value = new decimal(new int[] {
             720,
@@ -921,52 +1115,25 @@ namespace MARS.WebAutomation.UI
             // 
             // btnSaveSettings
             // 
-            this.btnSaveSettings.Location = new System.Drawing.Point(217, 277);
-            this.btnSaveSettings.Margin = new System.Windows.Forms.Padding(4);
+            this.btnSaveSettings.Location = new System.Drawing.Point(163, 227);
             this.btnSaveSettings.Name = "btnSaveSettings";
-            this.btnSaveSettings.Size = new System.Drawing.Size(160, 34);
+            this.btnSaveSettings.Size = new System.Drawing.Size(120, 28);
             this.btnSaveSettings.TabIndex = 11;
             this.btnSaveSettings.Text = "Save settings";
             this.btnSaveSettings.UseVisualStyleBackColor = true;
             this.btnSaveSettings.Click += new System.EventHandler(this.btnSaveSettings_Click);
             // 
-            // panel1
-            // 
-            this.panel1.Controls.Add(this.gridSteps);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel1.Location = new System.Drawing.Point(5, 46);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(622, 329);
-            this.panel1.TabIndex = 3;
-            // 
-            // gridSteps
-            // 
-            this.gridSteps.AllowUserToAddRows = false;
-            this.gridSteps.AllowUserToDeleteRows = false;
-            this.gridSteps.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.gridSteps.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.gridSteps.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gridSteps.Location = new System.Drawing.Point(0, 0);
-            this.gridSteps.Margin = new System.Windows.Forms.Padding(4);
-            this.gridSteps.Name = "gridSteps";
-            this.gridSteps.ReadOnly = true;
-            this.gridSteps.RowHeadersVisible = false;
-            this.gridSteps.RowHeadersWidth = 51;
-            this.gridSteps.Size = new System.Drawing.Size(622, 329);
-            this.gridSteps.TabIndex = 1;
-            // 
             // MainWorkbenchForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(640, 480);
+            this.ClientSize = new System.Drawing.Size(636, 497);
             this.Controls.Add(this.tabMain);
             this.Controls.Add(this.statusMain);
             this.Controls.Add(this.toolMain);
             this.Controls.Add(this.menuMain);
             this.MainMenuStrip = this.menuMain;
-            this.Margin = new System.Windows.Forms.Padding(4);
-            this.MinimumSize = new System.Drawing.Size(640, 480);
+            this.MinimumSize = new System.Drawing.Size(484, 397);
             this.Name = "MainWorkbenchForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "MARS Web Automation";
@@ -992,14 +1159,31 @@ namespace MARS.WebAutomation.UI
             this.flowObjectsToolbar.ResumeLayout(false);
             this.flowObjectsToolbar.PerformLayout();
             this.tabRecord.ResumeLayout(false);
+            this.splitRecordMainPreview.Panel1.ResumeLayout(false);
+            this.splitRecordMainPreview.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitRecordMainPreview)).EndInit();
+            this.splitRecordMainPreview.ResumeLayout(false);
+            this.splitRecordWorkPreview.Panel1.ResumeLayout(false);
+            this.splitRecordWorkPreview.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitRecordWorkPreview)).EndInit();
+            this.splitRecordWorkPreview.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.gridSteps)).EndInit();
+            this.panelRecordPerfPreview.ResumeLayout(false);
+            this.splitRecordPerfPreview.Panel1.ResumeLayout(false);
+            this.splitRecordPerfPreview.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitRecordPerfPreview)).EndInit();
+            this.splitRecordPerfPreview.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.gridPerfAnchorPreview)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.gridPerfRuntimePreview)).EndInit();
+            this.panelRecordCanvasPreview.ResumeLayout(false);
             this.tabSettings.ResumeLayout(false);
+            this.tabSettings.PerformLayout();
             this.layoutSettings.ResumeLayout(false);
             this.layoutSettings.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numTimeout)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numViewportW)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numViewportH)).EndInit();
-            this.panel1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.gridSteps)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 

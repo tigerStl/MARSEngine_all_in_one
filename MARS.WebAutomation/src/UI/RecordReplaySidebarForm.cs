@@ -9,11 +9,11 @@ using Newtonsoft.Json;
 
 namespace MARS.WebAutomation.UI
 {
-    internal sealed class RecordReplaySidebarForm : Form
+    internal sealed partial class RecordReplaySidebarForm : Form
     {
         private readonly List<RecordReplayEventCard> _cards = new List<RecordReplayEventCard>();
         private readonly object _sync = new object();
-        private readonly WebBrowser _web = new WebBrowser();
+        private WebBrowser _web;
         private int _seq;
         private static readonly string LogDir = @"c:\temp\Mars.automationweb.log";
         private static readonly string LogFile = Path.Combine(LogDir, "record-replay-events.jsonl");
@@ -38,21 +38,11 @@ namespace MARS.WebAutomation.UI
 
         public RecordReplaySidebarForm()
         {
-            Text = "Record-Replay Events";
-            StartPosition = FormStartPosition.Manual;
-            FormBorderStyle = FormBorderStyle.SizableToolWindow;
-            ShowInTaskbar = false;
-            TopMost = true;
+            InitializeComponent();
             Width = 300;
             Left = 0;
             Top = 0;
             Height = Screen.PrimaryScreen.Bounds.Height;
-
-            _web.Dock = DockStyle.Fill;
-            _web.AllowWebBrowserDrop = false;
-            _web.IsWebBrowserContextMenuEnabled = false;
-            _web.ScriptErrorsSuppressed = true;
-            Controls.Add(_web);
 
             EnsureLogDirectory();
             RenderCards();

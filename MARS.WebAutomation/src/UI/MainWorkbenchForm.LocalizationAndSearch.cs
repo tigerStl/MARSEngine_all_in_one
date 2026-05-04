@@ -108,6 +108,8 @@ namespace MARS.WebAutomation.UI
                 _lblIgnoredPagePrefixes.Text = L("SkipInjectPrefixes");
             if (_lblRecorderTabDepth != null)
                 _lblRecorderTabDepth.Text = L("RecorderTabDepth");
+            if (_lblPerformanceFilterTokens != null)
+                _lblPerformanceFilterTokens.Text = L("PerformanceFilterTokens");
             statusLabel.Text = L("Ready");
             if (gridObjectProps.Columns.Count >= 2)
             {

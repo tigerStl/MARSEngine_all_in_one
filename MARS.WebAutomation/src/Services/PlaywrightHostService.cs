@@ -32,10 +32,21 @@ namespace MARS.WebAutomation.Services
         public async Task StartAsync(WorkbenchSettings settings)
         {
             using (WebAutomationMethodTrace.Begin(Log, nameof(StartAsync),
-                (nameof(settings), settings == null ? "null" : $"Headless={settings.Headless},Channel={settings.BrowserChannel},TimeoutMs={settings.DefaultTimeoutMs},Viewport={settings.ViewportWidth}x{settings.ViewportHeight}")))
+                (nameof(settings), settings == null ? "null" : $"UseExisting={settings.UseExistingBrowser},Cdp={settings.ExistingBrowserCdpEndpoint},Headless={settings.Headless},Channel={settings.BrowserChannel},TimeoutMs={settings.DefaultTimeoutMs},Viewport={settings.ViewportWidth}x{settings.ViewportHeight}")))
             {
                 if (settings == null)
                     throw new ArgumentNullException(nameof(settings));
+
+                if (settings.UseExistingBrowser)
+                {
+                    var endpoint = string.IsNullOrWhiteSpace(settings.ExistingBrowserCdpEndpoint)
+                        ? "http://127.0.0.1:9222"
+                        : settings.ExistingBrowserCdpEndpoint.Trim();
+                    var attach = await TryConnectChromiumOverCdpAsync(settings, endpoint).ConfigureAwait(false);
+                    if (!attach.Success)
+                        throw new InvalidOperationException("Failed to attach existing browser over CDP. " + (attach.ErrorMessage ?? string.Empty));
+                    return;
+                }
 
                 await ShutdownAsync().ConfigureAwait(false);
                 _attachedOverCdp = false;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace MARS.WebAutomation.Models
@@ -52,6 +53,9 @@ namespace MARS.WebAutomation.Models
 
         /// <summary>When <see cref="Keyword"/> is SelectTab: XPath for the actual click target.</summary>
         public string TargetXpath { get; set; }
+
+        /// <summary>Linked protocol/performance request IDs captured after this UI step.</summary>
+        public List<string> PerformanceRequestRefs { get; set; } = new List<string>();
 
         [JsonIgnore]
         public string BoundsDisplay

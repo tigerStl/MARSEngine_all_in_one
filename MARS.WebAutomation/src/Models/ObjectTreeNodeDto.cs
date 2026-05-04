@@ -59,5 +59,14 @@ namespace MARS.WebAutomation.Models
 
         /// <summary>Per-tab/window stamp set while building the tree; used to run highlight/screenshot on the correct Playwright page.</summary>
         public string PageInstanceId { get; set; }
+
+        /// <summary>Frame path from top document using same-document iframe/frame index chain (e.g. <c>0/2</c>); empty means top document.</summary>
+        public string FramePath { get; set; }
+
+        public string RolePath { get; set; }
+        public string HtmlTagPath { get; set; }
+        public string IdPath { get; set; }
+        public string NamePath { get; set; }
+        public string TextPath { get; set; }
     }
 }
