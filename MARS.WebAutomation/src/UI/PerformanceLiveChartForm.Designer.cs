@@ -7,12 +7,20 @@ namespace MARS.WebAutomation.UI
     {
         private Panel _chartScrollHost;
         private Panel _chartPanel;
+        private Panel _aggregatePanel;
 
         private void InitializeComponent()
         {
+            _aggregatePanel = new Panel();
             _chartScrollHost = new Panel();
             _chartPanel = new Panel();
             SuspendLayout();
+            //
+            // _aggregatePanel
+            //
+            _aggregatePanel.BackColor = Color.White;
+            _aggregatePanel.Dock = DockStyle.Bottom;
+            _aggregatePanel.Height = 120;
             //
             // _chartScrollHost
             //
@@ -34,6 +42,7 @@ namespace MARS.WebAutomation.UI
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(900, 480);
             Controls.Add(_chartScrollHost);
+            Controls.Add(_aggregatePanel);
             FormBorderStyle = FormBorderStyle.SizableToolWindow;
             Name = "PerformanceLiveChartForm";
             ShowInTaskbar = false;

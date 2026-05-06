@@ -28,6 +28,11 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="src\UI\MainWorkbenchForm.PerformancePreviewGrids.Designer.cs">
+      <DependentUpon>src\UI\MainWorkbenchForm.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <None Update="scripts\recorder.install.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

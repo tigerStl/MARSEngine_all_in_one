@@ -100,10 +100,12 @@ namespace MARS.WebAutomation.UI
             tsbExport.Text = L("ToolbarExport");
             tsbImport.Text = L("ToolbarImport");
             tsbSave.Text = L("ToolbarSave");
-            if (_tsbReloadEngine != null)
-                _tsbReloadEngine.Text = L("ToolbarReloadEngine");
-            if (_chkSyncFocus != null)
-                _chkSyncFocus.Text = L("ToolbarSync");
+            tsbReloadEngine.Text = L("ToolbarReloadEngine");
+            chkSyncFocus.Text = L("ToolbarSync");
+            chkWithPerformanceTest.Text = L("ToolbarWithPerformanceTest");
+            tsbRunPerf.Text = L("ToolbarRunPerf");
+            tsbStopPerf.Text = L("ToolbarStopPerf");
+            tsbRunPerfSelected.Text = L("ToolbarRunSelectedAnchor");
             if (_lblIgnoredPagePrefixes != null)
                 _lblIgnoredPagePrefixes.Text = L("SkipInjectPrefixes");
             if (_lblRecorderTabDepth != null)

@@ -29,10 +29,11 @@ namespace MARS.WebAutomation.UI
 {
     public partial class MainWorkbenchForm : Form
     {
-        private static readonly Logger FormLog = LogManager.GetLogger(WebAutomationNLog.LoggerNamePrefix + ".UI.MainWorkbenchForm");
+        private static readonly Logger FormLog = LogManager.GetLogger(WebAutomationNLog.LoggerNamePrefix + ".UI.MainWorkbenchForm");        
 
         private static readonly object SingletonSync = new object();
         private static MainWorkbenchForm _instance;
+
 
         private readonly PlaywrightHostService _host = new PlaywrightHostService();
         private readonly RecordingService _recording = new RecordingService();
@@ -80,20 +81,8 @@ namespace MARS.WebAutomation.UI
         private NumericUpDown _numRecorderTabDepth;
         private Label _lblPerformanceFilterTokens;
         private TextBox _txtPerformanceFilterTokens;
-        private ToolStripSeparator _tsbSepReload;
-        private ToolStripButton _tsbReloadEngine;
-        private ToolStripSeparator _tsbSepSync;
-        private CheckBox _chkSyncFocus;
-        private ToolStripControlHost _tsbSyncHost;
-        private ToolStripSeparator _tsbSepPerf;
-        private CheckBox _chkWithPerformanceTest;
-        private ToolStripControlHost _tsbPerfHost;
         private ToolStripLabel _tslPerfUsers;
         private ToolStripComboBox _tscbPerfUsers;
-        private ToolStripButton _tsbRunPerf;
-        private ToolStripButton _tsbStopPerf;
-        private ToolStrip _toolPerf;
-        private TableLayoutPanel _topBarsHost;
         private ToolStripMenuItem _menuBrandTitle;
         private ToolStripMenuItem _menuPerformance;
         private ToolStripMenuItem _menuWithPerformanceTest;
@@ -147,6 +136,10 @@ namespace MARS.WebAutomation.UI
         public MainWorkbenchForm()
         {
             InitializeComponent();
+            gridPerfAnchorPreview.Dock = DockStyle.Fill;
+            lblPerfDesignAnchorSummary.Dock = DockStyle.Top;
+            gridPerfAnchorPreview.BringToFront();
+            splitRecordPerfPreview.SplitterDistance = 160;
             ApplyWorkbenchChrome();
             Load += MainWorkbenchForm_Load;
             FormClosed += MainWorkbenchForm_FormClosed;
@@ -162,7 +155,6 @@ namespace MARS.WebAutomation.UI
             _host.ActiveDocumentUrlChanged += Host_ActiveDocumentUrlChanged;
             SetupObjectPreviewAndToolbar();
             SetupReloadEngineToolbar();
-            SetupSyncToolbarCheckbox();
             SetupPerformanceToolbarCheckbox();
             SetupMenuBrandTitle();
             SetupMenuPerformanceOptions();
@@ -181,58 +173,6 @@ namespace MARS.WebAutomation.UI
             gridSteps.DataError += Grid_DataError;
             tabRecord.SizeChanged += TabRecord_SizeChanged;
             InitHotkeySettingsUi();
-            ArrangeTopBars();
-        }
-
-        private void ArrangeTopBars()
-        {
-            if (_toolPerf == null || _toolPerf.IsDisposed)
-                return;
-
-            if (_topBarsHost == null || _topBarsHost.IsDisposed)
-            {
-                _topBarsHost = new TableLayoutPanel
-                {
-                    Name = "topBarsHost",
-                    Dock = DockStyle.Top,
-                    AutoSize = true,
-                    AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                    ColumnCount = 1,
-                    RowCount = 3,
-                    Margin = new Padding(0),
-                    Padding = new Padding(0)
-                };
-                _topBarsHost.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-                _topBarsHost.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-                _topBarsHost.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-                _topBarsHost.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-                Controls.Add(_topBarsHost);
-            }
-
-            menuMain.Dock = DockStyle.Top;
-            toolMain.Dock = DockStyle.Top;
-            _toolPerf.Dock = DockStyle.Top;
-
-            if (menuMain.Parent != _topBarsHost)
-            {
-                Controls.Remove(menuMain);
-                _topBarsHost.Controls.Add(menuMain, 0, 0);
-            }
-            if (toolMain.Parent != _topBarsHost)
-            {
-                Controls.Remove(toolMain);
-                _topBarsHost.Controls.Add(toolMain, 0, 1);
-            }
-            if (_toolPerf.Parent != _topBarsHost)
-            {
-                Controls.Remove(_toolPerf);
-                _topBarsHost.Controls.Add(_toolPerf, 0, 2);
-            }
-
-            _topBarsHost.SetCellPosition(menuMain, new TableLayoutPanelCellPosition(0, 0));
-            _topBarsHost.SetCellPosition(toolMain, new TableLayoutPanelCellPosition(0, 1));
-            _topBarsHost.SetCellPosition(_toolPerf, new TableLayoutPanelCellPosition(0, 2));
-            _topBarsHost.BringToFront();
         }
 
         private static bool IsLikelyUiActionStep(SemanticStepRecord step)
@@ -400,7 +340,7 @@ namespace MARS.WebAutomation.UI
             _recordSplit.Orientation = Orientation.Vertical;
             _recordSplit.BorderStyle = BorderStyle.FixedSingle;
             _recordSplit.SplitterWidth = 6;
-            _recordSplit.Panel1MinSize = 140;
+            _recordSplit.Panel1MinSize = 260;
             _recordSplit.Panel2MinSize = 160;
 
             _stepsMasterDetailSplit.Dock = DockStyle.Fill;
@@ -450,7 +390,6 @@ namespace MARS.WebAutomation.UI
             panel1.Controls.Add(_gridToolStrip);
             panel1.Controls.Add(lblVisualization);
 
-            _gridPerformance.Dock = DockStyle.Fill;
             _gridPerformance.AllowUserToAddRows = false;
             _gridPerformance.AllowUserToDeleteRows = false;
             _gridPerformance.ReadOnly = true;
@@ -493,39 +432,15 @@ namespace MARS.WebAutomation.UI
             _lblPerformanceRuntime.BackColor = Color.FromArgb(241, 245, 249);
             _lblPerformanceRuntime.ForeColor = Color.FromArgb(71, 85, 105);
 
-            _gridPerfRuntime.Dock = DockStyle.Fill;
             _gridPerfRuntime.AllowUserToAddRows = false;
             _gridPerfRuntime.AllowUserToDeleteRows = false;
             _gridPerfRuntime.ReadOnly = true;
             _gridPerfRuntime.AutoGenerateColumns = false;
             _gridPerfRuntime.RowHeadersVisible = false;
             _gridPerfRuntime.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _gridPerfRuntime.Columns.Clear();
             _gridPerfRuntime.DataSource = _perfRuntimeRows;
-            _gridPerfRuntime.Columns.Add(new DataGridViewTextBoxColumn { Name = "colRtTx", HeaderText = "Transaction", DataPropertyName = "Transaction", ValueType = typeof(string), Width = 180 });
-            _gridPerfRuntime.Columns.Add(new DataGridViewTextBoxColumn { Name = "colRtOk", HeaderText = "OK", DataPropertyName = "Ok", ValueType = typeof(long), Width = 70 });
-            _gridPerfRuntime.Columns.Add(new DataGridViewTextBoxColumn { Name = "colRtFail", HeaderText = "Fail", DataPropertyName = "Fail", ValueType = typeof(long), Width = 70 });
-            _gridPerfRuntime.Columns.Add(new DataGridViewTextBoxColumn { Name = "colRtTotalReq", HeaderText = "TotalRequest", DataPropertyName = "TotalRequest", ValueType = typeof(long), Width = 95 });
-            _gridPerfRuntime.Columns.Add(new DataGridViewTextBoxColumn { Name = "colRtFinished", HeaderText = "Finished", DataPropertyName = "FinishedRequest", ValueType = typeof(long), Width = 80 });
-            _gridPerfRuntime.Columns.Add(new DataGridViewTextBoxColumn { Name = "colRtRounds", HeaderText = "Rounds", DataPropertyName = "RoundProgress", ValueType = typeof(string), Width = 90 });
-            _gridPerfRuntime.Columns.Add(new DataGridViewTextBoxColumn { Name = "colRtTps", HeaderText = "Throughput/s", DataPropertyName = "ThroughputPerSecond", ValueType = typeof(string), Width = 95 });
-            _gridPerfRuntime.Columns.Add(new DataGridViewTextBoxColumn { Name = "colRtErr", HeaderText = "Error Rate", DataPropertyName = "ErrorRate", ValueType = typeof(string), Width = 90 });
-            _gridPerfRuntime.Columns.Add(new DataGridViewTextBoxColumn { Name = "colRtLast", HeaderText = "Last Detail", DataPropertyName = "LastDetail", ValueType = typeof(string), Width = 360 });
             _gridPerfRuntime.DataError += Grid_DataError;
             _gridPerfRuntime.CellDoubleClick += gridPerfRuntime_CellDoubleClick;
-
-            // Ensure designer preview panels contain the real runtime controls.
-            _perfAnchorRuntimeSplit.Panel1.Controls.Clear();
-            _perfAnchorRuntimeSplit.Panel2.Controls.Clear();
-            var perfTopPanel = new Panel { Dock = DockStyle.Fill };
-            perfTopPanel.Controls.Add(_gridPerformance);
-            perfTopPanel.Controls.Add(_lblPerformanceAnchorSummary);
-            perfTopPanel.Controls.Add(_lblPerformanceAnchors);
-            var perfBottomPanel = new Panel { Dock = DockStyle.Fill };
-            perfBottomPanel.Controls.Add(_gridPerfRuntime);
-            perfBottomPanel.Controls.Add(_lblPerformanceRuntime);
-            _perfAnchorRuntimeSplit.Panel1.Controls.Add(perfTopPanel);
-            _perfAnchorRuntimeSplit.Panel2.Controls.Add(perfBottomPanel);
 
             _recordWebView = new WebView2
             {
@@ -655,33 +570,15 @@ namespace MARS.WebAutomation.UI
         private void ConfigureStepsGridColumns()
         {
             gridSteps.AutoGenerateColumns = false;
-            gridSteps.Columns.Clear();
+            if (gridSteps.Columns.Count == 0)
+                return;
             gridSteps.ColumnHeadersVisible = true;
             gridSteps.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
             gridSteps.ColumnHeadersHeight = 30;
-            var act = new DataGridViewTextBoxColumn
-            {
-                Name = "colAct",
-                Width = 66,
-                ReadOnly = true,
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.None
-            };
-            act.DefaultCellStyle.ForeColor = Color.FromArgb(30, 41, 59);
-            gridSteps.Columns.Add(act);
-            gridSteps.Columns.Add(new DataGridViewTextBoxColumn { Name = "colSeq", DataPropertyName = "RunOrder", ReadOnly = true, Width = 36 });
-            var colMs = new DataGridViewTextBoxColumn { Name = "colElapsed", DataPropertyName = "ElapsedMsSincePrev", ReadOnly = true, Width = 100 };
-            colMs.DefaultCellStyle.Format = "N0";
-            gridSteps.Columns.Add(colMs);
-            gridSteps.Columns.Add(new DataGridViewTextBoxColumn { Name = "colKw", DataPropertyName = "Keyword", ReadOnly = false, Width = 120 });
-            gridSteps.Columns.Add(new DataGridViewTextBoxColumn { Name = "colEvt", DataPropertyName = "SourceEvent", ReadOnly = false, Width = 96 });
-            gridSteps.Columns.Add(new DataGridViewTextBoxColumn { Name = "colData", DataPropertyName = "Data", ReadOnly = false, Width = 180 });
-            gridSteps.Columns.Add(new DataGridViewTextBoxColumn { Name = "colBounds", DataPropertyName = "BoundsDisplay", ReadOnly = false, Width = 150 });
-            gridSteps.Columns.Add(new DataGridViewTextBoxColumn { Name = "colLogical", DataPropertyName = "LogicalKind", ReadOnly = false, Width = 120 });
-            gridSteps.Columns.Add(new DataGridViewTextBoxColumn { Name = "colLoc", DataPropertyName = "Locator", ReadOnly = false, Width = 220 });
-            gridSteps.Columns.Add(new DataGridViewTextBoxColumn { Name = "colXp", DataPropertyName = "ElementXpath", ReadOnly = false, Width = 180 });
-            gridSteps.Columns.Add(new DataGridViewTextBoxColumn { Name = "colLocAlt", DataPropertyName = "LocatorAlternates", ReadOnly = false, Width = 220 });
-            gridSteps.Columns.Add(new DataGridViewTextBoxColumn { Name = "colParam", DataPropertyName = "Parameter", ReadOnly = false, Width = 220 });
-            gridSteps.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfRef", ReadOnly = true, Width = 72, ValueType = typeof(int) });
+            if (gridSteps.Columns.Contains("colAct"))
+                gridSteps.Columns["colAct"].DefaultCellStyle.ForeColor = Color.FromArgb(30, 41, 59);
+            if (gridSteps.Columns.Contains("colElapsed"))
+                gridSteps.Columns["colElapsed"].DefaultCellStyle.Format = "N0";
             gridSteps.ReadOnly = false;
             foreach (DataGridViewColumn c in gridSteps.Columns)
             {
@@ -710,35 +607,8 @@ namespace MARS.WebAutomation.UI
         {
             if (_gridPerformance == null)
                 return;
-            _gridPerformance.Columns.Clear();
-
-            var colAction = new DataGridViewLinkColumn
-            {
-                Name = "colPerfAction",
-                HeaderText = "Action",
-                DataPropertyName = "Action",
-                ValueType = typeof(string),
-                Width = 90,
-                TrackVisitedState = false,
-                LinkBehavior = LinkBehavior.HoverUnderline
-            };
-            _gridPerformance.Columns.Add(colAction);
-            _gridPerformance.Columns.Add(new DataGridViewCheckBoxColumn { Name = "colPerfAnchor", HeaderText = "Anchor", DataPropertyName = "IsAnchorSelected", Width = 55 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfScore", HeaderText = "Score", DataPropertyName = "AnchorScore", ValueType = typeof(int), Width = 56 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfGroup", HeaderText = "Group", DataPropertyName = "AnchorGroup", ValueType = typeof(string), Width = 120 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfCorr", HeaderText = "Correlation", DataPropertyName = "CorrelationHint", ValueType = typeof(string), Width = 150 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfUrl", HeaderText = "URL", DataPropertyName = "Url", ValueType = typeof(string), Width = 260 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfType", HeaderText = "Type", DataPropertyName = "ResourceType", ValueType = typeof(string), Width = 80 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfMethod", HeaderText = "Method", DataPropertyName = "Method", ValueType = typeof(string), Width = 80 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfStatus", HeaderText = "Status", DataPropertyName = "Status", ValueType = typeof(string), Width = 70 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfParam", HeaderText = "Parameter", DataPropertyName = "Parameter", ValueType = typeof(string), Width = 180 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfHeader", HeaderText = "Header", DataPropertyName = "Headers", ValueType = typeof(string), Width = 220 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfCookie", HeaderText = "Cookie", DataPropertyName = "Cookies", ValueType = typeof(string), Width = 160 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfPayload", HeaderText = "Payload", DataPropertyName = "Payload", ValueType = typeof(string), Width = 220 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfResponse", HeaderText = "Response", DataPropertyName = "Response", ValueType = typeof(string), Width = 220 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfPolicy", HeaderText = "ReplayPolicy", DataPropertyName = "ReplayPolicy", ValueType = typeof(string), Width = 130 });
-            _gridPerformance.Columns.Add(new DataGridViewTextBoxColumn { Name = "colPerfValidation", HeaderText = "ValidationHint", DataPropertyName = "ValidationHint", ValueType = typeof(string), Width = 180 });
-            _gridPerformance.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+            if (_gridPerformance.Columns.Count == 0)
+                FormLog.Warn("Performance grid has no designer columns; using fallback behavior.");
         }
 
         private void Grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
@@ -1458,7 +1328,7 @@ namespace MARS.WebAutomation.UI
                 if (!_recordSplitDistanceInitialized && _recordSplit != null && tabRecord.ClientSize.Width >= 160)
                 {
                     var available = Math.Max(0, _recordSplit.ClientSize.Width - _recordSplit.SplitterWidth);
-                    const int desiredMinLeft = 140;
+                    const int desiredMinLeft = 260;
                     const int desiredMinRight = 160;
                     if (available >= desiredMinLeft + desiredMinRight)
                     {
@@ -1475,7 +1345,7 @@ namespace MARS.WebAutomation.UI
                     var max = available - _recordSplit.Panel2MinSize;
                     if (max >= min)
                     {
-                        var target = (int)Math.Round(available * 0.55d);
+                        var target = (int)Math.Round(available * 0.62d);
                         if (target < min) target = min;
                         if (target > max) target = max;
                         _recordSplit.SplitterDistance = target;
@@ -2101,121 +1971,48 @@ namespace MARS.WebAutomation.UI
 
         private void SetupReloadEngineToolbar()
         {
-            _tsbSepReload = new ToolStripSeparator();
-            _tsbReloadEngine = new ToolStripButton
-            {
-                Name = "tsbReloadEngine",
-                Text = "Reload engine",
-                DisplayStyle = ToolStripItemDisplayStyle.ImageAndText,
-                TextImageRelation = TextImageRelation.ImageBeforeText,
-                Image = FormsIconHelper.ToBitmap(IconChar.Rotate, Color.FromArgb(51, 65, 85), 20, 0d, FlipOrientation.Normal),
-                ImageScaling = ToolStripItemImageScaling.None
-            };
-            _tsbReloadEngine.Click += tsbReloadEngine_Click;
-            toolMain.Items.Add(_tsbSepReload);
-            toolMain.Items.Add(_tsbReloadEngine);
+            tsbReloadEngine.Image = FormsIconHelper.ToBitmap(IconChar.Rotate, Color.FromArgb(51, 65, 85), 20, 0d, FlipOrientation.Normal);
+            tsbReloadEngine.ImageScaling = ToolStripItemImageScaling.None;
         }
 
-        private void SetupSyncToolbarCheckbox()
+        private void chkSyncFocus_CheckedChanged(object sender, EventArgs e)
         {
-            _tsbSepSync = new ToolStripSeparator();
-            _chkSyncFocus = new CheckBox
+            UpdateRecorderModeFromUiStateAsync();
+        }
+
+        private void chkWithPerformanceTest_CheckedChanged(object sender, EventArgs e)
+        {
+            ApplyPerformancePanelVisibility();
+            UpdatePerformanceMenuState();
+        }
+
+        private async void tsbRunPerf_Click(object sender, EventArgs e)
+        {
+            await RunPerformanceTestAsync().ConfigureAwait(true);
+        }
+
+        private void tsbStopPerf_Click(object sender, EventArgs e)
+        {
+            StopCurrentPerformanceRun();
+        }
+
+        private async void tsbRunPerfSelected_Click(object sender, EventArgs e)
+        {
+            var selected = GetSelectedAnchorGroupsFromGrid();
+            if (selected.Count == 0)
             {
-                AutoSize = true,
-                Checked = false,
-                Text = "Sync",
-                Margin = new Padding(6, 0, 0, 0)
-            };
-            _chkSyncFocus.CheckedChanged += (_, __) => UpdateRecorderModeFromUiStateAsync();
-            _tsbSyncHost = new ToolStripControlHost(_chkSyncFocus)
-            {
-                Name = "tsbSyncHost",
-                Margin = new Padding(2, 0, 0, 0),
-                AutoSize = false,
-                Width = 120
-            };
-            toolMain.Items.Add(_tsbSepSync);
-            toolMain.Items.Add(_tsbSyncHost);
+                MessageBox.Show(this, "Select rows in performance grid first.", "Performance", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            await RunPerformanceTestAsync(selected).ConfigureAwait(true);
         }
 
         private void SetupPerformanceToolbarCheckbox()
         {
-            _tsbSepPerf = new ToolStripSeparator();
-            _chkWithPerformanceTest = new CheckBox
-            {
-                AutoSize = true,
-                Checked = true,
-                Text = "With Performance Test",
-                Margin = new Padding(6, 0, 0, 0)
-            };
-            _chkWithPerformanceTest.CheckedChanged += (_, __) =>
-            {
-                ApplyPerformancePanelVisibility();
-                UpdatePerformanceMenuState();
-            };
-            _tsbPerfHost = new ToolStripControlHost(_chkWithPerformanceTest)
-            {
-                Name = "tsbPerfHost",
-                Margin = new Padding(2, 0, 0, 0),
-                AutoSize = false,
-                Width = 190
-            };
-            toolMain.Items.Add(_tsbSepPerf);
-            if (_toolPerf == null)
-            {
-                _toolPerf = new ToolStrip
-                {
-                    Dock = DockStyle.Top,
-                    GripStyle = ToolStripGripStyle.Hidden,
-                    RenderMode = ToolStripRenderMode.Professional,
-                    BackColor = Color.FromArgb(252, 252, 254),
-                    Padding = new Padding(6, 2, 8, 2)
-                };
-                Controls.Add(_toolPerf);
-            }
-            ArrangeTopBars();
-            _toolPerf.Items.Clear();
-            _toolPerf.Items.Add(_tsbPerfHost);
-            _tsbRunPerf = new ToolStripButton
-            {
-                Name = "tsbRunPerf",
-                Text = "Run Perf",
-                DisplayStyle = ToolStripItemDisplayStyle.ImageAndText,
-                TextImageRelation = TextImageRelation.ImageBeforeText,
-                Image = FormsIconHelper.ToBitmap(IconChar.BoltLightning, Color.FromArgb(3, 105, 161), 18, 0d, FlipOrientation.Normal),
-                ImageScaling = ToolStripItemImageScaling.None
-            };
-            _tsbRunPerf.Click += async (_, __) => await RunPerformanceTestAsync().ConfigureAwait(true);
-            _toolPerf.Items.Add(_tsbRunPerf);
-            _tsbStopPerf = new ToolStripButton
-            {
-                Name = "tsbStopPerf",
-                Text = "Stop",
-                DisplayStyle = ToolStripItemDisplayStyle.ImageAndText,
-                TextImageRelation = TextImageRelation.ImageBeforeText,
-                Image = FormsIconHelper.ToBitmap(IconChar.Stop, Color.FromArgb(220, 38, 38), 16, 0d, FlipOrientation.Normal),
-                ImageScaling = ToolStripItemImageScaling.None,
-                Enabled = false
-            };
-            _tsbStopPerf.Click += (_, __) => StopCurrentPerformanceRun();
-            _toolPerf.Items.Add(_tsbStopPerf);
-            var btnRunSelected = new ToolStripButton
-            {
-                Name = "tsbRunPerfSelected",
-                Text = "Run Selected Anchor",
-                DisplayStyle = ToolStripItemDisplayStyle.Text
-            };
-            btnRunSelected.Click += async (_, __) =>
-            {
-                var selected = GetSelectedAnchorGroupsFromGrid();
-                if (selected.Count == 0)
-                {
-                    MessageBox.Show(this, "Select rows in performance grid first.", "Performance", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-                await RunPerformanceTestAsync(selected).ConfigureAwait(true);
-            };
-            _toolPerf.Items.Add(btnRunSelected);
+            tsbRunPerf.Image = FormsIconHelper.ToBitmap(IconChar.BoltLightning, Color.FromArgb(3, 105, 161), 18, 0d, FlipOrientation.Normal);
+            tsbRunPerf.ImageScaling = ToolStripItemImageScaling.None;
+            tsbStopPerf.Image = FormsIconHelper.ToBitmap(IconChar.Stop, Color.FromArgb(220, 38, 38), 16, 0d, FlipOrientation.Normal);
+            tsbStopPerf.ImageScaling = ToolStripItemImageScaling.None;
         }
 
         private void SetupMenuBrandTitle()
@@ -2231,7 +2028,7 @@ namespace MARS.WebAutomation.UI
 
         private bool IsPerformanceTestEnabled()
         {
-            return _chkWithPerformanceTest != null && _chkWithPerformanceTest.Checked;
+            return chkWithPerformanceTest.Checked;
         }
 
         private void SetupMenuPerformanceOptions()
@@ -2242,8 +2039,7 @@ namespace MARS.WebAutomation.UI
             {
                 if (_syncingPerfMenuState)
                     return;
-                if (_chkWithPerformanceTest != null)
-                    _chkWithPerformanceTest.Checked = _menuWithPerformanceTest.Checked;
+                chkWithPerformanceTest.Checked = _menuWithPerformanceTest.Checked;
             };
 
             _menuPerfUsers = new ToolStripMenuItem("Sim Users");
@@ -2345,8 +2141,7 @@ namespace MARS.WebAutomation.UI
                 if (_perfAnchorRuntimeSplit != null)
                     ApplyPerfAnchorRuntimeSplitDistance();
             }
-            if (_tsbRunPerf != null)
-                _tsbRunPerf.Enabled = enabled && !_performanceRunInProgress;
+            tsbRunPerf.Enabled = enabled && !_performanceRunInProgress;
             if (_menuPerfRunNow != null)
                 _menuPerfRunNow.Enabled = enabled && !_performanceRunInProgress;
             if (_menuPerfRunSelectedAnchor != null)
@@ -2514,10 +2309,9 @@ namespace MARS.WebAutomation.UI
                 Metrics = metrics
             };
 
-            PerformanceLiveChartForm liveChart = null;
             try
             {
-                liveChart = new PerformanceLiveChartForm(metrics, Math.Max(1, runOpt.ChartSampleIntervalSeconds));
+                var liveChart = new PerformanceLiveChartForm(metrics, Math.Max(1, runOpt.ChartSampleIntervalSeconds));
                 liveChart.Show(this);
             }
             catch (Exception ex)
@@ -2543,20 +2337,22 @@ namespace MARS.WebAutomation.UI
                     plan.SimulatedUsers = usersNow;
                     ResetRuntimeProgressRows(plan);
                     SetStatus($"NBomber running stage {i + 1}/{scheduleUsers.Count}, users={usersNow} ...");
-                    var result = await _perfExecuteAdapter.ExecuteAsync(plan, snapshot =>
-                    {
-                        if (snapshot == null || IsDisposed)
-                            return;
-                        BeginInvoke(new Action(() =>
+                    var result = await Task.Run(async () =>
+                        await _perfExecuteAdapter.ExecuteAsync(plan, snapshot =>
                         {
-                            UpdateRuntimeProgress(snapshot);
-                            var txt = "Perf users=" + usersNow + " " + (snapshot.Stage ?? "running")
-                                      + " | OK=" + snapshot.TotalOk
-                                      + " FAIL=" + snapshot.TotalFail
-                                      + (string.IsNullOrWhiteSpace(snapshot.Transaction) ? string.Empty : " | Tx=" + snapshot.Transaction);
-                            SetStatus(txt);
-                        }));
-                    }, _perfRunCts.Token).ConfigureAwait(true);
+                            if (snapshot == null || IsDisposed || !IsHandleCreated)
+                                return;
+                            BeginInvoke(new Action(() =>
+                            {
+                                UpdateRuntimeProgress(snapshot);
+                                var txt = "Perf users=" + usersNow + " " + (snapshot.Stage ?? "running")
+                                          + " | OK=" + snapshot.TotalOk
+                                          + " FAIL=" + snapshot.TotalFail
+                                          + (string.IsNullOrWhiteSpace(snapshot.Transaction) ? string.Empty : " | Tx=" + snapshot.Transaction);
+                                SetStatus(txt);
+                            }));
+                        }, _perfRunCts.Token).ConfigureAwait(false),
+                        _perfRunCts.Token).ConfigureAwait(true);
                     all.Add(result);
                     _perfCompletedRounds = i + 1;
                     UpdateRuntimeRoundProgressForAllRows();
@@ -2566,10 +2362,12 @@ namespace MARS.WebAutomation.UI
                 var totalOk = all.Sum(r => r?.TotalOk ?? 0);
                 var totalFail = all.Sum(r => r?.TotalFail ?? 0);
                 var allSuccess = all.All(r => r != null && r.Success);
-                var msg = "NBomber completed." + Environment.NewLine
-                          + "Stages: " + all.Count + " (" + string.Join(", ", scheduleUsers) + ")" + Environment.NewLine
-                          + "OK: " + totalOk + Environment.NewLine
-                          + "Fail: " + totalFail;
+                var isZh = (_settings?.UiLanguage ?? "en").StartsWith("zh", StringComparison.OrdinalIgnoreCase);
+                var msgTitle = isZh ? "性能测试完毕。" : "Performance test completed.";
+                var msg = msgTitle + Environment.NewLine + Environment.NewLine
+                          + string.Format("{0,-12}: {1}", "Stages", all.Count + " (" + string.Join(", ", scheduleUsers) + ")") + Environment.NewLine
+                          + string.Format("{0,-12}: {1}", "OK", totalOk) + Environment.NewLine
+                          + string.Format("{0,-12}: {1}", "Fail", totalFail);
                 MessageBox.Show(this, msg, "Performance", MessageBoxButtons.OK,
                     allSuccess ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
                 SetStatus(allSuccess ? "NBomber performance run completed." : "NBomber completed with failures.");
@@ -2594,32 +2392,7 @@ namespace MARS.WebAutomation.UI
                     _perfRunCts = null;
                 }
                 _perfCurrentRound = 0;
-                ClosePerfLiveChart(liveChart);
                 SetPerformanceRunningState(false);
-            }
-        }
-
-        private static void ClosePerfLiveChart(PerformanceLiveChartForm form)
-        {
-            if (form == null || form.IsDisposed)
-                return;
-            try
-            {
-                if (form.InvokeRequired)
-                {
-                    form.BeginInvoke(new Action(() =>
-                    {
-                        try { form.Close(); } catch { }
-                    }));
-                }
-                else
-                {
-                    form.Close();
-                }
-            }
-            catch
-            {
-                // ignore
             }
         }
 
@@ -2638,12 +2411,9 @@ namespace MARS.WebAutomation.UI
         private void SetPerformanceRunningState(bool running)
         {
             _performanceRunInProgress = running;
-            if (_tsbRunPerf != null)
-                _tsbRunPerf.Enabled = !running && IsPerformanceTestEnabled();
-            if (_tsbStopPerf != null)
-                _tsbStopPerf.Enabled = running;
-            if (_toolPerf != null)
-                _toolPerf.Enabled = true;
+            tsbRunPerf.Enabled = !running && IsPerformanceTestEnabled();
+            tsbStopPerf.Enabled = running;
+            toolMain.Enabled = true;
             if (_menuPerfRunNow != null)
                 _menuPerfRunNow.Enabled = !running && IsPerformanceTestEnabled();
             if (_menuPerfRunSelectedAnchor != null)
@@ -3230,19 +3000,28 @@ namespace MARS.WebAutomation.UI
             Font = uiFont;
             menuMain.Font = uiFont;
             toolMain.Font = uiFont;
+            toolPerf.Font = uiFont;
             statusMain.Font = uiFont;
             tabMain.Font = uiFont;
             BackColor = workspace;
             menuMain.BackColor = Color.White;
             menuMain.RenderMode = ToolStripRenderMode.Professional;
             toolMain.BackColor = Color.FromArgb(252, 252, 254);
+            toolPerf.BackColor = Color.FromArgb(252, 252, 254);
             toolMain.ForeColor = ink;
+            toolPerf.ForeColor = ink;
             toolMain.GripStyle = ToolStripGripStyle.Hidden;
+            toolPerf.GripStyle = ToolStripGripStyle.Hidden;
             toolMain.ImageScalingSize = new Size(22, 22);
+            toolPerf.ImageScalingSize = new Size(22, 22);
             toolMain.Padding = new Padding(6, 4, 8, 4);
+            toolPerf.Padding = new Padding(6, 4, 8, 4);
             toolMain.Stretch = false;
+            toolPerf.Stretch = false;
             toolMain.AutoSize = false;
+            toolPerf.AutoSize = false;
             toolMain.Height = Math.Max(32, toolMain.ImageScalingSize.Height + toolMain.Padding.Vertical + 6);
+            toolPerf.Height = Math.Max(32, toolPerf.ImageScalingSize.Height + toolPerf.Padding.Vertical + 6);
             statusMain.BackColor = surface;
             statusLabel.Spring = true;
             statusLabel.TextAlign = ContentAlignment.MiddleLeft;
@@ -3488,8 +3267,7 @@ namespace MARS.WebAutomation.UI
                     Math.Max(_numRecorderTabDepth.Minimum, _settings.RecorderTabContextAncestorDepth));
             if (_txtPerformanceFilterTokens != null)
                 _txtPerformanceFilterTokens.Text = NormalizePerformanceFilterTokens(_settings.PerformanceFilterTokens);
-            if (_chkWithPerformanceTest != null)
-                _chkWithPerformanceTest.Checked = _settings.PerformancePanelEnabled;
+            chkWithPerformanceTest.Checked = _settings.PerformancePanelEnabled;
             if (_tscbPerfUsers != null)
             {
                 var target = Math.Max(1, _settings.PerformanceSimUserCount);
@@ -3523,7 +3301,7 @@ namespace MARS.WebAutomation.UI
                 ? (int)_numRecorderTabDepth.Value
                 : 5;
             _settings.PerformanceFilterTokens = NormalizePerformanceFilterTokens(_txtPerformanceFilterTokens?.Text);
-            _settings.PerformancePanelEnabled = _chkWithPerformanceTest != null && _chkWithPerformanceTest.Checked;
+            _settings.PerformancePanelEnabled = chkWithPerformanceTest.Checked;
             _settings.PerformanceSimUserCount = GetSelectedPerfUsersCount();
             RefreshPerformanceFilterTokensFromSettings();
         }
@@ -3807,8 +3585,7 @@ namespace MARS.WebAutomation.UI
 
         private bool ShouldSyncFocusedElement()
         {
-            return _chkSyncFocus != null
-                && _chkSyncFocus.Checked
+            return chkSyncFocus.Checked
                 && tabMain.SelectedTab == tabObjects;
         }
 
@@ -5028,5 +4805,6 @@ namespace MARS.WebAutomation.UI
             public string ErrorRate { get; set; }
             public string LastDetail { get; set; }
         }
+
     }
 }

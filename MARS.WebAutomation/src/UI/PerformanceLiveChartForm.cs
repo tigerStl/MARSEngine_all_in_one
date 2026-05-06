@@ -4,7 +4,8 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using MARS.WebAutomation.Services;
 
@@ -12,12 +13,48 @@ namespace MARS.WebAutomation.UI
 {
     internal sealed partial class PerformanceLiveChartForm : Form
     {
+        private const uint PM_REMOVE = 0x0001;
+        private const uint WM_NULL = 0x0000;
+        private const uint WM_QUIT = 0x0012;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativePoint
+        {
+            public int X;
+            public int Y;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativeMsg
+        {
+            public IntPtr hwnd;
+            public uint message;
+            public IntPtr wParam;
+            public IntPtr lParam;
+            public uint time;
+            public NativePoint pt;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool PeekMessage(out NativeMsg lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg);
+
+        [DllImport("user32.dll")]
+        private static extern bool TranslateMessage(ref NativeMsg lpMsg);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr DispatchMessage(ref NativeMsg lpMsg);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
         private readonly PerformanceMetricsCollector _collector;
         private readonly int _intervalMs;
         private readonly List<PerformanceBucketSnapshot> _buckets = new List<PerformanceBucketSnapshot>();
         private readonly object _bucketLock = new object();
-        private readonly System.Threading.Timer _bucketTimer;
-        private readonly System.Windows.Forms.Timer _uiRefreshTimer;
+        private readonly System.Windows.Forms.Timer _bucketUiTimer;
+        private bool _bucketQuickFirstDone;
+        private bool _bucketUiTickReentrancyGuard;
+        private bool _followLatest = true;
         private long _lastAggCompleted;
         private long _lastAggSuccess;
         private long _lastAggErrors;
@@ -29,7 +66,6 @@ namespace MARS.WebAutomation.UI
         private const int LegendH = 28;
         private const int BelowLegendPad = 8;
         private const int GapBarsToStatBoxes = 10;
-        private const int GapStatBoxesToAggregate = 12;
         private const int BottomMargin = 10;
         private const int MinBarsAreaHeight = 120;
         private const int StatBoxPadX = 10;
@@ -43,28 +79,69 @@ namespace MARS.WebAutomation.UI
             _collector = collector ?? throw new ArgumentNullException(nameof(collector));
             _intervalMs = Math.Max(500, chartSampleIntervalSeconds * 1000);
             InitializeComponent();
+            _aggregatePanel.Paint += AggregatePanel_Paint;
+            _chartScrollHost.Scroll += ChartScrollHost_Scroll;
 
-            var firstTickMs = Math.Min(500, _intervalMs);
-            _bucketTimer = new System.Threading.Timer(_ => TimerTickBackground(), null, firstTickMs, _intervalMs);
-            _uiRefreshTimer = new System.Windows.Forms.Timer { Interval = 350 };
-            _uiRefreshTimer.Tick += (_, __) =>
+            EnableControlDoubleBuffering(_chartPanel);
+            EnableControlDoubleBuffering(_aggregatePanel);
+
+            _bucketUiTimer = new System.Windows.Forms.Timer { Interval = Math.Min(500, _intervalMs) };
+            _bucketUiTimer.Tick += OnBucketUiTick;
+
+            Shown += (_, __) => _bucketUiTimer.Start();
+
+            Resize += (_, __) =>
             {
-                if (!IsDisposed)
-                    _chartPanel.Invalidate();
+                ResizeChartCanvas();
+                if (_followLatest)
+                    ScrollChartHostToShowLatestContent();
+                _aggregatePanel.Invalidate(false);
             };
-            Shown += (_, __) => _uiRefreshTimer.Start();
-
-            Resize += (_, __) => ResizeChartCanvas();
+            FormClosing += (_, __) => { _bucketUiTimer.Stop(); };
             FormClosed += (_, __) =>
             {
-                _bucketTimer.Dispose();
-                _uiRefreshTimer.Stop();
-                _uiRefreshTimer.Dispose();
+                _aggregatePanel.Paint -= AggregatePanel_Paint;
+                _chartScrollHost.Scroll -= ChartScrollHost_Scroll;
+                _bucketUiTimer.Tick -= OnBucketUiTick;
+                _bucketUiTimer.Dispose();
             };
         }
 
-        private void TimerTickBackground()
+        private static void EnableControlDoubleBuffering(Control c)
         {
+            if (c == null)
+                return;
+            try
+            {
+                typeof(Control).GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic)
+                    ?.SetValue(c, true, null);
+            }
+            catch
+            {
+                /* optional */
+            }
+        }
+
+        private static bool IsQuietBucket(PerformanceBucketSnapshot b) =>
+            b.CreatedDelta == 0 && b.ReturnedDelta == 0 && b.SuccessDelta == 0 && b.ErrorsDelta == 0
+            && b.IntervalLatencySampleCount == 0;
+
+        private void OnBucketUiTick(object sender, EventArgs e)
+        {
+            if (IsDisposed || !IsHandleCreated)
+                return;
+            if (_bucketUiTickReentrancyGuard)
+                return;
+            _bucketUiTickReentrancyGuard = true;
+            try
+            {
+
+            if (!_bucketQuickFirstDone)
+            {
+                _bucketQuickFirstDone = true;
+                _bucketUiTimer.Interval = _intervalMs;
+            }
+
             var b = _collector.ConsumeBucket();
             var agg = _collector.GetAggregateSnapshot();
             if (b.CreatedDelta == 0 && b.SuccessDelta == 0 && b.ErrorsDelta == 0)
@@ -83,31 +160,83 @@ namespace MARS.WebAutomation.UI
             _lastAggCompleted = agg.TotalCompleted;
             _lastAggSuccess = agg.TotalSuccess;
             _lastAggErrors = agg.TotalErrors;
+
             lock (_bucketLock)
             {
-                _buckets.Add(b);
-                while (_buckets.Count > 240)
-                    _buckets.RemoveAt(0);
+                if (IsQuietBucket(b) && _buckets.Count > 0 && IsQuietBucket(_buckets[_buckets.Count - 1]))
+                {
+                    /* Skip consecutive empty buckets after traffic stops (avoids runaway width + post-run flicker). */
+                }
+                else
+                {
+                    _buckets.Add(b);
+                    while (_buckets.Count > 240)
+                        _buckets.RemoveAt(0);
+                }
             }
-            if (IsDisposed || !IsHandleCreated)
-                return;
-            BeginInvoke(new Action(() =>
+
+            ResizeChartCanvas();
+            if (_followLatest)
+                ScrollChartHostToShowLatestContent();
+            _chartPanel.Invalidate(false);
+            _aggregatePanel.Invalidate(false);
+            PumpPendingWindowsMessages(24);
+            try
             {
-                if (IsDisposed)
+                if (IsHandleCreated)
+                    PostMessage(Handle, WM_NULL, IntPtr.Zero, IntPtr.Zero);
+            }
+            catch
+            {
+                /* ignore */
+            }
+            }
+            finally
+            {
+                _bucketUiTickReentrancyGuard = false;
+            }
+        }
+
+        private static void PumpPendingWindowsMessages(int maxMessages)
+        {
+            var n = 0;
+            while (n < maxMessages && PeekMessage(out var msg, IntPtr.Zero, 0, 0, PM_REMOVE))
+            {
+                n++;
+                if (msg.message == WM_QUIT)
+                    break;
+                TranslateMessage(ref msg);
+                DispatchMessage(ref msg);
+            }
+        }
+
+        private void ChartScrollHost_Scroll(object sender, ScrollEventArgs e)
+        {
+            if (e.ScrollOrientation == ScrollOrientation.HorizontalScroll)
+                UpdateFollowLatestFromScrollPosition();
+        }
+
+        private void UpdateFollowLatestFromScrollPosition()
+        {
+            try
+            {
+                var visW = _chartScrollHost.ClientRectangle.Width;
+                if (_chartScrollHost.VerticalScroll.Visible)
+                    visW -= SystemInformation.VerticalScrollBarWidth;
+                visW = Math.Max(1, visW);
+                var maxScroll = Math.Max(0, _chartPanel.Width - visW);
+                if (maxScroll <= 0)
+                {
+                    _followLatest = true;
                     return;
-                ResizeChartCanvas();
-                try
-                {
-                    var hs = _chartScrollHost.HorizontalScroll;
-                    if (hs.Maximum > hs.Minimum)
-                        hs.Value = hs.Maximum;
                 }
-                catch
-                {
-                    /* scroll range may be invalid momentarily */
-                }
-                _chartPanel.Invalidate();
-            }));
+                var pos = Math.Max(0, -_chartScrollHost.AutoScrollPosition.X);
+                _followLatest = pos >= maxScroll - 36;
+            }
+            catch
+            {
+                _followLatest = true;
+            }
         }
 
         private void ResizeChartCanvas()
@@ -120,14 +249,31 @@ namespace MARS.WebAutomation.UI
             }
             agg = _collector.GetAggregateSnapshot();
 
-            var lay = ComputeLayout(copy, agg, _chartScrollHost.ClientSize);
+            var aggMeasureW = Math.Max(120, _aggregatePanel.ClientSize.Width > 0 ? _aggregatePanel.ClientSize.Width : ClientSize.Width);
+            ChartLayout lay = default;
+            for (var pass = 0; pass < 2; pass++)
+            {
+                lay = ComputeLayout(copy, agg, _chartScrollHost.ClientSize, aggMeasureW);
+                ApplyAggregatePanelHeight(lay);
+            }
+
             var minViewportW = Math.Max(720, _chartScrollHost.ClientSize.Width - 24);
             _chartPanel.Width = Math.Max(minViewportW, lay.TotalWidth);
             var minViewportH = Math.Max(400, _chartScrollHost.ClientSize.Height - 4);
             _chartPanel.Height = Math.Max(minViewportH, lay.TotalHeight);
         }
 
-        private ChartLayout ComputeLayout(List<PerformanceBucketSnapshot> buckets, PerformanceAggregateSnapshot agg, Size viewport)
+        private void ApplyAggregatePanelHeight(ChartLayout lay)
+        {
+            var padY = 20;
+            var h = lay.AggregateBoxSize.Height + ShadowOffset + padY * 2;
+            h = Math.Max(88, Math.Min(360, h));
+            if (_aggregatePanel.Height != h)
+                _aggregatePanel.Height = h;
+        }
+
+        /// <summary>Chart strip layout (scrollable). Overall aggregate is painted on <see cref="_aggregatePanel"/>.</summary>
+        private ChartLayout ComputeLayout(List<PerformanceBucketSnapshot> buckets, PerformanceAggregateSnapshot agg, Size viewport, int aggregateTextMeasureWidth)
         {
             var font = SystemFonts.MessageBoxFont;
             var n = Math.Max(1, buckets.Count);
@@ -163,12 +309,12 @@ namespace MARS.WebAutomation.UI
             var groupPitch = Math.Max(stripW + ColumnGap, statBoxW + ColumnGap);
 
             var aggText = FormatAggregateText(agg);
-            var aggSize = TextRenderer.MeasureText(aggText, font, new Size((int)(viewport.Width * 0.92f), int.MaxValue), TextFormatFlags.WordBreak);
-            var aggBoxW = aggSize.Width + 24;
+            var aggSize = TextRenderer.MeasureText(aggText, font, Size.Empty, TextFormatFlags.SingleLine);
+            var aggBoxW = Math.Max(160, aggSize.Width + 24);
             var aggBoxH = aggSize.Height + 20;
 
             var fixedTop = LegendH + BelowLegendPad;
-            var fixedBottom = GapBarsToStatBoxes + statBoxH + GapStatBoxesToAggregate + aggBoxH + BottomMargin;
+            var fixedBottom = GapBarsToStatBoxes + statBoxH + BottomMargin;
             var barsH = Math.Max(MinBarsAreaHeight, (viewport.Height > 80 ? viewport.Height - 4 : 420) - fixedTop - fixedBottom);
             if (barsH < MinBarsAreaHeight)
                 barsH = MinBarsAreaHeight;
@@ -188,6 +334,69 @@ namespace MARS.WebAutomation.UI
             };
         }
 
+        /// <summary>After content width changes, scroll horizontally so the newest interval columns stay in view.</summary>
+        private void ScrollChartHostToShowLatestContent()
+        {
+            try
+            {
+                _chartScrollHost.PerformLayout();
+                var visW = _chartScrollHost.ClientRectangle.Width;
+                if (_chartScrollHost.VerticalScroll.Visible)
+                    visW -= SystemInformation.VerticalScrollBarWidth;
+                visW = Math.Max(1, visW);
+                var overflow = _chartPanel.Width - visW;
+                if (overflow <= 0)
+                    return;
+                var scrollX = overflow;
+                var scrollY = Math.Max(0, -_chartScrollHost.AutoScrollPosition.Y);
+                _chartScrollHost.AutoScrollPosition = new Point(scrollX, scrollY);
+                _followLatest = true;
+            }
+            catch
+            {
+                /* scroll range may be invalid momentarily */
+            }
+        }
+
+        private void AggregatePanel_Paint(object sender, PaintEventArgs e)
+        {
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+            g.Clear(Color.White);
+            var panelRect = _aggregatePanel.ClientRectangle;
+            if (panelRect.Width < 40 || panelRect.Height < 24)
+                return;
+
+            List<PerformanceBucketSnapshot> copy;
+            lock (_bucketLock)
+            {
+                copy = _buckets.ToList();
+            }
+
+            var agg = _collector.GetAggregateSnapshot();
+            var lay = ComputeLayout(
+                copy,
+                agg,
+                _chartScrollHost.ClientSize,
+                Math.Max(120, panelRect.Width));
+
+            var font = lay.Font;
+            var w = lay.AggregateBoxSize.Width;
+            var h = lay.AggregateBoxSize.Height;
+            var x = panelRect.X + (panelRect.Width - w) / 2;
+            var y = panelRect.Y + (panelRect.Height - h) / 2;
+            var box = new Rectangle(x, y, w, h);
+            DrawShadowedRoundBox(g, box, StatBoxRadius + 2);
+            TextRenderer.DrawText(
+                g,
+                lay.AggregateText,
+                font,
+                new Rectangle(box.X + 12, box.Y + 10, box.Width - 24, box.Height - 18),
+                Color.Black,
+                TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter);
+        }
+
         private void ChartPanel_Paint(object sender, PaintEventArgs e)
         {
             var g = e.Graphics;
@@ -204,7 +413,8 @@ namespace MARS.WebAutomation.UI
                 copy = _buckets.ToList();
             }
             var agg = _collector.GetAggregateSnapshot();
-            var lay = ComputeLayout(copy, agg, _chartScrollHost.ClientSize);
+            var aggW = Math.Max(120, _aggregatePanel.ClientSize.Width > 0 ? _aggregatePanel.ClientSize.Width : ClientSize.Width);
+            var lay = ComputeLayout(copy, agg, _chartScrollHost.ClientSize, aggW);
 
             DrawLegend(g, rect.X + 16, rect.Y + 4);
 
@@ -214,7 +424,6 @@ namespace MARS.WebAutomation.UI
 
             DrawBars(g, chartRect, copy, lay);
             DrawIntervalStatBoxes(g, chartRect, copy, lay);
-            DrawAggregateBoxCentered(g, rect, chartRect.Bottom + GapBarsToStatBoxes, lay);
         }
 
         private static void DrawLegend(Graphics g, int x, int y)
@@ -255,17 +464,31 @@ namespace MARS.WebAutomation.UI
                 minS = maxS = avgS = "—";
             }
 
-            return string.Format(CultureInfo.InvariantCulture,
-                "min {0} ms{4}max {1} ms{4}avg {2} ms{4}created {3}  ok {5}  err {6}",
-                minS, maxS, avgS, b.CreatedDelta, Environment.NewLine, b.SuccessDelta, b.ErrorsDelta);
+            string Line(string key, string value) => string.Format(CultureInfo.InvariantCulture, "{0,-8}: {1}", key, value);
+            return string.Join(Environment.NewLine, new[]
+            {
+                Line("min", minS + " ms"),
+                Line("max", maxS + " ms"),
+                Line("avg", avgS + " ms"),
+                Line("created", b.CreatedDelta.ToString(CultureInfo.InvariantCulture)),
+                Line("ok", b.SuccessDelta.ToString(CultureInfo.InvariantCulture)),
+                Line("err", b.ErrorsDelta.ToString(CultureInfo.InvariantCulture)),
+                Line("returned", b.ReturnedDelta.ToString(CultureInfo.InvariantCulture))
+            });
         }
 
         private static string FormatAggregateText(PerformanceAggregateSnapshot agg)
         {
-            return string.Format(CultureInfo.InvariantCulture,
-                "Overall  min {0:0.#} ms   max {1:0.#} ms   avg {2:0.#} ms   success {3:0.00}%{5}Completed {4}   ok {6}   errors {7}",
-                agg.MinLatencyMs, agg.MaxLatencyMs, agg.AverageLatencyMs, agg.SuccessRatePercent, agg.TotalCompleted,
-                Environment.NewLine, agg.TotalSuccess, agg.TotalErrors);
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "Overall | min: {0:0.#} ms | max: {1:0.#} ms | avg: {2:0.#} ms | success: {3:0.00}% | completed: {4} | ok: {5} | errors: {6}",
+                agg.MinLatencyMs,
+                agg.MaxLatencyMs,
+                agg.AverageLatencyMs,
+                agg.SuccessRatePercent,
+                agg.TotalCompleted,
+                agg.TotalSuccess,
+                agg.TotalErrors);
         }
 
         private void DrawBars(Graphics g, Rectangle chartRect, List<PerformanceBucketSnapshot> buckets, ChartLayout lay)
@@ -319,17 +542,6 @@ namespace MARS.WebAutomation.UI
                     g.DrawString(body, font, Brushes.DimGray, textX, textY + th + 2);
                 }
             }
-        }
-
-        private void DrawAggregateBoxCentered(Graphics g, Rectangle panelRect, int statBoxStripTop, ChartLayout lay)
-        {
-            var top = statBoxStripTop + lay.StatBoxSize.Height + GapStatBoxesToAggregate;
-            var w = lay.AggregateBoxSize.Width;
-            var h = lay.AggregateBoxSize.Height;
-            var x = panelRect.X + (panelRect.Width - w) / 2;
-            var box = new Rectangle(x, top, w, h);
-            DrawShadowedRoundBox(g, box, StatBoxRadius + 2);
-            TextRenderer.DrawText(g, lay.AggregateText, lay.Font, new Rectangle(box.X + 12, box.Y + 10, box.Width - 24, box.Height - 18), Color.Black, TextFormatFlags.WordBreak);
         }
 
         private static void DrawShadowedRoundBox(Graphics g, Rectangle bounds, int radius)
