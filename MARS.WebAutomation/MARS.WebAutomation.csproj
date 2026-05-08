@@ -42,4 +42,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="ImageCompareExe\**" />
+    <Compile Remove="ImageTextDiff\**" />
+    <EmbeddedResource Remove="ImageCompareExe\**" />
+    <EmbeddedResource Remove="ImageTextDiff\**" />
+    <None Remove="ImageCompareExe\**" />
+    <None Remove="ImageTextDiff\**" />
+  </ItemGroup>
 </Project>

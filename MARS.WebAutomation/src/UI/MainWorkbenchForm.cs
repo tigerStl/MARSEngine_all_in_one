@@ -116,6 +116,7 @@ namespace MARS.WebAutomation.UI
         private readonly INBomberExecuteAdapter _perfExecuteAdapter = new NBomberExecuteAdapter();
         private readonly Dictionary<string, TransactionConfigRow> _transactionConfigByName = new Dictionary<string, TransactionConfigRow>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, PerfTransactionRuntimeRow> _runtimeByTransaction = new Dictionary<string, PerfTransactionRuntimeRow>(StringComparer.OrdinalIgnoreCase);
+        private readonly BindingList<ApiEndpointDefinition> _apiPerfDefinitions = new BindingList<ApiEndpointDefinition>();
         private DateTime _perfRunStartedUtc;
         private int _perfDurationSeconds = 60;
         private bool _performanceRunInProgress;
@@ -124,22 +125,34 @@ namespace MARS.WebAutomation.UI
         private int _perfCompletedRounds;
         private int _perfCurrentRound;
         private PerformanceMetricsCollector _latestPerformanceMetrics;
+        private JToken _lastPerformanceResult;
+        private string _lastSavedWebTestPath;
         private SemanticStepRecord _lastRecordedUiStep;
         private bool _hotkeyRegistered;
         private bool _updatingRecorderModeFromUi;
+        private TabPage _tabApiPerformance;
+        private bool _apiPerfEditorSyncing;
         private const int WmHotkey = 0x0312;
         private const int RecordReplayHotkeyId = 0x2277;
         private const uint ModAlt = 0x0001;
         private const uint ModControl = 0x0002;
         private const uint ModShift = 0x0004;
 
+        private void LogMethodBegin(string methodName, string listInfo = "")
+        {
+            var ts = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+            FormLog.Info($"[INFO] {ts} {methodName} Begin\tParameters {listInfo ?? string.Empty}");
+        }
+
+        private void LogMethodEnd(string methodName)
+        {
+            var ts = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+            FormLog.Info($"[INFO] {ts} {methodName} End.");
+        }
+
         public MainWorkbenchForm()
         {
             InitializeComponent();
-            gridPerfAnchorPreview.Dock = DockStyle.Fill;
-            lblPerfDesignAnchorSummary.Dock = DockStyle.Top;
-            gridPerfAnchorPreview.BringToFront();
-            splitRecordPerfPreview.SplitterDistance = 160;
             ApplyWorkbenchChrome();
             Load += MainWorkbenchForm_Load;
             FormClosed += MainWorkbenchForm_FormClosed;
@@ -158,6 +171,11 @@ namespace MARS.WebAutomation.UI
             SetupPerformanceToolbarCheckbox();
             SetupMenuBrandTitle();
             SetupMenuPerformanceOptions();
+            InitApiPerformanceTabUi();
+            if (tsbSyncHost != null)
+                tsbSyncHost.CheckedChanged += chkSyncFocus_CheckedChanged;
+            if (tsbPerfHost != null)
+                tsbPerfHost.CheckedChanged += chkWithPerformanceTest_CheckedChanged;
             treeObjects.NodeMouseClick += treeObjects_NodeMouseClick;
             InitRecordReplayTabUi();
             ConfigureStepsGridColumns();
@@ -173,6 +191,263 @@ namespace MARS.WebAutomation.UI
             gridSteps.DataError += Grid_DataError;
             tabRecord.SizeChanged += TabRecord_SizeChanged;
             InitHotkeySettingsUi();
+        }
+
+        private void InitApiPerformanceTabUi()
+        {
+            if (tabMain == null || tabApiPerformance == null)
+                return;
+            if (_tabApiPerformance == null)
+                _tabApiPerformance = tabApiPerformance;
+            _btnApiPerfRun.Click += async (_, __) => await RunPerformanceTestAsync().ConfigureAwait(true);
+            _btnApiPerfConfig.Click += (_, __) => ConfigurePerformanceTransactions();
+            _btnApiPerfExport.Click += (_, __) => ExportPerformancePack();
+            _btnApiPerfImport.Click += (_, __) => ImportPerformancePack();
+            _btnApiPerfGoRecord.Click += (_, __) => tabMain.SelectedTab = tabRecord;
+            _btnApiDefNew.Click += (_, __) => NewApiDefinitionForm();
+            _btnApiDefSave.Click += (_, __) => SaveApiDefinitionFromForm();
+            _btnApiDefDelete.Click += (_, __) => DeleteSelectedApiDefinition();
+            _btnApiPerfRunSelected.Click += async (_, __) => await RunApiPerformanceFromDefinitionsAsync(selectedOnly: true).ConfigureAwait(true);
+            _btnApiPerfRunAll.Click += async (_, __) => await RunApiPerformanceFromDefinitionsAsync(selectedOnly: false).ConfigureAwait(true);
+
+            if (_gridApiDefinitions != null && _gridApiDefinitions.DataSource == null)
+            {
+                _gridApiDefinitions.DataSource = _apiPerfDefinitions;
+                _gridApiDefinitions.SelectionChanged += (_, __) => LoadSelectedApiDefinitionToForm();
+            }
+            if (_cmbApiMethod != null && _cmbApiMethod.Items.Count == 0)
+                _cmbApiMethod.Items.AddRange(new object[] { "GET", "POST", "PUT", "PATCH", "DELETE" });
+            if (_cmbApiSecurity != null && _cmbApiSecurity.Items.Count == 0)
+                _cmbApiSecurity.Items.AddRange(new object[] { "None", "Bearer", "Basic", "ApiKeyHeader" });
+            NewApiDefinitionForm();
+        }
+
+        private sealed class ApiEndpointDefinition
+        {
+            public bool Enabled { get; set; } = true;
+            public string Name { get; set; }
+            public string Method { get; set; } = "GET";
+            public string Url { get; set; }
+            public string HeadersRaw { get; set; }
+            public string SecurityType { get; set; } = "None";
+            public string SecurityValue { get; set; }
+            public string Payload { get; set; }
+            public int ExpectedStatus { get; set; } = 200;
+            public string GroupName { get; set; } = "General";
+        }
+
+        private void NewApiDefinitionForm()
+        {
+            _apiPerfEditorSyncing = true;
+            try
+            {
+                _txtApiName.Text = string.Empty;
+                _cmbApiMethod.Text = "GET";
+                _txtApiUrl.Text = string.Empty;
+                ClearApiHeadersGrid();
+                _cmbApiSecurity.Text = "None";
+                _txtApiSecurityValue.Text = string.Empty;
+                _txtApiPayload.Text = string.Empty;
+                _numApiExpectedStatus.Value = 200;
+                _txtApiGroup.Text = "General";
+            }
+            finally
+            {
+                _apiPerfEditorSyncing = false;
+            }
+        }
+
+        private void LoadSelectedApiDefinitionToForm()
+        {
+            if (_apiPerfEditorSyncing || _gridApiDefinitions?.CurrentRow == null)
+                return;
+            var item = _gridApiDefinitions.CurrentRow.DataBoundItem as ApiEndpointDefinition;
+            if (item == null)
+                return;
+            _apiPerfEditorSyncing = true;
+            try
+            {
+                _txtApiName.Text = item.Name ?? string.Empty;
+                _cmbApiMethod.Text = string.IsNullOrWhiteSpace(item.Method) ? "GET" : item.Method;
+                _txtApiUrl.Text = item.Url ?? string.Empty;
+                LoadApiHeadersGridFromRaw(item.HeadersRaw);
+                _cmbApiSecurity.Text = string.IsNullOrWhiteSpace(item.SecurityType) ? "None" : item.SecurityType;
+                _txtApiSecurityValue.Text = item.SecurityValue ?? string.Empty;
+                _txtApiPayload.Text = item.Payload ?? string.Empty;
+                _numApiExpectedStatus.Value = Math.Min(_numApiExpectedStatus.Maximum, Math.Max(_numApiExpectedStatus.Minimum, item.ExpectedStatus));
+                _txtApiGroup.Text = string.IsNullOrWhiteSpace(item.GroupName) ? "General" : item.GroupName;
+            }
+            finally
+            {
+                _apiPerfEditorSyncing = false;
+            }
+        }
+
+        private void SaveApiDefinitionFromForm()
+        {
+            var url = (_txtApiUrl.Text ?? string.Empty).Trim();
+            if (!Uri.TryCreate(url, UriKind.Absolute, out _))
+            {
+                MessageBox.Show(this, "Please enter a valid absolute API URL.", "API Definition", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var selected = _gridApiDefinitions?.CurrentRow?.DataBoundItem as ApiEndpointDefinition;
+            var item = selected ?? new ApiEndpointDefinition();
+            item.Enabled = true;
+            item.Name = string.IsNullOrWhiteSpace(_txtApiName.Text) ? "API-" + (_apiPerfDefinitions.Count + 1) : _txtApiName.Text.Trim();
+            item.Method = string.IsNullOrWhiteSpace(_cmbApiMethod.Text) ? "GET" : _cmbApiMethod.Text.Trim().ToUpperInvariant();
+            item.Url = url;
+            item.HeadersRaw = BuildApiHeadersRawFromGrid();
+            item.SecurityType = string.IsNullOrWhiteSpace(_cmbApiSecurity.Text) ? "None" : _cmbApiSecurity.Text.Trim();
+            item.SecurityValue = _txtApiSecurityValue.Text ?? string.Empty;
+            item.Payload = _txtApiPayload.Text ?? string.Empty;
+            item.ExpectedStatus = (int)_numApiExpectedStatus.Value;
+            item.GroupName = string.IsNullOrWhiteSpace(_txtApiGroup.Text) ? "General" : _txtApiGroup.Text.Trim();
+            if (selected == null)
+                _apiPerfDefinitions.Add(item);
+            _gridApiDefinitions?.Refresh();
+        }
+
+        private void DeleteSelectedApiDefinition()
+        {
+            var item = _gridApiDefinitions?.CurrentRow?.DataBoundItem as ApiEndpointDefinition;
+            if (item == null)
+                return;
+            _apiPerfDefinitions.Remove(item);
+            NewApiDefinitionForm();
+        }
+
+        private async Task RunApiPerformanceFromDefinitionsAsync(bool selectedOnly)
+        {
+            var defs = selectedOnly
+                ? new[] { _gridApiDefinitions?.CurrentRow?.DataBoundItem as ApiEndpointDefinition }.Where(x => x != null).ToList()
+                : _apiPerfDefinitions.Where(x => x != null && x.Enabled).ToList();
+            if (defs.Count == 0)
+            {
+                MessageBox.Show(this, "No API definitions to run.", "API Performance", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var usersPre = GetSelectedPerfUsersCount();
+            PerformanceRunUiOptions runOpt;
+            using (var runDialog = new PerformanceRunDialog(BuildPerformanceRunDialogSeed(usersPre)))
+            {
+                if (runDialog.ShowDialog(this) != DialogResult.OK || runDialog.ResultOptions == null)
+                    return;
+                runOpt = runDialog.ResultOptions;
+            }
+
+            var reqs = BuildPerformanceRequestsFromApiDefinitions(defs);
+            _performanceRequests.RaiseListChangedEvents = false;
+            try
+            {
+                _performanceRequests.Clear();
+                foreach (var r in reqs)
+                    _performanceRequests.Add(r);
+            }
+            finally
+            {
+                _performanceRequests.RaiseListChangedEvents = true;
+            }
+
+            var plan = _perfExecuteAdapter.BuildExecutionPlan(reqs, Math.Max(1, runOpt.SimulatedUsers), TimeSpan.FromSeconds(Math.Max(1, runOpt.DurationSeconds)));
+            var result = await _perfExecuteAdapter.ExecuteAsync(plan, snapshot =>
+            {
+                if (snapshot == null || IsDisposed || !IsHandleCreated)
+                    return;
+                BeginInvoke(new Action(() => SetStatus($"API Perf {snapshot.Stage}: {snapshot.Transaction} {snapshot.StepName}")));
+            }).ConfigureAwait(true);
+            SavePerformanceResult(plan, result, reqs, null);
+            SetStatus($"API performance done. ok={result.TotalOk}, fail={result.TotalFail}");
+        }
+
+        private List<PerformanceRequestRecord> BuildPerformanceRequestsFromApiDefinitions(IEnumerable<ApiEndpointDefinition> defs)
+        {
+            var list = new List<PerformanceRequestRecord>();
+            foreach (var d in defs ?? Enumerable.Empty<ApiEndpointDefinition>())
+            {
+                if (d == null || string.IsNullOrWhiteSpace(d.Url))
+                    continue;
+                var headers = d.HeadersRaw ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(d.SecurityType) && !string.Equals(d.SecurityType, "None", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (string.Equals(d.SecurityType, "Bearer", StringComparison.OrdinalIgnoreCase))
+                        headers = headers + (headers.Length > 0 ? Environment.NewLine : string.Empty) + "Authorization: Bearer " + (d.SecurityValue ?? string.Empty);
+                    else if (string.Equals(d.SecurityType, "Basic", StringComparison.OrdinalIgnoreCase))
+                        headers = headers + (headers.Length > 0 ? Environment.NewLine : string.Empty) + "Authorization: Basic " + (d.SecurityValue ?? string.Empty);
+                    else if (string.Equals(d.SecurityType, "ApiKeyHeader", StringComparison.OrdinalIgnoreCase))
+                        headers = headers + (headers.Length > 0 ? Environment.NewLine : string.Empty) + "X-API-Key: " + (d.SecurityValue ?? string.Empty);
+                }
+
+                list.Add(new PerformanceRequestRecord
+                {
+                    Id = Guid.NewGuid().ToString("N"),
+                    TimestampUtc = DateTime.UtcNow,
+                    Action = "Keep",
+                    Method = string.IsNullOrWhiteSpace(d.Method) ? "GET" : d.Method.Trim().ToUpperInvariant(),
+                    ResourceType = "xhr",
+                    Url = d.Url.Trim(),
+                    Parameter = BuildPerformanceParameterFromUrl(d.Url.Trim()),
+                    Headers = headers,
+                    Payload = d.Payload ?? string.Empty,
+                    Status = d.ExpectedStatus > 0 ? (int?)d.ExpectedStatus : null,
+                    ReplayPolicy = "Keep+Replay",
+                    ValidationHint = "validate status/body-key",
+                    AnchorCandidate = true,
+                    IsAnchorSelected = true,
+                    AnchorGroup = string.IsNullOrWhiteSpace(d.GroupName) ? "General" : d.GroupName.Trim(),
+                    Notes = d.Name ?? string.Empty,
+                    FilterTag = "normal",
+                    IsFiltered = false
+                });
+            }
+            return list;
+        }
+
+        private void ClearApiHeadersGrid()
+        {
+            if (_gridApiHeaders == null)
+                return;
+            _gridApiHeaders.Rows.Clear();
+        }
+
+        private void LoadApiHeadersGridFromRaw(string raw)
+        {
+            if (_gridApiHeaders == null)
+                return;
+            _gridApiHeaders.Rows.Clear();
+            var lines = (raw ?? string.Empty).Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var line in lines)
+            {
+                var idx = line.IndexOf(':');
+                if (idx <= 0)
+                {
+                    _gridApiHeaders.Rows.Add(line.Trim(), string.Empty);
+                    continue;
+                }
+                var key = line.Substring(0, idx).Trim();
+                var val = line.Substring(idx + 1).Trim();
+                _gridApiHeaders.Rows.Add(key, val);
+            }
+        }
+
+        private string BuildApiHeadersRawFromGrid()
+        {
+            if (_gridApiHeaders == null || _gridApiHeaders.Rows.Count == 0)
+                return string.Empty;
+            var lines = new List<string>();
+            foreach (DataGridViewRow row in _gridApiHeaders.Rows)
+            {
+                if (row == null || row.IsNewRow)
+                    continue;
+                var k = Convert.ToString(row.Cells[0].Value)?.Trim();
+                var v = Convert.ToString(row.Cells[1].Value)?.Trim();
+                if (string.IsNullOrWhiteSpace(k))
+                    continue;
+                lines.Add(string.IsNullOrWhiteSpace(v) ? k : (k + ": " + v));
+            }
+            return string.Join(Environment.NewLine, lines);
         }
 
         private static bool IsLikelyUiActionStep(SemanticStepRecord step)
@@ -355,7 +630,7 @@ namespace MARS.WebAutomation.UI
             _perfAnchorRuntimeSplit.SplitterWidth = 6;
             _perfAnchorRuntimeSplit.Panel1MinSize = 100;
             _perfAnchorRuntimeSplit.Panel2MinSize = 168;
-            _perfAnchorRuntimeSplit.FixedPanel = FixedPanel.Panel2;
+            _perfAnchorRuntimeSplit.FixedPanel = FixedPanel.None;
 
             _gridToolStrip = new ToolStrip
             {
@@ -600,6 +875,7 @@ namespace MARS.WebAutomation.UI
             _stepsGridMenu.Items.Add(new ToolStripSeparator());
             _stepsGridMenu.Items.Add(new ToolStripMenuItem("Export", null, (_, __) => ExportStepsFromGrid()));
             _stepsGridMenu.Items.Add(new ToolStripMenuItem("Insert row", null, (_, __) => InsertStepAfterSelection()));
+            _stepsGridMenu.Items.Add(new ToolStripMenuItem("Pretty Paint", null, (_, __) => PrettyPaintRecordCanvas()));
             gridSteps.ContextMenuStrip = _stepsGridMenu;
         }
 
@@ -1019,13 +1295,14 @@ namespace MARS.WebAutomation.UI
             Set("colParam", "StepsColParameter");
             if (gridSteps.Columns.Contains("colPerfRef"))
                 gridSteps.Columns["colPerfRef"].HeaderText = "Perf#";
-            if (_stepsGridMenu != null && _stepsGridMenu.Items.Count >= 6)
+            if (_stepsGridMenu != null && _stepsGridMenu.Items.Count >= 7)
             {
                 _stepsGridMenu.Items[0].Text = L("GridRun");
                 _stepsGridMenu.Items[1].Text = L("GridDelete");
                 _stepsGridMenu.Items[2].Text = L("GridHighlight");
                 _stepsGridMenu.Items[4].Text = L("GridExport");
                 _stepsGridMenu.Items[5].Text = L("GridInsertRow");
+                _stepsGridMenu.Items[6].Text = L("GridPrettyPaint");
             }
             if (gridSteps.Columns.Contains("colAct"))
                 gridSteps.Columns["colAct"].HeaderText = string.Empty;
@@ -1432,6 +1709,58 @@ namespace MARS.WebAutomation.UI
             _steps[index].CanvasY = y;
         }
 
+        private void PrettyPaintRecordCanvas()
+        {
+            LogMethodBegin(nameof(PrettyPaintRecordCanvas), $"stepCount={_steps.Count}");
+            try
+            {
+                if (_steps.Count == 0)
+                    return;
+
+                var viewportWidth = panelRecordCanvasPreview?.ClientSize.Width ?? 0;
+                if (viewportWidth <= 0 && _recordSplit != null)
+                    viewportWidth = _recordSplit.Panel2.ClientSize.Width;
+                var columns = viewportWidth >= 1120 ? 4 : 3;
+                columns = Math.Max(3, Math.Min(4, columns));
+
+                // Keep generous slots so variable card content never overlaps.
+                const double slotWidth = 352d;
+                const double slotHeight = 214d;
+                const double leftPadding = 28d;
+                const double topPadding = 32d;
+                var existingPositions = new List<(double X, double Y)>(_steps.Count);
+                for (var i = 0; i < _steps.Count; i++)
+                {
+                    var fallbackX = leftPadding + (i % columns) * slotWidth;
+                    var fallbackY = topPadding + (i / columns) * slotHeight;
+                    var x = _steps[i].CanvasX ?? fallbackX;
+                    var y = _steps[i].CanvasY ?? fallbackY;
+                    if (double.IsNaN(x) || double.IsInfinity(x) || x < 0d || x > 100000d)
+                        x = fallbackX;
+                    if (double.IsNaN(y) || double.IsInfinity(y) || y < 0d || y > 100000d)
+                        y = fallbackY;
+                    existingPositions.Add((x, y));
+                }
+                var baseX = existingPositions.Count > 0 ? existingPositions.Min(p => p.X) : leftPadding;
+                var baseY = existingPositions.Count > 0 ? existingPositions.Min(p => p.Y) : topPadding;
+                for (var i = 0; i < _steps.Count; i++)
+                {
+                    var col = i % columns;
+                    var row = i / columns;
+                    _steps[i].CanvasX = baseX + col * slotWidth;
+                    _steps[i].CanvasY = baseY + row * slotHeight;
+                }
+
+                RefreshRecordReplayCanvas();
+                CenterCanvasViewport();
+                SetStatus($"Pretty Paint arranged {_steps.Count} step(s) in {columns} columns.");
+            }
+            finally
+            {
+                LogMethodEnd(nameof(PrettyPaintRecordCanvas));
+            }
+        }
+
         private void RefreshRecordReplayCanvas()
         {
             if (_recordWebView == null)
@@ -1497,6 +1826,8 @@ namespace MARS.WebAutomation.UI
             _recordWebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
             _recordWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
             _recordWebView.CoreWebView2.Settings.IsZoomControlEnabled = false;
+            _recordWebView.CoreWebView2.ContextMenuRequested -= RecordWebView_ContextMenuRequested;
+            _recordWebView.CoreWebView2.ContextMenuRequested += RecordWebView_ContextMenuRequested;
             _recordWebView.CoreWebView2.WebMessageReceived -= RecordWebView_WebMessageReceived;
             _recordWebView.CoreWebView2.WebMessageReceived += RecordWebView_WebMessageReceived;
             _recordWebView.NavigationCompleted -= RecordWebView_NavigationCompleted;
@@ -1556,6 +1887,28 @@ namespace MARS.WebAutomation.UI
             catch (Exception ex)
             {
                 FormLog.Debug(ex, "Ignored invalid WebView2 message from record canvas.");
+            }
+        }
+
+        private void RecordWebView_ContextMenuRequested(object sender, CoreWebView2ContextMenuRequestedEventArgs e)
+        {
+            try
+            {
+                var env = _recordWebView?.CoreWebView2?.Environment;
+                if (env == null)
+                    return;
+                e.MenuItems.Add(env.CreateContextMenuItem("Pretty Paint", null, CoreWebView2ContextMenuItemKind.Command));
+                var item = e.MenuItems[e.MenuItems.Count - 1];
+                item.CustomItemSelected += (_, __) =>
+                {
+                    if (IsDisposed)
+                        return;
+                    BeginInvoke(new Action(PrettyPaintRecordCanvas));
+                };
+            }
+            catch (Exception ex)
+            {
+                FormLog.Debug(ex, "Record canvas context menu customization ignored.");
             }
         }
 
@@ -1862,8 +2215,8 @@ namespace MARS.WebAutomation.UI
                 for (var i = 0; i < steps.Count; i++)
                 {
                     var s = steps[i];
-                    var defaultLeft = 28d + (i % 3) * 228d;
-                    var defaultTop = 28d + (i / 3) * 120d;
+                    var defaultLeft = 28d + (i % 3) * 292d;
+                    var defaultTop = 32d + (i / 3) * 168d;
                     var left = s.CanvasX ?? defaultLeft;
                     var top = s.CanvasY ?? defaultTop;
                     if (double.IsNaN(left) || double.IsInfinity(left) || left < 0d || left > 5000d)
@@ -1909,7 +2262,7 @@ namespace MARS.WebAutomation.UI
                 for (var i = 0; i < steps.Count; i++)
                 {
                     var s = steps[i];
-                    var defaultTop = 28d + (i / 3) * 120d;
+                    var defaultTop = 32d + (i / 3) * 168d;
                     var top = s.CanvasY ?? defaultTop;
                     if (double.IsNaN(top) || double.IsInfinity(top))
                         top = defaultTop;
@@ -1977,11 +2330,13 @@ namespace MARS.WebAutomation.UI
 
         private void chkSyncFocus_CheckedChanged(object sender, EventArgs e)
         {
+            SyncFocusToggleStates();
             UpdateRecorderModeFromUiStateAsync();
         }
 
         private void chkWithPerformanceTest_CheckedChanged(object sender, EventArgs e)
         {
+            SyncPerformanceToggleStates();
             ApplyPerformancePanelVisibility();
             UpdatePerformanceMenuState();
         }
@@ -2028,7 +2383,55 @@ namespace MARS.WebAutomation.UI
 
         private bool IsPerformanceTestEnabled()
         {
-            return chkWithPerformanceTest.Checked;
+            return GetPerformanceToggleChecked();
+        }
+
+        private bool GetSyncFocusToggleChecked()
+        {
+            if (chkSyncFocus != null)
+                return chkSyncFocus.Checked;
+            return tsbSyncHost != null && tsbSyncHost.Checked;
+        }
+
+        private void SyncFocusToggleStates()
+        {
+            var value = chkSyncFocus != null
+                ? chkSyncFocus.Checked
+                : (tsbSyncHost != null && tsbSyncHost.Checked);
+            if (chkSyncFocus != null && chkSyncFocus.Checked != value)
+                chkSyncFocus.Checked = value;
+            if (tsbSyncHost != null && tsbSyncHost.Checked != value)
+                tsbSyncHost.Checked = value;
+        }
+
+        private bool GetPerformanceToggleChecked()
+        {
+            if (chkWithPerformanceTest != null)
+                return chkWithPerformanceTest.Checked;
+            return tsbPerfHost != null && tsbPerfHost.Checked;
+        }
+
+        private void SetPerformanceToggleChecked(bool value)
+        {
+            if (chkWithPerformanceTest != null)
+                chkWithPerformanceTest.Checked = value;
+            if (tsbPerfHost != null)
+                tsbPerfHost.Checked = value;
+            if (_menuWithPerformanceTest != null && _menuWithPerformanceTest.Checked != value)
+                _menuWithPerformanceTest.Checked = value;
+        }
+
+        private void SyncPerformanceToggleStates()
+        {
+            var value = chkWithPerformanceTest != null
+                ? chkWithPerformanceTest.Checked
+                : (tsbPerfHost != null && tsbPerfHost.Checked);
+            if (chkWithPerformanceTest != null && chkWithPerformanceTest.Checked != value)
+                chkWithPerformanceTest.Checked = value;
+            if (tsbPerfHost != null && tsbPerfHost.Checked != value)
+                tsbPerfHost.Checked = value;
+            if (_menuWithPerformanceTest != null && _menuWithPerformanceTest.Checked != value)
+                _menuWithPerformanceTest.Checked = value;
         }
 
         private void SetupMenuPerformanceOptions()
@@ -2039,7 +2442,7 @@ namespace MARS.WebAutomation.UI
             {
                 if (_syncingPerfMenuState)
                     return;
-                chkWithPerformanceTest.Checked = _menuWithPerformanceTest.Checked;
+                SetPerformanceToggleChecked(_menuWithPerformanceTest.Checked);
             };
 
             _menuPerfUsers = new ToolStripMenuItem("Sim Users");
@@ -2205,15 +2608,18 @@ namespace MARS.WebAutomation.UI
 
         private async Task RunPerformanceTestAsync(HashSet<string> targetGroups = null)
         {
-            if (!IsPerformanceTestEnabled())
+            LogMethodBegin(nameof(RunPerformanceTestAsync), $"targetGroups={(targetGroups == null ? 0 : targetGroups.Count)}");
+            try
             {
-                MessageBox.Show(this, "Please enable 'With Performance Test' first.", "Performance",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
+                if (!IsPerformanceTestEnabled())
+                {
+                    MessageBox.Show(this, "Please enable 'With Performance Test' first.", "Performance",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
 
-            if (_performanceRunInProgress)
-                return;
+                if (_performanceRunInProgress)
+                    return;
 
             var sourceRequests = GetCurrentPerformanceRowsForDisplay()
                 .Where(r => r != null && !r.IsFiltered && !string.Equals(r.Action, "Ignore", StringComparison.OrdinalIgnoreCase))
@@ -2309,8 +2715,8 @@ namespace MARS.WebAutomation.UI
                 Metrics = metrics
             };
 
-            try
-            {
+                try
+                {
                 var liveChart = new PerformanceLiveChartForm(metrics, Math.Max(1, runOpt.ChartSampleIntervalSeconds));
                 liveChart.Show(this);
             }
@@ -2337,20 +2743,56 @@ namespace MARS.WebAutomation.UI
                     plan.SimulatedUsers = usersNow;
                     ResetRuntimeProgressRows(plan);
                     SetStatus($"NBomber running stage {i + 1}/{scheduleUsers.Count}, users={usersNow} ...");
+                    NBomberProgressSnapshot latestSnapshot = null;
+                    string latestStatusText = null;
+                    var uiSnapshotGate = new object();
+                    var uiRefreshQueued = 0;
+
+                    void QueueRuntimeUiRefresh()
+                    {
+                        if (IsDisposed || !IsHandleCreated)
+                            return;
+                        if (Interlocked.Exchange(ref uiRefreshQueued, 1) == 1)
+                            return;
+                        BeginInvoke(new Action(() =>
+                        {
+                            try
+                            {
+                                NBomberProgressSnapshot snapshotLocal;
+                                string statusLocal;
+                                lock (uiSnapshotGate)
+                                {
+                                    snapshotLocal = latestSnapshot;
+                                    statusLocal = latestStatusText;
+                                }
+                                if (snapshotLocal != null)
+                                    UpdateRuntimeProgress(snapshotLocal);
+                                if (!string.IsNullOrWhiteSpace(statusLocal))
+                                    SetStatus(statusLocal);
+                            }
+                            finally
+                            {
+                                Interlocked.Exchange(ref uiRefreshQueued, 0);
+                            }
+                        }));
+                    }
+
                     var result = await Task.Run(async () =>
                         await _perfExecuteAdapter.ExecuteAsync(plan, snapshot =>
                         {
                             if (snapshot == null || IsDisposed || !IsHandleCreated)
                                 return;
-                            BeginInvoke(new Action(() =>
+
+                            var txt = "Perf users=" + usersNow + " " + (snapshot.Stage ?? "running")
+                                      + " | OK=" + snapshot.TotalOk
+                                      + " FAIL=" + snapshot.TotalFail
+                                      + (string.IsNullOrWhiteSpace(snapshot.Transaction) ? string.Empty : " | Tx=" + snapshot.Transaction);
+                            lock (uiSnapshotGate)
                             {
-                                UpdateRuntimeProgress(snapshot);
-                                var txt = "Perf users=" + usersNow + " " + (snapshot.Stage ?? "running")
-                                          + " | OK=" + snapshot.TotalOk
-                                          + " FAIL=" + snapshot.TotalFail
-                                          + (string.IsNullOrWhiteSpace(snapshot.Transaction) ? string.Empty : " | Tx=" + snapshot.Transaction);
-                                SetStatus(txt);
-                            }));
+                                latestSnapshot = snapshot;
+                                latestStatusText = txt;
+                            }
+                            QueueRuntimeUiRefresh();
                         }, _perfRunCts.Token).ConfigureAwait(false),
                         _perfRunCts.Token).ConfigureAwait(true);
                     all.Add(result);
@@ -2384,15 +2826,20 @@ namespace MARS.WebAutomation.UI
                 MessageBox.Show(this, ex.Message, "Performance Run Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 SetStatus("NBomber performance run failed.");
             }
+                finally
+                {
+                    if (_perfRunCts != null)
+                    {
+                        _perfRunCts.Dispose();
+                        _perfRunCts = null;
+                    }
+                    _perfCurrentRound = 0;
+                    SetPerformanceRunningState(false);
+                }
+            }
             finally
             {
-                if (_perfRunCts != null)
-                {
-                    _perfRunCts.Dispose();
-                    _perfRunCts = null;
-                }
-                _perfCurrentRound = 0;
-                SetPerformanceRunningState(false);
+                LogMethodEnd(nameof(RunPerformanceTestAsync));
             }
         }
 
@@ -2443,11 +2890,14 @@ namespace MARS.WebAutomation.UI
 
         private void ExportPerformancePack()
         {
-            if (_performanceRequests == null || _performanceRequests.Count == 0)
+            LogMethodBegin(nameof(ExportPerformancePack), $"requestCount={_performanceRequests?.Count ?? 0}");
+            try
             {
-                MessageBox.Show(this, "No performance requests to export.", "Performance Pack", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
+                if (_performanceRequests == null || _performanceRequests.Count == 0)
+                {
+                    MessageBox.Show(this, "No performance requests to export.", "Performance Pack", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
 
             using (var dlg = new SaveFileDialog
             {
@@ -2503,6 +2953,11 @@ namespace MARS.WebAutomation.UI
                     FormLog.Error(ex, "ExportPerformancePack failed.");
                     MessageBox.Show(this, ex.Message, "Performance Pack", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+            }
+            finally
+            {
+                LogMethodEnd(nameof(ExportPerformancePack));
             }
         }
 
@@ -2668,16 +3123,19 @@ namespace MARS.WebAutomation.UI
 
         private void ImportPerformancePack()
         {
-            using (var dlg = new OpenFileDialog
+            LogMethodBegin(nameof(ImportPerformancePack));
+            try
             {
-                Filter = "Performance pack JSON|*.json|All files|*.*"
-            })
-            {
-                if (dlg.ShowDialog(this) != DialogResult.OK)
-                    return;
-                try
+                using (var dlg = new OpenFileDialog
                 {
-                    var doc = _perfPackStore.Load(dlg.FileName);
+                    Filter = "Performance pack JSON|*.json|All files|*.*"
+                })
+                {
+                    if (dlg.ShowDialog(this) != DialogResult.OK)
+                        return;
+                    try
+                    {
+                        var doc = _perfPackStore.Load(dlg.FileName);
                     var list = doc?.Requests?.Where(r => r != null).ToList() ?? new List<PerformanceRequestRecord>();
                     if (list.Count == 0)
                     {
@@ -2745,13 +3203,18 @@ namespace MARS.WebAutomation.UI
                     RefreshRecordReplayCanvas();
                     UpdatePerformanceAnchorSummary(GetCurrentPerformanceRowsForDisplay());
                     ApplyPerformancePanelVisibility();
-                    SetStatus("Performance pack imported: " + list.Count + " request(s).");
+                        SetStatus("Performance pack imported: " + list.Count + " request(s).");
+                    }
+                    catch (Exception ex)
+                    {
+                        FormLog.Error(ex, "ImportPerformancePack failed.");
+                        MessageBox.Show(this, ex.Message, "Performance Pack", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    FormLog.Error(ex, "ImportPerformancePack failed.");
-                    MessageBox.Show(this, ex.Message, "Performance Pack", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+            }
+            finally
+            {
+                LogMethodEnd(nameof(ImportPerformancePack));
             }
         }
 
@@ -2955,7 +3418,8 @@ namespace MARS.WebAutomation.UI
                     transactionsConfigured = transactionsConfigured
                 };
 
-                File.WriteAllText(path, JsonConvert.SerializeObject(payload, Formatting.Indented), Encoding.UTF8);
+                _lastPerformanceResult = JObject.FromObject(payload);
+                File.WriteAllText(path, _lastPerformanceResult.ToString(Formatting.Indented), Encoding.UTF8);
                 SetStatus((result?.Message ?? "NBomber performance run completed.") + " Result saved: " + path);
             }
             catch (Exception ex)
@@ -3267,7 +3731,7 @@ namespace MARS.WebAutomation.UI
                     Math.Max(_numRecorderTabDepth.Minimum, _settings.RecorderTabContextAncestorDepth));
             if (_txtPerformanceFilterTokens != null)
                 _txtPerformanceFilterTokens.Text = NormalizePerformanceFilterTokens(_settings.PerformanceFilterTokens);
-            chkWithPerformanceTest.Checked = _settings.PerformancePanelEnabled;
+            SetPerformanceToggleChecked(_settings.PerformancePanelEnabled);
             if (_tscbPerfUsers != null)
             {
                 var target = Math.Max(1, _settings.PerformanceSimUserCount);
@@ -3301,7 +3765,7 @@ namespace MARS.WebAutomation.UI
                 ? (int)_numRecorderTabDepth.Value
                 : 5;
             _settings.PerformanceFilterTokens = NormalizePerformanceFilterTokens(_txtPerformanceFilterTokens?.Text);
-            _settings.PerformancePanelEnabled = chkWithPerformanceTest.Checked;
+            _settings.PerformancePanelEnabled = GetPerformanceToggleChecked();
             _settings.PerformanceSimUserCount = GetSelectedPerfUsersCount();
             RefreshPerformanceFilterTokensFromSettings();
         }
@@ -3585,7 +4049,7 @@ namespace MARS.WebAutomation.UI
 
         private bool ShouldSyncFocusedElement()
         {
-            return chkSyncFocus.Checked
+            return GetSyncFocusToggleChecked()
                 && tabMain.SelectedTab == tabObjects;
         }
 
@@ -4544,42 +5008,184 @@ namespace MARS.WebAutomation.UI
             }
         }
 
+        private List<ObjectTreeNodeDto> CaptureObjectTreeRoots()
+        {
+            var roots = new List<ObjectTreeNodeDto>();
+            if (treeObjects == null)
+                return roots;
+            foreach (TreeNode n in treeObjects.Nodes)
+            {
+                if (n?.Tag is ObjectTreeNodeDto dto)
+                    roots.Add(CloneTreeNode(dto));
+            }
+            return roots;
+        }
+
+        private Dictionary<string, PerformanceTransactionConfigEntry> CapturePerformanceTransactionConfig()
+        {
+            var dict = new Dictionary<string, PerformanceTransactionConfigEntry>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kv in _transactionConfigByName)
+            {
+                if (string.IsNullOrWhiteSpace(kv.Key) || kv.Value == null)
+                    continue;
+                dict[kv.Key] = new PerformanceTransactionConfigEntry
+                {
+                    Enabled = kv.Value.Enabled,
+                    UsersOverride = kv.Value.UsersOverride,
+                    DurationSecondsOverride = kv.Value.DurationSecondsOverride,
+                    Weight = Math.Max(1, kv.Value.Weight)
+                };
+            }
+            return dict;
+        }
+
+        private async Task<WebTestDocument> BuildWorkbenchDocumentAsync(Uri uri)
+        {
+            var title = _host.IsRunning && _host.Page != null
+                ? await _host.Page.TitleAsync().ConfigureAwait(true)
+                : string.Empty;
+            var norm = DataPathHelper.SanitizeUrlToFileKey(uri);
+            var doc = new WebTestDocument
+            {
+                PageInfo = PageInfoDto.FromUri(uri, title, norm),
+                Steps = _steps.ToList(),
+                ObjectTreeRoots = CaptureObjectTreeRoots(),
+                NetworkCaptures = _network.Entries.ToList(),
+                PerformanceRequests = _performanceRequests.Where(r => r != null).ToList(),
+                PerformanceDefaultSimUsers = GetSelectedPerfUsersCount(),
+                PerformanceDefaultDurationSeconds = _perfDurationSeconds,
+                PerformanceTransactionConfig = CapturePerformanceTransactionConfig(),
+                PerformanceResult = _lastPerformanceResult?.DeepClone()
+            };
+
+            var cookieSummary = _host.Context != null
+                ? await NetworkCaptureService.BuildCookiesSummaryAsync(_host.Context).ConfigureAwait(true)
+                : string.Empty;
+            if (!string.IsNullOrEmpty(cookieSummary) && doc.NetworkCaptures.Count > 0)
+                doc.NetworkCaptures[doc.NetworkCaptures.Count - 1].CookiesSummary = cookieSummary;
+
+            doc.SettingsSnapshot["Headless"] = _settings.Headless.ToString();
+            doc.SettingsSnapshot["DataRoot"] = _settings.DataRootFolder;
+            return doc;
+        }
+
+        private void RestoreObjectTree(IEnumerable<ObjectTreeNodeDto> roots)
+        {
+            treeObjects.BeginUpdate();
+            try
+            {
+                treeObjects.Nodes.Clear();
+                foreach (var r in roots ?? Enumerable.Empty<ObjectTreeNodeDto>())
+                {
+                    if (r != null)
+                        AddTreeNodeRecursive(treeObjects.Nodes, null, r);
+                }
+                if (treeObjects.Nodes.Count > 0)
+                    treeObjects.ExpandAll();
+            }
+            finally
+            {
+                treeObjects.EndUpdate();
+            }
+            _treeSearchMatches.Clear();
+            _treeSearchIndex = -1;
+            gridObjectProps.Rows.Clear();
+        }
+
+        private void ApplyWorkbenchDocument(WebTestDocument doc)
+        {
+            doc = doc ?? new WebTestDocument();
+            _suppressStepsListEvents = true;
+            try
+            {
+                _steps.Clear();
+                foreach (var s in doc.Steps ?? Enumerable.Empty<SemanticStepRecord>())
+                    _steps.Add(s);
+            }
+            finally
+            {
+                _suppressStepsListEvents = false;
+            }
+
+            _performanceRequests.RaiseListChangedEvents = false;
+            try
+            {
+                _performanceRequests.Clear();
+                foreach (var r in doc.PerformanceRequests ?? Enumerable.Empty<PerformanceRequestRecord>())
+                    _performanceRequests.Add(r);
+            }
+            finally
+            {
+                _performanceRequests.RaiseListChangedEvents = true;
+            }
+
+            _transactionConfigByName.Clear();
+            if (doc.PerformanceTransactionConfig != null)
+            {
+                foreach (var kv in doc.PerformanceTransactionConfig)
+                {
+                    if (string.IsNullOrWhiteSpace(kv.Key) || kv.Value == null)
+                        continue;
+                    _transactionConfigByName[kv.Key] = new TransactionConfigRow
+                    {
+                        Name = kv.Key,
+                        Enabled = kv.Value.Enabled,
+                        UsersOverride = kv.Value.UsersOverride > 0 ? kv.Value.UsersOverride : null,
+                        DurationSecondsOverride = kv.Value.DurationSecondsOverride > 0 ? kv.Value.DurationSecondsOverride : null,
+                        Weight = Math.Max(1, kv.Value.Weight)
+                    };
+                }
+            }
+
+            if (doc.PerformanceDefaultDurationSeconds.HasValue && doc.PerformanceDefaultDurationSeconds.Value > 0)
+                _perfDurationSeconds = doc.PerformanceDefaultDurationSeconds.Value;
+            if (doc.PerformanceDefaultSimUsers.HasValue && doc.PerformanceDefaultSimUsers.Value > 0 && _tscbPerfUsers != null)
+            {
+                var users = doc.PerformanceDefaultSimUsers.Value.ToString(CultureInfo.InvariantCulture);
+                if (_tscbPerfUsers.Items.IndexOf(users) < 0)
+                    _tscbPerfUsers.Items.Add(users);
+                _tscbPerfUsers.SelectedItem = users;
+            }
+            _lastPerformanceResult = doc.PerformanceResult?.DeepClone();
+
+            RestoreObjectTree(doc.ObjectTreeRoots);
+            RenumberStepMetadata();
+            RefreshRecordReplayCanvas();
+            if (doc.PageInfo != null && !string.IsNullOrEmpty(doc.PageInfo.OriginalUrl))
+                txtUrl.Text = doc.PageInfo.OriginalUrl;
+            UpdateUriLabels();
+            BindPerformanceForSelectedStep();
+            UpdatePerformanceAnchorSummary(GetCurrentPerformanceRowsForDisplay());
+            ApplyPerformancePanelVisibility();
+            gridSteps.Refresh();
+        }
+
         private async Task SaveInternalAsync()
         {
-            using (WebAutomationMethodTrace.Begin(FormLog, nameof(SaveInternalAsync),
-                ("url", txtUrl.Text?.Trim()),
-                ("steps", _steps.Count)))
+            LogMethodBegin(nameof(SaveInternalAsync), $"url={txtUrl.Text?.Trim()};steps={_steps.Count}");
+            try
             {
-                ReadSettingsFromUi();
-                if (!Uri.TryCreate(txtUrl.Text.Trim(), UriKind.Absolute, out var uri))
+                using (WebAutomationMethodTrace.Begin(FormLog, nameof(SaveInternalAsync),
+                    ("url", txtUrl.Text?.Trim()),
+                    ("steps", _steps.Count)))
                 {
-                    MessageBox.Show(this, "Enter a valid absolute URL before saving.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
+                    ReadSettingsFromUi();
+                    if (!Uri.TryCreate(txtUrl.Text.Trim(), UriKind.Absolute, out var uri))
+                    {
+                        MessageBox.Show(this, "Enter a valid absolute URL before saving.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    var path = DataPathHelper.BuildJsonPath(_settings.DataRootFolder, uri);
+                    var doc = await BuildWorkbenchDocumentAsync(uri).ConfigureAwait(true);
+                    _store.Save(path, doc);
+                    _lastSavedWebTestPath = path;
+                    SetStatus("Saved: " + path);
                 }
-
-                var path = DataPathHelper.BuildJsonPath(_settings.DataRootFolder, uri);
-                var title = _host.IsRunning && _host.Page != null
-                    ? await _host.Page.TitleAsync().ConfigureAwait(true)
-                    : string.Empty;
-                var norm = DataPathHelper.SanitizeUrlToFileKey(uri);
-                var doc = new WebTestDocument
-                {
-                    PageInfo = PageInfoDto.FromUri(uri, title, norm),
-                    Steps = _steps.ToList(),
-                    NetworkCaptures = _network.Entries.ToList()
-                };
-
-                var cookieSummary = _host.Context != null
-                    ? await NetworkCaptureService.BuildCookiesSummaryAsync(_host.Context).ConfigureAwait(true)
-                    : string.Empty;
-                if (!string.IsNullOrEmpty(cookieSummary) && doc.NetworkCaptures.Count > 0)
-                    doc.NetworkCaptures[doc.NetworkCaptures.Count - 1].CookiesSummary = cookieSummary;
-
-                doc.SettingsSnapshot["Headless"] = _settings.Headless.ToString();
-                doc.SettingsSnapshot["DataRoot"] = _settings.DataRootFolder;
-
-                _store.Save(path, doc);
-                SetStatus("Saved: " + path);
+            }
+            finally
+            {
+                LogMethodEnd(nameof(SaveInternalAsync));
             }
         }
 
@@ -4597,75 +5203,210 @@ namespace MARS.WebAutomation.UI
         }
 
         private void menuFileSave_Click(object sender, EventArgs e) => tsbSave_Click(sender, e);
+        private void menuFileLoad_Click(object sender, EventArgs e) => LoadWorkbenchFromFile();
+        private void menuFileClear_Click(object sender, EventArgs e) => ClearWorkbenchContent();
         private void menuFileExport_Click(object sender, EventArgs e) => tsbExport_Click(sender, e);
         private void menuFileImport_Click(object sender, EventArgs e) => tsbImport_Click(sender, e);
 
-        private async void tsbExport_Click(object sender, EventArgs e)
+        private void tsbExport_Click(object sender, EventArgs e)
         {
-            using (var dlg = new SaveFileDialog { Filter = "JSON|*.json", FileName = "webtest.json" })
+            LogMethodBegin(nameof(tsbExport_Click), $"sender={sender?.GetType().Name ?? "null"}");
+            try
             {
-                if (dlg.ShowDialog(this) != DialogResult.OK)
-                    return;
-                try
+                using (var dlg = new SaveFileDialog { Filter = "JSON|*.json", FileName = "objects-export.json" })
                 {
-                    ReadSettingsFromUi();
-                    if (!Uri.TryCreate(txtUrl.Text.Trim(), UriKind.Absolute, out var uri))
-                        uri = new Uri("https://example.com/");
-                    var title = _host.IsRunning && _host.Page != null
-                        ? await _host.Page.TitleAsync().ConfigureAwait(true)
-                        : string.Empty;
-                    var doc = new WebTestDocument
+                    if (dlg.ShowDialog(this) != DialogResult.OK)
+                        return;
+                    try
                     {
-                        PageInfo = PageInfoDto.FromUri(uri, title, DataPathHelper.SanitizeUrlToFileKey(uri)),
-                        Steps = _steps.ToList(),
-                        NetworkCaptures = _network.Entries.ToList()
-                    };
-                    _store.Save(dlg.FileName, doc);
-                    SetStatus("Exported.");
+                        var doc = new WebTestDocument
+                        {
+                            ObjectTreeRoots = CaptureObjectTreeRoots()
+                        };
+                        if (Uri.TryCreate(txtUrl.Text?.Trim(), UriKind.Absolute, out var uri))
+                            doc.PageInfo = PageInfoDto.FromUri(uri, string.Empty, DataPathHelper.SanitizeUrlToFileKey(uri));
+                        _store.Save(dlg.FileName, doc);
+                        SetStatus("Exported object tree: " + dlg.FileName);
+                    }
+                    catch (Exception ex)
+                    {
+                        FormLog.Error(ex, "Export object failed.");
+                        MessageBox.Show(this, ex.Message, "Export Object", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    FormLog.Error(ex, "Export failed.");
-                    MessageBox.Show(this, ex.Message, "Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+            }
+            finally
+            {
+                LogMethodEnd(nameof(tsbExport_Click));
             }
         }
 
         private void tsbImport_Click(object sender, EventArgs e)
         {
-            using (var dlg = new OpenFileDialog { Filter = "JSON|*.json" })
+            LogMethodBegin(nameof(tsbImport_Click), $"sender={sender?.GetType().Name ?? "null"}");
+            try
             {
-                if (dlg.ShowDialog(this) != DialogResult.OK)
-                    return;
-                try
+                using (var dlg = new OpenFileDialog { Filter = "JSON|*.json" })
                 {
-                    var doc = _store.Load(dlg.FileName);
-                    _suppressStepsListEvents = true;
+                    if (dlg.ShowDialog(this) != DialogResult.OK)
+                        return;
                     try
                     {
-                        while (_steps.Count > 0)
-                            _steps.RemoveAt(_steps.Count - 1);
-                        foreach (var s in doc.Steps ?? Enumerable.Empty<SemanticStepRecord>())
-                            _steps.Add(s);
+                        var doc = _store.Load(dlg.FileName);
+                        RestoreObjectTree(doc.ObjectTreeRoots);
+                        if (doc.PageInfo != null && !string.IsNullOrEmpty(doc.PageInfo.OriginalUrl))
+                            txtUrl.Text = doc.PageInfo.OriginalUrl;
+                        UpdateUriLabels();
+                        SetStatus("Imported object tree: " + treeObjects.Nodes.Count + " root node(s).");
                     }
-                    finally
+                    catch (Exception ex)
                     {
-                        _suppressStepsListEvents = false;
+                        FormLog.Error(ex, "Import object failed.");
+                        MessageBox.Show(this, ex.Message, "Import Object", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
-
-                    RenumberStepMetadata();
-                    RefreshRecordReplayCanvas();
-                    if (doc.PageInfo != null && !string.IsNullOrEmpty(doc.PageInfo.OriginalUrl))
-                        txtUrl.Text = doc.PageInfo.OriginalUrl;
-                    UpdateUriLabels();
-                    SetStatus("Imported " + _steps.Count + " steps.");
-                }
-                catch (Exception ex)
-                {
-                    FormLog.Error(ex, "Import failed.");
-                    MessageBox.Show(this, ex.Message, "Import", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+            finally
+            {
+                LogMethodEnd(nameof(tsbImport_Click));
+            }
+        }
+
+        private void LoadWorkbenchFromFile()
+        {
+            LogMethodBegin(nameof(LoadWorkbenchFromFile));
+            try
+            {
+                using (var dlg = new OpenFileDialog { Filter = "JSON|*.json" })
+                {
+                    var initDir = ResolveDefaultSaveDirectory();
+                    if (!string.IsNullOrWhiteSpace(initDir) && Directory.Exists(initDir))
+                        dlg.InitialDirectory = initDir;
+                    if (dlg.ShowDialog(this) != DialogResult.OK)
+                        return;
+
+                    using (var progress = CreateLoadProgressDialog())
+                    {
+                        try
+                        {
+                            progress.Show(this);
+                            ReportLoadProgress(progress, "Loading JSON...");
+                            var doc = _store.Load(dlg.FileName);
+                            _lastSavedWebTestPath = dlg.FileName;
+                            ReportLoadProgress(progress, "Restoring test steps...");
+                            ApplyWorkbenchDocument(doc);
+                            ReportLoadProgress(progress, "Refreshing visualization...");
+                            RefreshRecordReplayCanvas();
+                            SetStatus($"Loaded {_steps.Count} step(s), {treeObjects.Nodes.Count} object root(s), {_performanceRequests.Count} performance request(s).");
+                        }
+                        catch (Exception ex)
+                        {
+                            FormLog.Error(ex, "Load failed.");
+                            MessageBox.Show(this, ex.Message, "Load", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                LogMethodEnd(nameof(LoadWorkbenchFromFile));
+            }
+        }
+
+        private string ResolveDefaultSaveDirectory()
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(_lastSavedWebTestPath))
+                {
+                    var remembered = Path.GetDirectoryName(_lastSavedWebTestPath);
+                    if (!string.IsNullOrWhiteSpace(remembered))
+                        return remembered;
+                }
+                if (Uri.TryCreate(txtUrl.Text?.Trim(), UriKind.Absolute, out var uri))
+                {
+                    var path = DataPathHelper.BuildJsonPath(_settings?.DataRootFolder, uri);
+                    var dir = Path.GetDirectoryName(path);
+                    if (!string.IsNullOrWhiteSpace(dir))
+                        return dir;
+                }
+            }
+            catch
+            {
+                // ignore and fallback
+            }
+            return _settings?.DataRootFolder;
+        }
+
+        private void ClearWorkbenchContent()
+        {
+            LogMethodBegin(nameof(ClearWorkbenchContent), $"steps={_steps.Count};perf={_performanceRequests.Count}");
+            try
+            {
+                var ret = MessageBox.Show(this,
+                    "Clear all content? This will remove current steps, objects, performance data, canvas layout, and unsaved runtime state.",
+                    "Clear",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+                if (ret != DialogResult.Yes)
+                    return;
+
+                ApplyWorkbenchDocument(new WebTestDocument());
+                _network.Clear();
+                _runtimeByTransaction.Clear();
+                _perfRuntimeRows.Clear();
+                _latestPerformanceMetrics = null;
+                _lastPerformanceResult = null;
+                txtUrl.Text = string.Empty;
+                UpdateUriLabels();
+                SetStatus("Cleared all content.");
+            }
+            finally
+            {
+                LogMethodEnd(nameof(ClearWorkbenchContent));
+            }
+        }
+
+        private Form CreateLoadProgressDialog()
+        {
+            var form = new Form
+            {
+                Text = "Load",
+                Width = 360,
+                Height = 120,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                StartPosition = FormStartPosition.CenterParent,
+                MinimizeBox = false,
+                MaximizeBox = false,
+                ControlBox = false
+            };
+            var label = new Label
+            {
+                Name = "lblLoadProgress",
+                Dock = DockStyle.Top,
+                Height = 44,
+                Padding = new Padding(12, 12, 12, 4),
+                Text = "Loading..."
+            };
+            var bar = new ProgressBar
+            {
+                Dock = DockStyle.Top,
+                Height = 18,
+                Style = ProgressBarStyle.Marquee,
+                MarqueeAnimationSpeed = 30
+            };
+            form.Controls.Add(bar);
+            form.Controls.Add(label);
+            return form;
+        }
+
+        private static void ReportLoadProgress(Form progress, string text)
+        {
+            var label = progress?.Controls.Find("lblLoadProgress", true).OfType<Label>().FirstOrDefault();
+            if (label != null)
+                label.Text = text;
+            progress?.Refresh();
+            Application.DoEvents();
         }
 
         private void menuFileExit_Click(object sender, EventArgs e)

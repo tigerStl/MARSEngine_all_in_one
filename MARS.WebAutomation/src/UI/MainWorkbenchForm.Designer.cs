@@ -6,6 +6,8 @@ namespace MARS.WebAutomation.UI
         private System.Windows.Forms.MenuStrip menuMain;
         private System.Windows.Forms.ToolStripMenuItem menuFile;
         private System.Windows.Forms.ToolStripMenuItem menuFileSave;
+        private System.Windows.Forms.ToolStripMenuItem menuFileLoad;
+        private System.Windows.Forms.ToolStripMenuItem menuFileClear;
         private System.Windows.Forms.ToolStripMenuItem menuFileExport;
         private System.Windows.Forms.ToolStripMenuItem menuFileImport;
         private System.Windows.Forms.ToolStripSeparator menuFileSep;
@@ -29,10 +31,8 @@ namespace MARS.WebAutomation.UI
         private System.Windows.Forms.ToolStripButton tsbReloadEngine;
         private System.Windows.Forms.ToolStripSeparator tsbSepSync;
         private System.Windows.Forms.CheckBox chkSyncFocus;
-        private System.Windows.Forms.ToolStripControlHost tsbSyncHost;
         private System.Windows.Forms.ToolStripSeparator tsbSepPerf;
         private System.Windows.Forms.CheckBox chkWithPerformanceTest;
-        private System.Windows.Forms.ToolStripControlHost tsbPerfHost;
         private System.Windows.Forms.ToolStripButton tsbRunPerf;
         private System.Windows.Forms.ToolStripButton tsbStopPerf;
         private System.Windows.Forms.ToolStripButton tsbRunPerfSelected;
@@ -45,6 +45,49 @@ namespace MARS.WebAutomation.UI
         private System.Windows.Forms.Panel panelTargetCard;
         private System.Windows.Forms.TabPage tabObjects;
         private System.Windows.Forms.TabPage tabRecord;
+        private System.Windows.Forms.TabPage tabApiPerformance;
+        private System.Windows.Forms.TableLayoutPanel layoutApiPerf;
+        private System.Windows.Forms.FlowLayoutPanel flowApiPerfActions;
+        private System.Windows.Forms.Label _lblApiPerfHint;
+        private System.Windows.Forms.SplitContainer splitApiPerf;
+        private System.Windows.Forms.DataGridView _gridApiDefinitions;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn colApiEnabled;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colApiName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colApiMethod;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colApiUrl;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colApiSecurity;
+        private System.Windows.Forms.TableLayoutPanel layoutApiEditor;
+        private System.Windows.Forms.Label lblApiName;
+        private System.Windows.Forms.TextBox _txtApiName;
+        private System.Windows.Forms.Label lblApiMethod;
+        private System.Windows.Forms.ComboBox _cmbApiMethod;
+        private System.Windows.Forms.Label lblApiUrl;
+        private System.Windows.Forms.TextBox _txtApiUrl;
+        private System.Windows.Forms.Label lblApiHeaders;
+        private System.Windows.Forms.DataGridView _gridApiHeaders;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colApiHeaderKey;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colApiHeaderValue;
+        private System.Windows.Forms.Label lblApiSecurity;
+        private System.Windows.Forms.ComboBox _cmbApiSecurity;
+        private System.Windows.Forms.Label lblApiSecurityValue;
+        private System.Windows.Forms.TextBox _txtApiSecurityValue;
+        private System.Windows.Forms.Label lblApiPayload;
+        private System.Windows.Forms.TextBox _txtApiPayload;
+        private System.Windows.Forms.Label lblApiExpectedStatus;
+        private System.Windows.Forms.NumericUpDown _numApiExpectedStatus;
+        private System.Windows.Forms.Label lblApiGroup;
+        private System.Windows.Forms.TextBox _txtApiGroup;
+        private System.Windows.Forms.FlowLayoutPanel flowApiDefButtons;
+        private System.Windows.Forms.Button _btnApiDefNew;
+        private System.Windows.Forms.Button _btnApiDefSave;
+        private System.Windows.Forms.Button _btnApiDefDelete;
+        private System.Windows.Forms.Button _btnApiPerfRun;
+        private System.Windows.Forms.Button _btnApiPerfRunSelected;
+        private System.Windows.Forms.Button _btnApiPerfRunAll;
+        private System.Windows.Forms.Button _btnApiPerfConfig;
+        private System.Windows.Forms.Button _btnApiPerfExport;
+        private System.Windows.Forms.Button _btnApiPerfImport;
+        private System.Windows.Forms.Button _btnApiPerfGoRecord;
         private System.Windows.Forms.TabPage tabSettings;
         private System.Windows.Forms.SplitContainer splitRecordMainPreview;
         private System.Windows.Forms.SplitContainer splitRecordWorkPreview;
@@ -85,6 +128,8 @@ namespace MARS.WebAutomation.UI
             this.menuMain = new System.Windows.Forms.MenuStrip();
             this.menuFile = new System.Windows.Forms.ToolStripMenuItem();
             this.menuFileSave = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuFileLoad = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuFileClear = new System.Windows.Forms.ToolStripMenuItem();
             this.menuFileExport = new System.Windows.Forms.ToolStripMenuItem();
             this.menuFileImport = new System.Windows.Forms.ToolStripMenuItem();
             this.menuFileSep = new System.Windows.Forms.ToolStripSeparator();
@@ -95,7 +140,6 @@ namespace MARS.WebAutomation.UI
             this.menuHelpLangChinese = new System.Windows.Forms.ToolStripMenuItem();
             this.menuHelpAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.toolMain = new System.Windows.Forms.ToolStrip();
-            this.toolPerf = new System.Windows.Forms.ToolStrip();
             this.tslBrand = new System.Windows.Forms.ToolStripLabel();
             this.tsbSepBrand = new System.Windows.Forms.ToolStripSeparator();
             this.tsbTarget = new System.Windows.Forms.ToolStripButton();
@@ -109,11 +153,10 @@ namespace MARS.WebAutomation.UI
             this.tsbSepReload = new System.Windows.Forms.ToolStripSeparator();
             this.tsbReloadEngine = new System.Windows.Forms.ToolStripButton();
             this.tsbSepSync = new System.Windows.Forms.ToolStripSeparator();
-            this.chkSyncFocus = new System.Windows.Forms.CheckBox();
-            this.tsbSyncHost = new System.Windows.Forms.ToolStripControlHost(this.chkSyncFocus);
+            this.tsbSyncHost = new System.Windows.Forms.ToolStripButton();
+            this.toolPerf = new System.Windows.Forms.ToolStrip();
             this.tsbSepPerf = new System.Windows.Forms.ToolStripSeparator();
-            this.chkWithPerformanceTest = new System.Windows.Forms.CheckBox();
-            this.tsbPerfHost = new System.Windows.Forms.ToolStripControlHost(this.chkWithPerformanceTest);
+            this.tsbPerfHost = new System.Windows.Forms.ToolStripButton();
             this.tsbRunPerf = new System.Windows.Forms.ToolStripButton();
             this.tsbStopPerf = new System.Windows.Forms.ToolStripButton();
             this.tsbRunPerfSelected = new System.Windows.Forms.ToolStripButton();
@@ -164,20 +207,52 @@ namespace MARS.WebAutomation.UI
             this.colPerfRef = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panelRecordPerfPreview = new System.Windows.Forms.Panel();
             this.splitRecordPerfPreview = new System.Windows.Forms.SplitContainer();
-            this.lblPerfDesignRuntime = new System.Windows.Forms.Label();
+            this.gridPerfAnchorPreview = new System.Windows.Forms.DataGridView();
+            this.lblPerfDesignAnchorSummary = new System.Windows.Forms.Label();
             this.gridPerfRuntimePreview = new System.Windows.Forms.DataGridView();
-            this.colRtTx = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colRtOk = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colRtFail = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colRtTotalReq = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colRtFinished = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colRtRounds = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colRtTps = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colRtErr = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colRtLast = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.lblPerfDesignRuntime = new System.Windows.Forms.Label();
             this.lblPerfDesignTitle = new System.Windows.Forms.Label();
             this.panelRecordCanvasPreview = new System.Windows.Forms.Panel();
             this.lblRecordCanvasPreview = new System.Windows.Forms.Label();
+            this.lblRecordHint = new System.Windows.Forms.Label();
+            this.tabApiPerformance = new System.Windows.Forms.TabPage();
+            this.layoutApiPerf = new System.Windows.Forms.TableLayoutPanel();
+            this._lblApiPerfHint = new System.Windows.Forms.Label();
+            this.splitApiPerf = new System.Windows.Forms.SplitContainer();
+            this._gridApiDefinitions = new System.Windows.Forms.DataGridView();
+            this.layoutApiEditor = new System.Windows.Forms.TableLayoutPanel();
+            this.lblApiName = new System.Windows.Forms.Label();
+            this._txtApiName = new System.Windows.Forms.TextBox();
+            this.lblApiMethod = new System.Windows.Forms.Label();
+            this._cmbApiMethod = new System.Windows.Forms.ComboBox();
+            this.lblApiUrl = new System.Windows.Forms.Label();
+            this._txtApiUrl = new System.Windows.Forms.TextBox();
+            this.lblApiHeaders = new System.Windows.Forms.Label();
+            this._gridApiHeaders = new System.Windows.Forms.DataGridView();
+            this.colApiHeaderKey = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colApiHeaderValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.lblApiSecurity = new System.Windows.Forms.Label();
+            this._cmbApiSecurity = new System.Windows.Forms.ComboBox();
+            this.lblApiSecurityValue = new System.Windows.Forms.Label();
+            this._txtApiSecurityValue = new System.Windows.Forms.TextBox();
+            this.lblApiPayload = new System.Windows.Forms.Label();
+            this._txtApiPayload = new System.Windows.Forms.TextBox();
+            this.lblApiExpectedStatus = new System.Windows.Forms.Label();
+            this._numApiExpectedStatus = new System.Windows.Forms.NumericUpDown();
+            this.lblApiGroup = new System.Windows.Forms.Label();
+            this._txtApiGroup = new System.Windows.Forms.TextBox();
+            this.flowApiDefButtons = new System.Windows.Forms.FlowLayoutPanel();
+            this._btnApiDefNew = new System.Windows.Forms.Button();
+            this._btnApiDefSave = new System.Windows.Forms.Button();
+            this._btnApiDefDelete = new System.Windows.Forms.Button();
+            this.flowApiPerfActions = new System.Windows.Forms.FlowLayoutPanel();
+            this._btnApiPerfRun = new System.Windows.Forms.Button();
+            this._btnApiPerfRunSelected = new System.Windows.Forms.Button();
+            this._btnApiPerfRunAll = new System.Windows.Forms.Button();
+            this._btnApiPerfConfig = new System.Windows.Forms.Button();
+            this._btnApiPerfExport = new System.Windows.Forms.Button();
+            this._btnApiPerfImport = new System.Windows.Forms.Button();
+            this._btnApiPerfGoRecord = new System.Windows.Forms.Button();
             this.tabSettings = new System.Windows.Forms.TabPage();
             this.layoutSettings = new System.Windows.Forms.TableLayoutPanel();
             this.lblDataRoot = new System.Windows.Forms.Label();
@@ -192,25 +267,6 @@ namespace MARS.WebAutomation.UI
             this.numViewportW = new System.Windows.Forms.NumericUpDown();
             this.numViewportH = new System.Windows.Forms.NumericUpDown();
             this.btnSaveSettings = new System.Windows.Forms.Button();
-            this.lblRecordHint = new System.Windows.Forms.Label();
-            this.lblPerfDesignAnchorSummary = new System.Windows.Forms.Label();
-            this.gridPerfAnchorPreview = new System.Windows.Forms.DataGridView();
-            this.colPerfAction = new System.Windows.Forms.DataGridViewLinkColumn();
-            this.colPerfAnchor = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.colPerfScore = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPerfGroup = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPerfCorr = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPerfUrl = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPerfType = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPerfMethod = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPerfStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPerfParam = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPerfHeader = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPerfCookie = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPerfPayload = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPerfResponse = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPerfPolicy = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPerfValidation = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.menuMain.SuspendLayout();
             this.toolMain.SuspendLayout();
             this.toolPerf.SuspendLayout();
@@ -243,14 +299,26 @@ namespace MARS.WebAutomation.UI
             this.splitRecordPerfPreview.Panel1.SuspendLayout();
             this.splitRecordPerfPreview.Panel2.SuspendLayout();
             this.splitRecordPerfPreview.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.gridPerfAnchorPreview)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.gridPerfRuntimePreview)).BeginInit();
             this.panelRecordCanvasPreview.SuspendLayout();
+            this.tabApiPerformance.SuspendLayout();
+            this.layoutApiPerf.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitApiPerf)).BeginInit();
+            this.splitApiPerf.Panel1.SuspendLayout();
+            this.splitApiPerf.Panel2.SuspendLayout();
+            this.splitApiPerf.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this._gridApiDefinitions)).BeginInit();
+            this.layoutApiEditor.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this._gridApiHeaders)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this._numApiExpectedStatus)).BeginInit();
+            this.flowApiDefButtons.SuspendLayout();
+            this.flowApiPerfActions.SuspendLayout();
             this.tabSettings.SuspendLayout();
             this.layoutSettings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numTimeout)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numViewportW)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numViewportH)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.gridPerfAnchorPreview)).BeginInit();
             this.SuspendLayout();
             // 
             // menuMain
@@ -262,7 +330,7 @@ namespace MARS.WebAutomation.UI
             this.menuMain.Location = new System.Drawing.Point(0, 0);
             this.menuMain.Name = "menuMain";
             this.menuMain.Padding = new System.Windows.Forms.Padding(4, 2, 0, 2);
-            this.menuMain.Size = new System.Drawing.Size(636, 24);
+            this.menuMain.Size = new System.Drawing.Size(898, 24);
             this.menuMain.TabIndex = 0;
             this.menuMain.Text = "menuStrip1";
             // 
@@ -270,6 +338,8 @@ namespace MARS.WebAutomation.UI
             // 
             this.menuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuFileSave,
+            this.menuFileLoad,
+            this.menuFileClear,
             this.menuFileExport,
             this.menuFileImport,
             this.menuFileSep,
@@ -281,33 +351,47 @@ namespace MARS.WebAutomation.UI
             // menuFileSave
             // 
             this.menuFileSave.Name = "menuFileSave";
-            this.menuFileSave.Size = new System.Drawing.Size(119, 22);
+            this.menuFileSave.Size = new System.Drawing.Size(157, 22);
             this.menuFileSave.Text = "Save";
             this.menuFileSave.Click += new System.EventHandler(this.menuFileSave_Click);
+            // 
+            // menuFileLoad
+            // 
+            this.menuFileLoad.Name = "menuFileLoad";
+            this.menuFileLoad.Size = new System.Drawing.Size(157, 22);
+            this.menuFileLoad.Text = "Load…";
+            this.menuFileLoad.Click += new System.EventHandler(this.menuFileLoad_Click);
+            // 
+            // menuFileClear
+            // 
+            this.menuFileClear.Name = "menuFileClear";
+            this.menuFileClear.Size = new System.Drawing.Size(157, 22);
+            this.menuFileClear.Text = "Clear";
+            this.menuFileClear.Click += new System.EventHandler(this.menuFileClear_Click);
             // 
             // menuFileExport
             // 
             this.menuFileExport.Name = "menuFileExport";
-            this.menuFileExport.Size = new System.Drawing.Size(119, 22);
-            this.menuFileExport.Text = "Export…";
+            this.menuFileExport.Size = new System.Drawing.Size(157, 22);
+            this.menuFileExport.Text = "Export Object…";
             this.menuFileExport.Click += new System.EventHandler(this.menuFileExport_Click);
             // 
             // menuFileImport
             // 
             this.menuFileImport.Name = "menuFileImport";
-            this.menuFileImport.Size = new System.Drawing.Size(119, 22);
-            this.menuFileImport.Text = "Import…";
+            this.menuFileImport.Size = new System.Drawing.Size(157, 22);
+            this.menuFileImport.Text = "Import Object…";
             this.menuFileImport.Click += new System.EventHandler(this.menuFileImport_Click);
             // 
             // menuFileSep
             // 
             this.menuFileSep.Name = "menuFileSep";
-            this.menuFileSep.Size = new System.Drawing.Size(116, 6);
+            this.menuFileSep.Size = new System.Drawing.Size(154, 6);
             // 
             // menuFileExit
             // 
             this.menuFileExit.Name = "menuFileExit";
-            this.menuFileExit.Size = new System.Drawing.Size(119, 22);
+            this.menuFileExit.Size = new System.Drawing.Size(157, 22);
             this.menuFileExit.Text = "Exit";
             this.menuFileExit.Click += new System.EventHandler(this.menuFileExit_Click);
             // 
@@ -370,22 +454,8 @@ namespace MARS.WebAutomation.UI
             this.tsbSyncHost});
             this.toolMain.Location = new System.Drawing.Point(0, 24);
             this.toolMain.Name = "toolMain";
-            this.toolMain.Size = new System.Drawing.Size(636, 25);
+            this.toolMain.Size = new System.Drawing.Size(898, 25);
             this.toolMain.TabIndex = 1;
-            // 
-            // toolPerf
-            // 
-            this.toolPerf.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.toolPerf.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsbSepPerf,
-            this.tsbPerfHost,
-            this.tsbRunPerf,
-            this.tsbStopPerf,
-            this.tsbRunPerfSelected});
-            this.toolPerf.Location = new System.Drawing.Point(0, 49);
-            this.toolPerf.Name = "toolPerf";
-            this.toolPerf.Size = new System.Drawing.Size(636, 25);
-            this.toolPerf.TabIndex = 4;
             // 
             // tslBrand
             // 
@@ -434,16 +504,16 @@ namespace MARS.WebAutomation.UI
             // 
             this.tsbExport.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tsbExport.Name = "tsbExport";
-            this.tsbExport.Size = new System.Drawing.Size(44, 22);
-            this.tsbExport.Text = "Export";
+            this.tsbExport.Size = new System.Drawing.Size(82, 22);
+            this.tsbExport.Text = "Export Object";
             this.tsbExport.Click += new System.EventHandler(this.tsbExport_Click);
             // 
             // tsbImport
             // 
             this.tsbImport.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tsbImport.Name = "tsbImport";
-            this.tsbImport.Size = new System.Drawing.Size(47, 22);
-            this.tsbImport.Text = "Import";
+            this.tsbImport.Size = new System.Drawing.Size(85, 22);
+            this.tsbImport.Text = "Import Object";
             this.tsbImport.Click += new System.EventHandler(this.tsbImport_Click);
             // 
             // tsbSep2
@@ -466,11 +536,9 @@ namespace MARS.WebAutomation.UI
             // 
             // tsbReloadEngine
             // 
-            this.tsbReloadEngine.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.ImageAndText;
             this.tsbReloadEngine.Name = "tsbReloadEngine";
-            this.tsbReloadEngine.Size = new System.Drawing.Size(93, 22);
+            this.tsbReloadEngine.Size = new System.Drawing.Size(86, 22);
             this.tsbReloadEngine.Text = "Reload engine";
-            this.tsbReloadEngine.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
             this.tsbReloadEngine.Click += new System.EventHandler(this.tsbReloadEngine_Click);
             // 
             // tsbSepSync
@@ -478,77 +546,69 @@ namespace MARS.WebAutomation.UI
             this.tsbSepSync.Name = "tsbSepSync";
             this.tsbSepSync.Size = new System.Drawing.Size(6, 25);
             // 
-            // chkSyncFocus
-            // 
-            this.chkSyncFocus.AutoSize = true;
-            this.chkSyncFocus.Location = new System.Drawing.Point(0, 0);
-            this.chkSyncFocus.Margin = new System.Windows.Forms.Padding(6, 0, 0, 0);
-            this.chkSyncFocus.Name = "chkSyncFocus";
-            this.chkSyncFocus.Size = new System.Drawing.Size(52, 17);
-            this.chkSyncFocus.TabIndex = 0;
-            this.chkSyncFocus.Text = "Sync";
-            this.chkSyncFocus.UseVisualStyleBackColor = true;
-            this.chkSyncFocus.CheckedChanged += new System.EventHandler(this.chkSyncFocus_CheckedChanged);
-            // 
             // tsbSyncHost
             // 
+            this.tsbSyncHost.AccessibleName = "tsbSyncHost";
             this.tsbSyncHost.AutoSize = false;
+            this.tsbSyncHost.CheckOnClick = true;
+            this.tsbSyncHost.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tsbSyncHost.Margin = new System.Windows.Forms.Padding(2, 0, 0, 0);
             this.tsbSyncHost.Name = "tsbSyncHost";
             this.tsbSyncHost.Size = new System.Drawing.Size(120, 22);
-            this.tsbSyncHost.Text = "";
+            this.tsbSyncHost.Text = "Sync Host";
+            // 
+            // toolPerf
+            // 
+            this.toolPerf.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.toolPerf.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsbSepPerf,
+            this.tsbPerfHost,
+            this.tsbRunPerf,
+            this.tsbStopPerf,
+            this.tsbRunPerfSelected});
+            this.toolPerf.Location = new System.Drawing.Point(0, 49);
+            this.toolPerf.Name = "toolPerf";
+            this.toolPerf.Size = new System.Drawing.Size(898, 25);
+            this.toolPerf.TabIndex = 4;
             // 
             // tsbSepPerf
             // 
             this.tsbSepPerf.Name = "tsbSepPerf";
             this.tsbSepPerf.Size = new System.Drawing.Size(6, 25);
             // 
-            // chkWithPerformanceTest
-            // 
-            this.chkWithPerformanceTest.AutoSize = true;
-            this.chkWithPerformanceTest.Checked = true;
-            this.chkWithPerformanceTest.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkWithPerformanceTest.Location = new System.Drawing.Point(0, 0);
-            this.chkWithPerformanceTest.Margin = new System.Windows.Forms.Padding(6, 0, 0, 0);
-            this.chkWithPerformanceTest.Name = "chkWithPerformanceTest";
-            this.chkWithPerformanceTest.Size = new System.Drawing.Size(138, 17);
-            this.chkWithPerformanceTest.TabIndex = 0;
-            this.chkWithPerformanceTest.Text = "With Performance Test";
-            this.chkWithPerformanceTest.UseVisualStyleBackColor = true;
-            this.chkWithPerformanceTest.CheckedChanged += new System.EventHandler(this.chkWithPerformanceTest_CheckedChanged);
-            // 
             // tsbPerfHost
             // 
+            this.tsbPerfHost.AccessibleName = "tsbPerfHost";
             this.tsbPerfHost.AutoSize = false;
+            this.tsbPerfHost.Checked = true;
+            this.tsbPerfHost.CheckOnClick = true;
+            this.tsbPerfHost.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.tsbPerfHost.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tsbPerfHost.Margin = new System.Windows.Forms.Padding(2, 0, 0, 0);
             this.tsbPerfHost.Name = "tsbPerfHost";
             this.tsbPerfHost.Size = new System.Drawing.Size(190, 22);
-            this.tsbPerfHost.Text = "";
+            this.tsbPerfHost.Text = "With Performance Test";
             // 
             // tsbRunPerf
             // 
-            this.tsbRunPerf.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.ImageAndText;
             this.tsbRunPerf.Name = "tsbRunPerf";
-            this.tsbRunPerf.Size = new System.Drawing.Size(67, 22);
+            this.tsbRunPerf.Size = new System.Drawing.Size(56, 22);
             this.tsbRunPerf.Text = "Run Perf";
-            this.tsbRunPerf.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
             this.tsbRunPerf.Click += new System.EventHandler(this.tsbRunPerf_Click);
             // 
             // tsbStopPerf
             // 
-            this.tsbStopPerf.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.ImageAndText;
             this.tsbStopPerf.Enabled = false;
             this.tsbStopPerf.Name = "tsbStopPerf";
-            this.tsbStopPerf.Size = new System.Drawing.Size(47, 22);
+            this.tsbStopPerf.Size = new System.Drawing.Size(35, 22);
             this.tsbStopPerf.Text = "Stop";
-            this.tsbStopPerf.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
             this.tsbStopPerf.Click += new System.EventHandler(this.tsbStopPerf_Click);
             // 
             // tsbRunPerfSelected
             // 
             this.tsbRunPerfSelected.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tsbRunPerfSelected.Name = "tsbRunPerfSelected";
-            this.tsbRunPerfSelected.Size = new System.Drawing.Size(118, 22);
+            this.tsbRunPerfSelected.Size = new System.Drawing.Size(121, 22);
             this.tsbRunPerfSelected.Text = "Run Selected Anchor";
             this.tsbRunPerfSelected.Click += new System.EventHandler(this.tsbRunPerfSelected_Click);
             // 
@@ -557,9 +617,9 @@ namespace MARS.WebAutomation.UI
             this.statusMain.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statusLabel});
-            this.statusMain.Location = new System.Drawing.Point(0, 475);
+            this.statusMain.Location = new System.Drawing.Point(0, 554);
             this.statusMain.Name = "statusMain";
-            this.statusMain.Size = new System.Drawing.Size(636, 22);
+            this.statusMain.Size = new System.Drawing.Size(898, 22);
             this.statusMain.TabIndex = 2;
             // 
             // statusLabel
@@ -573,12 +633,13 @@ namespace MARS.WebAutomation.UI
             this.tabMain.Controls.Add(this.tabTarget);
             this.tabMain.Controls.Add(this.tabObjects);
             this.tabMain.Controls.Add(this.tabRecord);
+            this.tabMain.Controls.Add(this.tabApiPerformance);
             this.tabMain.Controls.Add(this.tabSettings);
             this.tabMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabMain.Location = new System.Drawing.Point(0, 74);
             this.tabMain.Name = "tabMain";
             this.tabMain.SelectedIndex = 0;
-            this.tabMain.Size = new System.Drawing.Size(636, 426);
+            this.tabMain.Size = new System.Drawing.Size(898, 480);
             this.tabMain.TabIndex = 3;
             // 
             // tabTarget
@@ -587,7 +648,7 @@ namespace MARS.WebAutomation.UI
             this.tabTarget.Location = new System.Drawing.Point(4, 22);
             this.tabTarget.Name = "tabTarget";
             this.tabTarget.Padding = new System.Windows.Forms.Padding(12, 10, 12, 10);
-            this.tabTarget.Size = new System.Drawing.Size(628, 400);
+            this.tabTarget.Size = new System.Drawing.Size(890, 454);
             this.tabTarget.TabIndex = 0;
             this.tabTarget.Text = "Target";
             this.tabTarget.UseVisualStyleBackColor = true;
@@ -599,7 +660,7 @@ namespace MARS.WebAutomation.UI
             this.panelTargetCard.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelTargetCard.Location = new System.Drawing.Point(12, 10);
             this.panelTargetCard.Name = "panelTargetCard";
-            this.panelTargetCard.Size = new System.Drawing.Size(604, 380);
+            this.panelTargetCard.Size = new System.Drawing.Size(866, 434);
             this.panelTargetCard.TabIndex = 0;
             // 
             // layoutTarget
@@ -629,7 +690,7 @@ namespace MARS.WebAutomation.UI
             this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 23F));
             this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 23F));
             this.layoutTarget.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.layoutTarget.Size = new System.Drawing.Size(604, 380);
+            this.layoutTarget.Size = new System.Drawing.Size(866, 434);
             this.layoutTarget.TabIndex = 3;
             // 
             // lblSectionUrl
@@ -637,7 +698,7 @@ namespace MARS.WebAutomation.UI
             this.lblSectionUrl.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.layoutTarget.SetColumnSpan(this.lblSectionUrl, 3);
             this.lblSectionUrl.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(65)))), ((int)(((byte)(81)))));
-            this.lblSectionUrl.Location = new System.Drawing.Point(81, 0);
+            this.lblSectionUrl.Location = new System.Drawing.Point(212, 0);
             this.lblSectionUrl.Name = "lblSectionUrl";
             this.lblSectionUrl.Padding = new System.Windows.Forms.Padding(0, 0, 0, 4);
             this.lblSectionUrl.Size = new System.Drawing.Size(442, 18);
@@ -648,7 +709,7 @@ namespace MARS.WebAutomation.UI
             // btnStartBrowser
             // 
             this.btnStartBrowser.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnStartBrowser.Location = new System.Drawing.Point(324, 20);
+            this.btnStartBrowser.Location = new System.Drawing.Point(586, 20);
             this.btnStartBrowser.Margin = new System.Windows.Forms.Padding(2);
             this.btnStartBrowser.Name = "btnStartBrowser";
             this.btnStartBrowser.Size = new System.Drawing.Size(137, 22);
@@ -663,13 +724,13 @@ namespace MARS.WebAutomation.UI
             this.txtUrl.Location = new System.Drawing.Point(6, 22);
             this.txtUrl.Margin = new System.Windows.Forms.Padding(6, 4, 4, 4);
             this.txtUrl.Name = "txtUrl";
-            this.txtUrl.Size = new System.Drawing.Size(312, 20);
+            this.txtUrl.Size = new System.Drawing.Size(574, 20);
             this.txtUrl.TabIndex = 0;
             // 
             // btnNavigate
             // 
             this.btnNavigate.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnNavigate.Location = new System.Drawing.Point(465, 20);
+            this.btnNavigate.Location = new System.Drawing.Point(727, 20);
             this.btnNavigate.Margin = new System.Windows.Forms.Padding(2);
             this.btnNavigate.Name = "btnNavigate";
             this.btnNavigate.Size = new System.Drawing.Size(137, 22);
@@ -685,7 +746,7 @@ namespace MARS.WebAutomation.UI
             this.lblScheme.Location = new System.Drawing.Point(2, 46);
             this.lblScheme.Margin = new System.Windows.Forms.Padding(2);
             this.lblScheme.Name = "lblScheme";
-            this.lblScheme.Size = new System.Drawing.Size(600, 19);
+            this.lblScheme.Size = new System.Drawing.Size(862, 19);
             this.lblScheme.TabIndex = 3;
             this.lblScheme.Text = "Scheme:";
             this.lblScheme.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -698,7 +759,7 @@ namespace MARS.WebAutomation.UI
             this.lblHost.Location = new System.Drawing.Point(2, 69);
             this.lblHost.Margin = new System.Windows.Forms.Padding(2);
             this.lblHost.Name = "lblHost";
-            this.lblHost.Size = new System.Drawing.Size(600, 19);
+            this.lblHost.Size = new System.Drawing.Size(862, 19);
             this.lblHost.TabIndex = 4;
             this.lblHost.Text = "Host:";
             this.lblHost.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -711,7 +772,7 @@ namespace MARS.WebAutomation.UI
             this.lblPort.Location = new System.Drawing.Point(2, 92);
             this.lblPort.Margin = new System.Windows.Forms.Padding(2);
             this.lblPort.Name = "lblPort";
-            this.lblPort.Size = new System.Drawing.Size(600, 19);
+            this.lblPort.Size = new System.Drawing.Size(862, 19);
             this.lblPort.TabIndex = 5;
             this.lblPort.Text = "Port:";
             this.lblPort.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -724,7 +785,7 @@ namespace MARS.WebAutomation.UI
             this.lblPath.Location = new System.Drawing.Point(2, 115);
             this.lblPath.Margin = new System.Windows.Forms.Padding(2);
             this.lblPath.Name = "lblPath";
-            this.lblPath.Size = new System.Drawing.Size(600, 19);
+            this.lblPath.Size = new System.Drawing.Size(862, 19);
             this.lblPath.TabIndex = 6;
             this.lblPath.Text = "Path:";
             this.lblPath.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -737,7 +798,7 @@ namespace MARS.WebAutomation.UI
             this.lblQuery.Location = new System.Drawing.Point(2, 138);
             this.lblQuery.Margin = new System.Windows.Forms.Padding(2);
             this.lblQuery.Name = "lblQuery";
-            this.lblQuery.Size = new System.Drawing.Size(600, 19);
+            this.lblQuery.Size = new System.Drawing.Size(862, 19);
             this.lblQuery.TabIndex = 7;
             this.lblQuery.Text = "Query:";
             this.lblQuery.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -749,7 +810,7 @@ namespace MARS.WebAutomation.UI
             this.tabObjects.Location = new System.Drawing.Point(4, 22);
             this.tabObjects.Name = "tabObjects";
             this.tabObjects.Padding = new System.Windows.Forms.Padding(4);
-            this.tabObjects.Size = new System.Drawing.Size(628, 400);
+            this.tabObjects.Size = new System.Drawing.Size(890, 454);
             this.tabObjects.TabIndex = 1;
             this.tabObjects.Text = "Objects";
             this.tabObjects.UseVisualStyleBackColor = true;
@@ -767,8 +828,8 @@ namespace MARS.WebAutomation.UI
             // splitObjects.Panel2
             // 
             this.splitObjects.Panel2.Controls.Add(this.gridObjectProps);
-            this.splitObjects.Size = new System.Drawing.Size(620, 360);
-            this.splitObjects.SplitterDistance = 259;
+            this.splitObjects.Size = new System.Drawing.Size(882, 414);
+            this.splitObjects.SplitterDistance = 368;
             this.splitObjects.TabIndex = 1;
             // 
             // treeObjects
@@ -776,7 +837,7 @@ namespace MARS.WebAutomation.UI
             this.treeObjects.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeObjects.Location = new System.Drawing.Point(0, 0);
             this.treeObjects.Name = "treeObjects";
-            this.treeObjects.Size = new System.Drawing.Size(259, 360);
+            this.treeObjects.Size = new System.Drawing.Size(368, 414);
             this.treeObjects.TabIndex = 0;
             this.treeObjects.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeObjects_AfterSelect);
             // 
@@ -792,7 +853,7 @@ namespace MARS.WebAutomation.UI
             this.gridObjectProps.ReadOnly = true;
             this.gridObjectProps.RowHeadersVisible = false;
             this.gridObjectProps.RowHeadersWidth = 51;
-            this.gridObjectProps.Size = new System.Drawing.Size(357, 360);
+            this.gridObjectProps.Size = new System.Drawing.Size(510, 414);
             this.gridObjectProps.TabIndex = 0;
             // 
             // panelObjectsToolbar
@@ -801,7 +862,7 @@ namespace MARS.WebAutomation.UI
             this.panelObjectsToolbar.Dock = System.Windows.Forms.DockStyle.Top;
             this.panelObjectsToolbar.Location = new System.Drawing.Point(4, 4);
             this.panelObjectsToolbar.Name = "panelObjectsToolbar";
-            this.panelObjectsToolbar.Size = new System.Drawing.Size(620, 32);
+            this.panelObjectsToolbar.Size = new System.Drawing.Size(882, 32);
             this.panelObjectsToolbar.TabIndex = 2;
             // 
             // flowObjectsToolbar
@@ -818,7 +879,7 @@ namespace MARS.WebAutomation.UI
             this.flowObjectsToolbar.Location = new System.Drawing.Point(0, 0);
             this.flowObjectsToolbar.Name = "flowObjectsToolbar";
             this.flowObjectsToolbar.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
-            this.flowObjectsToolbar.Size = new System.Drawing.Size(620, 32);
+            this.flowObjectsToolbar.Size = new System.Drawing.Size(882, 32);
             this.flowObjectsToolbar.TabIndex = 0;
             this.flowObjectsToolbar.WrapContents = false;
             // 
@@ -893,7 +954,7 @@ namespace MARS.WebAutomation.UI
             this.tabRecord.Location = new System.Drawing.Point(4, 22);
             this.tabRecord.Name = "tabRecord";
             this.tabRecord.Padding = new System.Windows.Forms.Padding(4);
-            this.tabRecord.Size = new System.Drawing.Size(628, 400);
+            this.tabRecord.Size = new System.Drawing.Size(890, 454);
             this.tabRecord.TabIndex = 2;
             this.tabRecord.Text = "Record / Replay";
             this.tabRecord.UseVisualStyleBackColor = true;
@@ -911,8 +972,8 @@ namespace MARS.WebAutomation.UI
             // splitRecordMainPreview.Panel2
             // 
             this.splitRecordMainPreview.Panel2.Controls.Add(this.panelRecordCanvasPreview);
-            this.splitRecordMainPreview.Size = new System.Drawing.Size(620, 359);
-            this.splitRecordMainPreview.SplitterDistance = 390;
+            this.splitRecordMainPreview.Size = new System.Drawing.Size(882, 413);
+            this.splitRecordMainPreview.SplitterDistance = 554;
             this.splitRecordMainPreview.TabIndex = 5;
             // 
             // splitRecordWorkPreview
@@ -929,8 +990,8 @@ namespace MARS.WebAutomation.UI
             // splitRecordWorkPreview.Panel2
             // 
             this.splitRecordWorkPreview.Panel2.Controls.Add(this.panelRecordPerfPreview);
-            this.splitRecordWorkPreview.Size = new System.Drawing.Size(390, 359);
-            this.splitRecordWorkPreview.SplitterDistance = 182;
+            this.splitRecordWorkPreview.Size = new System.Drawing.Size(554, 413);
+            this.splitRecordWorkPreview.SplitterDistance = 209;
             this.splitRecordWorkPreview.TabIndex = 0;
             // 
             // panel1
@@ -940,7 +1001,7 @@ namespace MARS.WebAutomation.UI
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Margin = new System.Windows.Forms.Padding(2);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(390, 182);
+            this.panel1.Size = new System.Drawing.Size(554, 209);
             this.panel1.TabIndex = 3;
             // 
             // gridSteps
@@ -968,7 +1029,7 @@ namespace MARS.WebAutomation.UI
             this.gridSteps.ReadOnly = true;
             this.gridSteps.RowHeadersVisible = false;
             this.gridSteps.RowHeadersWidth = 51;
-            this.gridSteps.Size = new System.Drawing.Size(390, 182);
+            this.gridSteps.Size = new System.Drawing.Size(554, 209);
             this.gridSteps.TabIndex = 1;
             // 
             // colAct
@@ -1095,7 +1156,7 @@ namespace MARS.WebAutomation.UI
             this.panelRecordPerfPreview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelRecordPerfPreview.Location = new System.Drawing.Point(0, 0);
             this.panelRecordPerfPreview.Name = "panelRecordPerfPreview";
-            this.panelRecordPerfPreview.Size = new System.Drawing.Size(390, 173);
+            this.panelRecordPerfPreview.Size = new System.Drawing.Size(554, 200);
             this.panelRecordPerfPreview.TabIndex = 4;
             // 
             // splitRecordPerfPreview
@@ -1112,12 +1173,55 @@ namespace MARS.WebAutomation.UI
             // 
             // splitRecordPerfPreview.Panel2
             // 
-            this.splitRecordPerfPreview.Panel2.Controls.Add(this.lblPerfDesignRuntime);
             this.splitRecordPerfPreview.Panel2.Controls.Add(this.gridPerfRuntimePreview);
-            this.splitRecordPerfPreview.Size = new System.Drawing.Size(388, 143);
-            this.splitRecordPerfPreview.SplitterDistance = 88;
+            this.splitRecordPerfPreview.Panel2.Controls.Add(this.lblPerfDesignRuntime);
+            this.splitRecordPerfPreview.Size = new System.Drawing.Size(552, 170);
+            this.splitRecordPerfPreview.SplitterDistance = 104;
             this.splitRecordPerfPreview.SplitterWidth = 5;
             this.splitRecordPerfPreview.TabIndex = 2;
+            // 
+            // gridPerfAnchorPreview
+            // 
+            this.gridPerfAnchorPreview.AllowUserToAddRows = false;
+            this.gridPerfAnchorPreview.AllowUserToDeleteRows = false;
+            this.gridPerfAnchorPreview.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.gridPerfAnchorPreview.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
+            this.gridPerfAnchorPreview.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.gridPerfAnchorPreview.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.gridPerfAnchorPreview.Location = new System.Drawing.Point(0, 23);
+            this.gridPerfAnchorPreview.Name = "gridPerfAnchorPreview";
+            this.gridPerfAnchorPreview.ReadOnly = true;
+            this.gridPerfAnchorPreview.RowHeadersVisible = false;
+            this.gridPerfAnchorPreview.RowHeadersWidth = 51;
+            this.gridPerfAnchorPreview.Size = new System.Drawing.Size(552, 81);
+            this.gridPerfAnchorPreview.TabIndex = 10;
+            // 
+            // lblPerfDesignAnchorSummary
+            // 
+            this.lblPerfDesignAnchorSummary.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblPerfDesignAnchorSummary.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
+            this.lblPerfDesignAnchorSummary.Location = new System.Drawing.Point(0, 0);
+            this.lblPerfDesignAnchorSummary.Name = "lblPerfDesignAnchorSummary";
+            this.lblPerfDesignAnchorSummary.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblPerfDesignAnchorSummary.Size = new System.Drawing.Size(552, 23);
+            this.lblPerfDesignAnchorSummary.TabIndex = 9;
+            this.lblPerfDesignAnchorSummary.Text = "Anchor groups: (design preview)";
+            this.lblPerfDesignAnchorSummary.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // gridPerfRuntimePreview
+            // 
+            this.gridPerfRuntimePreview.AllowUserToAddRows = false;
+            this.gridPerfRuntimePreview.AllowUserToDeleteRows = false;
+            this.gridPerfRuntimePreview.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.gridPerfRuntimePreview.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.gridPerfRuntimePreview.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.gridPerfRuntimePreview.Location = new System.Drawing.Point(0, 20);
+            this.gridPerfRuntimePreview.Name = "gridPerfRuntimePreview";
+            this.gridPerfRuntimePreview.ReadOnly = true;
+            this.gridPerfRuntimePreview.RowHeadersVisible = false;
+            this.gridPerfRuntimePreview.RowHeadersWidth = 51;
+            this.gridPerfRuntimePreview.Size = new System.Drawing.Size(552, 41);
+            this.gridPerfRuntimePreview.TabIndex = 1;
             // 
             // lblPerfDesignRuntime
             // 
@@ -1126,117 +1230,10 @@ namespace MARS.WebAutomation.UI
             this.lblPerfDesignRuntime.Location = new System.Drawing.Point(0, 0);
             this.lblPerfDesignRuntime.Name = "lblPerfDesignRuntime";
             this.lblPerfDesignRuntime.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            this.lblPerfDesignRuntime.Size = new System.Drawing.Size(388, 20);
+            this.lblPerfDesignRuntime.Size = new System.Drawing.Size(552, 20);
             this.lblPerfDesignRuntime.TabIndex = 1;
             this.lblPerfDesignRuntime.Text = "Runtime progress (throughput/error rate)";
             this.lblPerfDesignRuntime.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // gridPerfRuntimePreview
-            // 
-            this.gridPerfRuntimePreview.AllowUserToAddRows = false;
-            this.gridPerfRuntimePreview.AllowUserToDeleteRows = false;
-            this.gridPerfRuntimePreview.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.gridPerfRuntimePreview.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.gridPerfRuntimePreview.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.colRtTx,
-            this.colRtOk,
-            this.colRtFail,
-            this.colRtTotalReq,
-            this.colRtFinished,
-            this.colRtRounds,
-            this.colRtTps,
-            this.colRtErr,
-            this.colRtLast});
-            this.gridPerfRuntimePreview.Location = new System.Drawing.Point(0, 20);
-            this.gridPerfRuntimePreview.Name = "gridPerfRuntimePreview";
-            this.gridPerfRuntimePreview.ReadOnly = true;
-            this.gridPerfRuntimePreview.RowHeadersVisible = false;
-            this.gridPerfRuntimePreview.RowHeadersWidth = 51;
-            this.gridPerfRuntimePreview.Size = new System.Drawing.Size(388, 21);
-            this.gridPerfRuntimePreview.TabIndex = 1;
-            // 
-            // colRtTx
-            // 
-            this.colRtTx.DataPropertyName = "Transaction";
-            this.colRtTx.FillWeight = 180F;
-            this.colRtTx.HeaderText = "Transaction";
-            this.colRtTx.MinimumWidth = 64;
-            this.colRtTx.Name = "colRtTx";
-            this.colRtTx.ReadOnly = true;
-            // 
-            // colRtOk
-            // 
-            this.colRtOk.DataPropertyName = "Ok";
-            this.colRtOk.FillWeight = 70F;
-            this.colRtOk.HeaderText = "OK";
-            this.colRtOk.MinimumWidth = 36;
-            this.colRtOk.Name = "colRtOk";
-            this.colRtOk.ReadOnly = true;
-            // 
-            // colRtFail
-            // 
-            this.colRtFail.DataPropertyName = "Fail";
-            this.colRtFail.FillWeight = 70F;
-            this.colRtFail.HeaderText = "Fail";
-            this.colRtFail.MinimumWidth = 36;
-            this.colRtFail.Name = "colRtFail";
-            this.colRtFail.ReadOnly = true;
-            // 
-            // colRtTotalReq
-            // 
-            this.colRtTotalReq.DataPropertyName = "TotalRequest";
-            this.colRtTotalReq.FillWeight = 95F;
-            this.colRtTotalReq.HeaderText = "TotalRequest";
-            this.colRtTotalReq.MinimumWidth = 48;
-            this.colRtTotalReq.Name = "colRtTotalReq";
-            this.colRtTotalReq.ReadOnly = true;
-            // 
-            // colRtFinished
-            // 
-            this.colRtFinished.DataPropertyName = "FinishedRequest";
-            this.colRtFinished.FillWeight = 80F;
-            this.colRtFinished.HeaderText = "Finished";
-            this.colRtFinished.MinimumWidth = 40;
-            this.colRtFinished.Name = "colRtFinished";
-            this.colRtFinished.ReadOnly = true;
-            // 
-            // colRtRounds
-            // 
-            this.colRtRounds.DataPropertyName = "RoundProgress";
-            this.colRtRounds.FillWeight = 90F;
-            this.colRtRounds.HeaderText = "Rounds";
-            this.colRtRounds.MinimumWidth = 40;
-            this.colRtRounds.Name = "colRtRounds";
-            this.colRtRounds.ReadOnly = true;
-            // 
-            // colRtTps
-            // 
-            this.colRtTps.DataPropertyName = "ThroughputPerSecond";
-            this.colRtTps.FillWeight = 95F;
-            this.colRtTps.HeaderText = "Throughput/s";
-            this.colRtTps.MinimumWidth = 48;
-            this.colRtTps.Name = "colRtTps";
-            this.colRtTps.ReadOnly = true;
-            // 
-            // colRtErr
-            // 
-            this.colRtErr.DataPropertyName = "ErrorRate";
-            this.colRtErr.FillWeight = 90F;
-            this.colRtErr.HeaderText = "Error Rate";
-            this.colRtErr.MinimumWidth = 40;
-            this.colRtErr.Name = "colRtErr";
-            this.colRtErr.ReadOnly = true;
-            // 
-            // colRtLast
-            // 
-            this.colRtLast.DataPropertyName = "LastDetail";
-            this.colRtLast.FillWeight = 360F;
-            this.colRtLast.HeaderText = "Last Detail";
-            this.colRtLast.MinimumWidth = 80;
-            this.colRtLast.Name = "colRtLast";
-            this.colRtLast.ReadOnly = true;
             // 
             // lblPerfDesignTitle
             // 
@@ -1247,7 +1244,7 @@ namespace MARS.WebAutomation.UI
             this.lblPerfDesignTitle.Location = new System.Drawing.Point(0, 0);
             this.lblPerfDesignTitle.Name = "lblPerfDesignTitle";
             this.lblPerfDesignTitle.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            this.lblPerfDesignTitle.Size = new System.Drawing.Size(388, 28);
+            this.lblPerfDesignTitle.Size = new System.Drawing.Size(552, 28);
             this.lblPerfDesignTitle.TabIndex = 0;
             this.lblPerfDesignTitle.Text = "Perform Test anchors / Runtime progress";
             this.lblPerfDesignTitle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -1259,7 +1256,7 @@ namespace MARS.WebAutomation.UI
             this.panelRecordCanvasPreview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelRecordCanvasPreview.Location = new System.Drawing.Point(0, 0);
             this.panelRecordCanvasPreview.Name = "panelRecordCanvasPreview";
-            this.panelRecordCanvasPreview.Size = new System.Drawing.Size(226, 359);
+            this.panelRecordCanvasPreview.Size = new System.Drawing.Size(324, 413);
             this.panelRecordCanvasPreview.TabIndex = 0;
             // 
             // lblRecordCanvasPreview
@@ -1269,10 +1266,454 @@ namespace MARS.WebAutomation.UI
             this.lblRecordCanvasPreview.Location = new System.Drawing.Point(0, 0);
             this.lblRecordCanvasPreview.Name = "lblRecordCanvasPreview";
             this.lblRecordCanvasPreview.Padding = new System.Windows.Forms.Padding(12);
-            this.lblRecordCanvasPreview.Size = new System.Drawing.Size(224, 357);
+            this.lblRecordCanvasPreview.Size = new System.Drawing.Size(322, 411);
             this.lblRecordCanvasPreview.TabIndex = 0;
             this.lblRecordCanvasPreview.Text = "Canvas/WebView preview area (design only)";
             this.lblRecordCanvasPreview.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // lblRecordHint
+            // 
+            this.lblRecordHint.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblRecordHint.Location = new System.Drawing.Point(4, 4);
+            this.lblRecordHint.Name = "lblRecordHint";
+            this.lblRecordHint.Padding = new System.Windows.Forms.Padding(10, 8, 10, 8);
+            this.lblRecordHint.Size = new System.Drawing.Size(882, 33);
+            this.lblRecordHint.TabIndex = 2;
+            this.lblRecordHint.Text = "Toolbar: Record toggles capture; Replay runs the grid below. Steps use semantic k" +
+    "eywords.";
+            this.lblRecordHint.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // tabApiPerformance
+            // 
+            this.tabApiPerformance.Controls.Add(this.layoutApiPerf);
+            this.tabApiPerformance.Location = new System.Drawing.Point(4, 22);
+            this.tabApiPerformance.Name = "tabApiPerformance";
+            this.tabApiPerformance.Padding = new System.Windows.Forms.Padding(10);
+            this.tabApiPerformance.Size = new System.Drawing.Size(890, 454);
+            this.tabApiPerformance.TabIndex = 3;
+            this.tabApiPerformance.Text = "API Performance Testing";
+            this.tabApiPerformance.UseVisualStyleBackColor = true;
+            // 
+            // layoutApiPerf
+            // 
+            this.layoutApiPerf.ColumnCount = 1;
+            this.layoutApiPerf.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.layoutApiPerf.Controls.Add(this._lblApiPerfHint, 0, 0);
+            this.layoutApiPerf.Controls.Add(this.splitApiPerf, 0, 1);
+            this.layoutApiPerf.Controls.Add(this.flowApiPerfActions, 0, 2);
+            this.layoutApiPerf.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.layoutApiPerf.Location = new System.Drawing.Point(10, 10);
+            this.layoutApiPerf.Name = "layoutApiPerf";
+            this.layoutApiPerf.RowCount = 3;
+            this.layoutApiPerf.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.layoutApiPerf.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.layoutApiPerf.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 80F));
+            this.layoutApiPerf.Size = new System.Drawing.Size(870, 434);
+            this.layoutApiPerf.TabIndex = 0;
+            // 
+            // _lblApiPerfHint
+            // 
+            this._lblApiPerfHint.AutoSize = true;
+            this._lblApiPerfHint.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._lblApiPerfHint.Location = new System.Drawing.Point(3, 0);
+            this._lblApiPerfHint.Name = "_lblApiPerfHint";
+            this._lblApiPerfHint.Padding = new System.Windows.Forms.Padding(0, 0, 0, 8);
+            this._lblApiPerfHint.Size = new System.Drawing.Size(864, 21);
+            this._lblApiPerfHint.TabIndex = 0;
+            this._lblApiPerfHint.Text = "Use this module to execute NBomber API performance testing and manage performance" +
+    " packs.";
+            // 
+            // splitApiPerf
+            // 
+            this.splitApiPerf.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitApiPerf.Location = new System.Drawing.Point(3, 24);
+            this.splitApiPerf.Name = "splitApiPerf";
+            // 
+            // splitApiPerf.Panel1
+            // 
+            this.splitApiPerf.Panel1.Controls.Add(this._gridApiDefinitions);
+            // 
+            // splitApiPerf.Panel2
+            // 
+            this.splitApiPerf.Panel2.Controls.Add(this.layoutApiEditor);
+            this.splitApiPerf.Size = new System.Drawing.Size(864, 327);
+            this.splitApiPerf.SplitterDistance = 360;
+            this.splitApiPerf.TabIndex = 1;
+            // 
+            // _gridApiDefinitions
+            // 
+            this._gridApiDefinitions.AllowUserToAddRows = false;
+            this._gridApiDefinitions.AllowUserToDeleteRows = false;
+            this._gridApiDefinitions.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this._gridApiDefinitions.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._gridApiDefinitions.Location = new System.Drawing.Point(0, 0);
+            this._gridApiDefinitions.Name = "_gridApiDefinitions";
+            this._gridApiDefinitions.RowHeadersVisible = false;
+            this._gridApiDefinitions.Size = new System.Drawing.Size(360, 327);
+            this._gridApiDefinitions.TabIndex = 0;
+            // 
+            // layoutApiEditor
+            // 
+            this.layoutApiEditor.ColumnCount = 2;
+            this.layoutApiEditor.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 108F));
+            this.layoutApiEditor.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.layoutApiEditor.Controls.Add(this.lblApiName, 0, 0);
+            this.layoutApiEditor.Controls.Add(this._txtApiName, 1, 0);
+            this.layoutApiEditor.Controls.Add(this.lblApiMethod, 0, 1);
+            this.layoutApiEditor.Controls.Add(this._cmbApiMethod, 1, 1);
+            this.layoutApiEditor.Controls.Add(this.lblApiUrl, 0, 2);
+            this.layoutApiEditor.Controls.Add(this._txtApiUrl, 1, 2);
+            this.layoutApiEditor.Controls.Add(this.lblApiHeaders, 0, 3);
+            this.layoutApiEditor.Controls.Add(this._gridApiHeaders, 1, 3);
+            this.layoutApiEditor.Controls.Add(this.lblApiSecurity, 0, 4);
+            this.layoutApiEditor.Controls.Add(this._cmbApiSecurity, 1, 4);
+            this.layoutApiEditor.Controls.Add(this.lblApiSecurityValue, 0, 5);
+            this.layoutApiEditor.Controls.Add(this._txtApiSecurityValue, 1, 5);
+            this.layoutApiEditor.Controls.Add(this.lblApiPayload, 0, 6);
+            this.layoutApiEditor.Controls.Add(this._txtApiPayload, 1, 6);
+            this.layoutApiEditor.Controls.Add(this.lblApiExpectedStatus, 0, 7);
+            this.layoutApiEditor.Controls.Add(this._numApiExpectedStatus, 1, 7);
+            this.layoutApiEditor.Controls.Add(this.lblApiGroup, 0, 8);
+            this.layoutApiEditor.Controls.Add(this._txtApiGroup, 1, 8);
+            this.layoutApiEditor.Controls.Add(this.flowApiDefButtons, 1, 9);
+            this.layoutApiEditor.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.layoutApiEditor.Location = new System.Drawing.Point(0, 0);
+            this.layoutApiEditor.Name = "layoutApiEditor";
+            this.layoutApiEditor.RowCount = 10;
+            this.layoutApiEditor.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26F));
+            this.layoutApiEditor.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26F));
+            this.layoutApiEditor.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26F));
+            this.layoutApiEditor.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 96F));
+            this.layoutApiEditor.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26F));
+            this.layoutApiEditor.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26F));
+            this.layoutApiEditor.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
+            this.layoutApiEditor.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26F));
+            this.layoutApiEditor.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26F));
+            this.layoutApiEditor.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.layoutApiEditor.Size = new System.Drawing.Size(500, 327);
+            this.layoutApiEditor.TabIndex = 0;
+            // 
+            // lblApiName
+            // 
+            this.lblApiName.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblApiName.Location = new System.Drawing.Point(3, 0);
+            this.lblApiName.Name = "lblApiName";
+            this.lblApiName.Size = new System.Drawing.Size(102, 26);
+            this.lblApiName.TabIndex = 0;
+            this.lblApiName.Text = "API Name";
+            this.lblApiName.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // _txtApiName
+            // 
+            this._txtApiName.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._txtApiName.Location = new System.Drawing.Point(111, 3);
+            this._txtApiName.Name = "_txtApiName";
+            this._txtApiName.Size = new System.Drawing.Size(386, 20);
+            this._txtApiName.TabIndex = 1;
+            // 
+            // lblApiMethod
+            // 
+            this.lblApiMethod.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblApiMethod.Location = new System.Drawing.Point(3, 26);
+            this.lblApiMethod.Name = "lblApiMethod";
+            this.lblApiMethod.Size = new System.Drawing.Size(102, 26);
+            this.lblApiMethod.TabIndex = 2;
+            this.lblApiMethod.Text = "Method";
+            this.lblApiMethod.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // _cmbApiMethod
+            // 
+            this._cmbApiMethod.Dock = System.Windows.Forms.DockStyle.Left;
+            this._cmbApiMethod.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this._cmbApiMethod.FormattingEnabled = true;
+            this._cmbApiMethod.Location = new System.Drawing.Point(111, 29);
+            this._cmbApiMethod.Name = "_cmbApiMethod";
+            this._cmbApiMethod.Size = new System.Drawing.Size(140, 21);
+            this._cmbApiMethod.TabIndex = 3;
+            // 
+            // lblApiUrl
+            // 
+            this.lblApiUrl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblApiUrl.Location = new System.Drawing.Point(3, 52);
+            this.lblApiUrl.Name = "lblApiUrl";
+            this.lblApiUrl.Size = new System.Drawing.Size(102, 26);
+            this.lblApiUrl.TabIndex = 4;
+            this.lblApiUrl.Text = "URL";
+            this.lblApiUrl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // _txtApiUrl
+            // 
+            this._txtApiUrl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._txtApiUrl.Location = new System.Drawing.Point(111, 55);
+            this._txtApiUrl.Name = "_txtApiUrl";
+            this._txtApiUrl.Size = new System.Drawing.Size(386, 20);
+            this._txtApiUrl.TabIndex = 5;
+            // 
+            // lblApiHeaders
+            // 
+            this.lblApiHeaders.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblApiHeaders.Location = new System.Drawing.Point(3, 78);
+            this.lblApiHeaders.Name = "lblApiHeaders";
+            this.lblApiHeaders.Size = new System.Drawing.Size(102, 96);
+            this.lblApiHeaders.TabIndex = 6;
+            this.lblApiHeaders.Text = "HTTP Headers";
+            this.lblApiHeaders.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // _gridApiHeaders
+            // 
+            this._gridApiHeaders.AllowUserToResizeColumns = false;
+            this._gridApiHeaders.AllowUserToResizeRows = false;
+            this._gridApiHeaders.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this._gridApiHeaders.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.colApiHeaderKey,
+            this.colApiHeaderValue});
+            this._gridApiHeaders.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._gridApiHeaders.Location = new System.Drawing.Point(111, 81);
+            this._gridApiHeaders.Name = "_gridApiHeaders";
+            this._gridApiHeaders.RowHeadersVisible = false;
+            this._gridApiHeaders.Size = new System.Drawing.Size(386, 90);
+            this._gridApiHeaders.TabIndex = 7;
+            // 
+            // colApiHeaderKey
+            // 
+            this.colApiHeaderKey.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.colApiHeaderKey.FillWeight = 40F;
+            this.colApiHeaderKey.HeaderText = "Key";
+            this.colApiHeaderKey.Name = "colApiHeaderKey";
+            // 
+            // colApiHeaderValue
+            // 
+            this.colApiHeaderValue.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.colApiHeaderValue.FillWeight = 60F;
+            this.colApiHeaderValue.HeaderText = "Value";
+            this.colApiHeaderValue.Name = "colApiHeaderValue";
+            // 
+            // lblApiSecurity
+            // 
+            this.lblApiSecurity.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblApiSecurity.Location = new System.Drawing.Point(3, 174);
+            this.lblApiSecurity.Name = "lblApiSecurity";
+            this.lblApiSecurity.Size = new System.Drawing.Size(102, 26);
+            this.lblApiSecurity.TabIndex = 8;
+            this.lblApiSecurity.Text = "Security";
+            this.lblApiSecurity.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // _cmbApiSecurity
+            // 
+            this._cmbApiSecurity.Dock = System.Windows.Forms.DockStyle.Left;
+            this._cmbApiSecurity.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this._cmbApiSecurity.FormattingEnabled = true;
+            this._cmbApiSecurity.Location = new System.Drawing.Point(111, 177);
+            this._cmbApiSecurity.Name = "_cmbApiSecurity";
+            this._cmbApiSecurity.Size = new System.Drawing.Size(140, 21);
+            this._cmbApiSecurity.TabIndex = 9;
+            // 
+            // lblApiSecurityValue
+            // 
+            this.lblApiSecurityValue.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblApiSecurityValue.Location = new System.Drawing.Point(3, 200);
+            this.lblApiSecurityValue.Name = "lblApiSecurityValue";
+            this.lblApiSecurityValue.Size = new System.Drawing.Size(102, 26);
+            this.lblApiSecurityValue.TabIndex = 10;
+            this.lblApiSecurityValue.Text = "Security Value";
+            this.lblApiSecurityValue.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // _txtApiSecurityValue
+            // 
+            this._txtApiSecurityValue.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._txtApiSecurityValue.Location = new System.Drawing.Point(111, 203);
+            this._txtApiSecurityValue.Name = "_txtApiSecurityValue";
+            this._txtApiSecurityValue.Size = new System.Drawing.Size(386, 20);
+            this._txtApiSecurityValue.TabIndex = 11;
+            // 
+            // lblApiPayload
+            // 
+            this.lblApiPayload.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblApiPayload.Location = new System.Drawing.Point(3, 226);
+            this.lblApiPayload.Name = "lblApiPayload";
+            this.lblApiPayload.Size = new System.Drawing.Size(102, 40);
+            this.lblApiPayload.TabIndex = 12;
+            this.lblApiPayload.Text = "Payload";
+            this.lblApiPayload.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // _txtApiPayload
+            // 
+            this._txtApiPayload.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._txtApiPayload.Location = new System.Drawing.Point(111, 229);
+            this._txtApiPayload.Multiline = true;
+            this._txtApiPayload.Name = "_txtApiPayload";
+            this._txtApiPayload.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this._txtApiPayload.Size = new System.Drawing.Size(386, 34);
+            this._txtApiPayload.TabIndex = 13;
+            // 
+            // lblApiExpectedStatus
+            // 
+            this.lblApiExpectedStatus.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblApiExpectedStatus.Location = new System.Drawing.Point(3, 266);
+            this.lblApiExpectedStatus.Name = "lblApiExpectedStatus";
+            this.lblApiExpectedStatus.Size = new System.Drawing.Size(102, 26);
+            this.lblApiExpectedStatus.TabIndex = 14;
+            this.lblApiExpectedStatus.Text = "Expected Status";
+            this.lblApiExpectedStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // _numApiExpectedStatus
+            // 
+            this._numApiExpectedStatus.Location = new System.Drawing.Point(111, 269);
+            this._numApiExpectedStatus.Maximum = new decimal(new int[] {
+            999,
+            0,
+            0,
+            0});
+            this._numApiExpectedStatus.Minimum = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+            this._numApiExpectedStatus.Name = "_numApiExpectedStatus";
+            this._numApiExpectedStatus.Size = new System.Drawing.Size(78, 20);
+            this._numApiExpectedStatus.TabIndex = 15;
+            this._numApiExpectedStatus.Value = new decimal(new int[] {
+            200,
+            0,
+            0,
+            0});
+            // 
+            // lblApiGroup
+            // 
+            this.lblApiGroup.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblApiGroup.Location = new System.Drawing.Point(3, 292);
+            this.lblApiGroup.Name = "lblApiGroup";
+            this.lblApiGroup.Size = new System.Drawing.Size(102, 26);
+            this.lblApiGroup.TabIndex = 16;
+            this.lblApiGroup.Text = "Group";
+            this.lblApiGroup.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // _txtApiGroup
+            // 
+            this._txtApiGroup.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._txtApiGroup.Location = new System.Drawing.Point(111, 295);
+            this._txtApiGroup.Name = "_txtApiGroup";
+            this._txtApiGroup.Size = new System.Drawing.Size(386, 20);
+            this._txtApiGroup.TabIndex = 17;
+            this._txtApiGroup.Text = "General";
+            // 
+            // flowApiDefButtons
+            // 
+            this.flowApiDefButtons.AutoSize = true;
+            this.flowApiDefButtons.Controls.Add(this._btnApiDefNew);
+            this.flowApiDefButtons.Controls.Add(this._btnApiDefSave);
+            this.flowApiDefButtons.Controls.Add(this._btnApiDefDelete);
+            this.flowApiDefButtons.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flowApiDefButtons.Location = new System.Drawing.Point(111, 321);
+            this.flowApiDefButtons.Name = "flowApiDefButtons";
+            this.flowApiDefButtons.Size = new System.Drawing.Size(386, 3);
+            this.flowApiDefButtons.TabIndex = 18;
+            // 
+            // _btnApiDefNew
+            // 
+            this._btnApiDefNew.Location = new System.Drawing.Point(3, 3);
+            this._btnApiDefNew.Name = "_btnApiDefNew";
+            this._btnApiDefNew.Size = new System.Drawing.Size(90, 28);
+            this._btnApiDefNew.TabIndex = 0;
+            this._btnApiDefNew.Text = "New";
+            this._btnApiDefNew.UseVisualStyleBackColor = true;
+            // 
+            // _btnApiDefSave
+            // 
+            this._btnApiDefSave.Location = new System.Drawing.Point(99, 3);
+            this._btnApiDefSave.Name = "_btnApiDefSave";
+            this._btnApiDefSave.Size = new System.Drawing.Size(110, 28);
+            this._btnApiDefSave.TabIndex = 1;
+            this._btnApiDefSave.Text = "Add / Update";
+            this._btnApiDefSave.UseVisualStyleBackColor = true;
+            // 
+            // _btnApiDefDelete
+            // 
+            this._btnApiDefDelete.Location = new System.Drawing.Point(215, 3);
+            this._btnApiDefDelete.Name = "_btnApiDefDelete";
+            this._btnApiDefDelete.Size = new System.Drawing.Size(90, 28);
+            this._btnApiDefDelete.TabIndex = 2;
+            this._btnApiDefDelete.Text = "Delete";
+            this._btnApiDefDelete.UseVisualStyleBackColor = true;
+            // 
+            // flowApiPerfActions
+            // 
+            this.flowApiPerfActions.AutoSize = true;
+            this.flowApiPerfActions.Controls.Add(this._btnApiPerfRun);
+            this.flowApiPerfActions.Controls.Add(this._btnApiPerfRunSelected);
+            this.flowApiPerfActions.Controls.Add(this._btnApiPerfRunAll);
+            this.flowApiPerfActions.Controls.Add(this._btnApiPerfConfig);
+            this.flowApiPerfActions.Controls.Add(this._btnApiPerfExport);
+            this.flowApiPerfActions.Controls.Add(this._btnApiPerfImport);
+            this.flowApiPerfActions.Controls.Add(this._btnApiPerfGoRecord);
+            this.flowApiPerfActions.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flowApiPerfActions.Location = new System.Drawing.Point(3, 357);
+            this.flowApiPerfActions.Name = "flowApiPerfActions";
+            this.flowApiPerfActions.Size = new System.Drawing.Size(864, 74);
+            this.flowApiPerfActions.TabIndex = 2;
+            // 
+            // _btnApiPerfRun
+            // 
+            this._btnApiPerfRun.Location = new System.Drawing.Point(3, 3);
+            this._btnApiPerfRun.Name = "_btnApiPerfRun";
+            this._btnApiPerfRun.Size = new System.Drawing.Size(160, 32);
+            this._btnApiPerfRun.TabIndex = 0;
+            this._btnApiPerfRun.Text = "Run NBomber";
+            this._btnApiPerfRun.UseVisualStyleBackColor = true;
+            // 
+            // _btnApiPerfRunSelected
+            // 
+            this._btnApiPerfRunSelected.Location = new System.Drawing.Point(169, 3);
+            this._btnApiPerfRunSelected.Name = "_btnApiPerfRunSelected";
+            this._btnApiPerfRunSelected.Size = new System.Drawing.Size(130, 32);
+            this._btnApiPerfRunSelected.TabIndex = 1;
+            this._btnApiPerfRunSelected.Text = "Run Selected API";
+            this._btnApiPerfRunSelected.UseVisualStyleBackColor = true;
+            // 
+            // _btnApiPerfRunAll
+            // 
+            this._btnApiPerfRunAll.Location = new System.Drawing.Point(305, 3);
+            this._btnApiPerfRunAll.Name = "_btnApiPerfRunAll";
+            this._btnApiPerfRunAll.Size = new System.Drawing.Size(110, 32);
+            this._btnApiPerfRunAll.TabIndex = 2;
+            this._btnApiPerfRunAll.Text = "Run All APIs";
+            this._btnApiPerfRunAll.UseVisualStyleBackColor = true;
+            // 
+            // _btnApiPerfConfig
+            // 
+            this._btnApiPerfConfig.Location = new System.Drawing.Point(421, 3);
+            this._btnApiPerfConfig.Name = "_btnApiPerfConfig";
+            this._btnApiPerfConfig.Size = new System.Drawing.Size(180, 32);
+            this._btnApiPerfConfig.TabIndex = 3;
+            this._btnApiPerfConfig.Text = "Configure Transactions";
+            this._btnApiPerfConfig.UseVisualStyleBackColor = true;
+            // 
+            // _btnApiPerfExport
+            // 
+            this._btnApiPerfExport.Location = new System.Drawing.Point(607, 3);
+            this._btnApiPerfExport.Name = "_btnApiPerfExport";
+            this._btnApiPerfExport.Size = new System.Drawing.Size(170, 32);
+            this._btnApiPerfExport.TabIndex = 4;
+            this._btnApiPerfExport.Text = "Export Performance Pack";
+            this._btnApiPerfExport.UseVisualStyleBackColor = true;
+            // 
+            // _btnApiPerfImport
+            // 
+            this._btnApiPerfImport.Location = new System.Drawing.Point(3, 41);
+            this._btnApiPerfImport.Name = "_btnApiPerfImport";
+            this._btnApiPerfImport.Size = new System.Drawing.Size(170, 32);
+            this._btnApiPerfImport.TabIndex = 5;
+            this._btnApiPerfImport.Text = "Import Performance Pack";
+            this._btnApiPerfImport.UseVisualStyleBackColor = true;
+            // 
+            // _btnApiPerfGoRecord
+            // 
+            this._btnApiPerfGoRecord.Location = new System.Drawing.Point(179, 41);
+            this._btnApiPerfGoRecord.Name = "_btnApiPerfGoRecord";
+            this._btnApiPerfGoRecord.Size = new System.Drawing.Size(220, 32);
+            this._btnApiPerfGoRecord.TabIndex = 6;
+            this._btnApiPerfGoRecord.Text = "Open Record/Replay Performance Grid";
+            this._btnApiPerfGoRecord.UseVisualStyleBackColor = true;
             // 
             // tabSettings
             // 
@@ -1281,8 +1722,8 @@ namespace MARS.WebAutomation.UI
             this.tabSettings.Location = new System.Drawing.Point(4, 22);
             this.tabSettings.Name = "tabSettings";
             this.tabSettings.Padding = new System.Windows.Forms.Padding(8);
-            this.tabSettings.Size = new System.Drawing.Size(628, 400);
-            this.tabSettings.TabIndex = 3;
+            this.tabSettings.Size = new System.Drawing.Size(890, 454);
+            this.tabSettings.TabIndex = 4;
             this.tabSettings.Text = "Settings";
             this.tabSettings.UseVisualStyleBackColor = true;
             // 
@@ -1316,7 +1757,7 @@ namespace MARS.WebAutomation.UI
             this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
             this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
             this.layoutSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
-            this.layoutSettings.Size = new System.Drawing.Size(612, 264);
+            this.layoutSettings.Size = new System.Drawing.Size(874, 264);
             this.layoutSettings.TabIndex = 0;
             // 
             // lblDataRoot
@@ -1335,7 +1776,7 @@ namespace MARS.WebAutomation.UI
             this.txtDataRoot.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtDataRoot.Location = new System.Drawing.Point(163, 3);
             this.txtDataRoot.Name = "txtDataRoot";
-            this.txtDataRoot.Size = new System.Drawing.Size(446, 20);
+            this.txtDataRoot.Size = new System.Drawing.Size(708, 20);
             this.txtDataRoot.TabIndex = 1;
             // 
             // chkHeadless
@@ -1408,7 +1849,7 @@ namespace MARS.WebAutomation.UI
             this.txtBrowserChannel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtBrowserChannel.Location = new System.Drawing.Point(163, 131);
             this.txtBrowserChannel.Name = "txtBrowserChannel";
-            this.txtBrowserChannel.Size = new System.Drawing.Size(446, 20);
+            this.txtBrowserChannel.Size = new System.Drawing.Size(708, 20);
             this.txtBrowserChannel.TabIndex = 7;
             // 
             // lblViewport
@@ -1478,212 +1919,11 @@ namespace MARS.WebAutomation.UI
             this.btnSaveSettings.UseVisualStyleBackColor = true;
             this.btnSaveSettings.Click += new System.EventHandler(this.btnSaveSettings_Click);
             // 
-            // lblRecordHint
-            // 
-            this.lblRecordHint.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lblRecordHint.Location = new System.Drawing.Point(4, 4);
-            this.lblRecordHint.Name = "lblRecordHint";
-            this.lblRecordHint.Padding = new System.Windows.Forms.Padding(10, 8, 10, 8);
-            this.lblRecordHint.Size = new System.Drawing.Size(620, 33);
-            this.lblRecordHint.TabIndex = 2;
-            this.lblRecordHint.Text = "Toolbar: Record toggles capture; Replay runs the grid below. Steps use semantic k" +
-    "eywords.";
-            this.lblRecordHint.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // lblPerfDesignAnchorSummary
-            // 
-            this.lblPerfDesignAnchorSummary.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lblPerfDesignAnchorSummary.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
-            this.lblPerfDesignAnchorSummary.Location = new System.Drawing.Point(0, 0);
-            this.lblPerfDesignAnchorSummary.Name = "lblPerfDesignAnchorSummary";
-            this.lblPerfDesignAnchorSummary.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            this.lblPerfDesignAnchorSummary.Size = new System.Drawing.Size(388, 23);
-            this.lblPerfDesignAnchorSummary.TabIndex = 9;
-            this.lblPerfDesignAnchorSummary.Text = "Anchor groups: (design preview)";
-            this.lblPerfDesignAnchorSummary.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // gridPerfAnchorPreview
-            // 
-            this.gridPerfAnchorPreview.AllowUserToAddRows = false;
-            this.gridPerfAnchorPreview.AllowUserToDeleteRows = false;
-            this.gridPerfAnchorPreview.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
-            this.gridPerfAnchorPreview.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.gridPerfAnchorPreview.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.colPerfAction,
-            this.colPerfAnchor,
-            this.colPerfScore,
-            this.colPerfGroup,
-            this.colPerfCorr,
-            this.colPerfUrl,
-            this.colPerfType,
-            this.colPerfMethod,
-            this.colPerfStatus,
-            this.colPerfParam,
-            this.colPerfHeader,
-            this.colPerfCookie,
-            this.colPerfPayload,
-            this.colPerfResponse,
-            this.colPerfPolicy,
-            this.colPerfValidation});
-            this.gridPerfAnchorPreview.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gridPerfAnchorPreview.Location = new System.Drawing.Point(0, 23);
-            this.gridPerfAnchorPreview.Name = "gridPerfAnchorPreview";
-            this.gridPerfAnchorPreview.ReadOnly = true;
-            this.gridPerfAnchorPreview.RowHeadersVisible = false;
-            this.gridPerfAnchorPreview.RowHeadersWidth = 51;
-            this.gridPerfAnchorPreview.Size = new System.Drawing.Size(388, 65);
-            this.gridPerfAnchorPreview.TabIndex = 10;
-            // 
-            // colPerfAction
-            // 
-            this.colPerfAction.DataPropertyName = "Action";
-            this.colPerfAction.FillWeight = 90F;
-            this.colPerfAction.HeaderText = "Action";
-            this.colPerfAction.MinimumWidth = 48;
-            this.colPerfAction.Name = "colPerfAction";
-            this.colPerfAction.ReadOnly = true;
-            this.colPerfAction.TrackVisitedState = false;
-            // 
-            // colPerfAnchor
-            // 
-            this.colPerfAnchor.DataPropertyName = "IsAnchorSelected";
-            this.colPerfAnchor.FillWeight = 55F;
-            this.colPerfAnchor.HeaderText = "Anchor";
-            this.colPerfAnchor.MinimumWidth = 40;
-            this.colPerfAnchor.Name = "colPerfAnchor";
-            this.colPerfAnchor.ReadOnly = true;
-            // 
-            // colPerfScore
-            // 
-            this.colPerfScore.DataPropertyName = "AnchorScore";
-            this.colPerfScore.FillWeight = 56F;
-            this.colPerfScore.HeaderText = "Score";
-            this.colPerfScore.MinimumWidth = 40;
-            this.colPerfScore.Name = "colPerfScore";
-            this.colPerfScore.ReadOnly = true;
-            // 
-            // colPerfGroup
-            // 
-            this.colPerfGroup.DataPropertyName = "AnchorGroup";
-            this.colPerfGroup.FillWeight = 120F;
-            this.colPerfGroup.HeaderText = "Group";
-            this.colPerfGroup.MinimumWidth = 48;
-            this.colPerfGroup.Name = "colPerfGroup";
-            this.colPerfGroup.ReadOnly = true;
-            // 
-            // colPerfCorr
-            // 
-            this.colPerfCorr.DataPropertyName = "CorrelationHint";
-            this.colPerfCorr.FillWeight = 150F;
-            this.colPerfCorr.HeaderText = "Correlation";
-            this.colPerfCorr.MinimumWidth = 48;
-            this.colPerfCorr.Name = "colPerfCorr";
-            this.colPerfCorr.ReadOnly = true;
-            // 
-            // colPerfUrl
-            // 
-            this.colPerfUrl.DataPropertyName = "Url";
-            this.colPerfUrl.FillWeight = 260F;
-            this.colPerfUrl.HeaderText = "URL";
-            this.colPerfUrl.MinimumWidth = 80;
-            this.colPerfUrl.Name = "colPerfUrl";
-            this.colPerfUrl.ReadOnly = true;
-            // 
-            // colPerfType
-            // 
-            this.colPerfType.DataPropertyName = "ResourceType";
-            this.colPerfType.FillWeight = 80F;
-            this.colPerfType.HeaderText = "Type";
-            this.colPerfType.MinimumWidth = 40;
-            this.colPerfType.Name = "colPerfType";
-            this.colPerfType.ReadOnly = true;
-            // 
-            // colPerfMethod
-            // 
-            this.colPerfMethod.DataPropertyName = "Method";
-            this.colPerfMethod.FillWeight = 80F;
-            this.colPerfMethod.HeaderText = "Method";
-            this.colPerfMethod.MinimumWidth = 40;
-            this.colPerfMethod.Name = "colPerfMethod";
-            this.colPerfMethod.ReadOnly = true;
-            // 
-            // colPerfStatus
-            // 
-            this.colPerfStatus.DataPropertyName = "Status";
-            this.colPerfStatus.FillWeight = 70F;
-            this.colPerfStatus.HeaderText = "Status";
-            this.colPerfStatus.MinimumWidth = 36;
-            this.colPerfStatus.Name = "colPerfStatus";
-            this.colPerfStatus.ReadOnly = true;
-            // 
-            // colPerfParam
-            // 
-            this.colPerfParam.DataPropertyName = "Parameter";
-            this.colPerfParam.FillWeight = 180F;
-            this.colPerfParam.HeaderText = "Parameter";
-            this.colPerfParam.MinimumWidth = 48;
-            this.colPerfParam.Name = "colPerfParam";
-            this.colPerfParam.ReadOnly = true;
-            // 
-            // colPerfHeader
-            // 
-            this.colPerfHeader.DataPropertyName = "Headers";
-            this.colPerfHeader.FillWeight = 220F;
-            this.colPerfHeader.HeaderText = "Header";
-            this.colPerfHeader.MinimumWidth = 48;
-            this.colPerfHeader.Name = "colPerfHeader";
-            this.colPerfHeader.ReadOnly = true;
-            // 
-            // colPerfCookie
-            // 
-            this.colPerfCookie.DataPropertyName = "Cookies";
-            this.colPerfCookie.FillWeight = 160F;
-            this.colPerfCookie.HeaderText = "Cookie";
-            this.colPerfCookie.MinimumWidth = 48;
-            this.colPerfCookie.Name = "colPerfCookie";
-            this.colPerfCookie.ReadOnly = true;
-            // 
-            // colPerfPayload
-            // 
-            this.colPerfPayload.DataPropertyName = "Payload";
-            this.colPerfPayload.FillWeight = 220F;
-            this.colPerfPayload.HeaderText = "Payload";
-            this.colPerfPayload.MinimumWidth = 48;
-            this.colPerfPayload.Name = "colPerfPayload";
-            this.colPerfPayload.ReadOnly = true;
-            // 
-            // colPerfResponse
-            // 
-            this.colPerfResponse.DataPropertyName = "Response";
-            this.colPerfResponse.FillWeight = 220F;
-            this.colPerfResponse.HeaderText = "Response";
-            this.colPerfResponse.MinimumWidth = 48;
-            this.colPerfResponse.Name = "colPerfResponse";
-            this.colPerfResponse.ReadOnly = true;
-            // 
-            // colPerfPolicy
-            // 
-            this.colPerfPolicy.DataPropertyName = "ReplayPolicy";
-            this.colPerfPolicy.FillWeight = 130F;
-            this.colPerfPolicy.HeaderText = "ReplayPolicy";
-            this.colPerfPolicy.MinimumWidth = 48;
-            this.colPerfPolicy.Name = "colPerfPolicy";
-            this.colPerfPolicy.ReadOnly = true;
-            // 
-            // colPerfValidation
-            // 
-            this.colPerfValidation.DataPropertyName = "ValidationHint";
-            this.colPerfValidation.FillWeight = 180F;
-            this.colPerfValidation.HeaderText = "ValidationHint";
-            this.colPerfValidation.MinimumWidth = 48;
-            this.colPerfValidation.Name = "colPerfValidation";
-            this.colPerfValidation.ReadOnly = true;
-            // 
             // MainWorkbenchForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(636, 497);
+            this.ClientSize = new System.Drawing.Size(898, 576);
             this.Controls.Add(this.tabMain);
             this.Controls.Add(this.statusMain);
             this.Controls.Add(this.toolPerf);
@@ -1733,8 +1973,23 @@ namespace MARS.WebAutomation.UI
             this.splitRecordPerfPreview.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitRecordPerfPreview)).EndInit();
             this.splitRecordPerfPreview.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.gridPerfAnchorPreview)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.gridPerfRuntimePreview)).EndInit();
             this.panelRecordCanvasPreview.ResumeLayout(false);
+            this.tabApiPerformance.ResumeLayout(false);
+            this.layoutApiPerf.ResumeLayout(false);
+            this.layoutApiPerf.PerformLayout();
+            this.splitApiPerf.Panel1.ResumeLayout(false);
+            this.splitApiPerf.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitApiPerf)).EndInit();
+            this.splitApiPerf.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this._gridApiDefinitions)).EndInit();
+            this.layoutApiEditor.ResumeLayout(false);
+            this.layoutApiEditor.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this._gridApiHeaders)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this._numApiExpectedStatus)).EndInit();
+            this.flowApiDefButtons.ResumeLayout(false);
+            this.flowApiPerfActions.ResumeLayout(false);
             this.tabSettings.ResumeLayout(false);
             this.tabSettings.PerformLayout();
             this.layoutSettings.ResumeLayout(false);
@@ -1742,7 +1997,6 @@ namespace MARS.WebAutomation.UI
             ((System.ComponentModel.ISupportInitialize)(this.numTimeout)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numViewportW)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numViewportH)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.gridPerfAnchorPreview)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1800,5 +2054,7 @@ namespace MARS.WebAutomation.UI
         private System.Windows.Forms.DataGridViewTextBoxColumn colPerfValidation;
         private System.Windows.Forms.Label lblPerfDesignAnchorSummary;
         private System.Windows.Forms.Label lblRecordHint;
+        private System.Windows.Forms.ToolStripButton tsbSyncHost;
+        private System.Windows.Forms.ToolStripButton tsbPerfHost;
     }
 }
