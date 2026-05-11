@@ -28,6 +28,12 @@ namespace MARS.WebAutomation.Keyword
                 case "WindowGeometry":
                 case "FileBrowser":
                     return new MarsWebNoOpImpl();
+                case "AssertElementState":
+                    return new MarsWebAssertElementStateImpl();
+                case "AssertLocatorCount":
+                    return new MarsWebAssertLocatorCountImpl();
+                case "AssertScreenshot":
+                    return new MarsWebAssertScreenshotImpl();
                 case "ClickButton":
                 case "SearchAndClick":
                 default:

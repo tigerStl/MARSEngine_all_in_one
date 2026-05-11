@@ -15,10 +15,33 @@ namespace MARS.WebAutomation.Services
         public bool RecordReplayHotkeyAlt { get; set; }
         public bool RecordReplayHotkeyShift { get; set; }
         public string RecordReplayHotkeyKey { get; set; } = "F12";
+
+        /// <summary>Milliseconds to wait after <c>DOMContentLoaded</c> before DOM assertion snapshot evaluation (async UI stabilization).</summary>
+        public int AssertSnapshotSettleMs { get; set; } = 220;
+
+        /// <summary>Maximum interactive elements collected per frame during assertion snapshots (performance guard).</summary>
+        public int AssertSnapshotMaxElementsPerFrame { get; set; } = 500;
+
+        /// <summary>When true, color-only diffs also emit an <c>AssertScreenshot</c> step (mode 4 bridge).</summary>
+        public bool AssertDiffEmitScreenshotOnColorChange { get; set; }
+
+        public bool AssertHotkeyBeforeCtrl { get; set; } = true;
+        public bool AssertHotkeyBeforeAlt { get; set; } = true;
+        public bool AssertHotkeyBeforeShift { get; set; }
+        public string AssertHotkeyBeforeKey { get; set; } = "F10";
+
+        public bool AssertHotkeyAfterCtrl { get; set; } = true;
+        public bool AssertHotkeyAfterAlt { get; set; } = true;
+        public bool AssertHotkeyAfterShift { get; set; }
+        public string AssertHotkeyAfterKey { get; set; } = "F11";
+
         public string RecorderIgnoredPageUrlPrefixes { get; set; } = "chrome://;devtools://;edge://;about:";
 
         /// <summary>Ancestor walk depth when detecting tab strips (tablist / Vue tabs) for <c>SelectTab</c> semantics.</summary>
         public int RecorderTabContextAncestorDepth { get; set; } = 5;
+
+        /// <summary>Recording capture mode: <c>semantic</c> (tab/menu/rules/table promotion) or <c>plain</c> (event target only; Playwright snippet on each step).</summary>
+        public string RecorderCaptureMode { get; set; } = "semantic";
 
         /// <summary>UI language: <c>en</c> or <c>zh</c> (persisted with workbench settings).</summary>
         public string UiLanguage { get; set; } = "en";
@@ -66,7 +89,8 @@ namespace MARS.WebAutomation.Services
                 RecordReplayHotkeyShift = false,
                 RecordReplayHotkeyKey = "F12",
                 RecorderIgnoredPageUrlPrefixes = "chrome://;devtools://;edge://;about:",
-                RecorderTabContextAncestorDepth = 5
+                RecorderTabContextAncestorDepth = 5,
+                RecorderCaptureMode = "semantic"
             };
         }
     }

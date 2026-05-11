@@ -75,24 +75,6 @@ namespace MARS.WebAutomation.Services
             return best ?? primary;
         }
 
-        private static IFrame ResolveFrameByPath(IPage page, string framePath)
-        {
-            if (page == null || string.IsNullOrWhiteSpace(framePath))
-                return null;
-            var parts = framePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-            IFrame cur = page.MainFrame;
-            for (var i = 0; i < parts.Length; i++)
-            {
-                if (!int.TryParse(parts[i], out var idx) || idx < 0)
-                    return null;
-                var children = cur?.ChildFrames?.ToList() ?? new List<IFrame>();
-                if (idx >= children.Count)
-                    return null;
-                cur = children[idx];
-            }
-            return cur;
-        }
-
         private static IFrame ResolveFrameOnPage(IPage page, Dictionary<string, string> p, SemanticStepRecord step)
         {
             if (page == null)
@@ -102,7 +84,7 @@ namespace MARS.WebAutomation.Services
             var text = p.TryGetValue("Text", out var tx) ? tx : string.Empty;
             if (!string.IsNullOrWhiteSpace(framePath))
             {
-                var byPath = ResolveFrameByPath(page, framePath);
+                var byPath = FramePathUtil.ResolveFrameByPath(page, framePath);
                 if (byPath != null)
                     return byPath;
             }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -51,23 +52,14 @@ namespace MARS.WebAutomation.UI
         private Bitmap _gridActHighlightIcon;
         private Bitmap _gridActTestIcon;
         private bool _syncTreeFromPickInProgress;
-        private SplitContainer _recordSplit;
-        private WebView2 _recordWebView;
         private bool _recordWebViewReady;
         private bool _recordWorkflowUsesBundle;
         private bool _pendingWorkflowStepsPush;
         private const string RecordWorkflowVirtualHost = "mars.workflow";
         private const string RecordWorkflowStartUrl = "https://mars.workflow/index.html";
-        private bool _recordSplitDistanceInitialized;
-        private bool _stepsMasterDetailSplitDistanceInitialized;
-        private SplitContainer _perfAnchorRuntimeSplit;
-        private ContextMenuStrip _stepsGridMenu;
+        private bool splitRecordMainPreviewDistanceInitialized;
+        private bool splitRecordWorkPreviewDistanceInitialized;
         private bool _suppressStepsListEvents;
-        private ToolStrip _recordCanvasToolStrip;
-        private ToolStripButton _btnCanvasZoomOut;
-        private ToolStripButton _btnCanvasZoomIn;
-        private ToolStripButton _btnCanvasCenter;
-        private ToolStripLabel _lblCanvasZoom;
         private int _recordCanvasZoomPercent = 100;
         private bool _recordCanvasDebugEnabled = true;
         private Label _lblHotkey;
@@ -95,18 +87,7 @@ namespace MARS.WebAutomation.UI
         private ToolStripMenuItem _menuPerfRunSelectedAnchor;
         private ToolStripMenuItem _menuPerfExportPack;
         private ToolStripMenuItem _menuPerfImportPack;
-        private ContextMenuStrip _perfGridMenu;
         private bool _syncingPerfMenuState;
-        private ToolStrip _gridToolStrip;
-        private ToolStripButton _btnGridInsert;
-        private ToolStripButton _btnGridDelete;
-        private ToolStripButton _btnGridReplay;
-        private SplitContainer _stepsMasterDetailSplit;
-        private DataGridView _gridPerformance;
-        private DataGridView _gridPerfRuntime;
-        private Label _lblPerformanceAnchors;
-        private Label _lblPerformanceAnchorSummary;
-        private Label _lblPerformanceRuntime;
         private readonly BindingList<PerfTransactionRuntimeRow> _perfRuntimeRows = new BindingList<PerfTransactionRuntimeRow>();
         private readonly HashSet<string> _performanceFilterTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _performanceFilterTokensFromSettings = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -129,11 +110,34 @@ namespace MARS.WebAutomation.UI
         private string _lastSavedWebTestPath;
         private SemanticStepRecord _lastRecordedUiStep;
         private bool _hotkeyRegistered;
+        private bool _assertBeforeHotkeyRegistered;
+        private bool _assertAfterHotkeyRegistered;
+        private bool _assertSnapshotBusy;
+        private List<DomAssertionElementState> _pendingAssertElements;
+        private string _pendingAssertPageUrl;
+        private long _pendingBeforeCaptureMs;
+        private Label _lblAssertHotkeyBefore;
+        private CheckBox _chkAssertHotkeyBeforeCtrl;
+        private CheckBox _chkAssertHotkeyBeforeAlt;
+        private CheckBox _chkAssertHotkeyBeforeShift;
+        private ComboBox _cmbAssertHotkeyBeforeKey;
+        private Label _lblAssertHotkeyAfter;
+        private CheckBox _chkAssertHotkeyAfterCtrl;
+        private CheckBox _chkAssertHotkeyAfterAlt;
+        private CheckBox _chkAssertHotkeyAfterShift;
+        private ComboBox _cmbAssertHotkeyAfterKey;
+        private Label _lblAssertSnapshotSettle;
+        private NumericUpDown _numAssertSnapshotSettle;
+        private Label _lblAssertSnapshotMaxEl;
+        private NumericUpDown _numAssertSnapshotMaxEl;
+        private CheckBox _chkAssertDiffEmitVisual;
         private bool _updatingRecorderModeFromUi;
         private TabPage _tabApiPerformance;
         private bool _apiPerfEditorSyncing;
         private const int WmHotkey = 0x0312;
         private const int RecordReplayHotkeyId = 0x2277;
+        private const int AssertSnapshotBeforeHotkeyId = 0x2278;
+        private const int AssertSnapshotAfterHotkeyId = 0x2279;
         private const uint ModAlt = 0x0001;
         private const uint ModControl = 0x0002;
         private const uint ModShift = 0x0004;
@@ -154,17 +158,11 @@ namespace MARS.WebAutomation.UI
         {
             InitializeComponent();
             ApplyWorkbenchChrome();
-            Load += MainWorkbenchForm_Load;
-            FormClosed += MainWorkbenchForm_FormClosed;
             gridSteps.DataSource = _steps;
-            gridObjectProps.Columns.Clear();
-            gridObjectProps.Columns.Add("name", "Property");
-            gridObjectProps.Columns.Add("value", "Value");
-            gridObjectProps.Columns[0].Width = 140;
-
             _recording.RecordedStep += Recording_RecordedStep;
             _recording.Picked += Recording_Picked;
             _network.EntryCompleted += Network_EntryCompleted;
+            _network.IsCaptureEnabled = () => IsPerformanceTestEnabled();
             _host.ActiveDocumentUrlChanged += Host_ActiveDocumentUrlChanged;
             SetupObjectPreviewAndToolbar();
             SetupReloadEngineToolbar();
@@ -172,24 +170,9 @@ namespace MARS.WebAutomation.UI
             SetupMenuBrandTitle();
             SetupMenuPerformanceOptions();
             InitApiPerformanceTabUi();
-            if (tsbSyncHost != null)
-                tsbSyncHost.CheckedChanged += chkSyncFocus_CheckedChanged;
-            if (tsbPerfHost != null)
-                tsbPerfHost.CheckedChanged += chkWithPerformanceTest_CheckedChanged;
-            treeObjects.NodeMouseClick += treeObjects_NodeMouseClick;
             InitRecordReplayTabUi();
             ConfigureStepsGridColumns();
             _steps.ListChanged += Steps_ListChanged;
-            gridSteps.CellContentClick += gridSteps_CellContentClick;
-            gridSteps.CellMouseClick += gridSteps_CellMouseClick;
-            gridSteps.CellPainting += gridSteps_CellPainting;
-            gridSteps.CellDoubleClick += gridSteps_CellDoubleClick;
-            gridSteps.CellEndEdit += gridSteps_CellEndEdit;
-            gridSteps.CellFormatting += gridSteps_CellFormatting;
-            gridSteps.SelectionChanged += gridSteps_SelectionChanged;
-            gridSteps.RowPrePaint += gridSteps_RowPrePaint;
-            gridSteps.DataError += Grid_DataError;
-            tabRecord.SizeChanged += TabRecord_SizeChanged;
             InitHotkeySettingsUi();
         }
 
@@ -199,28 +182,35 @@ namespace MARS.WebAutomation.UI
                 return;
             if (_tabApiPerformance == null)
                 _tabApiPerformance = tabApiPerformance;
-            _btnApiPerfRun.Click += async (_, __) => await RunPerformanceTestAsync().ConfigureAwait(true);
-            _btnApiPerfConfig.Click += (_, __) => ConfigurePerformanceTransactions();
-            _btnApiPerfExport.Click += (_, __) => ExportPerformancePack();
-            _btnApiPerfImport.Click += (_, __) => ImportPerformancePack();
-            _btnApiPerfGoRecord.Click += (_, __) => tabMain.SelectedTab = tabRecord;
-            _btnApiDefNew.Click += (_, __) => NewApiDefinitionForm();
-            _btnApiDefSave.Click += (_, __) => SaveApiDefinitionFromForm();
-            _btnApiDefDelete.Click += (_, __) => DeleteSelectedApiDefinition();
-            _btnApiPerfRunSelected.Click += async (_, __) => await RunApiPerformanceFromDefinitionsAsync(selectedOnly: true).ConfigureAwait(true);
-            _btnApiPerfRunAll.Click += async (_, __) => await RunApiPerformanceFromDefinitionsAsync(selectedOnly: false).ConfigureAwait(true);
-
             if (_gridApiDefinitions != null && _gridApiDefinitions.DataSource == null)
-            {
                 _gridApiDefinitions.DataSource = _apiPerfDefinitions;
-                _gridApiDefinitions.SelectionChanged += (_, __) => LoadSelectedApiDefinitionToForm();
-            }
-            if (_cmbApiMethod != null && _cmbApiMethod.Items.Count == 0)
-                _cmbApiMethod.Items.AddRange(new object[] { "GET", "POST", "PUT", "PATCH", "DELETE" });
-            if (_cmbApiSecurity != null && _cmbApiSecurity.Items.Count == 0)
-                _cmbApiSecurity.Items.AddRange(new object[] { "None", "Bearer", "Basic", "ApiKeyHeader" });
             NewApiDefinitionForm();
         }
+
+        private async void _btnApiPerfRun_Click(object sender, EventArgs e) =>
+            await RunPerformanceTestAsync().ConfigureAwait(true);
+
+        private void _btnApiPerfConfig_Click(object sender, EventArgs e) => ConfigurePerformanceTransactions();
+
+        private void _btnApiPerfExport_Click(object sender, EventArgs e) => ExportPerformancePack();
+
+        private void _btnApiPerfImport_Click(object sender, EventArgs e) => ImportPerformancePack();
+
+        private void _btnApiPerfGoRecord_Click(object sender, EventArgs e) => tabMain.SelectedTab = tabRecord;
+
+        private void _btnApiDefNew_Click(object sender, EventArgs e) => NewApiDefinitionForm();
+
+        private void _btnApiDefSave_Click(object sender, EventArgs e) => SaveApiDefinitionFromForm();
+
+        private void _btnApiDefDelete_Click(object sender, EventArgs e) => DeleteSelectedApiDefinition();
+
+        private async void _btnApiPerfRunSelected_Click(object sender, EventArgs e) =>
+            await RunApiPerformanceFromDefinitionsAsync(selectedOnly: true).ConfigureAwait(true);
+
+        private async void _btnApiPerfRunAll_Click(object sender, EventArgs e) =>
+            await RunApiPerformanceFromDefinitionsAsync(selectedOnly: false).ConfigureAwait(true);
+
+        private void _gridApiDefinitions_SelectionChanged(object sender, EventArgs e) => LoadSelectedApiDefinitionToForm();
 
         private sealed class ApiEndpointDefinition
         {
@@ -601,166 +591,75 @@ namespace MARS.WebAutomation.UI
 
         private void InitRecordReplayTabUi()
         {
-            // Reuse real designer controls so layout is visible/editable in WinForms designer.
-            _recordSplit = splitRecordMainPreview;
-            _stepsMasterDetailSplit = splitRecordWorkPreview;
-            _perfAnchorRuntimeSplit = splitRecordPerfPreview;
-            _gridPerformance = gridPerfAnchorPreview;
-            _gridPerfRuntime = gridPerfRuntimePreview;
-            _lblPerformanceAnchors = lblPerfDesignTitle;
-            _lblPerformanceAnchorSummary = lblPerfDesignAnchorSummary;
-            _lblPerformanceRuntime = lblPerfDesignRuntime;
-
-            _recordSplit.Dock = DockStyle.Fill;
-            _recordSplit.Orientation = Orientation.Vertical;
-            _recordSplit.BorderStyle = BorderStyle.FixedSingle;
-            _recordSplit.SplitterWidth = 6;
-            _recordSplit.Panel1MinSize = 260;
-            _recordSplit.Panel2MinSize = 160;
-
-            _stepsMasterDetailSplit.Dock = DockStyle.Fill;
-            _stepsMasterDetailSplit.Orientation = Orientation.Horizontal;
-            _stepsMasterDetailSplit.BorderStyle = BorderStyle.None;
-            _stepsMasterDetailSplit.SplitterWidth = 6;
-            _stepsMasterDetailSplit.Panel1MinSize = 120;
-            _stepsMasterDetailSplit.Panel2MinSize = 90;
-
-            _perfAnchorRuntimeSplit.Dock = DockStyle.Fill;
-            _perfAnchorRuntimeSplit.Orientation = Orientation.Horizontal;
-            _perfAnchorRuntimeSplit.SplitterWidth = 6;
-            _perfAnchorRuntimeSplit.Panel1MinSize = 100;
-            _perfAnchorRuntimeSplit.Panel2MinSize = 168;
-            _perfAnchorRuntimeSplit.FixedPanel = FixedPanel.None;
-
-            _gridToolStrip = new ToolStrip
-            {
-                Dock = DockStyle.Top,
-                GripStyle = ToolStripGripStyle.Hidden,
-                RenderMode = ToolStripRenderMode.System
-            };
-            _btnGridInsert = new ToolStripButton("+");
-            _btnGridDelete = new ToolStripButton("−");
-            _btnGridReplay = new ToolStripButton("\u25b6");
-            _btnGridInsert.Click += (_, __) => InsertStepAfterSelection();
-            _btnGridDelete.Click += (_, __) => DeleteSelectedStep();
-            _btnGridReplay.Click += (_, __) => _ = TestSelectedStepAsync();
-            _gridToolStrip.Items.Add(_btnGridInsert);
-            _gridToolStrip.Items.Add(_btnGridDelete);
-            _gridToolStrip.Items.Add(new ToolStripSeparator());
-            _gridToolStrip.Items.Add(_btnGridReplay);
-
-            var lblVisualization = new Label
-            {
-                Dock = DockStyle.Top,
-                Height = 22,
-                Text = "Visualization",
-                TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(8, 0, 0, 0),
-                BackColor = Color.FromArgb(241, 245, 249),
-                ForeColor = Color.FromArgb(71, 85, 105)
-            };
-            gridSteps.Dock = DockStyle.Fill;
-            panel1.Controls.Clear();
-            panel1.Controls.Add(gridSteps);
-            panel1.Controls.Add(_gridToolStrip);
-            panel1.Controls.Add(lblVisualization);
-
-            _gridPerformance.AllowUserToAddRows = false;
-            _gridPerformance.AllowUserToDeleteRows = false;
-            _gridPerformance.ReadOnly = true;
-            _gridPerformance.AutoGenerateColumns = false;
-            _gridPerformance.RowHeadersVisible = false;
-            _gridPerformance.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             ConfigurePerformanceGridColumns();
-            _gridPerformance.CellContentClick += gridPerformance_CellContentClick;
-            _gridPerformance.CellDoubleClick += gridPerformance_CellDoubleClick;
-            _gridPerformance.RowPrePaint += gridPerformance_RowPrePaint;
-            _gridPerformance.DataError += Grid_DataError;
-            _gridPerformance.MouseDown += gridPerformance_MouseDown;
-            _perfGridMenu = new ContextMenuStrip();
-            _perfGridMenu.Items.Add("Ignore…", null, (_, __) => IgnoreSelectedPerformanceRows());
-            _perfGridMenu.Items.Add(new ToolStripSeparator());
-            _perfGridMenu.Items.Add("Export Performance Pack…", null, (_, __) => ExportPerformancePack());
-            _perfGridMenu.Items.Add("Import Performance Pack…", null, (_, __) => ImportPerformancePack());
-            _gridPerformance.ContextMenuStrip = _perfGridMenu;
-
-            _lblPerformanceAnchors.Dock = DockStyle.Top;
-            _lblPerformanceAnchors.Height = 24;
-            _lblPerformanceAnchors.Text = "Perform Test anchors";
-            _lblPerformanceAnchors.TextAlign = ContentAlignment.MiddleLeft;
-            _lblPerformanceAnchors.Padding = new Padding(6, 0, 0, 0);
-            _lblPerformanceAnchors.BackColor = Color.FromArgb(248, 250, 252);
-
-            _lblPerformanceAnchorSummary.Dock = DockStyle.Top;
-            _lblPerformanceAnchorSummary.Height = 22;
-            _lblPerformanceAnchorSummary.Text = "Anchor groups: (none)";
-            _lblPerformanceAnchorSummary.TextAlign = ContentAlignment.MiddleLeft;
-            _lblPerformanceAnchorSummary.Padding = new Padding(10, 0, 0, 0);
-            _lblPerformanceAnchorSummary.BackColor = Color.FromArgb(241, 245, 249);
-            _lblPerformanceAnchorSummary.ForeColor = Color.FromArgb(71, 85, 105);
-
-            _lblPerformanceRuntime.Dock = DockStyle.Top;
-            _lblPerformanceRuntime.Height = 20;
-            _lblPerformanceRuntime.Text = "Runtime progress (throughput/error rate)";
-            _lblPerformanceRuntime.TextAlign = ContentAlignment.MiddleLeft;
-            _lblPerformanceRuntime.Padding = new Padding(10, 0, 0, 0);
-            _lblPerformanceRuntime.BackColor = Color.FromArgb(241, 245, 249);
-            _lblPerformanceRuntime.ForeColor = Color.FromArgb(71, 85, 105);
-
-            _gridPerfRuntime.AllowUserToAddRows = false;
-            _gridPerfRuntime.AllowUserToDeleteRows = false;
-            _gridPerfRuntime.ReadOnly = true;
-            _gridPerfRuntime.AutoGenerateColumns = false;
-            _gridPerfRuntime.RowHeadersVisible = false;
-            _gridPerfRuntime.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _gridPerfRuntime.DataSource = _perfRuntimeRows;
-            _gridPerfRuntime.DataError += Grid_DataError;
-            _gridPerfRuntime.CellDoubleClick += gridPerfRuntime_CellDoubleClick;
-
-            _recordWebView = new WebView2
-            {
-                Dock = DockStyle.Fill
-            };
-            _recordWebView.CoreWebView2InitializationCompleted += RecordWebView_CoreWebView2InitializationCompleted;
-
-            _recordCanvasToolStrip = new ToolStrip
-            {
-                Dock = DockStyle.Top,
-                GripStyle = ToolStripGripStyle.Hidden,
-                RenderMode = ToolStripRenderMode.System
-            };
-            _btnCanvasZoomOut = new ToolStripButton("−");
-            _btnCanvasZoomIn = new ToolStripButton("+");
-            _btnCanvasCenter = new ToolStripButton("Center");
-            _lblCanvasZoom = new ToolStripLabel("100%");
-            _btnCanvasZoomOut.Click += (_, __) => SetCanvasZoom(_recordCanvasZoomPercent - 10, centerAfter: false);
-            _btnCanvasZoomIn.Click += (_, __) => SetCanvasZoom(_recordCanvasZoomPercent + 10, centerAfter: false);
-            _btnCanvasCenter.Click += (_, __) => CenterCanvasViewport();
-            _recordCanvasToolStrip.Items.Add(_btnCanvasZoomOut);
-            _recordCanvasToolStrip.Items.Add(_btnCanvasZoomIn);
-            _recordCanvasToolStrip.Items.Add(new ToolStripSeparator());
-            _recordCanvasToolStrip.Items.Add(_btnCanvasCenter);
-            _recordCanvasToolStrip.Items.Add(new ToolStripSeparator());
-            _recordCanvasToolStrip.Items.Add(_lblCanvasZoom);
-
-            var panelCanvasHost = panelRecordCanvasPreview;
-            panelCanvasHost.Controls.Clear();
-            panelCanvasHost.Controls.Add(_recordWebView);
-            // Keep zoom actions callable via shortcuts/messages, but hide the extra top toolbar row in visual canvas.
-            _recordCanvasToolStrip.Visible = false;
-            _recordSplit.Panel2.Controls.Add(panelCanvasHost);
-            ApplyRecordCanvasToolbarLocalization();
-
-            lblRecordHint.Dock = DockStyle.Top;
-
-            tabMain.SelectedIndexChanged += (_, __) =>
-            {
-                if (tabMain.SelectedTab == tabRecord)
-                    EnsureRecordReplaySidebar();
-                UpdateRecorderModeFromUiStateAsync();
-            };
+            gridPerfRuntimePreview.DataSource = _perfRuntimeRows;
             ApplyPerformancePanelVisibility();
+            ApplyRecordCanvasToolbarLocalization();
         }
+
+        private void tabMain_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (tabMain.SelectedTab == tabRecord)
+                EnsureRecordReplaySidebar();
+            UpdateRecorderModeFromUiStateAsync();
+        }
+
+        private void tsbStepInsert_Click(object sender, EventArgs e) => InsertStepAfterSelection();
+
+        private void tsbStepDelete_Click(object sender, EventArgs e) => DeleteSelectedStep();
+
+        private void tsbStepReplay_Click(object sender, EventArgs e) => _ = TestSelectedStepAsync();
+
+        private async void tsbStepRunAll_Click(object sender, EventArgs e)
+        {
+            if (_steps.Count == 0)
+                return;
+            if (!_host.IsRunning || _host.Page == null)
+                return;
+            if (tsbRecord.Checked)
+            {
+                tsbRecord.Checked = false;
+                await SetRecorderModeAsync("off").ConfigureAwait(true);
+                SetStatus("Record stopped. Running all steps…");
+            }
+            for (var i = 0; i < _steps.Count; i++)
+            {
+                var step = _steps[i];
+                if (step == null || string.IsNullOrWhiteSpace(step.Keyword))
+                    continue;
+                await TestStepKeywordAsync(step, i).ConfigureAwait(true);
+            }
+            SetStatus("All steps executed.");
+        }
+
+        private async void tsmStepsRun_Click(object sender, EventArgs e) => await TestSelectedStepAsync().ConfigureAwait(true);
+
+        private void tsmStepsDelete_Click(object sender, EventArgs e) => DeleteSelectedStep();
+
+        private async void tsmStepsHighlight_Click(object sender, EventArgs e)
+        {
+            var s = GetSelectedStepOrNull();
+            if (s != null)
+                await HighlightStepOnPageAsync(s).ConfigureAwait(true);
+        }
+
+        private void tsmStepsExport_Click(object sender, EventArgs e) => ExportStepsFromGrid();
+
+        private void tsmStepsInsert_Click(object sender, EventArgs e) => InsertStepAfterSelection();
+
+        private void tsmStepsPrettyPaint_Click(object sender, EventArgs e) => PrettyPaintRecordCanvas();
+
+        private void tsmPerfCtxIgnore_Click(object sender, EventArgs e) => IgnoreSelectedPerformanceRows();
+
+        private void tsmPerfCtxExport_Click(object sender, EventArgs e) => ExportPerformancePack();
+
+        private void tsmPerfCtxImport_Click(object sender, EventArgs e) => ImportPerformancePack();
+
+        private void tsbRecordCanvasZoomOut_Click(object sender, EventArgs e) => SetCanvasZoom(_recordCanvasZoomPercent - 10, centerAfter: false);
+
+        private void tsbRecordCanvasZoomIn_Click(object sender, EventArgs e) => SetCanvasZoom(_recordCanvasZoomPercent + 10, centerAfter: false);
+
+        private void tsbRecordCanvasCenter_Click(object sender, EventArgs e) => CenterCanvasViewport();
 
         private void InitHotkeySettingsUi()
         {
@@ -791,6 +690,115 @@ namespace MARS.WebAutomation.UI
             layoutSettings.RowStyles.Add(new RowStyle(SizeType.Absolute, 39F));
             layoutSettings.Controls.Add(_lblHotkey, 0, layoutSettings.RowCount - 1);
             layoutSettings.Controls.Add(panel, 1, layoutSettings.RowCount - 1);
+
+            _lblAssertHotkeyBefore = new Label
+            {
+                Dock = DockStyle.Fill,
+                Text = "Assert snapshot — Before (2)",
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            var panelAssertBefore = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                AutoSize = true
+            };
+            _chkAssertHotkeyBeforeCtrl = new CheckBox { Text = "Ctrl", AutoSize = true };
+            _chkAssertHotkeyBeforeAlt = new CheckBox { Text = "Alt", AutoSize = true };
+            _chkAssertHotkeyBeforeShift = new CheckBox { Text = "Shift", AutoSize = true };
+            _cmbAssertHotkeyBeforeKey = new ComboBox { Width = 90, DropDownStyle = ComboBoxStyle.DropDownList };
+            _cmbAssertHotkeyBeforeKey.Items.AddRange(new object[] { "F8", "F9", "F10", "F11", "F12" });
+            panelAssertBefore.Controls.Add(_chkAssertHotkeyBeforeCtrl);
+            panelAssertBefore.Controls.Add(_chkAssertHotkeyBeforeAlt);
+            panelAssertBefore.Controls.Add(_chkAssertHotkeyBeforeShift);
+            panelAssertBefore.Controls.Add(_cmbAssertHotkeyBeforeKey);
+            layoutSettings.RowCount += 1;
+            layoutSettings.RowStyles.Add(new RowStyle(SizeType.Absolute, 39F));
+            layoutSettings.Controls.Add(_lblAssertHotkeyBefore, 0, layoutSettings.RowCount - 1);
+            layoutSettings.Controls.Add(panelAssertBefore, 1, layoutSettings.RowCount - 1);
+
+            _lblAssertHotkeyAfter = new Label
+            {
+                Dock = DockStyle.Fill,
+                Text = "Assert snapshot — After & diff (2+4)",
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            var panelAssertAfter = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                AutoSize = true
+            };
+            _chkAssertHotkeyAfterCtrl = new CheckBox { Text = "Ctrl", AutoSize = true };
+            _chkAssertHotkeyAfterAlt = new CheckBox { Text = "Alt", AutoSize = true };
+            _chkAssertHotkeyAfterShift = new CheckBox { Text = "Shift", AutoSize = true };
+            _cmbAssertHotkeyAfterKey = new ComboBox { Width = 90, DropDownStyle = ComboBoxStyle.DropDownList };
+            _cmbAssertHotkeyAfterKey.Items.AddRange(new object[] { "F8", "F9", "F10", "F11", "F12" });
+            panelAssertAfter.Controls.Add(_chkAssertHotkeyAfterCtrl);
+            panelAssertAfter.Controls.Add(_chkAssertHotkeyAfterAlt);
+            panelAssertAfter.Controls.Add(_chkAssertHotkeyAfterShift);
+            panelAssertAfter.Controls.Add(_cmbAssertHotkeyAfterKey);
+            layoutSettings.RowCount += 1;
+            layoutSettings.RowStyles.Add(new RowStyle(SizeType.Absolute, 39F));
+            layoutSettings.Controls.Add(_lblAssertHotkeyAfter, 0, layoutSettings.RowCount - 1);
+            layoutSettings.Controls.Add(panelAssertAfter, 1, layoutSettings.RowCount - 1);
+
+            _lblAssertSnapshotSettle = new Label
+            {
+                Dock = DockStyle.Fill,
+                Text = "Assert snapshot settle (ms)",
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            _numAssertSnapshotSettle = new NumericUpDown
+            {
+                Minimum = 0,
+                Maximum = 5000,
+                Increment = 20,
+                Width = 90,
+                Dock = DockStyle.Left
+            };
+            layoutSettings.RowCount += 1;
+            layoutSettings.RowStyles.Add(new RowStyle(SizeType.Absolute, 39F));
+            layoutSettings.Controls.Add(_lblAssertSnapshotSettle, 0, layoutSettings.RowCount - 1);
+            layoutSettings.Controls.Add(_numAssertSnapshotSettle, 1, layoutSettings.RowCount - 1);
+
+            _lblAssertSnapshotMaxEl = new Label
+            {
+                Dock = DockStyle.Fill,
+                Text = "Assert snapshot max elems / frame",
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            _numAssertSnapshotMaxEl = new NumericUpDown
+            {
+                Minimum = 50,
+                Maximum = 5000,
+                Increment = 50,
+                Width = 90,
+                Dock = DockStyle.Left
+            };
+            layoutSettings.RowCount += 1;
+            layoutSettings.RowStyles.Add(new RowStyle(SizeType.Absolute, 39F));
+            layoutSettings.Controls.Add(_lblAssertSnapshotMaxEl, 0, layoutSettings.RowCount - 1);
+            layoutSettings.Controls.Add(_numAssertSnapshotMaxEl, 1, layoutSettings.RowCount - 1);
+
+            var lblAssertDiffEmit = new Label
+            {
+                Dock = DockStyle.Fill,
+                Text = "Assert diff: screenshot on color",
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            _chkAssertDiffEmitVisual = new CheckBox
+            {
+                Dock = DockStyle.Fill,
+                Text = "Emit AssertScreenshot when color/bg changes (mode 4)",
+                AutoSize = true
+            };
+            layoutSettings.RowCount += 1;
+            layoutSettings.RowStyles.Add(new RowStyle(SizeType.Absolute, 32F));
+            layoutSettings.Controls.Add(lblAssertDiffEmit, 0, layoutSettings.RowCount - 1);
+            layoutSettings.Controls.Add(_chkAssertDiffEmitVisual, 1, layoutSettings.RowCount - 1);
 
             _lblIgnoredPagePrefixes = new Label
             {
@@ -864,33 +872,20 @@ namespace MARS.WebAutomation.UI
             }
 
             ApplyStepsGridColumnHeaders();
-            _stepsGridMenu = new ContextMenuStrip();
-            _stepsGridMenu.Items.Add(new ToolStripMenuItem("Run", null, async (_, __) => await TestSelectedStepAsync().ConfigureAwait(true)));
-            _stepsGridMenu.Items.Add(new ToolStripMenuItem("Delete", null, (_, __) => DeleteSelectedStep()));
-            _stepsGridMenu.Items.Add(new ToolStripMenuItem("Highlight", null, async (_, __) =>
-            {
-                var s = GetSelectedStepOrNull();
-                if (s != null) await HighlightStepOnPageAsync(s).ConfigureAwait(true);
-            }));
-            _stepsGridMenu.Items.Add(new ToolStripSeparator());
-            _stepsGridMenu.Items.Add(new ToolStripMenuItem("Export", null, (_, __) => ExportStepsFromGrid()));
-            _stepsGridMenu.Items.Add(new ToolStripMenuItem("Insert row", null, (_, __) => InsertStepAfterSelection()));
-            _stepsGridMenu.Items.Add(new ToolStripMenuItem("Pretty Paint", null, (_, __) => PrettyPaintRecordCanvas()));
-            gridSteps.ContextMenuStrip = _stepsGridMenu;
         }
 
         private void ConfigurePerformanceGridColumns()
         {
-            if (_gridPerformance == null)
-                return;
-            if (_gridPerformance.Columns.Count == 0)
-                FormLog.Warn("Performance grid has no designer columns; using fallback behavior.");
         }
 
         private void Grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             e.ThrowException = false;
-            var gridName = sender == _gridPerformance ? "performanceGrid" : "stepsGrid";
+            var gridName = ReferenceEquals(sender, gridPerfAnchorPreview)
+                ? "performanceGrid"
+                : ReferenceEquals(sender, gridPerfRuntimePreview)
+                    ? "perfRuntimeGrid"
+                    : "stepsGrid";
             FormLog.Warn("DataGridView DataError suppressed. grid={Grid} row={Row} col={Col} ctx={Ctx}", gridName, e.RowIndex, e.ColumnIndex, e.Context);
             SetStatus("Grid value format warning (suppressed).");
         }
@@ -915,11 +910,11 @@ namespace MARS.WebAutomation.UI
 
         private void BindPerformanceForSelectedStep()
         {
-            if (_gridPerformance == null)
+            if (gridPerfAnchorPreview == null)
                 return;
             if (!IsPerformanceTestEnabled())
             {
-                _gridPerformance.DataSource = new BindingList<PerformanceRequestRecord>();
+                gridPerfAnchorPreview.DataSource = new BindingList<PerformanceRequestRecord>();
                 UpdatePerformanceAnchorSummary(new List<PerformanceRequestRecord>());
                 return;
             }
@@ -933,13 +928,13 @@ namespace MARS.WebAutomation.UI
             var step = GetSelectedStepOrNull();
             if (step == null)
             {
-                _gridPerformance.DataSource = BuildAllVisible();
+                gridPerfAnchorPreview.DataSource = BuildAllVisible();
                 return;
             }
             if (step.PerformanceRequestRefs == null || step.PerformanceRequestRefs.Count == 0)
             {
                 // If selected step has no links yet, still show visible captures for troubleshooting.
-                _gridPerformance.DataSource = BuildAllVisible();
+                gridPerfAnchorPreview.DataSource = BuildAllVisible();
                 return;
             }
 
@@ -952,7 +947,7 @@ namespace MARS.WebAutomation.UI
                             && !_performanceFilterTags.Contains(p.FilterTag ?? string.Empty)
                             && !ShouldHidePerformanceBySettings(p))
                 .ToList();
-            _gridPerformance.DataSource = new BindingList<PerformanceRequestRecord>(rows);
+            gridPerfAnchorPreview.DataSource = new BindingList<PerformanceRequestRecord>(rows);
             UpdatePerformanceAnchorSummary(rows);
             if (rows.Count == 0 && candidates.Count > 0)
                 SetStatus("Performance rows captured but filtered by current settings/tags.");
@@ -960,24 +955,24 @@ namespace MARS.WebAutomation.UI
 
         private void UpdatePerformanceAnchorSummary(IReadOnlyCollection<PerformanceRequestRecord> rows)
         {
-            if (_lblPerformanceAnchorSummary == null)
+            if (lblPerfDesignAnchorSummary == null)
                 return;
             if (rows == null || rows.Count == 0)
             {
-                _lblPerformanceAnchorSummary.Text = "Anchor groups: (none)";
+                lblPerfDesignAnchorSummary.Text = "Anchor groups: (none)";
                 return;
             }
             var selected = rows.Where(r => r != null && r.IsAnchorSelected).ToList();
             if (selected.Count == 0)
             {
-                _lblPerformanceAnchorSummary.Text = "Anchor groups: 0 selected | Sim users: " + GetSelectedPerfUsersCount();
+                lblPerfDesignAnchorSummary.Text = "Anchor groups: 0 selected | Sim users: " + GetSelectedPerfUsersCount();
                 return;
             }
             var groups = selected
                 .GroupBy(r => string.IsNullOrWhiteSpace(r.AnchorGroup) ? "General" : r.AnchorGroup)
                 .Select(g => $"{g.Key}({g.Count()})")
                 .OrderBy(s => s, StringComparer.OrdinalIgnoreCase);
-            _lblPerformanceAnchorSummary.Text = "Anchor groups: " + string.Join(", ", groups) + " | Sim users: " + GetSelectedPerfUsersCount();
+            lblPerfDesignAnchorSummary.Text = "Anchor groups: " + string.Join(", ", groups) + " | Sim users: " + GetSelectedPerfUsersCount();
         }
 
         private bool ShouldHidePerformanceBySettings(PerformanceRequestRecord p)
@@ -1042,27 +1037,27 @@ namespace MARS.WebAutomation.UI
 
         private void gridPerformance_MouseDown(object sender, MouseEventArgs e)
         {
-            if (e.Button != MouseButtons.Right || _gridPerformance == null)
+            if (e.Button != MouseButtons.Right || gridPerfAnchorPreview == null)
                 return;
-            var hit = _gridPerformance.HitTest(e.X, e.Y);
-            if (hit.RowIndex < 0 || hit.RowIndex >= _gridPerformance.Rows.Count)
+            var hit = gridPerfAnchorPreview.HitTest(e.X, e.Y);
+            if (hit.RowIndex < 0 || hit.RowIndex >= gridPerfAnchorPreview.Rows.Count)
                 return;
-            var row = _gridPerformance.Rows[hit.RowIndex];
+            var row = gridPerfAnchorPreview.Rows[hit.RowIndex];
             if (!row.Selected)
             {
-                _gridPerformance.ClearSelection();
+                gridPerfAnchorPreview.ClearSelection();
                 row.Selected = true;
                 if (hit.RowIndex >= 0)
-                    _gridPerformance.CurrentCell = _gridPerformance.Rows[hit.RowIndex].Cells[0];
+                    gridPerfAnchorPreview.CurrentCell = gridPerfAnchorPreview.Rows[hit.RowIndex].Cells[0];
             }
         }
 
         private List<PerformanceRequestRecord> GetSelectedPerformanceRows()
         {
-            if (_gridPerformance == null || _gridPerformance.SelectedRows == null || _gridPerformance.SelectedRows.Count == 0)
+            if (gridPerfAnchorPreview == null || gridPerfAnchorPreview.SelectedRows == null || gridPerfAnchorPreview.SelectedRows.Count == 0)
                 return new List<PerformanceRequestRecord>();
             var rows = new List<PerformanceRequestRecord>();
-            foreach (DataGridViewRow selected in _gridPerformance.SelectedRows)
+            foreach (DataGridViewRow selected in gridPerfAnchorPreview.SelectedRows)
             {
                 if (selected?.DataBoundItem is PerformanceRequestRecord perf && perf != null)
                     rows.Add(perf);
@@ -1135,7 +1130,7 @@ namespace MARS.WebAutomation.UI
                         row.Notes = rbExact.Checked ? "Ignored by exact URL: " + pattern : "Ignored by wildcard URL: " + pattern;
                     }
                     BindPerformanceForSelectedStep();
-                    _gridPerformance?.Refresh();
+                    gridPerfAnchorPreview?.Refresh();
                     SetStatus($"Ignored {selectedRows.Count} row(s): {pattern}");
                     dlg.DialogResult = DialogResult.OK;
                     dlg.Close();
@@ -1196,11 +1191,11 @@ namespace MARS.WebAutomation.UI
 
         private void gridPerformance_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0 || e.ColumnIndex < 0 || _gridPerformance == null)
+            if (e.RowIndex < 0 || e.ColumnIndex < 0 || gridPerfAnchorPreview == null)
                 return;
-            if (!string.Equals(_gridPerformance.Columns[e.ColumnIndex].Name, "colPerfAction", StringComparison.Ordinal))
+            if (!string.Equals(gridPerfAnchorPreview.Columns[e.ColumnIndex].Name, "colPerfAction", StringComparison.Ordinal))
                 return;
-            if (!(_gridPerformance.Rows[e.RowIndex].DataBoundItem is PerformanceRequestRecord perf))
+            if (!(gridPerfAnchorPreview.Rows[e.RowIndex].DataBoundItem is PerformanceRequestRecord perf))
                 return;
 
             var action = (perf.Action ?? string.Empty).Trim();
@@ -1210,7 +1205,7 @@ namespace MARS.WebAutomation.UI
                 perf.Action = "Unlink";
                 perf.Notes = "Promoted as transaction anchor";
                 BindPerformanceForSelectedStep();
-                _gridPerformance.Refresh();
+                gridPerfAnchorPreview.Refresh();
                 return;
             }
             if (string.Equals(action, "Unlink", StringComparison.OrdinalIgnoreCase))
@@ -1236,13 +1231,13 @@ namespace MARS.WebAutomation.UI
 
         private void gridPerformance_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0 || _gridPerformance == null)
+            if (e.RowIndex < 0 || gridPerfAnchorPreview == null)
                 return;
-            if (!(_gridPerformance.Rows[e.RowIndex].DataBoundItem is PerformanceRequestRecord perf))
+            if (!(gridPerfAnchorPreview.Rows[e.RowIndex].DataBoundItem is PerformanceRequestRecord perf))
                 return;
             using (var dlg = new PerformanceRequestDetailForm(perf))
                 dlg.ShowDialog(this);
-            _gridPerformance.Refresh();
+            gridPerfAnchorPreview.Refresh();
             BindPerformanceForSelectedStep();
             RefreshRecordReplayCanvas();
         }
@@ -1259,17 +1254,17 @@ namespace MARS.WebAutomation.UI
 
         private void gridPerformance_RowPrePaint(object sender, DataGridViewRowPrePaintEventArgs e)
         {
-            if (_gridPerformance == null || e.RowIndex < 0 || e.RowIndex >= _gridPerformance.Rows.Count)
+            if (gridPerfAnchorPreview == null || e.RowIndex < 0 || e.RowIndex >= gridPerfAnchorPreview.Rows.Count)
                 return;
-            if (!(_gridPerformance.Rows[e.RowIndex].DataBoundItem is PerformanceRequestRecord row))
+            if (!(gridPerfAnchorPreview.Rows[e.RowIndex].DataBoundItem is PerformanceRequestRecord row))
                 return;
             if (row.IsAnchorSelected)
             {
-                _gridPerformance.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.FromArgb(219, 234, 254);
+                gridPerfAnchorPreview.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.FromArgb(219, 234, 254);
                 return;
             }
             if (row.AnchorCandidate)
-                _gridPerformance.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.FromArgb(254, 249, 195);
+                gridPerfAnchorPreview.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.FromArgb(254, 249, 195);
         }
 
         private void ApplyStepsGridColumnHeaders()
@@ -1295,15 +1290,18 @@ namespace MARS.WebAutomation.UI
             Set("colParam", "StepsColParameter");
             if (gridSteps.Columns.Contains("colPerfRef"))
                 gridSteps.Columns["colPerfRef"].HeaderText = "Perf#";
-            if (_stepsGridMenu != null && _stepsGridMenu.Items.Count >= 7)
-            {
-                _stepsGridMenu.Items[0].Text = L("GridRun");
-                _stepsGridMenu.Items[1].Text = L("GridDelete");
-                _stepsGridMenu.Items[2].Text = L("GridHighlight");
-                _stepsGridMenu.Items[4].Text = L("GridExport");
-                _stepsGridMenu.Items[5].Text = L("GridInsertRow");
-                _stepsGridMenu.Items[6].Text = L("GridPrettyPaint");
-            }
+            if (tsmStepsRun != null)
+                tsmStepsRun.Text = L("GridRun");
+            if (tsmStepsDelete != null)
+                tsmStepsDelete.Text = L("GridDelete");
+            if (tsmStepsHighlight != null)
+                tsmStepsHighlight.Text = L("GridHighlight");
+            if (tsmStepsExport != null)
+                tsmStepsExport.Text = L("GridExport");
+            if (tsmStepsInsert != null)
+                tsmStepsInsert.Text = L("GridInsertRow");
+            if (tsmStepsPrettyPaint != null)
+                tsmStepsPrettyPaint.Text = L("GridPrettyPaint");
             if (gridSteps.Columns.Contains("colAct"))
                 gridSteps.Columns["colAct"].HeaderText = string.Empty;
         }
@@ -1598,55 +1596,115 @@ namespace MARS.WebAutomation.UI
             }
         }
 
+        private void tsmStepsExportPlaywrightTs_Click(object sender, EventArgs e) =>
+            TryExportStepsScript(playwright: true, useSelection: true);
+
+        private void tsmStepsExportSeleniumTs_Click(object sender, EventArgs e) =>
+            TryExportStepsScript(playwright: false, useSelection: true);
+
+        private void tsbPerfExportPlaywrightTs_Click(object sender, EventArgs e) =>
+            TryExportStepsScript(playwright: true, useSelection: false);
+
+        private void tsbPerfExportSeleniumTs_Click(object sender, EventArgs e) =>
+            TryExportStepsScript(playwright: false, useSelection: false);
+
+        private IReadOnlyList<SemanticStepRecord> CollectStepsForScriptExport(bool useSelection)
+        {
+            if (useSelection && gridSteps.SelectedRows.Count > 0)
+            {
+                var rows = gridSteps.SelectedRows.Cast<DataGridViewRow>()
+                    .Where(r => r != null && !r.IsNewRow && r.DataBoundItem is SemanticStepRecord)
+                    .OrderBy(r => r.Index)
+                    .Select(r => (SemanticStepRecord)r.DataBoundItem)
+                    .ToList();
+                if (rows.Count > 0)
+                    return rows;
+            }
+            return _steps.ToList();
+        }
+
+        private void TryExportStepsScript(bool playwright, bool useSelection)
+        {
+            var steps = CollectStepsForScriptExport(useSelection);
+            if (steps == null || steps.Count == 0)
+            {
+                MessageBox.Show(this, L("ExportScriptNoSteps"), L("ExportScriptTitle"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            if (steps.Any(s => string.IsNullOrWhiteSpace(s?.Keyword)))
+            {
+                MessageBox.Show(this, L("GridExportHasEmptyKeyword"), L("ExportScriptTitle"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            try
+            {
+                var dir = WebStepScriptExport.GetExportScriptsDirectory(_settings?.DataRootFolder);
+                var stamp = DateTime.Now.ToString("yyyyMMddHHmm", CultureInfo.InvariantCulture);
+                var fname = playwright ? "marsWebExport_playwright_" + stamp + ".ts" : "marsWebExport_selenium_" + stamp + ".ts";
+                var path = Path.Combine(dir, fname);
+                var body = playwright
+                    ? WebStepScriptExport.BuildPlaywrightTypeScript(steps)
+                    : WebStepScriptExport.BuildSeleniumTypeScript(steps);
+                File.WriteAllText(path, body, Encoding.UTF8);
+                SetStatus(path);
+                MessageBox.Show(this, string.Format(L("ExportScriptDoneBody"), path), L("ExportScriptDoneTitle"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                FormLog.Error(ex, "TryExportStepsScript failed.");
+                MessageBox.Show(this, ex.Message, L("ExportScriptTitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void TabRecord_SizeChanged(object sender, EventArgs e)
         {
             try
             {
-                if (!_recordSplitDistanceInitialized && _recordSplit != null && tabRecord.ClientSize.Width >= 160)
+                if (!splitRecordMainPreviewDistanceInitialized && splitRecordMainPreview != null && tabRecord.ClientSize.Width >= 160)
                 {
-                    var available = Math.Max(0, _recordSplit.ClientSize.Width - _recordSplit.SplitterWidth);
+                    var available = Math.Max(0, splitRecordMainPreview.ClientSize.Width - splitRecordMainPreview.SplitterWidth);
                     const int desiredMinLeft = 260;
                     const int desiredMinRight = 160;
                     if (available >= desiredMinLeft + desiredMinRight)
                     {
-                        _recordSplit.Panel1MinSize = desiredMinLeft;
-                        _recordSplit.Panel2MinSize = desiredMinRight;
+                        splitRecordMainPreview.Panel1MinSize = desiredMinLeft;
+                        splitRecordMainPreview.Panel2MinSize = desiredMinRight;
                     }
                     else
                     {
                         // Keep split functional on narrow startup widths; avoid impossible min-size constraints.
-                        _recordSplit.Panel1MinSize = 0;
-                        _recordSplit.Panel2MinSize = 0;
+                        splitRecordMainPreview.Panel1MinSize = 0;
+                        splitRecordMainPreview.Panel2MinSize = 0;
                     }
-                    var min = _recordSplit.Panel1MinSize;
-                    var max = available - _recordSplit.Panel2MinSize;
+                    var min = splitRecordMainPreview.Panel1MinSize;
+                    var max = available - splitRecordMainPreview.Panel2MinSize;
                     if (max >= min)
                     {
                         var target = (int)Math.Round(available * 0.62d);
                         if (target < min) target = min;
                         if (target > max) target = max;
-                        _recordSplit.SplitterDistance = target;
-                        _recordSplitDistanceInitialized = true;
+                        splitRecordMainPreview.SplitterDistance = target;
+                        splitRecordMainPreviewDistanceInitialized = true;
                     }
                 }
 
-                if (!_stepsMasterDetailSplitDistanceInitialized && _stepsMasterDetailSplit != null && tabRecord.ClientSize.Height >= 200)
+                if (!splitRecordWorkPreviewDistanceInitialized && splitRecordWorkPreview != null && tabRecord.ClientSize.Height >= 200)
                 {
-                    var availableH = Math.Max(0, _stepsMasterDetailSplit.ClientSize.Height - _stepsMasterDetailSplit.SplitterWidth);
-                    var minTop = _stepsMasterDetailSplit.Panel1MinSize;
-                    var maxTop = availableH - _stepsMasterDetailSplit.Panel2MinSize;
+                    var availableH = Math.Max(0, splitRecordWorkPreview.ClientSize.Height - splitRecordWorkPreview.SplitterWidth);
+                    var minTop = splitRecordWorkPreview.Panel1MinSize;
+                    var maxTop = availableH - splitRecordWorkPreview.Panel2MinSize;
                     if (maxTop >= minTop)
                     {
                         // Keep performance detail table at ~1/4 height by default.
                         var targetTop = (int)Math.Round(availableH * 0.75d);
                         if (targetTop < minTop) targetTop = minTop;
                         if (targetTop > maxTop) targetTop = maxTop;
-                        _stepsMasterDetailSplit.SplitterDistance = targetTop;
-                        _stepsMasterDetailSplitDistanceInitialized = true;
+                        splitRecordWorkPreview.SplitterDistance = targetTop;
+                        splitRecordWorkPreviewDistanceInitialized = true;
                     }
                 }
 
-                if (_perfAnchorRuntimeSplit != null
+                if (splitRecordPerfPreview != null
                     && tabRecord.ClientSize.Height >= 200
                     && IsHandleCreated)
                 {
@@ -1675,24 +1733,24 @@ namespace MARS.WebAutomation.UI
         /// </summary>
         private void ApplyPerfAnchorRuntimeSplitDistance()
         {
-            if (_perfAnchorRuntimeSplit == null)
+            if (splitRecordPerfPreview == null)
                 return;
-            var h = _perfAnchorRuntimeSplit.Height;
+            var h = splitRecordPerfPreview.Height;
             if (h < 80)
                 return;
-            var sw = _perfAnchorRuntimeSplit.SplitterWidth;
+            var sw = splitRecordPerfPreview.SplitterWidth;
             var avail = Math.Max(0, h - sw);
-            var minTop = _perfAnchorRuntimeSplit.Panel1MinSize;
-            var maxTop = avail - _perfAnchorRuntimeSplit.Panel2MinSize;
+            var minTop = splitRecordPerfPreview.Panel1MinSize;
+            var maxTop = avail - splitRecordPerfPreview.Panel2MinSize;
             if (maxTop < minTop)
                 return;
-            var runtimeBand = Math.Max(_perfAnchorRuntimeSplit.Panel2MinSize, (int)Math.Round(avail * 0.42d));
+            var runtimeBand = Math.Max(splitRecordPerfPreview.Panel2MinSize, (int)Math.Round(avail * 0.42d));
             runtimeBand = Math.Min(runtimeBand, 320);
-            var bottomKeep = Math.Min(avail - minTop, Math.Max(_perfAnchorRuntimeSplit.Panel2MinSize, runtimeBand));
+            var bottomKeep = Math.Min(avail - minTop, Math.Max(splitRecordPerfPreview.Panel2MinSize, runtimeBand));
             var top = avail - bottomKeep;
             if (top < minTop) top = minTop;
             if (top > maxTop) top = maxTop;
-            _perfAnchorRuntimeSplit.SplitterDistance = top;
+            splitRecordPerfPreview.SplitterDistance = top;
         }
 
         public void ApplyCanvasNodeMoved(int index, int x, int y)
@@ -1718,8 +1776,8 @@ namespace MARS.WebAutomation.UI
                     return;
 
                 var viewportWidth = panelRecordCanvasPreview?.ClientSize.Width ?? 0;
-                if (viewportWidth <= 0 && _recordSplit != null)
-                    viewportWidth = _recordSplit.Panel2.ClientSize.Width;
+                if (viewportWidth <= 0 && splitRecordMainPreview != null)
+                    viewportWidth = splitRecordMainPreview.Panel2.ClientSize.Width;
                 var columns = viewportWidth >= 1120 ? 4 : 3;
                 columns = Math.Max(3, Math.Min(4, columns));
 
@@ -1763,11 +1821,11 @@ namespace MARS.WebAutomation.UI
 
         private void RefreshRecordReplayCanvas()
         {
-            if (_recordWebView == null)
+            if (recordWebView == null)
                 return;
             try
             {
-                if (!_recordWebViewReady || _recordWebView.CoreWebView2 == null)
+                if (!_recordWebViewReady || recordWebView.CoreWebView2 == null)
                 {
                     _pendingWorkflowStepsPush = true;
                     return;
@@ -1776,7 +1834,7 @@ namespace MARS.WebAutomation.UI
                 if (_recordWorkflowUsesBundle)
                     PostWorkflowStepsToReact();
                 else
-                    _recordWebView.NavigateToString(BuildRecordReplayCanvasFallbackHtml(_steps, _performanceRequests, _recordCanvasDebugEnabled));
+                    recordWebView.NavigateToString(BuildRecordReplayCanvasFallbackHtml(_steps, _performanceRequests, _recordCanvasDebugEnabled, IsPerformanceTestEnabled()));
 
                 if (_recordCanvasDebugEnabled)
                 {
@@ -1793,8 +1851,8 @@ namespace MARS.WebAutomation.UI
         private void SetCanvasZoom(int percent, bool centerAfter)
         {
             _recordCanvasZoomPercent = Math.Max(40, Math.Min(240, percent));
-            if (_lblCanvasZoom != null)
-                _lblCanvasZoom.Text = _recordCanvasZoomPercent + "%";
+            if (tslRecordCanvasZoom != null)
+                tslRecordCanvasZoom.Text = _recordCanvasZoomPercent + "%";
             ApplyCanvasZoom();
             if (centerAfter)
                 CenterCanvasViewport();
@@ -1802,11 +1860,11 @@ namespace MARS.WebAutomation.UI
 
         private async Task InitializeRecordCanvasWebViewAsync()
         {
-            if (_recordWebView == null || _recordWebViewReady)
+            if (recordWebView == null || _recordWebViewReady)
                 return;
             try
             {
-                await _recordWebView.EnsureCoreWebView2Async(null).ConfigureAwait(true);
+                await recordWebView.EnsureCoreWebView2Async(null).ConfigureAwait(true);
             }
             catch (Exception ex)
             {
@@ -1816,28 +1874,28 @@ namespace MARS.WebAutomation.UI
 
         private void RecordWebView_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
-            if (!e.IsSuccess || _recordWebView?.CoreWebView2 == null)
+            if (!e.IsSuccess || recordWebView?.CoreWebView2 == null)
             {
                 FormLog.Warn(e.InitializationException, "WebView2 Core initialization failed.");
                 return;
             }
 
             _recordWebViewReady = true;
-            _recordWebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
-            _recordWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
-            _recordWebView.CoreWebView2.Settings.IsZoomControlEnabled = false;
-            _recordWebView.CoreWebView2.ContextMenuRequested -= RecordWebView_ContextMenuRequested;
-            _recordWebView.CoreWebView2.ContextMenuRequested += RecordWebView_ContextMenuRequested;
-            _recordWebView.CoreWebView2.WebMessageReceived -= RecordWebView_WebMessageReceived;
-            _recordWebView.CoreWebView2.WebMessageReceived += RecordWebView_WebMessageReceived;
-            _recordWebView.NavigationCompleted -= RecordWebView_NavigationCompleted;
-            _recordWebView.NavigationCompleted += RecordWebView_NavigationCompleted;
+            recordWebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
+            recordWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
+            recordWebView.CoreWebView2.Settings.IsZoomControlEnabled = false;
+            recordWebView.CoreWebView2.ContextMenuRequested -= RecordWebView_ContextMenuRequested;
+            recordWebView.CoreWebView2.ContextMenuRequested += RecordWebView_ContextMenuRequested;
+            recordWebView.CoreWebView2.WebMessageReceived -= RecordWebView_WebMessageReceived;
+            recordWebView.CoreWebView2.WebMessageReceived += RecordWebView_WebMessageReceived;
+            recordWebView.NavigationCompleted -= RecordWebView_NavigationCompleted;
+            recordWebView.NavigationCompleted += RecordWebView_NavigationCompleted;
 
             _recordWorkflowUsesBundle = TryMapWorkflowVirtualHost();
             if (_recordWorkflowUsesBundle)
-                _recordWebView.CoreWebView2.Navigate(RecordWorkflowStartUrl);
+                recordWebView.CoreWebView2.Navigate(RecordWorkflowStartUrl);
             else
-                _recordWebView.NavigateToString(BuildRecordReplayCanvasFallbackHtml(_steps, _performanceRequests, _recordCanvasDebugEnabled));
+                recordWebView.NavigateToString(BuildRecordReplayCanvasFallbackHtml(_steps, _performanceRequests, _recordCanvasDebugEnabled, IsPerformanceTestEnabled()));
         }
 
         private void RecordWebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
@@ -1894,7 +1952,7 @@ namespace MARS.WebAutomation.UI
         {
             try
             {
-                var env = _recordWebView?.CoreWebView2?.Environment;
+                var env = recordWebView?.CoreWebView2?.Environment;
                 if (env == null)
                     return;
                 e.MenuItems.Add(env.CreateContextMenuItem("Pretty Paint", null, CoreWebView2ContextMenuItemKind.Command));
@@ -1926,7 +1984,7 @@ namespace MARS.WebAutomation.UI
 
         private void ApplyCanvasZoom()
         {
-            if (!_recordWebViewReady || _recordWebView?.CoreWebView2 == null)
+            if (!_recordWebViewReady || recordWebView?.CoreWebView2 == null)
                 return;
             try
             {
@@ -1937,11 +1995,11 @@ namespace MARS.WebAutomation.UI
                         ["type"] = "setZoom",
                         ["percent"] = _recordCanvasZoomPercent
                     };
-                    _recordWebView.CoreWebView2.PostWebMessageAsString(o.ToString(Formatting.None));
+                    recordWebView.CoreWebView2.PostWebMessageAsString(o.ToString(Formatting.None));
                     return;
                 }
 
-                _recordWebView.ExecuteScriptAsync("setCanvasZoom(" + _recordCanvasZoomPercent.ToString(CultureInfo.InvariantCulture) + ");");
+                recordWebView.ExecuteScriptAsync("setCanvasZoom(" + _recordCanvasZoomPercent.ToString(CultureInfo.InvariantCulture) + ");");
             }
             catch (Exception ex)
             {
@@ -1951,18 +2009,18 @@ namespace MARS.WebAutomation.UI
 
         private void CenterCanvasViewport()
         {
-            if (!_recordWebViewReady || _recordWebView?.CoreWebView2 == null)
+            if (!_recordWebViewReady || recordWebView?.CoreWebView2 == null)
                 return;
             try
             {
                 if (_recordWorkflowUsesBundle)
                 {
                     var o = new JObject { ["type"] = "centerView" };
-                    _recordWebView.CoreWebView2.PostWebMessageAsString(o.ToString(Formatting.None));
+                    recordWebView.CoreWebView2.PostWebMessageAsString(o.ToString(Formatting.None));
                     return;
                 }
 
-                _recordWebView.ExecuteScriptAsync("centerCanvas();");
+                recordWebView.ExecuteScriptAsync("centerCanvas();");
             }
             catch (Exception ex)
             {
@@ -1994,7 +2052,7 @@ namespace MARS.WebAutomation.UI
                     return false;
                 }
 
-                _recordWebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                recordWebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
                     RecordWorkflowVirtualHost,
                     dist,
                     CoreWebView2HostResourceAccessKind.Allow);
@@ -2009,7 +2067,7 @@ namespace MARS.WebAutomation.UI
 
         private void PostWorkflowStepsToReact()
         {
-            if (!_recordWebViewReady || _recordWebView?.CoreWebView2 == null || !_recordWorkflowUsesBundle)
+            if (!_recordWebViewReady || recordWebView?.CoreWebView2 == null || !_recordWorkflowUsesBundle)
                 return;
             try
             {
@@ -2028,8 +2086,8 @@ namespace MARS.WebAutomation.UI
                         ["sourceEvent"] = s.SourceEvent ?? string.Empty,
                         ["data"] = s.Data ?? string.Empty,
                         ["locatorShort"] = loc,
-                        ["hasPerformance"] = s.PerformanceRequestRefs != null && s.PerformanceRequestRefs.Count > 0,
-                        ["performanceCount"] = s.PerformanceRequestRefs?.Count ?? 0
+                        ["hasPerformance"] = IsPerformanceTestEnabled() && s.PerformanceRequestRefs != null && s.PerformanceRequestRefs.Count > 0,
+                        ["performanceCount"] = IsPerformanceTestEnabled() ? (s.PerformanceRequestRefs?.Count ?? 0) : 0
                     };
                     if (s.CanvasX.HasValue)
                         o["x"] = s.CanvasX.Value;
@@ -2044,7 +2102,7 @@ namespace MARS.WebAutomation.UI
                     ["uiLanguage"] = _settings?.UiLanguage ?? "en",
                     ["steps"] = arr
                 };
-                _recordWebView.CoreWebView2.PostWebMessageAsString(payload.ToString(Formatting.None));
+                recordWebView.CoreWebView2.PostWebMessageAsString(payload.ToString(Formatting.None));
             }
             catch (Exception ex)
             {
@@ -2125,17 +2183,17 @@ namespace MARS.WebAutomation.UI
 
         private void ApplyRecordCanvasToolbarLocalization()
         {
-            if (_btnCanvasZoomOut != null)
-                _btnCanvasZoomOut.ToolTipText = L("CanvasZoomOut");
-            if (_btnCanvasZoomIn != null)
-                _btnCanvasZoomIn.ToolTipText = L("CanvasZoomIn");
-            if (_btnCanvasCenter != null)
+            if (tsbRecordCanvasZoomOut != null)
+                tsbRecordCanvasZoomOut.ToolTipText = L("CanvasZoomOut");
+            if (tsbRecordCanvasZoomIn != null)
+                tsbRecordCanvasZoomIn.ToolTipText = L("CanvasZoomIn");
+            if (tsbRecordCanvasCenter != null)
             {
-                _btnCanvasCenter.Text = L("CanvasCenter");
-                _btnCanvasCenter.ToolTipText = L("CanvasCenter");
+                tsbRecordCanvasCenter.Text = L("CanvasCenter");
+                tsbRecordCanvasCenter.ToolTipText = L("CanvasCenter");
             }
-            if (_lblCanvasZoom != null)
-                _lblCanvasZoom.ToolTipText = L("CanvasZoomLevel");
+            if (tslRecordCanvasZoom != null)
+                tslRecordCanvasZoom.ToolTipText = L("CanvasZoomLevel");
         }
 
         private static string KeywordWorkflowCssClass(string kw)
@@ -2160,12 +2218,17 @@ namespace MARS.WebAutomation.UI
                 case "SearchAndClick":
                 case "SearchAndUpdate":
                     return "kwSearch";
+                case "AssertElementState":
+                case "AssertLocatorCount":
+                    return "kwAssert";
+                case "AssertScreenshot":
+                    return "kwAssertVis";
                 default:
                     return "kwDef";
             }
         }
 
-        private static string BuildRecordReplayCanvasFallbackHtml(BindingList<SemanticStepRecord> steps, BindingList<PerformanceRequestRecord> perfRows, bool debugEnabled)
+        private static string BuildRecordReplayCanvasFallbackHtml(BindingList<SemanticStepRecord> steps, BindingList<PerformanceRequestRecord> perfRows, bool debugEnabled, bool showPerformanceAnchors)
         {
             var sb = new StringBuilder(4096);
             sb.Append("<!DOCTYPE html><html><head><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"/>");
@@ -2188,6 +2251,8 @@ namespace MARS.WebAutomation.UI
             sb.Append(".kwCheck{background:linear-gradient(155deg,#ecfdf5,#d1fae5);border-color:#047857;}");
             sb.Append(".kwTable{background:linear-gradient(155deg,#ecfeff,#cffafe);border-color:#0e7490;}");
             sb.Append(".kwSearch{background:linear-gradient(155deg,#fef9c3,#fef08a);border-color:#a16207;}");
+            sb.Append(".kwAssert{background:linear-gradient(155deg,#fce7f3,#fbcfe8);border-color:#be185d;}");
+            sb.Append(".kwAssertVis{background:linear-gradient(155deg,#e0e7ff,#c7d2fe);border-color:#4338ca;}");
             sb.Append(".kwDef{background:linear-gradient(155deg,#f8fafc,#e2e8f0);border-color:#475569;}");
             sb.Append(".anchorLane{position:absolute;left:16px;right:16px;min-height:130px;border:1px dashed #94a3b8;border-radius:12px;background:#f8fafc;padding:12px;}");
             sb.Append(".anchorTitle{font-size:12px;font-weight:700;color:#334155;margin-bottom:8px;}");
@@ -2235,7 +2300,7 @@ namespace MARS.WebAutomation.UI
                     sb.Append(" · ").Append(WebUtility.HtmlEncode(s.SourceEvent ?? string.Empty)).Append("</div>");
                     sb.Append("<div class=\"meta\">").Append(WebUtility.HtmlEncode(s.Data ?? string.Empty)).Append("</div>");
                     sb.Append("<div class=\"loc\">").Append(WebUtility.HtmlEncode(locShort)).Append("</div>");
-                    if (s.PerformanceRequestRefs != null && s.PerformanceRequestRefs.Count > 0)
+                    if (showPerformanceAnchors && s.PerformanceRequestRefs != null && s.PerformanceRequestRefs.Count > 0)
                     {
                         var perfClass = "perfOther";
                         if (string.Equals(s.SourceEvent, "fetch", StringComparison.OrdinalIgnoreCase))
@@ -2250,12 +2315,16 @@ namespace MARS.WebAutomation.UI
                 }
             }
 
-            var anchorRows = (perfRows ?? new BindingList<PerformanceRequestRecord>())
-                .Where(p => p != null && (p.IsAnchorSelected || p.AnchorCandidate))
-                .ToList();
-            var groups = anchorRows
-                .GroupBy(p => string.IsNullOrWhiteSpace(p.AnchorGroup) ? "General" : p.AnchorGroup)
-                .ToList();
+            var groups = new List<IGrouping<string, PerformanceRequestRecord>>();
+            if (showPerformanceAnchors)
+            {
+                var anchorRows = (perfRows ?? new BindingList<PerformanceRequestRecord>())
+                    .Where(p => p != null && (p.IsAnchorSelected || p.AnchorCandidate))
+                    .ToList();
+                groups = anchorRows
+                    .GroupBy(p => string.IsNullOrWhiteSpace(p.AnchorGroup) ? "General" : p.AnchorGroup)
+                    .ToList();
+            }
             var maxStepBottom = 0d;
             if (steps != null)
             {
@@ -2328,11 +2397,7 @@ namespace MARS.WebAutomation.UI
             tsbReloadEngine.ImageScaling = ToolStripItemImageScaling.None;
         }
 
-        private void chkSyncFocus_CheckedChanged(object sender, EventArgs e)
-        {
-            SyncFocusToggleStates();
-            UpdateRecorderModeFromUiStateAsync();
-        }
+        private void chkSyncFocus_CheckedChanged(object sender, EventArgs e) => UpdateRecorderModeFromUiStateAsync();
 
         private void chkWithPerformanceTest_CheckedChanged(object sender, EventArgs e)
         {
@@ -2368,6 +2433,21 @@ namespace MARS.WebAutomation.UI
             tsbRunPerf.ImageScaling = ToolStripItemImageScaling.None;
             tsbStopPerf.Image = FormsIconHelper.ToBitmap(IconChar.Stop, Color.FromArgb(220, 38, 38), 16, 0d, FlipOrientation.Normal);
             tsbStopPerf.ImageScaling = ToolStripItemImageScaling.None;
+            var ink = Color.FromArgb(51, 65, 85);
+            if (tsbPerfExportPlaywrightTs != null)
+            {
+                tsbPerfExportPlaywrightTs.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
+                tsbPerfExportPlaywrightTs.TextImageRelation = TextImageRelation.ImageBeforeText;
+                tsbPerfExportPlaywrightTs.Image = FormsIconHelper.ToBitmap(IconChar.Code, ink, 18, 0d, FlipOrientation.Normal);
+                tsbPerfExportPlaywrightTs.ImageScaling = ToolStripItemImageScaling.None;
+            }
+            if (tsbPerfExportSeleniumTs != null)
+            {
+                tsbPerfExportSeleniumTs.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
+                tsbPerfExportSeleniumTs.TextImageRelation = TextImageRelation.ImageBeforeText;
+                tsbPerfExportSeleniumTs.Image = FormsIconHelper.ToBitmap(IconChar.FileExport, ink, 18, 0d, FlipOrientation.Normal);
+                tsbPerfExportSeleniumTs.ImageScaling = ToolStripItemImageScaling.None;
+            }
         }
 
         private void SetupMenuBrandTitle()
@@ -2386,52 +2466,27 @@ namespace MARS.WebAutomation.UI
             return GetPerformanceToggleChecked();
         }
 
-        private bool GetSyncFocusToggleChecked()
-        {
-            if (chkSyncFocus != null)
-                return chkSyncFocus.Checked;
-            return tsbSyncHost != null && tsbSyncHost.Checked;
-        }
-
-        private void SyncFocusToggleStates()
-        {
-            var value = chkSyncFocus != null
-                ? chkSyncFocus.Checked
-                : (tsbSyncHost != null && tsbSyncHost.Checked);
-            if (chkSyncFocus != null && chkSyncFocus.Checked != value)
-                chkSyncFocus.Checked = value;
-            if (tsbSyncHost != null && tsbSyncHost.Checked != value)
-                tsbSyncHost.Checked = value;
-        }
+        private bool GetSyncFocusToggleChecked() => chkSyncFocus != null && chkSyncFocus.Checked;
 
         private bool GetPerformanceToggleChecked()
         {
-            if (chkWithPerformanceTest != null)
-                return chkWithPerformanceTest.Checked;
-            return tsbPerfHost != null && tsbPerfHost.Checked;
+            return chkWithPerformanceTest != null && chkWithPerformanceTest.Checked;
         }
 
         private void SetPerformanceToggleChecked(bool value)
         {
             if (chkWithPerformanceTest != null)
                 chkWithPerformanceTest.Checked = value;
-            if (tsbPerfHost != null)
-                tsbPerfHost.Checked = value;
             if (_menuWithPerformanceTest != null && _menuWithPerformanceTest.Checked != value)
                 _menuWithPerformanceTest.Checked = value;
         }
 
         private void SyncPerformanceToggleStates()
         {
-            var value = chkWithPerformanceTest != null
-                ? chkWithPerformanceTest.Checked
-                : (tsbPerfHost != null && tsbPerfHost.Checked);
-            if (chkWithPerformanceTest != null && chkWithPerformanceTest.Checked != value)
-                chkWithPerformanceTest.Checked = value;
-            if (tsbPerfHost != null && tsbPerfHost.Checked != value)
-                tsbPerfHost.Checked = value;
-            if (_menuWithPerformanceTest != null && _menuWithPerformanceTest.Checked != value)
-                _menuWithPerformanceTest.Checked = value;
+            if (_menuWithPerformanceTest == null || chkWithPerformanceTest == null)
+                return;
+            if (_menuWithPerformanceTest.Checked != chkWithPerformanceTest.Checked)
+                _menuWithPerformanceTest.Checked = chkWithPerformanceTest.Checked;
         }
 
         private void SetupMenuPerformanceOptions()
@@ -2532,18 +2587,40 @@ namespace MARS.WebAutomation.UI
 
         private void ApplyPerformancePanelVisibility()
         {
-            if (_stepsMasterDetailSplit == null)
+            if (splitRecordWorkPreview == null)
                 return;
             var enabled = IsPerformanceTestEnabled();
-            _stepsMasterDetailSplit.Panel2Collapsed = !enabled;
-            if (!enabled && _gridPerformance != null)
-                _gridPerformance.DataSource = new BindingList<PerformanceRequestRecord>();
+            splitRecordWorkPreview.Panel2Collapsed = !enabled;
+            if (gridSteps.Columns.Contains("colPerfRef"))
+                gridSteps.Columns["colPerfRef"].Visible = enabled;
+            if (!enabled && gridPerfAnchorPreview != null)
+                gridPerfAnchorPreview.DataSource = new BindingList<PerformanceRequestRecord>();
+            if (!enabled)
+            {
+                _perfRuntimeRows.Clear();
+                if (gridPerfRuntimePreview != null)
+                    gridPerfRuntimePreview.Refresh();
+                try
+                {
+                    _network.Clear();
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
             if (enabled)
             {
                 BindPerformanceForSelectedStep();
-                if (_perfAnchorRuntimeSplit != null)
+                if (splitRecordPerfPreview != null)
                     ApplyPerfAnchorRuntimeSplitDistance();
             }
+            if (tsbRunPerf != null)
+                tsbRunPerf.Visible = enabled;
+            if (tsbStopPerf != null)
+                tsbStopPerf.Visible = enabled;
+            if (tsbRunPerfSelected != null)
+                tsbRunPerfSelected.Visible = enabled;
             tsbRunPerf.Enabled = enabled && !_performanceRunInProgress;
             if (_menuPerfRunNow != null)
                 _menuPerfRunNow.Enabled = enabled && !_performanceRunInProgress;
@@ -2555,6 +2632,7 @@ namespace MARS.WebAutomation.UI
                 _menuPerfExportPack.Enabled = !_performanceRunInProgress && _performanceRequests.Count > 0;
             if (_menuPerfImportPack != null)
                 _menuPerfImportPack.Enabled = !_performanceRunInProgress;
+            RefreshRecordReplayCanvas();
         }
 
         private void ConfigurePerformanceTransactions()
@@ -3257,10 +3335,10 @@ namespace MARS.WebAutomation.UI
         private HashSet<string> GetSelectedAnchorGroupsFromGrid()
         {
             var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            if (_gridPerformance == null)
+            if (gridPerfAnchorPreview == null)
                 return set;
 
-            foreach (DataGridViewRow row in _gridPerformance.SelectedRows)
+            foreach (DataGridViewRow row in gridPerfAnchorPreview.SelectedRows)
             {
                 if (!(row?.DataBoundItem is PerformanceRequestRecord rec))
                     continue;
@@ -3338,8 +3416,8 @@ namespace MARS.WebAutomation.UI
                 : ((100.0 * row.Fail) / total).ToString("0.00", CultureInfo.InvariantCulture) + "%";
             row.LastDetail = snapshot.Detail ?? snapshot.Stage ?? string.Empty;
 
-            if (_gridPerfRuntime != null)
-                _gridPerfRuntime.Refresh();
+            if (gridPerfRuntimePreview != null)
+                gridPerfRuntimePreview.Refresh();
         }
 
         private string BuildRoundProgressText()
@@ -3360,7 +3438,7 @@ namespace MARS.WebAutomation.UI
                 if (row != null)
                     row.RoundProgress = text;
             }
-            _gridPerfRuntime?.Refresh();
+            gridPerfRuntimePreview?.Refresh();
         }
 
         private void SavePerformanceResult(
@@ -3518,23 +3596,23 @@ namespace MARS.WebAutomation.UI
             StyleToolbarButton(tsbExport, IconChar.FileExport);
             StyleToolbarButton(tsbImport, IconChar.FileImport);
             StyleToolbarButton(tsbSave, IconChar.FloppyDisk);
-            if (_btnGridInsert != null)
+            if (tsbStepInsert != null)
             {
-                _btnGridInsert.DisplayStyle = ToolStripItemDisplayStyle.Image;
-                _btnGridInsert.Image = FormsIconHelper.ToBitmap(IconChar.Plus, ink, 16, 0d, FlipOrientation.Normal);
-                _btnGridInsert.ToolTipText = L("GridInsertRow");
+                tsbStepInsert.DisplayStyle = ToolStripItemDisplayStyle.Image;
+                tsbStepInsert.Image = FormsIconHelper.ToBitmap(IconChar.Plus, ink, 16, 0d, FlipOrientation.Normal);
+                tsbStepInsert.ToolTipText = L("GridInsertRow");
             }
-            if (_btnGridDelete != null)
+            if (tsbStepDelete != null)
             {
-                _btnGridDelete.DisplayStyle = ToolStripItemDisplayStyle.Image;
-                _btnGridDelete.Image = FormsIconHelper.ToBitmap(IconChar.Trash, Color.FromArgb(220, 38, 38), 16, 0d, FlipOrientation.Normal);
-                _btnGridDelete.ToolTipText = L("GridDelete");
+                tsbStepDelete.DisplayStyle = ToolStripItemDisplayStyle.Image;
+                tsbStepDelete.Image = FormsIconHelper.ToBitmap(IconChar.Trash, Color.FromArgb(220, 38, 38), 16, 0d, FlipOrientation.Normal);
+                tsbStepDelete.ToolTipText = L("GridDelete");
             }
-            if (_btnGridReplay != null)
+            if (tsbStepReplay != null)
             {
-                _btnGridReplay.DisplayStyle = ToolStripItemDisplayStyle.Image;
-                _btnGridReplay.Image = FormsIconHelper.ToBitmap(IconChar.Play, Color.FromArgb(5, 150, 105), 16, 0d, FlipOrientation.Normal);
-                _btnGridReplay.ToolTipText = L("GridRun");
+                tsbStepReplay.DisplayStyle = ToolStripItemDisplayStyle.Image;
+                tsbStepReplay.Image = FormsIconHelper.ToBitmap(IconChar.Play, Color.FromArgb(5, 150, 105), 16, 0d, FlipOrientation.Normal);
+                tsbStepReplay.ToolTipText = L("GridRun");
             }
 
             void StyleGrid(DataGridView g)
@@ -3694,17 +3772,73 @@ namespace MARS.WebAutomation.UI
             _settings = _settingsStore.Load();
             if (string.IsNullOrWhiteSpace(_settings.UiLanguage))
                 _settings.UiLanguage = "en";
+            _settings.RecorderCaptureMode = RecordingService.NormalizeRecorderCaptureMode(_settings.RecorderCaptureMode);
             ApplySettingsToUi();
             ApplyLocalizedUi();
             _ = InitializeRecordCanvasWebViewAsync();
             txtUrl.TextChanged += (_, __) => UpdateUriLabels();
             UpdateUriLabels();
             ClearObjectInspectUi(removePageOverlay: false);
-            RegisterRecordReplayHotkey();
+            RegisterWorkbenchHotkeys();
             UpdateRecorderModeFromUiStateAsync();
             RenumberStepMetadata();
             RefreshRecordReplayCanvas();
         }
+
+        private void UpdateRecorderCaptureModeUi()
+        {
+            var plain = _settings != null
+                && string.Equals(_settings.RecorderCaptureMode, "plain", StringComparison.OrdinalIgnoreCase);
+            if (menuRecordCaptureSemantic != null)
+                menuRecordCaptureSemantic.Checked = !plain;
+            if (menuRecordCapturePlain != null)
+                menuRecordCapturePlain.Checked = plain;
+            if (tsddbRecordCapture != null)
+                tsddbRecordCapture.Text = plain ? L("ToolbarCapturePlain") : L("ToolbarCaptureSemantic");
+        }
+
+        private async Task PersistRecorderCaptureModeAsync(string mode)
+        {
+            if (_settings == null)
+                return;
+            _settings.RecorderCaptureMode = RecordingService.NormalizeRecorderCaptureMode(mode);
+            try
+            {
+                _settingsStore.Save(_settings);
+            }
+            catch (Exception ex)
+            {
+                FormLog.Warn(ex, "Could not persist recorder capture mode.");
+            }
+            ApplyLocalizedUi();
+            if (_host?.Page != null && _host.IsRunning)
+            {
+                try
+                {
+                    await _recording.SetCaptureModeAsync(_host.Page, _settings.RecorderCaptureMode).ConfigureAwait(true);
+                }
+                catch (Exception ex) when (IsTargetClosed(ex))
+                {
+                    HandleRecorderTargetClosed(ex);
+                }
+                catch (Exception ex)
+                {
+                    FormLog.Warn(ex, "Apply recorder capture mode in browser failed.");
+                }
+            }
+        }
+
+        private async void menuRecordCaptureSemantic_Click(object sender, EventArgs e) =>
+            await PersistRecorderCaptureModeAsync("semantic").ConfigureAwait(true);
+
+        private async void menuRecordCapturePlain_Click(object sender, EventArgs e) =>
+            await PersistRecorderCaptureModeAsync("plain").ConfigureAwait(true);
+
+        private async void tsmiRecordCaptureSemantic_Click(object sender, EventArgs e) =>
+            await PersistRecorderCaptureModeAsync("semantic").ConfigureAwait(true);
+
+        private async void tsmiRecordCapturePlain_Click(object sender, EventArgs e) =>
+            await PersistRecorderCaptureModeAsync("plain").ConfigureAwait(true);
 
         private void ApplySettingsToUi()
         {
@@ -3724,6 +3858,32 @@ namespace MARS.WebAutomation.UI
                 var idx = _cmbHotkeyKey.Items.IndexOf(keyText);
                 _cmbHotkeyKey.SelectedIndex = idx >= 0 ? idx : _cmbHotkeyKey.Items.IndexOf("F12");
             }
+            if (_chkAssertHotkeyBeforeCtrl != null) _chkAssertHotkeyBeforeCtrl.Checked = _settings.AssertHotkeyBeforeCtrl;
+            if (_chkAssertHotkeyBeforeAlt != null) _chkAssertHotkeyBeforeAlt.Checked = _settings.AssertHotkeyBeforeAlt;
+            if (_chkAssertHotkeyBeforeShift != null) _chkAssertHotkeyBeforeShift.Checked = _settings.AssertHotkeyBeforeShift;
+            if (_cmbAssertHotkeyBeforeKey != null)
+            {
+                var kb = string.IsNullOrWhiteSpace(_settings.AssertHotkeyBeforeKey) ? "F10" : _settings.AssertHotkeyBeforeKey.Trim().ToUpperInvariant();
+                var ib = _cmbAssertHotkeyBeforeKey.Items.IndexOf(kb);
+                _cmbAssertHotkeyBeforeKey.SelectedIndex = ib >= 0 ? ib : _cmbAssertHotkeyBeforeKey.Items.IndexOf("F10");
+            }
+            if (_chkAssertHotkeyAfterCtrl != null) _chkAssertHotkeyAfterCtrl.Checked = _settings.AssertHotkeyAfterCtrl;
+            if (_chkAssertHotkeyAfterAlt != null) _chkAssertHotkeyAfterAlt.Checked = _settings.AssertHotkeyAfterAlt;
+            if (_chkAssertHotkeyAfterShift != null) _chkAssertHotkeyAfterShift.Checked = _settings.AssertHotkeyAfterShift;
+            if (_cmbAssertHotkeyAfterKey != null)
+            {
+                var ka = string.IsNullOrWhiteSpace(_settings.AssertHotkeyAfterKey) ? "F11" : _settings.AssertHotkeyAfterKey.Trim().ToUpperInvariant();
+                var ia = _cmbAssertHotkeyAfterKey.Items.IndexOf(ka);
+                _cmbAssertHotkeyAfterKey.SelectedIndex = ia >= 0 ? ia : _cmbAssertHotkeyAfterKey.Items.IndexOf("F11");
+            }
+            if (_numAssertSnapshotSettle != null)
+                _numAssertSnapshotSettle.Value = Math.Min(_numAssertSnapshotSettle.Maximum,
+                    Math.Max(_numAssertSnapshotSettle.Minimum, _settings.AssertSnapshotSettleMs));
+            if (_numAssertSnapshotMaxEl != null)
+                _numAssertSnapshotMaxEl.Value = Math.Min(_numAssertSnapshotMaxEl.Maximum,
+                    Math.Max(_numAssertSnapshotMaxEl.Minimum, _settings.AssertSnapshotMaxElementsPerFrame));
+            if (_chkAssertDiffEmitVisual != null)
+                _chkAssertDiffEmitVisual.Checked = _settings.AssertDiffEmitScreenshotOnColorChange;
             if (_txtIgnoredPagePrefixes != null)
                 _txtIgnoredPagePrefixes.Text = _settings.RecorderIgnoredPageUrlPrefixes ?? string.Empty;
             if (_numRecorderTabDepth != null)
@@ -3760,6 +3920,17 @@ namespace MARS.WebAutomation.UI
             _settings.RecordReplayHotkeyAlt = _chkHotkeyAlt != null && _chkHotkeyAlt.Checked;
             _settings.RecordReplayHotkeyShift = _chkHotkeyShift != null && _chkHotkeyShift.Checked;
             _settings.RecordReplayHotkeyKey = _cmbHotkeyKey?.SelectedItem?.ToString() ?? "F12";
+            _settings.AssertHotkeyBeforeCtrl = _chkAssertHotkeyBeforeCtrl != null && _chkAssertHotkeyBeforeCtrl.Checked;
+            _settings.AssertHotkeyBeforeAlt = _chkAssertHotkeyBeforeAlt != null && _chkAssertHotkeyBeforeAlt.Checked;
+            _settings.AssertHotkeyBeforeShift = _chkAssertHotkeyBeforeShift != null && _chkAssertHotkeyBeforeShift.Checked;
+            _settings.AssertHotkeyBeforeKey = _cmbAssertHotkeyBeforeKey?.SelectedItem?.ToString() ?? "F10";
+            _settings.AssertHotkeyAfterCtrl = _chkAssertHotkeyAfterCtrl != null && _chkAssertHotkeyAfterCtrl.Checked;
+            _settings.AssertHotkeyAfterAlt = _chkAssertHotkeyAfterAlt != null && _chkAssertHotkeyAfterAlt.Checked;
+            _settings.AssertHotkeyAfterShift = _chkAssertHotkeyAfterShift != null && _chkAssertHotkeyAfterShift.Checked;
+            _settings.AssertHotkeyAfterKey = _cmbAssertHotkeyAfterKey?.SelectedItem?.ToString() ?? "F11";
+            _settings.AssertSnapshotSettleMs = _numAssertSnapshotSettle != null ? (int)_numAssertSnapshotSettle.Value : 220;
+            _settings.AssertSnapshotMaxElementsPerFrame = _numAssertSnapshotMaxEl != null ? (int)_numAssertSnapshotMaxEl.Value : 500;
+            _settings.AssertDiffEmitScreenshotOnColorChange = _chkAssertDiffEmitVisual != null && _chkAssertDiffEmitVisual.Checked;
             _settings.RecorderIgnoredPageUrlPrefixes = _txtIgnoredPagePrefixes?.Text?.Trim() ?? string.Empty;
             _settings.RecorderTabContextAncestorDepth = _numRecorderTabDepth != null
                 ? (int)_numRecorderTabDepth.Value
@@ -3883,6 +4054,256 @@ namespace MARS.WebAutomation.UI
             if (!_hotkeyRegistered) return;
             UnregisterHotKey(Handle, RecordReplayHotkeyId);
             _hotkeyRegistered = false;
+        }
+
+        private void RegisterAssertHotkeys()
+        {
+            UnregisterAssertHotkeys();
+            if (_settings == null || !IsHandleCreated)
+                return;
+            try
+            {
+                uint modB = 0;
+                if (_settings.AssertHotkeyBeforeCtrl) modB |= ModControl;
+                if (_settings.AssertHotkeyBeforeAlt) modB |= ModAlt;
+                if (_settings.AssertHotkeyBeforeShift) modB |= ModShift;
+                var vkB = ResolveVirtualKey(_settings.AssertHotkeyBeforeKey);
+                _assertBeforeHotkeyRegistered = RegisterHotKey(Handle, AssertSnapshotBeforeHotkeyId, modB, vkB);
+
+                uint modA = 0;
+                if (_settings.AssertHotkeyAfterCtrl) modA |= ModControl;
+                if (_settings.AssertHotkeyAfterAlt) modA |= ModAlt;
+                if (_settings.AssertHotkeyAfterShift) modA |= ModShift;
+                var vkA = ResolveVirtualKey(_settings.AssertHotkeyAfterKey);
+                _assertAfterHotkeyRegistered = RegisterHotKey(Handle, AssertSnapshotAfterHotkeyId, modA, vkA);
+            }
+            catch (Exception ex)
+            {
+                FormLog.Warn(ex, "RegisterAssertHotkeys failed.");
+            }
+        }
+
+        private void UnregisterAssertHotkeys()
+        {
+            if (!IsHandleCreated)
+                return;
+            if (_assertBeforeHotkeyRegistered)
+            {
+                UnregisterHotKey(Handle, AssertSnapshotBeforeHotkeyId);
+                _assertBeforeHotkeyRegistered = false;
+            }
+            if (_assertAfterHotkeyRegistered)
+            {
+                UnregisterHotKey(Handle, AssertSnapshotAfterHotkeyId);
+                _assertAfterHotkeyRegistered = false;
+            }
+        }
+
+        private void RegisterWorkbenchHotkeys()
+        {
+            RegisterRecordReplayHotkey();
+            RegisterAssertHotkeys();
+        }
+
+        private void UnregisterWorkbenchHotkeys()
+        {
+            UnregisterAssertHotkeys();
+            UnregisterRecordReplayHotkey();
+        }
+
+        private static string StripUrlFragmentForAssert(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+                return string.Empty;
+            var i = url.IndexOf('#');
+            return i >= 0 ? url.Substring(0, i) : url;
+        }
+
+        private IPage PickPageForAssertSnapshot()
+        {
+            var pages = GetOrderedPagesForObjectInspect();
+            if (pages == null || pages.Count == 0)
+                return _host?.Page;
+            var anchor = _lastRecordedUiStep;
+            var rec = anchor?.RecordedPageUrl;
+            if (!string.IsNullOrWhiteSpace(rec))
+            {
+                var rs = StripUrlFragmentForAssert(rec.Trim());
+                foreach (var p in pages)
+                {
+                    if (p == null || p.IsClosed)
+                        continue;
+                    try
+                    {
+                        var u = p.Url ?? string.Empty;
+                        if (string.Equals(StripUrlFragmentForAssert(u.Trim()), rs, StringComparison.OrdinalIgnoreCase))
+                            return p;
+                    }
+                    catch
+                    {
+                        /* ignore */
+                    }
+                }
+            }
+            return pages[0];
+        }
+
+        private SemanticStepRecord BuildAnchorMetaForAssert()
+        {
+            var s = _lastRecordedUiStep;
+            if (s != null)
+            {
+                return new SemanticStepRecord
+                {
+                    RecordedPageUrl = s.RecordedPageUrl ?? string.Empty,
+                    RecordedPageTitle = s.RecordedPageTitle ?? string.Empty
+                };
+            }
+            try
+            {
+                return new SemanticStepRecord { RecordedPageUrl = _host?.Page?.Url ?? string.Empty };
+            }
+            catch
+            {
+                return new SemanticStepRecord();
+            }
+        }
+
+        private async void HandleAssertSnapshotBeforeHotkeyAsync()
+        {
+            if (_assertSnapshotBusy)
+                return;
+            if (!_host.IsRunning || _host.Page == null)
+            {
+                MessageBox.Show(this, "Start the browser and open a page before capturing an assertion snapshot.", "Assert snapshot", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            _assertSnapshotBusy = true;
+            try
+            {
+                var page = PickPageForAssertSnapshot();
+                if (page == null || page.IsClosed)
+                {
+                    MessageBox.Show(this, "No page available for snapshot.", "Assert snapshot", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                var settle = Math.Max(0, _settings?.AssertSnapshotSettleMs ?? 220);
+                var maxEl = Math.Max(50, _settings?.AssertSnapshotMaxElementsPerFrame ?? 500);
+                var cap = await DomAssertionSnapshotService.CapturePageAsync(page, settle, maxEl).ConfigureAwait(true);
+                _pendingAssertElements = cap.Elements;
+                _pendingAssertPageUrl = cap.PageUrl ?? string.Empty;
+                _pendingBeforeCaptureMs = cap.CaptureMs;
+                FormLog.Info("Assert snapshot Before: url={Url} elements={Count} captureMs={Ms}", _pendingAssertPageUrl, _pendingAssertElements?.Count ?? 0, _pendingBeforeCaptureMs);
+                SetStatus("Assert Before: captured " + (_pendingAssertElements?.Count ?? 0) + " elems, " + _pendingBeforeCaptureMs + "ms");
+            }
+            catch (Exception ex)
+            {
+                FormLog.Error(ex, "HandleAssertSnapshotBeforeHotkeyAsync failed.");
+                MessageBox.Show(this, ex.Message, "Assert snapshot", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _assertSnapshotBusy = false;
+            }
+        }
+
+        private async void HandleAssertSnapshotAfterHotkeyAsync()
+        {
+            if (_assertSnapshotBusy)
+                return;
+            if (_pendingAssertElements == null || _pendingAssertElements.Count == 0)
+            {
+                MessageBox.Show(this, "Press the Before hotkey first to store a baseline DOM snapshot.", "Assert snapshot", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            if (!_host.IsRunning || _host.Page == null)
+            {
+                MessageBox.Show(this, "Browser is not running.", "Assert snapshot", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            _assertSnapshotBusy = true;
+            try
+            {
+                var page = PickPageForAssertSnapshot();
+                if (page == null || page.IsClosed)
+                {
+                    MessageBox.Show(this, "No page available for snapshot.", "Assert snapshot", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                try
+                {
+                    var curUrl = StripUrlFragmentForAssert((page.Url ?? string.Empty).Trim());
+                    var pend = StripUrlFragmentForAssert((_pendingAssertPageUrl ?? string.Empty).Trim());
+                    if (!string.IsNullOrEmpty(pend) && !string.IsNullOrEmpty(curUrl)
+                        && !string.Equals(pend, curUrl, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var warn = "Before snapshot URL does not match the active page:\r\nBefore: " + pend + "\r\nNow:   " + curUrl + "\r\nContinue diff anyway?";
+                        if (MessageBox.Show(this, warn, "Assert snapshot", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK)
+                            return;
+                    }
+                }
+                catch
+                {
+                    /* ignore */
+                }
+
+                var settle = Math.Max(0, _settings?.AssertSnapshotSettleMs ?? 220);
+                var maxEl = Math.Max(50, _settings?.AssertSnapshotMaxElementsPerFrame ?? 500);
+                var afterCap = await DomAssertionSnapshotService.CapturePageAsync(page, settle, maxEl).ConfigureAwait(true);
+                var baselineRoot = Path.Combine(string.IsNullOrWhiteSpace(_settings?.DataRootFolder)
+                    ? DataPathHelper.GetAssemblyBaseDirectory()
+                    : _settings.DataRootFolder.Trim(), "assert_baselines");
+                try
+                {
+                    Directory.CreateDirectory(baselineRoot);
+                }
+                catch
+                {
+                    /* non-fatal */
+                }
+
+                var anchor = BuildAnchorMetaForAssert();
+                var emitShot = _settings?.AssertDiffEmitScreenshotOnColorChange == true;
+                var newSteps = DomAssertionSnapshotService.BuildStepsFromDiff(
+                    _pendingAssertElements,
+                    afterCap.Elements,
+                    anchor,
+                    emitShot,
+                    baselineRoot,
+                    out var metrics);
+                metrics.BeforeCaptureMs = _pendingBeforeCaptureMs;
+                metrics.AfterCaptureMs = afterCap.CaptureMs;
+                FormLog.Info("Assert snapshot After+diff: " + metrics.ToStatusSummary());
+
+                if (newSteps == null || newSteps.Count == 0)
+                {
+                    SetStatus("Assert diff: no changes detected (Before snapshot kept). " + metrics.ToStatusSummary());
+                    MessageBox.Show(this, "No assertion steps were generated (no detected diffs). The Before snapshot is kept so you can adjust the UI and press After again.\r\n" + metrics.ToStatusSummary(), "Assert snapshot", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    var insertAt = GetSelectedStepIndex();
+                    insertAt = insertAt < 0 ? _steps.Count : insertAt + 1;
+                    for (var i = 0; i < newSteps.Count; i++)
+                        _steps.Insert(insertAt + i, newSteps[i]);
+                    RenumberStepMetadata();
+                    RefreshRecordReplayCanvas();
+                    SetStatus("Inserted " + newSteps.Count + " assert steps. " + metrics.ToStatusSummary());
+                    MessageBox.Show(this, "Inserted " + newSteps.Count + " step(s).\r\n" + metrics.ToStatusSummary(), "Assert snapshot", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    _pendingAssertElements = null;
+                    _pendingAssertPageUrl = null;
+                    _pendingBeforeCaptureMs = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                FormLog.Error(ex, "HandleAssertSnapshotAfterHotkeyAsync failed.");
+                MessageBox.Show(this, ex.Message, "Assert snapshot", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _assertSnapshotBusy = false;
+            }
         }
 
         private static uint ResolveVirtualKey(string key)
@@ -4139,7 +4560,7 @@ namespace MARS.WebAutomation.UI
                 ReadSettingsFromUi();
                 _recording.ResetForNewContext();
                 await _host.StartAsync(_settings).ConfigureAwait(true);
-                await _recording.InstallAsync(_host.Page).ConfigureAwait(true);
+                await _recording.InstallAsync(_host.Page, _settings).ConfigureAwait(true);
                 _network.Detach();
                 _network.Clear();
                 _performanceRequests.Clear();
@@ -5423,43 +5844,21 @@ namespace MARS.WebAutomation.UI
         {
             ReadSettingsFromUi();
             _settingsStore.Save(_settings);
-            RegisterRecordReplayHotkey();
+            RegisterWorkbenchHotkeys();
             BindPerformanceForSelectedStep();
             SetStatus("Settings saved.");
         }
 
         private void MainWorkbenchForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            UnregisterRecordReplayHotkey();
+            UnregisterWorkbenchHotkeys();
             splitObjects.Panel2.Resize -= SplitObjects_Panel2_Resize;
             _host.ActiveDocumentUrlChanged -= Host_ActiveDocumentUrlChanged;
             _network.Dispose();
             _steps.ListChanged -= Steps_ListChanged;
-            gridSteps.CellContentClick -= gridSteps_CellContentClick;
-            gridSteps.CellMouseClick -= gridSteps_CellMouseClick;
-            gridSteps.CellPainting -= gridSteps_CellPainting;
-            gridSteps.CellDoubleClick -= gridSteps_CellDoubleClick;
-            gridSteps.CellEndEdit -= gridSteps_CellEndEdit;
-            gridSteps.CellFormatting -= gridSteps_CellFormatting;
-            gridSteps.SelectionChanged -= gridSteps_SelectionChanged;
-            gridSteps.RowPrePaint -= gridSteps_RowPrePaint;
-            gridSteps.DataError -= Grid_DataError;
-            tabRecord.SizeChanged -= TabRecord_SizeChanged;
             _recording.RecordedStep -= Recording_RecordedStep;
             _recording.Picked -= Recording_Picked;
             _network.EntryCompleted -= Network_EntryCompleted;
-            if (_gridPerformance != null)
-            {
-                _gridPerformance.CellContentClick -= gridPerformance_CellContentClick;
-                _gridPerformance.CellDoubleClick -= gridPerformance_CellDoubleClick;
-                _gridPerformance.RowPrePaint -= gridPerformance_RowPrePaint;
-                _gridPerformance.DataError -= Grid_DataError;
-            }
-            if (_gridPerfRuntime != null)
-            {
-                _gridPerfRuntime.DataError -= Grid_DataError;
-                _gridPerfRuntime.CellDoubleClick -= gridPerfRuntime_CellDoubleClick;
-            }
             try
             {
                 if (_host.IsRunning && _host.Page != null)
@@ -5512,18 +5911,30 @@ namespace MARS.WebAutomation.UI
 
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == WmHotkey && m.WParam.ToInt32() == RecordReplayHotkeyId)
+            if (m.Msg == WmHotkey)
             {
-                if (!tsbRecord.Checked)
+                var id = m.WParam.ToInt32();
+                if (id == RecordReplayHotkeyId)
                 {
-                    tsbRecord.Checked = true;
-                    tsbRecord_Click(tsbRecord, EventArgs.Empty);
-                    tabMain.SelectedTab = tabRecord;
+                    if (!tsbRecord.Checked)
+                    {
+                        tsbRecord.Checked = true;
+                        tsbRecord_Click(tsbRecord, EventArgs.Empty);
+                        tabMain.SelectedTab = tabRecord;
+                    }
+                    else
+                    {
+                        tsbRecord.Checked = false;
+                        tsbRecord_Click(tsbRecord, EventArgs.Empty);
+                    }
                 }
-                else
+                else if (id == AssertSnapshotBeforeHotkeyId)
                 {
-                    tsbRecord.Checked = false;
-                    tsbRecord_Click(tsbRecord, EventArgs.Empty);
+                    HandleAssertSnapshotBeforeHotkeyAsync();
+                }
+                else if (id == AssertSnapshotAfterHotkeyId)
+                {
+                    HandleAssertSnapshotAfterHotkeyAsync();
                 }
             }
             base.WndProc(ref m);
