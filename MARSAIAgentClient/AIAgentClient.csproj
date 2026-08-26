@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Library</OutputType>
+    <LangVersion>10</LangVersion>
+    <AssemblyName>MARSAIAgentClient</AssemblyName>
+    <RootNamespace>MARSAIAgentClient</RootNamespace>
+    <!-- Disable SDK auto-generation of assembly attributes to avoid duplicates with existing AssemblyInfo files -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="example\**" />
+    <Compile Remove="Test\**" />
+    <EmbeddedResource Remove="example\**" />
+    <EmbeddedResource Remove="Test\**" />
+    <None Remove="example\**" />
+    <None Remove="Test\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+</Project>

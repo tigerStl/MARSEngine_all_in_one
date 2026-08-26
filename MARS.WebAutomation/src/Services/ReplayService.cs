@@ -8,6 +8,19 @@ using Microsoft.Playwright;
 
 namespace MARS.WebAutomation.Services
 {
+    /// <summary>Per-step notification when replaying a scenario (used by the record-replay sidebar monitor).</summary>
+    public readonly struct ReplayStepContext
+    {
+        public ReplayStepContext(int index, SemanticStepRecord step)
+        {
+            Index = index;
+            Step = step;
+        }
+
+        public int Index { get; }
+        public SemanticStepRecord Step { get; }
+    }
+
     public sealed class ReplayService
     {
         private sealed class ReplayCursor
@@ -215,7 +228,8 @@ namespace MARS.WebAutomation.Services
                     return ordered;
             }
 
-            if (!string.IsNullOrWhiteSpace(step?.Locator))
+            var sel = SemanticStepLocatorUtil.EffectivePlaywrightSelector(step);
+            if (!string.IsNullOrWhiteSpace(sel))
             {
                 var withLoc = new List<IPage>();
                 var rest = new List<IPage>();
@@ -223,7 +237,7 @@ namespace MARS.WebAutomation.Services
                 {
                     try
                     {
-                        var n = await p.Locator(step.Locator).CountAsync().ConfigureAwait(false);
+                        var n = await p.Locator(sel).CountAsync().ConfigureAwait(false);
                         if (n > 0)
                             withLoc.Add(p);
                         else
@@ -248,16 +262,31 @@ namespace MARS.WebAutomation.Services
             return list.Count > 0 ? list[0] : primary;
         }
 
-        public async Task ReplayAsync(IPage page, IEnumerable<SemanticStepRecord> steps, int stepDelayMs)
+        public Task ReplayAsync(IPage page, IEnumerable<SemanticStepRecord> steps, int stepDelayMs)
+        {
+            return ReplayAsync(page, steps, stepDelayMs, null, null);
+        }
+
+        /// <param name="onBeforeStep">Invoked before each step (including Pegwindow routing).</param>
+        /// <param name="onAfterStep">Invoked after each step completes (success or failure). On failure, thrown after this callback.</param>
+        public async Task ReplayAsync(
+            IPage page,
+            IEnumerable<SemanticStepRecord> steps,
+            int stepDelayMs,
+            Action<ReplayStepContext> onBeforeStep,
+            Action<ReplayStepContext, KeywordExecuteResult> onAfterStep)
         {
             if (page == null)
                 throw new ArgumentNullException(nameof(page));
             if (steps == null)
                 return;
 
+            var list = steps as IList<SemanticStepRecord> ?? steps.ToList();
             var cursor = new ReplayCursor { Page = page, Frame = null };
-            foreach (var step in steps)
+            for (var i = 0; i < list.Count; i++)
             {
+                var step = list[i];
+                onBeforeStep?.Invoke(new ReplayStepContext(i, step));
                 if (string.Equals(step?.Keyword, "Pegwindow", StringComparison.OrdinalIgnoreCase))
                 {
                     var target = await ResolvePegwindowTargetPageAsync(cursor.Page ?? page, step).ConfigureAwait(false);
@@ -266,6 +295,7 @@ namespace MARS.WebAutomation.Services
                     var pegParam = ParseStepParameter(step?.Parameter);
                     var asFrame = pegParam.TryGetValue("ASIFrame", out var av) && av.Equals("true", StringComparison.OrdinalIgnoreCase);
                     cursor.Frame = asFrame ? ResolveFrameOnPage(cursor.Page, pegParam, step) : null;
+                    onAfterStep?.Invoke(new ReplayStepContext(i, step), new KeywordExecuteResult { Success = true });
                     if (stepDelayMs > 0)
                         await Task.Delay(stepDelayMs).ConfigureAwait(false);
                     continue;
@@ -281,6 +311,7 @@ namespace MARS.WebAutomation.Services
                 {
                     MarsWebKeywordImplBase.SetPreferredReplayFrame(null);
                 }
+                onAfterStep?.Invoke(new ReplayStepContext(i, step), result);
                 if (!result.Success)
                     throw new InvalidOperationException(result.ErrorMessage ?? "Keyword execution failed.");
                 if (stepDelayMs > 0)

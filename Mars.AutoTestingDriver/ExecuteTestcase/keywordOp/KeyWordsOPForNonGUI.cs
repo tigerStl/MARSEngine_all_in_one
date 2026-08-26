@@ -316,8 +316,10 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
         }
         public static Dictionary<string, MarsKeywordOperation> Non_GUIKeyword = new Dictionary<string, MarsKeywordOperation>()
         {
+            { SystemConstant.CNST_RESERVED_KEYWORD_ACTIVEPROCESS, MARSKEYWORD_ActiveProcess },
             { SystemConstant.CNST_RESERVED_KEYWORD_ASSERTVALUE, MARSKEYWORD_AssertValue},
             { "CHANGESIZE"      , MARSKEYWORD_ChangeSize        },
+            { SystemConstant.CNST_RESERVED_KEYWORD_CLOSEPROCESS, MARSKEYWORD_CloseProcess},
             { "COMMENT"         , MARSKEYWORD_Comment           },
             {"COMPARETEXTFILES" , null                          },
             {"DBCOMPARE"        , MARSKEYWORD_DbCompare         },
@@ -330,6 +332,7 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
             { "KILLAPPLICATION" , MARSKEYWORD_KillApplication   },
             {"LOADVARIABLES"    , MARSKEYWORD_LoadVariables     }, 
             {"LOOP"             , MARSKEYWORD_Loop              },
+            {SystemConstant.CNST_RESERVED_KEYWORD_OPENEXTERNALFILE, MARSKEYWORD_OpenExternalFile },
             {"QUERYDATAFROMDATASOURCE", MARSKEYWORD_QueryDataFromDataSource }, 
             {"REMOVEVARIABLE"   , MARSKEYWORD_RemoveVariable    },
             {"RESUMENEXT"       , MARSKEYWORD_ResumeNext        },
@@ -372,7 +375,7 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
         internal const string CNST_IF_PARA_MARS_HAS_ERR = "MARS_HAS_EXCEPTION";
 
         private static bool MARSKEYWORD_IF(long runOrdId, string strParaMeter, string strData, string strApiRunTimeConfig,
-            B_V_OBJECT_SNAPSHOT stepObject, string strAttachInfo, ref string strError, ref MARSDealResult dealResult, 
+            B_V_OBJECT_SNAPSHOT stepObject, string strAttachInfo, ref string strError, ref MARSDealResult dealResult,
             Mars_applicationTyp.MARS_APPTYPE appTyp = Mars_applicationTyp.MARS_APPTYPE.NORMAL_DESK_APP,
             string strDBIdx = "marsentities", KeywordExecuteCallBack dataSetBackCallBack = null, bool isAttachUIAAHwnd = false)
         {
@@ -381,10 +384,11 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
                 dealResult = new MARSDealResult();
             dealResult.AskTime = DateTime.Now;
 
+
             if (MarsWindowsAPIsExtend.RegularTest(CNST_IF_PARA_MARS_HAS_ERR, strParaMeter))
             {
                 strData = string.IsNullOrEmpty(strData) ? "T" : strData;
-                if ((string.Compare(strData, "True",true)==0)||(string.Compare(strData,"T", true) == 0))
+                if ((string.Compare(strData, "True", true) == 0) || (string.Compare(strData, "T", true) == 0))
                 { //需要判断存在excpetion 或者error
                     dealResult.MessageType = MARSMessageType.e_Run_TestStep_Result;
                     dealResult.AckTime = DateTime.Now;
@@ -392,7 +396,7 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
                     if (MarsGlobalStatusMgr.resumeNextStatus.hasExceptionsPrevious)
                     {
                         dealResult.ErrorMessage = strError = Resources.mars_if_keyword_check_excepttion_T_T;//$"if keyword wants to check [{CNST_IF_PARA_MARS_HAS_ERR}] with [true], and memory variable is [true]";
-                        dealResult.ResultMessage="OK";
+                        dealResult.ResultMessage = "OK";
                         return true;
                     }
                     else
@@ -418,7 +422,7 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
                     }
                 }
                 //return true;
-                
+
             }
 
             if (MarsWindowsAPIsExtend.RegularTest("^" + CNST_ENV_VAR + ":", strData))
@@ -448,12 +452,12 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
             else
             {
 
-                dealResult.ErrorMessage = strError = string.Format( Resources.mars_if_keyword_para_unsupport_env_var_typ, //"Unspported env var type or format:[{0}]", 
+                dealResult.ErrorMessage = strError = string.Format(Resources.mars_if_keyword_para_unsupport_env_var_typ, //"Unspported env var type or format:[{0}]", 
                     strParaMeter);
                 dealResult.MessageType = MARSMessageType.e_Run_TestStep_Result;
                 dealResult.AckTime = DateTime.Now;
                 dealResult.ResultMessage = string.Compare(strParaMeter, strData) == 0 ? "OK" : "FAILED";
-                return (string.Compare(strParaMeter, strData) == 0)||(MarsWindowsAPIsExtend.RegularTest(strParaMeter, strData));
+                return (string.Compare(strParaMeter, strData) == 0) || (MarsWindowsAPIsExtend.RegularTest(strParaMeter, strData));
             }
             //dealResult.ErrorMessage = strError = string.Format("Unspported env var type:[{0}]",strParaMeter);
             //dealResult.MessageType = MARSMessageType.e_Run_TestStep_Result;
@@ -1324,6 +1328,120 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
             Logger.logEnd("MARSKEYWORD_WebTestDialog");
             return true;
         }
+
+        private static bool MARSKEYWORD_OpenExternalFile(long runOrdId, string strParaMeter, string strData, string strApiRunTimeConfig,
+            B_V_OBJECT_SNAPSHOT stepObject, string strAttachInfo, ref string strError,
+            ref MARSDealResult dealResult,
+            Mars_applicationTyp.MARS_APPTYPE appTyp = Mars_applicationTyp.MARS_APPTYPE.NORMAL_DESK_APP,
+            string strDBIdx = "marsentities", KeywordExecuteCallBack dataSetBackCallBack = null, bool isAttachUIAAHwnd = false)
+        {
+            Logger.logBegin("MARSKEYWORD_OpenExternalFile", $"Parameter:[{strParaMeter}]-Data [{strData}]");
+
+            if (dealResult == null)
+                dealResult = new MARSDealResult();
+
+            dealResult.AskTime = DateTime.Now;
+
+            try
+            {
+                // 检查agent服务程序是否存在
+                string appDir = AppDomain.CurrentDomain.BaseDirectory;
+                string agentDir = Path.Combine(appDir, "agent");
+                string agentExePath = Path.Combine(agentDir, "MARSFileAgent.exe");
+
+                if (!File.Exists(agentExePath))
+                {
+                    strError = $"FAILED: Agent service not found. Expected location: {agentExePath}. Please ensure the agent is installed properly.";
+                    Logger.Error("MARSKEYWORD_OpenExternalFile", strError);
+                    dealResult.ErrorMessage = strError;
+                    dealResult.ResultMessage = $"FAILED,{strError}";
+                    dealResult.AckTime = DateTime.Now;
+                    dealResult.MessageType = MARSMessageType.e_Run_TestStep_Result;
+                    return false;
+                }
+
+                // 构造启动参数，传入strParameter和strData
+                string arguments = $"-method OpenExternalFile -parameter \"{strParaMeter}\" -data \"{strData}\"";
+
+                // 启动agent进程
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = agentExePath,
+                    Arguments = arguments,
+                    UseShellExecute = false,
+                    WorkingDirectory = agentDir,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                Process agentProcess = Process.Start(startInfo);
+
+                if (agentProcess == null)
+                {
+                    strError = "FAILED: Unable to start agent process.";
+                    Logger.Error("MARSKEYWORD_OpenExternalFile", strError);
+                    dealResult.ErrorMessage = strError;
+                    dealResult.ResultMessage = $"FAILED,{strError}";
+                    dealResult.AckTime = DateTime.Now;
+                    dealResult.MessageType = MARSMessageType.e_Run_TestStep_Result;
+                    return false;
+                }
+
+                // 等待进程输出，获取进程ID
+                string output = agentProcess.StandardOutput.ReadToEnd();
+                string errorOutput = agentProcess.StandardError.ReadToEnd();
+
+                agentProcess.WaitForExit(5000); // 等待最多5秒
+
+                if (!string.IsNullOrEmpty(errorOutput))
+                {
+                    strError = $"FAILED: Agent error: {errorOutput}";
+                    Logger.Error("MARSKEYWORD_OpenExternalFile", strError);
+                    dealResult.ErrorMessage = strError;
+                    dealResult.ResultMessage = $"FAILED,{strError}";
+                    dealResult.AckTime = DateTime.Now;
+                    dealResult.MessageType = MARSMessageType.e_Run_TestStep_Result;
+                    return false;
+                }
+
+                // 尝试从输出解析进程ID
+                int processId = 0;
+                if (!string.IsNullOrEmpty(output) && int.TryParse(output.Trim(), out processId))
+                {
+                    Logger.Info("MARSKEYWORD_OpenExternalFile", $"Successfully opened external file with process ID: {processId}");
+                    dealResult.ResultMessage = $"OK,ProcessId={processId}";
+                    dealResult.ErrorMessage = string.Empty;
+                    dealResult.AckTime = DateTime.Now;
+                    dealResult.MessageType = MARSMessageType.e_Run_TestStep_Result;
+                    return true;
+                }
+                else
+                {
+                    strError = $"FAILED: Unable to parse process ID from agent output: {output}";
+                    Logger.Error("MARSKEYWORD_OpenExternalFile", strError);
+                    dealResult.ErrorMessage = strError;
+                    dealResult.ResultMessage = $"FAILED,{strError}";
+                    dealResult.AckTime = DateTime.Now;
+                    dealResult.MessageType = MARSMessageType.e_Run_TestStep_Result;
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                strError = $"FAILED: Exception occurred: {ex.Message}";
+                Logger.Error("MARSKEYWORD_OpenExternalFile", strError, ex);
+                dealResult.ErrorMessage = strError;
+                dealResult.ResultMessage = $"FAILED,{strError}";
+                dealResult.AckTime = DateTime.Now;
+                dealResult.MessageType = MARSMessageType.e_Run_TestStep_Result;
+                return false;
+            }
+            finally
+            {
+                Logger.logEnd("MARSKEYWORD_OpenExternalFile");
+            }
+        }
         
 
         /// <summary>
@@ -1440,7 +1558,331 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
                 Logger.logEnd("MARSKEYWORD_QueryDataFromDataSource");
             }
         }
+
+        /// <summary>
+        /// Requirement is for fhlb's project. Finastra summit will open a window file. Fhlb requires to snapshot the word. So, 
+        /// active the process and then snapshot the window. 
+        /// The keyword implementation is in an agent. to Use the agent, the agent should be installed in the target machine. 
+        /// The agent will be started by MARS automatically.
+        /// once the agent method returns, the result json is:
+        /// {
+        ///     status: "OK"|"FAILED",
+        ///     message: "Success"|errorMessage is status is "FAILED",
+        ///     ExternalData:processId|stackTrace if status is "FAILED"
+        /// }
+        /// the keyword running in agent only.
+        /// </summary>
+        /// <param name="runOrdId"></param>
+        /// <param name="strParaMeter">prefix, all parameter will pass to agent</param>
+        /// <param name="strData">process the whole string will pass to agent</param>
+        /// <param name="strApiRunTimeConfig"></param>
+        /// <param name="stepObject"></param>
+        /// <param name="strAttachInfo"></param>
+        /// <param name="strError"></param>
+        /// <param name="dealResult"></param>
+        /// <param name="appTyp"></param>
+        /// <param name="strDBIdx"></param>
+        /// <param name="dataSetBackCallBack"></param>
+        /// <param name="isAttachUIAAHwnd"></param>
+        /// <returns></returns>
+        private static bool MARSKEYWORD_ActiveProcess(long runOrdId, string strParaMeter, string strData, string strApiRunTimeConfig,
+                    B_V_OBJECT_SNAPSHOT stepObject, string strAttachInfo, ref string strError,
+                    ref MARSDealResult dealResult,
+                    Mars_applicationTyp.MARS_APPTYPE appTyp = Mars_applicationTyp.MARS_APPTYPE.NORMAL_DESK_APP,
+                    string strDBIdx = "marsentities", KeywordExecuteCallBack dataSetBackCallBack = null, bool isAttachUIAAHwnd = false)
+        {
+            Logger.logBegin("MARSKEYWORD_ActiveProcess", string.Format("para:[{0}] data-[{1}]", strParaMeter, strData));
+            try
+            {
+                if (dealResult == null)
+                    dealResult = new MARSDealResult();
+                dealResult.AskTime = DateTime.Now;
+
+                if (string.IsNullOrEmpty(strParaMeter)||string.IsNullOrEmpty(strData))
+                {
+                    strError = "Invalid input parameters.";
+                    Logger.Error("MARSKEYWORD_ActiveProcess", strError);
+                    dealResult.ErrorMessage = strError;
+                    dealResult.ResultMessage = "FAILED";
+                    return false;
+                }
+
+                try
+                {
+                    string strAgentName = Mars.AutoTestingDriver.Utils.ExternalAgentManager.DEFAULT_AGENT_NAME;
+                    var cfg = Mars.AutoTestingDriver.Utils.ExternalAgentManager.GetAgentConfig(strAgentName);
+                    if (cfg == null)
+                    {
+                        strError = $"Agent configuration for '{strAgentName}' not found.";
+                        Logger.Error("MARSKEYWORD_ActiveProcess", strError);
+                        dealResult.ErrorMessage = strError;
+                        dealResult.ResultMessage = "FAILED";
+                        return false;
+                    }
+
+                    if (!Mars.AutoTestingDriver.Utils.ExternalAgentManager.IsAgentRunning(cfg))
+                    {
+                        if (!Mars.AutoTestingDriver.Utils.ExternalAgentManager.StartAgent(cfg, out string startErr))
+                        {
+                            strError = $"Failed to start agent '{strAgentName}': {startErr}";
+                            Logger.Error("MARSKEYWORD_ActiveProcess", strError);
+                            dealResult.ErrorMessage = strError;
+                            dealResult.ResultMessage = "FAILED";
+                            return false;
+                        }
+                    }
+
+                    // If configured, invoke agent action 'ActiveProcess' passing strData as payload
+                    if (!string.IsNullOrEmpty(cfg.InvokeUrl) && cfg.UseHttp)
+                    {
+                        var task = Mars.AutoTestingDriver.Utils.ExternalAgentManager.InvokeAgentAsync(cfg, "ActiveProcess", strData);
+                        task.Wait();
+                        var resp = task.Result;
+                        // try to parse response JSON and set dealResult accordingly
+                        try
+                        {
+                            var j = Newtonsoft.Json.Linq.JObject.Parse(resp);
+                            var status = (string)j["status"] ?? "FAILED";
+                            dealResult.ResultMessage = status == "OK" ? "SUCCESS" : "FAILED";
+                            dealResult.ErrorMessage = (string)j["message"] ?? string.Empty;
+                            dealResult.ReturnedData = j["ExternalData"]?.ToString();
+                            try
+                            {
+                                // store returned data for later retrieval
+                                Mars.AutoTestingDriver.AISupport.AgentSupport.AgentMethodDataStorage.SetMethodData(cfg.AgentName ?? strAgentName, "ActiveProcess", dealResult.ReturnedData);
+                            }
+                            catch { }
+                            return status == "OK";
+                        }
+                        catch
+                        {
+                            // not JSON or parse error — treat as success if non-empty
+                            if (!string.IsNullOrEmpty(resp))
+                            {
+                                dealResult.ResultMessage = "SUCCESS";
+                                dealResult.ErrorMessage = resp;
+                                try
+                                {
+                                    Mars.AutoTestingDriver.AISupport.AgentSupport.AgentMethodDataStorage.SetMethodData(cfg.AgentName ?? strAgentName, "ActiveProcess", resp);
+                                }
+                                catch { }
+                                return true;
+                            }
+                            dealResult.ResultMessage = "FAILED";
+                            dealResult.ErrorMessage = "Agent invocation returned empty response.";
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        // No invoke url configured; agent process is ensured running — consider success
+                        dealResult.ResultMessage = "SUCCESS";
+                        dealResult.ErrorMessage = "";
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    Logger.Error("MARSKEYWORD_ActiveProcess", ex.Message, ex.StackTrace);
+                    dealResult.ErrorMessage = strError;
+                    dealResult.ResultMessage = "FAILED";
+                    return false;
+                }
+
+            }
+            catch (Exception e)
+            {
+                strError = string.Format("Exception in MARSKEYWORD_AssetValue: {0}", e.Message);
+                Logger.Error("MARSKEYWORD_AssetValue", e.Message, e.StackTrace);
+                if (dealResult == null)
+                    dealResult = new MARSDealResult();
+                dealResult.ErrorMessage = strError;
+                dealResult.ResultMessage = $"FAILED,{strError}";
+                dealResult.MessageType = MARSMessageType.e_Run_TestStep_Result;
+                dealResult.AckTime = DateTime.Now;
+                return false;
+            }
+            finally
+            {
+                Logger.logEnd("MARSKEYWORD_AssetValue");
+            }
+        }
+        /// <summary>
+        /// close process is an  agent provided method, from default agent. the  invoke format should be closeProcess(nullable, parameter:nullable, data:PId, comment:nullable)
+        /// PId is from from AgentMethodDataStorage, latest data from ActiveProcess.externalData
+        /// </summary>
+        /// <param name="runOrdId"></param>
+        /// <param name="strParaMeter">not required</param>
+        /// <param name="strData">nullable</param>
+        /// <param name="strApiRunTimeConfig"></param>
+        /// <param name="stepObject"></param>
+        /// <param name="strAttachInfo"></param>
+        /// <param name="strError"></param>
+        /// <param name="dealResult"></param>
+        /// <param name="appTyp"></param>
+        /// <param name="strDBIdx"></param>
+        /// <param name="dataSetBackCallBack"></param>
+        /// <param name="isAttachUIAAHwnd"></param>
+        /// <returns></returns>
+        private static bool MARSKEYWORD_CloseProcess(long runOrdId, string strParaMeter, string strData, string strApiRunTimeConfig,
+                   B_V_OBJECT_SNAPSHOT stepObject, string strAttachInfo, ref string strError,
+                   ref MARSDealResult dealResult,
+                   Mars_applicationTyp.MARS_APPTYPE appTyp = Mars_applicationTyp.MARS_APPTYPE.NORMAL_DESK_APP,
+                   string strDBIdx = "marsentities", KeywordExecuteCallBack dataSetBackCallBack = null, bool isAttachUIAAHwnd = false)
+        {
+            Logger.logBegin("MARSKEYWORD_CloseProcess", string.Format("para:[{0}] data-[{1}]", strParaMeter, strData));
+            try
+            {
+                if (dealResult == null)
+                    dealResult = new MARSDealResult();
+                dealResult.AskTime = DateTime.Now;
+
+                if (string.IsNullOrEmpty(strParaMeter) || string.IsNullOrEmpty(strData))
+                {
+                    strError = "Invalid input parameters.";
+                    Logger.Error("MARSKEYWORD_ActiveProcess", strError);
+                    dealResult.ErrorMessage = strError;
+                    dealResult.ResultMessage = "FAILED";
+                    return false;
+                }
+
+                try
+                {
+                    string strAgentName = Mars.AutoTestingDriver.Utils.ExternalAgentManager.DEFAULT_AGENT_NAME;
+                    var cfg = Mars.AutoTestingDriver.Utils.ExternalAgentManager.GetAgentConfig(strAgentName);
+                    if (cfg == null)
+                    {
+                        strError = $"Agent configuration for '{strAgentName}' not found.";
+                        Logger.Error("MARSKEYWORD_ActiveProcess", strError);
+                        dealResult.ErrorMessage = strError;
+                        dealResult.ResultMessage = "FAILED";
+                        return false;
+                    }
+
+                    if (!Mars.AutoTestingDriver.Utils.ExternalAgentManager.IsAgentRunning(cfg))
+                    {
+                        if (!Mars.AutoTestingDriver.Utils.ExternalAgentManager.StartAgent(cfg, out string startErr))
+                        {
+                            strError = $"Failed to start agent '{strAgentName}': {startErr}";
+                            Logger.Error("MARSKEYWORD_ActiveProcess", strError);
+                            dealResult.ErrorMessage = strError;
+                            dealResult.ResultMessage = "FAILED";
+                            return false;
+                        }
+                    }
+
+                    // close process is an agent provided method. The invoke format expected by agent is:
+                    // closeProcess(nullable, parameter:nullable, data:PId, comment:nullable)
+                    // where PId is obtained from AgentMethodDataStorage latest ActiveProcess ExternalData.
+                    if (!string.IsNullOrEmpty(cfg.InvokeUrl) && cfg.UseHttp)
+                    {
+                        // retrieve last ActiveProcess returned data
+                        string last = null;
+                        try
+                        {
+                            last = Mars.AutoTestingDriver.AISupport.AgentSupport.AgentMethodDataStorage.GetMethodData(cfg.AgentName ?? strAgentName, "ActiveProcess");
+                        }
+                        catch { last = null; }
+
+                        string pid = null;
+                        if (!string.IsNullOrEmpty(last))
+                        {
+                            // ExternalData may be "pid" or "pid|stacktrace" — extract leading integer token
+                            var parts = last.Split(new char[] { '|', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                            foreach (var p in parts)
+                            {
+                                var t = p.Trim();
+                                if (int.TryParse(t, out var _))
+                                {
+                                    pid = t;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (string.IsNullOrEmpty(pid))
+                        {
+                            strError = "Cannot determine PID from last ActiveProcess data.";
+                            Logger.Error("MARSKEYWORD_CloseProcess", strError);
+                            dealResult.ErrorMessage = strError;
+                            dealResult.ResultMessage = "FAILED";
+                            return false;
+                        }
+
+                        // build payload according to agent expectation
+                        var payloadObj = new
+                        {
+                            parameter = strParaMeter ?? (string)null,
+                            data = pid,
+                            comment = strData ?? (string)null
+                        };
+                        var payloadJson = Newtonsoft.Json.JsonConvert.SerializeObject(payloadObj);
+
+                        var task = Mars.AutoTestingDriver.Utils.ExternalAgentManager.InvokeAgentAsync(cfg, "closeProcess", payloadJson);
+                        task.Wait();
+                        var resp = task.Result;
+                        try
+                        {
+                            var j = Newtonsoft.Json.Linq.JObject.Parse(resp);
+                            var status = (string)j["status"] ?? "FAILED";
+                            dealResult.ResultMessage = status == "OK" ? "SUCCESS" : "FAILED";
+                            dealResult.ErrorMessage = (string)j["message"] ?? string.Empty;
+                            dealResult.ReturnedData = j["ExternalData"]?.ToString();
+                            return status == "OK";
+                        }
+                        catch
+                        {
+                            if (!string.IsNullOrEmpty(resp))
+                            {
+                                dealResult.ResultMessage = "SUCCESS";
+                                dealResult.ErrorMessage = resp;
+                                return true;
+                            }
+                            dealResult.ResultMessage = "FAILED";
+                            dealResult.ErrorMessage = "Agent invocation returned empty response.";
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        // No HTTP invoke configured — cannot perform closeProcess
+                        strError = "Agent invoke URL not configured for closeProcess.";
+                        Logger.Error("MARSKEYWORD_CloseProcess", strError);
+                        dealResult.ErrorMessage = strError;
+                        dealResult.ResultMessage = "FAILED";
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    Logger.Error("MARSKEYWORD_CloseProcess", ex.Message, ex.StackTrace);
+                    dealResult.ErrorMessage = strError;
+                    dealResult.ResultMessage = "FAILED";
+                    return false;
+                }
+
+            }
+            catch (Exception e)
+            {
+                strError = string.Format("Exception in MARSKEYWORD_CloseProcess: {0}", e.Message);
+                Logger.Error("MARSKEYWORD_CloseProcess", e.Message, e.StackTrace);
+                if (dealResult == null)
+                    dealResult = new MARSDealResult();
+                dealResult.ErrorMessage = strError;
+                dealResult.ResultMessage = $"FAILED,{strError}";
+                dealResult.MessageType = MARSMessageType.e_Run_TestStep_Result;
+                dealResult.AckTime = DateTime.Now;
+                return false;
+            }
+            finally
+            {
+                Logger.logEnd("MARSKEYWORD_CloseProcess");
+            }
+        }
         
+
         /// <summary>
         /// 判断数据是否和指定的数据一致。
         /// strData 可以有多种格式：

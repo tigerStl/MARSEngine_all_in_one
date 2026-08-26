@@ -173,36 +173,61 @@ function FlowCanvas() {
     [fitView, setEdges, setNodes]
   );
 
-  useEffect(() => {
-    const handler = (ev) => {
+  const dispatchHostMessage = useCallback(
+    (raw) => {
       try {
-        const raw = typeof ev.data === 'string' ? JSON.parse(ev.data) : ev.data;
-        if (!raw || !raw.type) return;
-        if (raw.type === 'setSteps') {
-          if (raw.uiLanguage) setUiLang(String(raw.uiLanguage));
-          applySteps(raw.steps);
+        const msg = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (!msg || !msg.type) return;
+        if (msg.type === 'setSteps') {
+          if (msg.uiLanguage) setUiLang(String(msg.uiLanguage));
+          applySteps(msg.steps);
           return;
         }
-        if (raw.type === 'setZoom') {
-          const p = Number(raw.percent) || 100;
+        if (msg.type === 'setZoom') {
+          const p = Number(msg.percent) || 100;
           const z = Math.max(0.2, Math.min(2.4, p / 100));
           const vp = getViewport();
           setViewport({ x: vp.x, y: vp.y, zoom: z }, { duration: 0 });
           return;
         }
-        if (raw.type === 'centerView') {
+        if (msg.type === 'centerView') {
           fitView({ padding: 0.2, duration: 0 });
         }
       } catch (_) {
         /* ignore */
       }
+    },
+    [applySteps, fitView, getViewport, setViewport]
+  );
+
+  const sendHost = useCallback((payload) => {
+    try {
+      window.chrome?.webview?.postMessage(JSON.stringify(payload));
+    } catch (_) {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    window.__marsWorkflowOnHostMessage = dispatchHostMessage;
+    return () => {
+      delete window.__marsWorkflowOnHostMessage;
     };
+  }, [dispatchHostMessage]);
+
+  useEffect(() => {
+    const handler = (ev) => dispatchHostMessage(ev.data);
     if (window.chrome && window.chrome.webview) {
       window.chrome.webview.addEventListener('message', handler);
+      try {
+        window.chrome.webview.postMessage(JSON.stringify({ type: 'canvasReady' }));
+      } catch (_) {
+        /* ignore */
+      }
       return () => window.chrome.webview.removeEventListener('message', handler);
     }
     return undefined;
-  }, [applySteps, fitView, getViewport, setViewport]);
+  }, [dispatchHostMessage]);
 
   const onNodeDragStop = useCallback((_, node) => {
     try {
@@ -234,13 +259,14 @@ function FlowCanvas() {
     return () => window.removeEventListener('click', close);
   }, []);
 
-  const sendHost = useCallback((payload) => {
-    try {
-      window.chrome?.webview?.postMessage(JSON.stringify(payload));
-    } catch (_) {
-      /* ignore */
-    }
-  }, []);
+  const onNodeClick = useCallback(
+    (_ev, node) => {
+      const idx = parseInt(node.id, 10);
+      if (Number.isNaN(idx)) return;
+      sendHost({ type: 'stepSelected', index: idx });
+    },
+    [sendHost]
+  );
 
   const onContextEdit = useCallback(() => {
     if (!ctx || Number.isNaN(ctx.index)) return;
@@ -306,13 +332,14 @@ function FlowCanvas() {
   }, []);
 
   return (
-    <div style={{ width: '100%', height: '100vh' }}>
+    <div style={{ width: '100%', height: '100%', minHeight: 320 }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeDragStop={onNodeDragStop}
+        onNodeClick={onNodeClick}
         onNodeContextMenu={onNodeContextMenu}
         nodeTypes={nodeTypes}
         fitView

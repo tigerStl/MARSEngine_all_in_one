@@ -1406,7 +1406,22 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
 
             return isOk;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="runOrdId"></param>
+        /// <param name="strParaMeter">如果strParaMeter 由：DefaultAgent,那么从DefaultAgent调用snapshot方法</param>
+        /// <param name="strData">存储的文件名称</param>
+        /// <param name="strApiRunTimeConfig"></param>
+        /// <param name="stepObject"></param>
+        /// <param name="strAttachInfo"></param>
+        /// <param name="strError"></param>
+        /// <param name="dealResult"></param>
+        /// <param name="appTyp"></param>
+        /// <param name="strDBIdx"></param>
+        /// <param name="dataSetBackCallBack"></param>
+        /// <param name="isAttachUIAAHwnd"></param>
+        /// <returns></returns>
         private static bool MARSKEYWORD_SnapShot(long runOrdId, string strParaMeter, string strData, string strApiRunTimeConfig,
             B_V_OBJECT_SNAPSHOT stepObject,
             string strAttachInfo,
@@ -1442,6 +1457,27 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
             {
                 return MarsMARSUIHelper.MARSUI_Snapshot(runOrdId, dictPegProperties, dictObjProperties, strParaMeter, strData, stepObject.TYPE_NAME,
                     strAttachInfo, stepObject.PEG_NAME ?? "", stepObject.OBJECT_HAPPY_NAME ?? "", ref strError, ref dealResult);
+            }
+
+            if (!string.IsNullOrEmpty(strParaMeter))
+            {
+                if (strParaMeter.Equals("DefaultAgent", StringComparison.OrdinalIgnoreCase))
+                {
+                    // call default agent's snapshot implementation
+                    var ok = Mars.AutoTestingDriver.AISupport.AgentSupport.AgentKeywordDelegate.Snapshot(
+                        runOrdId,
+                        dictPegProperties,
+                        dictObjProperties,
+                        strParaMeter,
+                        strData,
+                        stepObject.TYPE_NAME,
+                        strAttachInfo,
+                        stepObject.PEG_NAME ?? "",
+                        stepObject.OBJECT_HAPPY_NAME ?? "",
+                        ref strError,
+                        ref dealResult);
+                    return ok;
+                }
             }
 
             isOk = InjectorMessageAgent.DealWithKeyword_GUIOp("SNAPSHOT", runOrdId, dictPegProperties, dictObjProperties, strParaMeter, strData,

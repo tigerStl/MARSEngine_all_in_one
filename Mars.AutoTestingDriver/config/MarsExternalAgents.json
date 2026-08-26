@@ -1,0 +1,12 @@
+[
+  {
+    "AgentName": "MarsDefaultAgent",
+    "ExePath": "C:\\Program Files\\MaRS\\Agents\\FHLBAgent\\MarsDefaultAgent.exe",
+    "ProcessName": "FHLBAgent",
+    "Arguments": "",
+    "InvokeUrl": "http://localhost:5010/invoke",
+    "HealthCheckUrl": "http://localhost:5010/health",
+    "StartDelayMs": 3000,
+    "UseHttp": true
+  }
+]

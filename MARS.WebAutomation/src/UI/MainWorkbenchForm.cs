@@ -51,6 +51,14 @@ namespace MARS.WebAutomation.UI
         private Bitmap _gridActDeleteIcon;
         private Bitmap _gridActHighlightIcon;
         private Bitmap _gridActTestIcon;
+
+        /// <summary>Semantic colors for step delete / highlight / run in grid colAct and matching step toolbar icons.</summary>
+        private static readonly Color StepChromeDelete = Color.FromArgb(185, 28, 28);
+        private static readonly Color StepChromeHighlight = Color.FromArgb(3, 105, 161);
+        private static readonly Color StepChromeRun = Color.FromArgb(4, 120, 87);
+        private static readonly Color StepChromeRunAll = Color.FromArgb(29, 78, 216);
+        private static readonly Color StepChromeClearAll = Color.FromArgb(100, 116, 139);
+
         private bool _syncTreeFromPickInProgress;
         private bool _recordWebViewReady;
         private bool _recordWorkflowUsesBundle;
@@ -59,9 +67,14 @@ namespace MARS.WebAutomation.UI
         private const string RecordWorkflowStartUrl = "https://mars.workflow/index.html";
         private bool splitRecordMainPreviewDistanceInitialized;
         private bool splitRecordWorkPreviewDistanceInitialized;
+        private bool splitRecordCanvasPropsDistanceInitialized;
+        private CancellationTokenSource _stepPropertyScreenshotCts;
+        private bool _syncingStepPropertyPanelCollapse;
         private bool _suppressStepsListEvents;
         private int _recordCanvasZoomPercent = 100;
         private bool _recordCanvasDebugEnabled = true;
+        private bool _recordCanvasHtmlShellLoaded;
+        private System.Windows.Forms.Timer _recordCanvasRefreshDebounceTimer;
         private Label _lblHotkey;
         private CheckBox _chkHotkeyCtrl;
         private CheckBox _chkHotkeyAlt;
@@ -595,12 +608,62 @@ namespace MARS.WebAutomation.UI
             gridPerfRuntimePreview.DataSource = _perfRuntimeRows;
             ApplyPerformancePanelVisibility();
             ApplyRecordCanvasToolbarLocalization();
+            InitStepObjectPropertyPanel();
+        }
+
+        private void InitStepObjectPropertyPanel()
+        {
+            if (stepObjectPropertyPanel == null)
+                return;
+            stepObjectPropertyPanel.HighlightRequested += async (_, __) =>
+            {
+                var s = GetSelectedStepOrNull();
+                if (s != null)
+                    await HighlightStepOnPageAsync(s).ConfigureAwait(true);
+            };
+            stepObjectPropertyPanel.CollapsedChanged += (_, __) =>
+            {
+                if (_syncingStepPropertyPanelCollapse)
+                    return;
+                ApplyStepPropertyPanelSplitterFromPanel();
+                PersistStepPropertyPanelLayout();
+            };
+            if (splitRecordCanvasProps != null)
+            {
+                splitRecordCanvasProps.SplitterMoved += (_, __) =>
+                {
+                    PersistStepPropertyPanelLayout();
+                    ScheduleRecordCanvasRefresh();
+                };
+            }
+            EnsureRecordCanvasRefreshDebounceTimer();
+        }
+
+        private void EnsureRecordCanvasRefreshDebounceTimer()
+        {
+            if (_recordCanvasRefreshDebounceTimer != null)
+                return;
+            _recordCanvasRefreshDebounceTimer = new System.Windows.Forms.Timer { Interval = 250 };
+            _recordCanvasRefreshDebounceTimer.Tick += (_, __) =>
+            {
+                _recordCanvasRefreshDebounceTimer.Stop();
+                if (IsDisposed)
+                    return;
+                RefreshRecordReplayCanvas();
+            };
+        }
+
+        private void ScheduleRecordCanvasRefresh()
+        {
+            if (!IsHandleCreated || IsDisposed)
+                return;
+            EnsureRecordCanvasRefreshDebounceTimer();
+            _recordCanvasRefreshDebounceTimer.Stop();
+            _recordCanvasRefreshDebounceTimer.Start();
         }
 
         private void tabMain_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (tabMain.SelectedTab == tabRecord)
-                EnsureRecordReplaySidebar();
             UpdateRecorderModeFromUiStateAsync();
         }
 
@@ -622,14 +685,35 @@ namespace MARS.WebAutomation.UI
                 await SetRecorderModeAsync("off").ConfigureAwait(true);
                 SetStatus("Record stopped. Running all steps…");
             }
+            EnsureRecordReplaySidebar();
+            _recordReplaySidebar.BeginReplayPlan(_steps.ToList());
             for (var i = 0; i < _steps.Count; i++)
             {
                 var step = _steps[i];
                 if (step == null || string.IsNullOrWhiteSpace(step.Keyword))
                     continue;
-                await TestStepKeywordAsync(step, i).ConfigureAwait(true);
+                _recordReplaySidebar.SetReplayProgress(i, "before");
+                var res = await TestStepKeywordAsync(step, i, quietUi: true).ConfigureAwait(true);
+                if (res.Success)
+                    _recordReplaySidebar.SetReplayProgress(i, "afterOk");
+                else
+                {
+                    _recordReplaySidebar.SetReplayProgress(i, "afterErr", res.ErrorMessage);
+                    SetStatus($"Stopped at step #{i + 1}: {res.ErrorMessage}");
+                    return;
+                }
             }
             SetStatus("All steps executed.");
+        }
+
+        private void tsbStepClearAll_Click(object sender, EventArgs e)
+        {
+            if (_steps.Count == 0)
+                return;
+            if (MessageBox.Show(this, L("StepsClearAllConfirm"), L("StepsClearAllTitle"), MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                return;
+            _steps.Clear();
+            SetStatus(L("StepsClearAllDone"));
         }
 
         private async void tsmStepsRun_Click(object sender, EventArgs e) => await TestSelectedStepAsync().ConfigureAwait(true);
@@ -859,9 +943,14 @@ namespace MARS.WebAutomation.UI
             gridSteps.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
             gridSteps.ColumnHeadersHeight = 30;
             if (gridSteps.Columns.Contains("colAct"))
-                gridSteps.Columns["colAct"].DefaultCellStyle.ForeColor = Color.FromArgb(30, 41, 59);
+                gridSteps.Columns["colAct"].DefaultCellStyle.ForeColor = Color.FromArgb(71, 85, 105);
             if (gridSteps.Columns.Contains("colElapsed"))
                 gridSteps.Columns["colElapsed"].DefaultCellStyle.Format = "N0";
+            if (gridSteps.Columns.Contains("colBounds"))
+            {
+                gridSteps.Columns["colBounds"].DataPropertyName = "BoundsDisplay";
+                gridSteps.Columns["colBounds"].DefaultCellStyle.Format = string.Empty;
+            }
             gridSteps.ReadOnly = false;
             foreach (DataGridViewColumn c in gridSteps.Columns)
             {
@@ -876,6 +965,52 @@ namespace MARS.WebAutomation.UI
 
         private void ConfigurePerformanceGridColumns()
         {
+        }
+
+        /// <summary>
+        /// Binds <see cref="gridPerfAnchorPreview"/> safely. Playwright network callbacks can otherwise hit the grid
+        /// off the UI thread or mid-layout and trigger <see cref="ArgumentOutOfRangeException"/> inside DataGridView.
+        /// </summary>
+        private void SetPerfAnchorGridDataSource(BindingList<PerformanceRequestRecord> bindingList)
+        {
+            if (gridPerfAnchorPreview == null || gridPerfAnchorPreview.IsDisposed)
+                return;
+            if (!gridPerfAnchorPreview.IsHandleCreated)
+                return;
+            var list = bindingList ?? new BindingList<PerformanceRequestRecord>();
+            try
+            {
+                gridPerfAnchorPreview.SuspendLayout();
+                gridPerfAnchorPreview.CurrentCell = null;
+                gridPerfAnchorPreview.ClearSelection();
+                gridPerfAnchorPreview.DataSource = list;
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                FormLog.Warn(ex, "Performance anchor grid rebind failed; resetting columns and retrying.");
+                try
+                {
+                    gridPerfAnchorPreview.DataSource = null;
+                    gridPerfAnchorPreview.Columns.Clear();
+                    gridPerfAnchorPreview.AutoGenerateColumns = true;
+                    gridPerfAnchorPreview.DataSource = list;
+                }
+                catch (Exception ex2)
+                {
+                    FormLog.Warn(ex2, "Performance anchor grid rebind recovery failed.");
+                }
+            }
+            finally
+            {
+                try
+                {
+                    gridPerfAnchorPreview.ResumeLayout(true);
+                }
+                catch
+                {
+                    // ignore layout resume failures on disposed surface
+                }
+            }
         }
 
         private void Grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
@@ -893,6 +1028,7 @@ namespace MARS.WebAutomation.UI
         private void gridSteps_SelectionChanged(object sender, EventArgs e)
         {
             BindPerformanceForSelectedStep();
+            _ = RefreshStepObjectPropertyPanelAsync();
         }
 
         private void gridSteps_RowPrePaint(object sender, DataGridViewRowPrePaintEventArgs e)
@@ -914,7 +1050,7 @@ namespace MARS.WebAutomation.UI
                 return;
             if (!IsPerformanceTestEnabled())
             {
-                gridPerfAnchorPreview.DataSource = new BindingList<PerformanceRequestRecord>();
+                SetPerfAnchorGridDataSource(new BindingList<PerformanceRequestRecord>());
                 UpdatePerformanceAnchorSummary(new List<PerformanceRequestRecord>());
                 return;
             }
@@ -928,13 +1064,13 @@ namespace MARS.WebAutomation.UI
             var step = GetSelectedStepOrNull();
             if (step == null)
             {
-                gridPerfAnchorPreview.DataSource = BuildAllVisible();
+                SetPerfAnchorGridDataSource(BuildAllVisible());
                 return;
             }
             if (step.PerformanceRequestRefs == null || step.PerformanceRequestRefs.Count == 0)
             {
                 // If selected step has no links yet, still show visible captures for troubleshooting.
-                gridPerfAnchorPreview.DataSource = BuildAllVisible();
+                SetPerfAnchorGridDataSource(BuildAllVisible());
                 return;
             }
 
@@ -947,7 +1083,7 @@ namespace MARS.WebAutomation.UI
                             && !_performanceFilterTags.Contains(p.FilterTag ?? string.Empty)
                             && !ShouldHidePerformanceBySettings(p))
                 .ToList();
-            gridPerfAnchorPreview.DataSource = new BindingList<PerformanceRequestRecord>(rows);
+            SetPerfAnchorGridDataSource(new BindingList<PerformanceRequestRecord>(rows));
             UpdatePerformanceAnchorSummary(rows);
             if (rows.Count == 0 && candidates.Count > 0)
                 SetStatus("Performance rows captured but filtered by current settings/tags.");
@@ -1376,13 +1512,30 @@ namespace MARS.WebAutomation.UI
                 return;
         }
 
+        private void InvalidateGridActionIconsCache()
+        {
+            try
+            {
+                _gridActDeleteIcon?.Dispose();
+                _gridActHighlightIcon?.Dispose();
+                _gridActTestIcon?.Dispose();
+            }
+            catch
+            {
+                // ignore
+            }
+            _gridActDeleteIcon = null;
+            _gridActHighlightIcon = null;
+            _gridActTestIcon = null;
+        }
+
         private void EnsureGridActionIcons()
         {
             if (_gridActDeleteIcon != null && _gridActHighlightIcon != null && _gridActTestIcon != null)
                 return;
-            _gridActDeleteIcon = FormsIconHelper.ToBitmap(IconChar.Trash, Color.FromArgb(220, 38, 38), 10, 0d, FlipOrientation.Normal);
-            _gridActHighlightIcon = FormsIconHelper.ToBitmap(IconChar.Bullseye, Color.FromArgb(14, 116, 144), 10, 0d, FlipOrientation.Normal);
-            _gridActTestIcon = FormsIconHelper.ToBitmap(IconChar.Play, Color.FromArgb(5, 150, 105), 10, 0d, FlipOrientation.Normal);
+            _gridActDeleteIcon = FormsIconHelper.ToBitmap(IconChar.Trash, StepChromeDelete, 10, 0d, FlipOrientation.Normal);
+            _gridActHighlightIcon = FormsIconHelper.ToBitmap(IconChar.Bullseye, StepChromeHighlight, 10, 0d, FlipOrientation.Normal);
+            _gridActTestIcon = FormsIconHelper.ToBitmap(IconChar.Play, StepChromeRun, 10, 0d, FlipOrientation.Normal);
         }
 
         private void gridSteps_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
@@ -1461,7 +1614,14 @@ namespace MARS.WebAutomation.UI
         {
             if (e.RowIndex < 0 || e.RowIndex >= _steps.Count || e.ColumnIndex < 0)
                 return;
-            if (!string.Equals(gridSteps.Columns[e.ColumnIndex].Name, "colPerfRef", StringComparison.Ordinal))
+            var colName = gridSteps.Columns[e.ColumnIndex].Name;
+            if (string.Equals(colName, "colBounds", StringComparison.Ordinal))
+            {
+                e.Value = _steps[e.RowIndex]?.BoundsDisplay ?? string.Empty;
+                e.FormattingApplied = true;
+                return;
+            }
+            if (!string.Equals(colName, "colPerfRef", StringComparison.Ordinal))
                 return;
             e.Value = _steps[e.RowIndex]?.PerformanceRequestRefs?.Count ?? 0;
             e.FormattingApplied = true;
@@ -1541,6 +1701,21 @@ namespace MARS.WebAutomation.UI
             _steps.RemoveAt(idx);
         }
 
+        private void SetStepReplayUiBlocking(bool blocked)
+        {
+            try
+            {
+                if (gridSteps != null)
+                    gridSteps.Enabled = !blocked;
+                if (toolStripStepCommands != null)
+                    toolStripStepCommands.Enabled = !blocked;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         private async Task TestSelectedStepAsync()
         {
             var idx = GetSelectedStepIndex();
@@ -1549,7 +1724,7 @@ namespace MARS.WebAutomation.UI
             await TestStepByIndexAsync(idx).ConfigureAwait(true);
         }
 
-        private async Task TestStepByIndexAsync(int rowIndex)
+        private async Task TestStepByIndexAsync(int rowIndex, bool showReplayCountdown = true)
         {
             if (rowIndex < 0 || rowIndex >= _steps.Count)
                 return;
@@ -1560,7 +1735,30 @@ namespace MARS.WebAutomation.UI
                 await SetRecorderModeAsync("off").ConfigureAwait(true);
                 SetStatus("Record stopped. Running step test…");
             }
-            await TestStepKeywordAsync(_steps[rowIndex], rowIndex).ConfigureAwait(true);
+            if (showReplayCountdown)
+            {
+                SetStepReplayUiBlocking(true);
+                try
+                {
+                    await ReplayCountdownOverlayForm.ShowCountdownAsync(
+                        this,
+                        L("ReplayCountdownTitle"),
+                        L("ReplayCountdownSeconds"),
+                        3).ConfigureAwait(true);
+                }
+                finally
+                {
+                    SetStepReplayUiBlocking(false);
+                }
+            }
+            EnsureRecordReplaySidebar();
+            _recordReplaySidebar.BeginReplayPlan(_steps.ToList());
+            _recordReplaySidebar.SetReplayProgress(rowIndex, "before");
+            var res = await TestStepKeywordAsync(_steps[rowIndex], rowIndex, quietUi: false).ConfigureAwait(true);
+            if (res.Success)
+                _recordReplaySidebar.SetReplayProgress(rowIndex, "afterOk");
+            else
+                _recordReplaySidebar.SetReplayProgress(rowIndex, "afterErr", res.ErrorMessage);
         }
 
         private void ExportStepsFromGrid()
@@ -1601,6 +1799,24 @@ namespace MARS.WebAutomation.UI
 
         private void tsmStepsExportSeleniumTs_Click(object sender, EventArgs e) =>
             TryExportStepsScript(playwright: false, useSelection: true);
+
+        private void tsmStepsExportAllPlaywrightTs_Click(object sender, EventArgs e) =>
+            TryExportStepsScript(playwright: true, useSelection: false);
+
+        private void tsmStepsExportAllSeleniumTs_Click(object sender, EventArgs e) =>
+            TryExportStepsScript(playwright: false, useSelection: false);
+
+        private void menuRecordExportAllPlaywrightTs_Click(object sender, EventArgs e) =>
+            TryExportStepsScript(playwright: true, useSelection: false);
+
+        private void menuRecordExportAllSeleniumTs_Click(object sender, EventArgs e) =>
+            TryExportStepsScript(playwright: false, useSelection: false);
+
+        private void tsbStepExportAllPlaywrightTs_Click(object sender, EventArgs e) =>
+            TryExportStepsScript(playwright: true, useSelection: false);
+
+        private void tsbStepExportAllSeleniumTs_Click(object sender, EventArgs e) =>
+            TryExportStepsScript(playwright: false, useSelection: false);
 
         private void tsbPerfExportPlaywrightTs_Click(object sender, EventArgs e) =>
             TryExportStepsScript(playwright: true, useSelection: false);
@@ -1704,6 +1920,14 @@ namespace MARS.WebAutomation.UI
                     }
                 }
 
+                if (!splitRecordCanvasPropsDistanceInitialized
+                    && splitRecordCanvasProps != null
+                    && splitRecordCanvasProps.ClientSize.Width >= 120)
+                {
+                    ApplyStepPropertyPanelFromSettings();
+                    splitRecordCanvasPropsDistanceInitialized = true;
+                }
+
                 if (splitRecordPerfPreview != null
                     && tabRecord.ClientSize.Height >= 200
                     && IsHandleCreated)
@@ -1765,6 +1989,29 @@ namespace MARS.WebAutomation.UI
                 return;
             _steps[index].CanvasX = x;
             _steps[index].CanvasY = y;
+        }
+
+        private double GetRecordCanvasWrapWidthForLayout()
+        {
+            var w = panelRecordCanvasPreview?.ClientSize.Width ?? 0;
+            if (w <= 80 && splitRecordMainPreview != null)
+                w = splitRecordMainPreview.Panel2.ClientSize.Width;
+            return Math.Max(520d, w - 32d);
+        }
+
+        /// <summary>Assigns flow-layout canvas coordinates when the step has no explicit position (persists to JSON).</summary>
+        private void AssignFlowCanvasCoordsToStepIfUnset(int index)
+        {
+            if (index < 0 || index >= _steps.Count)
+                return;
+            var step = _steps[index];
+            if (step.CanvasX.HasValue && step.CanvasY.HasValue)
+                return;
+            var boxes = BuildResolvedRecordStepCanvasLayout(_steps, GetRecordCanvasWrapWidthForLayout());
+            if (index >= boxes.Count)
+                return;
+            step.CanvasX = boxes[index].L;
+            step.CanvasY = boxes[index].T;
         }
 
         private void PrettyPaintRecordCanvas()
@@ -1831,10 +2078,7 @@ namespace MARS.WebAutomation.UI
                     return;
                 }
 
-                if (_recordWorkflowUsesBundle)
-                    PostWorkflowStepsToReact();
-                else
-                    recordWebView.NavigateToString(BuildRecordReplayCanvasFallbackHtml(_steps, _performanceRequests, _recordCanvasDebugEnabled, IsPerformanceTestEnabled()));
+                PushWorkflowCanvasContent();
 
                 if (_recordCanvasDebugEnabled)
                 {
@@ -1846,6 +2090,32 @@ namespace MARS.WebAutomation.UI
             {
                 FormLog.Warn(ex, "Failed to refresh record canvas WebView2.");
             }
+        }
+
+        /// <summary>
+        /// Renders the workflow map. Inline HTML is the primary path (reliable in WebView2);
+        /// React bundle receives the same payload when mapped.
+        /// </summary>
+        private void PushWorkflowCanvasContent()
+        {
+            var showPerf = IsPerformanceTestEnabled();
+            var wrap = GetRecordCanvasWrapWidthForLayout();
+            var inner = BuildWorkflowStepsInnerHtml(_steps, showPerf, wrap);
+            if (_recordCanvasHtmlShellLoaded && recordWebView?.CoreWebView2 != null)
+            {
+                var json = JsonConvert.SerializeObject(inner);
+                _ = recordWebView.CoreWebView2.ExecuteScriptAsync(
+                    "try{if(window.marsSetWorkflowSteps)window.marsSetWorkflowSteps(" + json + ");}catch(e){}");
+                return;
+            }
+
+            var html = BuildRecordReplayCanvasFallbackHtml(
+                _steps,
+                _performanceRequests,
+                _recordCanvasDebugEnabled,
+                showPerf,
+                wrap);
+            recordWebView.NavigateToString(html);
         }
 
         private void SetCanvasZoom(int percent, bool centerAfter)
@@ -1892,25 +2162,19 @@ namespace MARS.WebAutomation.UI
             recordWebView.NavigationCompleted += RecordWebView_NavigationCompleted;
 
             _recordWorkflowUsesBundle = TryMapWorkflowVirtualHost();
-            if (_recordWorkflowUsesBundle)
-                recordWebView.CoreWebView2.Navigate(RecordWorkflowStartUrl);
-            else
-                recordWebView.NavigateToString(BuildRecordReplayCanvasFallbackHtml(_steps, _performanceRequests, _recordCanvasDebugEnabled, IsPerformanceTestEnabled()));
+            PushWorkflowCanvasContent();
         }
 
         private void RecordWebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
             if (!e.IsSuccess)
                 return;
-            if (_recordWorkflowUsesBundle)
+            _recordCanvasHtmlShellLoaded = true;
+            if (_pendingWorkflowStepsPush)
             {
-                if (_pendingWorkflowStepsPush)
-                    _pendingWorkflowStepsPush = false;
-                PostWorkflowStepsToReact();
-                ApplyCanvasZoom();
-                return;
+                _pendingWorkflowStepsPush = false;
+                PushWorkflowCanvasContent();
             }
-
             ApplyCanvasZoom();
             if (_steps.Count > 0)
                 CenterCanvasViewport();
@@ -1938,14 +2202,32 @@ namespace MARS.WebAutomation.UI
                 else if (string.Equals(type, "requestRefresh", StringComparison.OrdinalIgnoreCase))
                     PostWorkflowStepsToReact();
                 else if (string.Equals(type, "testStep", StringComparison.OrdinalIgnoreCase))
-                    _ = TestStepByIndexAsync((int?)jo["index"] ?? -1);
+                    _ = TestStepByIndexAsync((int?)jo["index"] ?? -1, false);
                 else if (string.Equals(type, "editStep", StringComparison.OrdinalIgnoreCase))
                     ApplyCanvasStepEdit((int?)jo["index"] ?? -1, (string)jo["keyword"], (string)jo["data"]);
+                else if (string.Equals(type, "stepSelected", StringComparison.OrdinalIgnoreCase))
+                    SelectStepByIndex((int?)jo["index"] ?? -1);
+                else if (string.Equals(type, "canvasReady", StringComparison.OrdinalIgnoreCase))
+                    PostWorkflowStepsToReact();
             }
             catch (Exception ex)
             {
                 FormLog.Debug(ex, "Ignored invalid WebView2 message from record canvas.");
             }
+        }
+
+        private void SelectStepByIndex(int index)
+        {
+            if (index < 0 || index >= gridSteps.Rows.Count)
+                return;
+            gridSteps.ClearSelection();
+            foreach (DataGridViewRow row in gridSteps.Rows)
+                row.Selected = false;
+            gridSteps.Rows[index].Selected = true;
+            var col = gridSteps.CurrentCell?.ColumnIndex ?? 0;
+            if (col < 0 || col >= gridSteps.Columns.Count)
+                col = 0;
+            gridSteps.CurrentCell = gridSteps.Rows[index].Cells[col];
         }
 
         private void RecordWebView_ContextMenuRequested(object sender, CoreWebView2ContextMenuRequestedEventArgs e)
@@ -2071,6 +2353,8 @@ namespace MARS.WebAutomation.UI
                 return;
             try
             {
+                var wrap = GetRecordCanvasWrapWidthForLayout();
+                var layout = BuildResolvedRecordStepCanvasLayout(_steps, wrap);
                 var arr = new JArray();
                 for (var i = 0; i < _steps.Count; i++)
                 {
@@ -2089,10 +2373,11 @@ namespace MARS.WebAutomation.UI
                         ["hasPerformance"] = IsPerformanceTestEnabled() && s.PerformanceRequestRefs != null && s.PerformanceRequestRefs.Count > 0,
                         ["performanceCount"] = IsPerformanceTestEnabled() ? (s.PerformanceRequestRefs?.Count ?? 0) : 0
                     };
-                    if (s.CanvasX.HasValue)
-                        o["x"] = s.CanvasX.Value;
-                    if (s.CanvasY.HasValue)
-                        o["y"] = s.CanvasY.Value;
+                    if (i < layout.Count)
+                    {
+                        o["x"] = layout[i].L;
+                        o["y"] = layout[i].T;
+                    }
                     arr.Add(o);
                 }
 
@@ -2102,11 +2387,68 @@ namespace MARS.WebAutomation.UI
                     ["uiLanguage"] = _settings?.UiLanguage ?? "en",
                     ["steps"] = arr
                 };
-                recordWebView.CoreWebView2.PostWebMessageAsString(payload.ToString(Formatting.None));
+                var json = payload.ToString(Formatting.None);
+                recordWebView.CoreWebView2.PostWebMessageAsString(json);
+                InjectWorkflowStepsScript(json);
             }
             catch (Exception ex)
             {
                 FormLog.Debug(ex, "PostWorkflowStepsToReact failed.");
+            }
+        }
+
+        private void InjectWorkflowStepsScript(string jsonPayload = null)
+        {
+            if (!_recordWorkflowUsesBundle || recordWebView?.CoreWebView2 == null)
+                return;
+            try
+            {
+                if (string.IsNullOrWhiteSpace(jsonPayload))
+                {
+                    var wrap = GetRecordCanvasWrapWidthForLayout();
+                    var layout = BuildResolvedRecordStepCanvasLayout(_steps, wrap);
+                    var arr = new JArray();
+                    for (var i = 0; i < _steps.Count; i++)
+                    {
+                        var s = _steps[i];
+                        var loc = s.Locator ?? string.Empty;
+                        if (loc.Length > 120)
+                            loc = loc.Substring(0, 117) + "...";
+                        var o = new JObject
+                        {
+                            ["index"] = i,
+                            ["keyword"] = s.Keyword ?? string.Empty,
+                            ["logicalKind"] = s.LogicalKind ?? string.Empty,
+                            ["sourceEvent"] = s.SourceEvent ?? string.Empty,
+                            ["data"] = s.Data ?? string.Empty,
+                            ["locatorShort"] = loc
+                        };
+                        if (i < layout.Count)
+                        {
+                            o["x"] = layout[i].L;
+                            o["y"] = layout[i].T;
+                        }
+                        arr.Add(o);
+                    }
+                    var payload = new JObject
+                    {
+                        ["type"] = "setSteps",
+                        ["uiLanguage"] = _settings?.UiLanguage ?? "en",
+                        ["steps"] = arr
+                    };
+                    jsonPayload = payload.ToString(Formatting.None);
+                }
+
+                var quoted = JsonConvert.SerializeObject(jsonPayload);
+                var script =
+                    "try{var p=JSON.parse(" + quoted + ");" +
+                    "if(window.__marsWorkflowOnHostMessage)window.__marsWorkflowOnHostMessage(p);" +
+                    "}catch(e){}";
+                recordWebView.ExecuteScriptAsync(script);
+            }
+            catch (Exception ex)
+            {
+                FormLog.Debug(ex, "InjectWorkflowStepsScript failed.");
             }
         }
 
@@ -2122,16 +2464,153 @@ namespace MARS.WebAutomation.UI
             SetCanvasZoom(_recordCanvasZoomPercent + delta, centerAfter: false);
         }
 
+        private void ApplyStepPropertyPanelFromSettings()
+        {
+            if (stepObjectPropertyPanel == null || _settings == null)
+                return;
+            stepObjectPropertyPanel.ExpandedWidth = Math.Max(180, _settings.StepPropertyPanelExpandedWidthPx);
+            _syncingStepPropertyPanelCollapse = true;
+            try
+            {
+                stepObjectPropertyPanel.SetCollapsed(_settings.StepPropertyPanelCollapsed);
+            }
+            finally
+            {
+                _syncingStepPropertyPanelCollapse = false;
+            }
+
+            ApplyStepPropertyPanelSplitterFromPanel();
+        }
+
+        private void ApplyStepPropertyPanelSplitterFromPanel()
+        {
+            if (splitRecordCanvasProps == null || stepObjectPropertyPanel == null)
+                return;
+            var sw = splitRecordCanvasProps.SplitterWidth;
+            var available = Math.Max(0, splitRecordCanvasProps.ClientSize.Width - sw);
+            if (available < 80)
+                return;
+            if (stepObjectPropertyPanel.IsCollapsed)
+            {
+                var collapsed = Math.Max(splitRecordCanvasProps.Panel2MinSize, 28);
+                var dist = available - collapsed;
+                if (dist >= splitRecordCanvasProps.Panel1MinSize)
+                    splitRecordCanvasProps.SplitterDistance = dist;
+                return;
+            }
+
+            const int minCanvas = 200;
+            const int minProps = 180;
+            var maxProps = Math.Max(minProps, (int)Math.Round(available * 0.38d));
+            var propsW = Math.Min(Math.Max(minProps, stepObjectPropertyPanel.ExpandedWidth), maxProps);
+            var canvasW = available - propsW;
+            if (canvasW < minCanvas)
+            {
+                canvasW = Math.Max(minCanvas, available - minProps);
+                propsW = Math.Max(splitRecordCanvasProps.Panel2MinSize, available - canvasW);
+            }
+
+            if (canvasW < splitRecordCanvasProps.Panel1MinSize)
+                canvasW = splitRecordCanvasProps.Panel1MinSize;
+            if (canvasW > available - splitRecordCanvasProps.Panel2MinSize)
+                canvasW = Math.Max(splitRecordCanvasProps.Panel1MinSize, available - splitRecordCanvasProps.Panel2MinSize);
+            splitRecordCanvasProps.SplitterDistance = canvasW;
+        }
+
+        private void PersistStepPropertyPanelLayout()
+        {
+            if (_settings == null || stepObjectPropertyPanel == null || splitRecordCanvasProps == null)
+                return;
+            _settings.StepPropertyPanelCollapsed = stepObjectPropertyPanel.IsCollapsed;
+            if (!stepObjectPropertyPanel.IsCollapsed)
+            {
+                var propsW = Math.Max(0, splitRecordCanvasProps.ClientSize.Width - splitRecordCanvasProps.SplitterDistance - splitRecordCanvasProps.SplitterWidth);
+                if (propsW >= 180)
+                    _settings.StepPropertyPanelExpandedWidthPx = propsW;
+                stepObjectPropertyPanel.ExpandedWidth = _settings.StepPropertyPanelExpandedWidthPx;
+            }
+
+            try
+            {
+                _settingsStore.Save(_settings);
+            }
+            catch (Exception ex)
+            {
+                FormLog.Debug(ex, "Could not persist step property panel layout.");
+            }
+        }
+
+        private async Task RefreshStepObjectPropertyPanelAsync()
+        {
+            if (stepObjectPropertyPanel == null)
+                return;
+            var step = GetSelectedStepOrNull();
+            stepObjectPropertyPanel.Bind(step);
+            _stepPropertyScreenshotCts?.Cancel();
+            _stepPropertyScreenshotCts?.Dispose();
+            _stepPropertyScreenshotCts = new CancellationTokenSource();
+            var token = _stepPropertyScreenshotCts.Token;
+            if (step == null)
+                return;
+            if (step.BoundingRect == null)
+            {
+                stepObjectPropertyPanel.SetScreenshotUnavailable(L("StepProp.ScreenshotNoBounds"));
+                return;
+            }
+
+            if (!_host.IsRunning || _host.Page == null)
+            {
+                stepObjectPropertyPanel.SetScreenshotUnavailable(L("StepProp.ScreenshotNoBrowser"));
+                return;
+            }
+
+            try
+            {
+                var targetPage = await _replay.ResolvePageForStepAsync(_host.Page, step).ConfigureAwait(true);
+                if (token.IsCancellationRequested || targetPage == null || targetPage.IsClosed)
+                    return;
+                var bmp = await ElementScreenshotCapture.TryCaptureAsync(targetPage, step.BoundingRect).ConfigureAwait(true);
+                if (token.IsCancellationRequested)
+                {
+                    bmp?.Dispose();
+                    return;
+                }
+
+                if (bmp == null)
+                {
+                    stepObjectPropertyPanel.SetScreenshotUnavailable(L("StepProp.ScreenshotUnavailable"));
+                    return;
+                }
+
+                var w = step.BoundingRect.Width;
+                var h = step.BoundingRect.Height;
+                stepObjectPropertyPanel.SetScreenshot(bmp, string.Format(CultureInfo.InvariantCulture, "{0:0}×{1:0} px", w, h));
+            }
+            catch (Exception) when (token.IsCancellationRequested)
+            {
+                // superseded by a newer selection
+            }
+            catch (Exception ex)
+            {
+                FormLog.Debug(ex, "Step property screenshot failed.");
+                if (!token.IsCancellationRequested)
+                    stepObjectPropertyPanel.SetScreenshotUnavailable(L("StepProp.ScreenshotUnavailable"));
+            }
+        }
+
         private async Task HighlightStepOnPageAsync(SemanticStepRecord step)
         {
-            if (step == null || !_host.IsRunning || _host.Page == null || string.IsNullOrWhiteSpace(step.Locator))
+            if (step == null || !_host.IsRunning || _host.Page == null)
+                return;
+            var hint = SemanticStepLocatorUtil.EffectivePlaywrightSelector(step);
+            if (string.IsNullOrWhiteSpace(hint))
                 return;
             try
             {
                 var targetPage = await _replay.ResolvePageForStepAsync(_host.Page, step).ConfigureAwait(true);
                 if (targetPage == null || targetPage.IsClosed)
                     return;
-                var payload = new Dictionary<string, object> { ["hint"] = step.Locator };
+                var payload = new Dictionary<string, object> { ["hint"] = hint };
                 if (!string.IsNullOrWhiteSpace(step.TargetXpath))
                     payload["xpath"] = step.TargetXpath;
                 if (step.BoundingRect != null)
@@ -2152,10 +2631,10 @@ namespace MARS.WebAutomation.UI
             }
         }
 
-        private async Task TestStepKeywordAsync(SemanticStepRecord step, int rowIndex)
+        private async Task<KeywordExecuteResult> TestStepKeywordAsync(SemanticStepRecord step, int rowIndex, bool quietUi = false)
         {
             if (step == null || !_host.IsRunning || _host.Page == null)
-                return;
+                return new KeywordExecuteResult { Success = false, ErrorMessage = "Browser is not running." };
             try
             {
                 var result = await _replay.ExecuteKeywordAsync(_host.Page, step).ConfigureAwait(true);
@@ -2171,13 +2650,18 @@ namespace MARS.WebAutomation.UI
                 {
                     var err = string.IsNullOrWhiteSpace(result.ErrorMessage) ? "Keyword execution failed." : result.ErrorMessage;
                     SetStatus("Test failed: " + err);
-                    MessageBox.Show(this, err, "Keyword test", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    if (!quietUi)
+                        MessageBox.Show(this, err, "Keyword test", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
+
+                return result;
             }
             catch (Exception ex)
             {
                 FormLog.Error(ex, "TestStepKeywordAsync failed.");
-                MessageBox.Show(this, ex.Message, "Keyword test", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (!quietUi)
+                    MessageBox.Show(this, ex.Message, "Keyword test", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return new KeywordExecuteResult { Success = false, ErrorMessage = ex.Message };
             }
         }
 
@@ -2228,7 +2712,184 @@ namespace MARS.WebAutomation.UI
             }
         }
 
-        private static string BuildRecordReplayCanvasFallbackHtml(BindingList<SemanticStepRecord> steps, BindingList<PerformanceRequestRecord> perfRows, bool debugEnabled, bool showPerformanceAnchors)
+        private static double ClampRecordCanvasCoord(double min, double v)
+        {
+            if (double.IsNaN(v) || double.IsInfinity(v))
+                return min;
+            return Math.Max(min, Math.Min(100000d, v));
+        }
+
+        /// <summary>Approximate card pixel size from step text so flow layout can avoid overlaps.</summary>
+        private static (double W, double H) EstimateRecordStepCardPixelSize(SemanticStepRecord s)
+        {
+            const double minW = 188d;
+            const double maxW = 300d;
+            var kwLen = (s?.Keyword ?? string.Empty).Length;
+            var dataLen = (s?.Data ?? string.Empty).Length;
+            var loc = (s?.Locator ?? string.Empty).Length + (s?.ElementXpath ?? string.Empty).Length;
+            var metaExtra = (int)Math.Ceiling(dataLen / 85d);
+            var locLines = loc > 0 ? (int)Math.Ceiling(Math.Min(loc, 400) / 85d) : 0;
+            metaExtra = Math.Min(5, metaExtra);
+            locLines = Math.Min(5, locLines);
+            var h = 90d + (2 + metaExtra + locLines) * 16d;
+            if (s?.PerformanceRequestRefs != null && s.PerformanceRequestRefs.Count > 0)
+                h += 28d;
+            h = Math.Min(260d, Math.Max(124d, h));
+            var w = 210d + Math.Min(90d, kwLen * 6.5d);
+            w = Math.Max(minW, Math.Min(maxW, w));
+            return (w, h);
+        }
+
+        /// <summary>
+        /// Pure left-to-right flow layout: always advances the placement cursor. Tracks per-row <c>rowMaxH</c> (max card height
+        /// seen on the current row, initially 0); on wrap, translates origin down by <c>rowMaxH + gapY</c> and resets the row max.
+        /// Does not read <see cref="SemanticStepRecord.CanvasX"/>/<c>Y</c> — used as the non-overlapping baseline for merge.
+        /// </summary>
+        private static List<(double L, double T, double W, double H)> BuildFlowOnlyRecordStepCanvasLayout(IReadOnlyList<SemanticStepRecord> steps, double canvasWrapInnerWidth)
+        {
+            const double leftPad = 28d;
+            const double topPad = 32d;
+            const double gapX = 18d;
+            const double gapY = 16d;
+            var wrap = Math.Max(420d, canvasWrapInnerWidth);
+            var list = new List<(double L, double T, double W, double H)>();
+            if (steps == null || steps.Count == 0)
+                return list;
+            double curX = leftPad;
+            double curY = topPad;
+            var rowMaxH = 0d;
+            for (var i = 0; i < steps.Count; i++)
+            {
+                var sz = EstimateRecordStepCardPixelSize(steps[i]);
+                var w = sz.W;
+                var h = sz.H;
+                if (curX + w > leftPad + wrap)
+                {
+                    curX = leftPad;
+                    curY += rowMaxH + gapY;
+                    rowMaxH = 0d;
+                }
+                if (h > rowMaxH)
+                    rowMaxH = h;
+                list.Add((curX, curY, w, h));
+                curX += w + gapX;
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Resolves each step card box: flow-only positions never stack (cursor always advances). When both
+        /// <see cref="SemanticStepRecord.CanvasX"/> and <c>Y</c> are set (user drag / saved JSON), those clamped values replace
+        /// the flow left/top for that index only; subsequent flow slots were still computed as if each step occupied space.
+        /// </summary>
+        private static List<(double L, double T, double W, double H)> BuildResolvedRecordStepCanvasLayout(IReadOnlyList<SemanticStepRecord> steps, double canvasWrapInnerWidth)
+        {
+            const double leftPad = 28d;
+            const double topPad = 32d;
+            var list = new List<(double L, double T, double W, double H)>();
+            if (steps == null || steps.Count == 0)
+                return list;
+            var flow = BuildFlowOnlyRecordStepCanvasLayout(steps, canvasWrapInnerWidth);
+            for (var i = 0; i < steps.Count; i++)
+            {
+                var s = steps[i];
+                var w = i < flow.Count ? flow[i].W : EstimateRecordStepCardPixelSize(s).W;
+                var h = i < flow.Count ? flow[i].H : EstimateRecordStepCardPixelSize(s).H;
+                if (s.CanvasX.HasValue && s.CanvasY.HasValue)
+                {
+                    var lx = ClampRecordCanvasCoord(leftPad, s.CanvasX.Value);
+                    var ty = ClampRecordCanvasCoord(topPad, s.CanvasY.Value);
+                    list.Add((lx, ty, w, h));
+                }
+                else if (i < flow.Count)
+                {
+                    list.Add((flow[i].L, flow[i].T, w, h));
+                }
+                else
+                {
+                    list.Add((leftPad, topPad, w, h));
+                }
+            }
+            return list;
+        }
+
+        private static string FormatCanvasPx(double v) => v.ToString("0.##", CultureInfo.InvariantCulture);
+
+        private static void AppendWorkflowStepEdgesSvg(StringBuilder sb, IReadOnlyList<(double L, double T, double W, double H)> layout)
+        {
+            if (layout == null || layout.Count < 2)
+                return;
+            sb.Append("<svg id=\"wf-edges\" style=\"position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:visible;\">");
+            sb.Append("<defs><marker id=\"wf-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\">");
+            sb.Append("<path d=\"M0,0 L10,5 L0,10 z\" fill=\"#64748b\"/></marker></defs>");
+            for (var i = 0; i < layout.Count - 1; i++)
+            {
+                var a = layout[i];
+                var b = layout[i + 1];
+                var x1 = a.L + a.W;
+                var y1 = a.T + a.H / 2.0;
+                var x2 = b.L;
+                var y2 = b.T + b.H / 2.0;
+                var midX = (x1 + x2) / 2.0;
+                sb.Append("<path d=\"M").Append(FormatCanvasPx(x1)).Append(",").Append(FormatCanvasPx(y1));
+                sb.Append(" C").Append(FormatCanvasPx(midX)).Append(",").Append(FormatCanvasPx(y1));
+                sb.Append(" ").Append(FormatCanvasPx(midX)).Append(",").Append(FormatCanvasPx(y2));
+                sb.Append(" ").Append(FormatCanvasPx(x2)).Append(",").Append(FormatCanvasPx(y2));
+                sb.Append("\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\" marker-end=\"url(#wf-arrow)\"/>");
+            }
+            sb.Append("</svg>");
+        }
+
+        private static string BuildWorkflowStepsInnerHtml(BindingList<SemanticStepRecord> steps, bool showPerformanceAnchors, double canvasWrapWidth)
+        {
+            var sb = new StringBuilder(2048);
+            if (steps == null || steps.Count == 0)
+            {
+                sb.Append("<div class=\"empty\">No steps yet. Start recording to see a workflow map.</div>");
+                return sb.ToString();
+            }
+
+            var wrap = Math.Max(420d, canvasWrapWidth);
+            var layout = BuildResolvedRecordStepCanvasLayout(steps, wrap);
+            AppendWorkflowStepEdgesSvg(sb, layout);
+            for (var i = 0; i < steps.Count; i++)
+            {
+                var s = steps[i];
+                var left = i < layout.Count ? layout[i].L : 28d;
+                var top = i < layout.Count ? layout[i].T : 32d;
+                if (double.IsNaN(left) || double.IsInfinity(left) || left < 0d || left > 50000d)
+                    left = 28d;
+                if (double.IsNaN(top) || double.IsInfinity(top) || top < 0d || top > 50000d)
+                    top = 32d;
+                var kwClass = KeywordWorkflowCssClass(s.Keyword);
+                var locShort = s.Locator ?? string.Empty;
+                if (locShort.Length > 120)
+                    locShort = locShort.Substring(0, 117) + "...";
+                sb.Append("<div class=\"card ").Append(kwClass).Append("\" data-idx=\"").Append(i)
+                    .Append("\" style=\"left:").Append(FormatCanvasPx(left))
+                    .Append("px;top:").Append(FormatCanvasPx(top)).Append("px;\">");
+                sb.Append("<div class=\"kw\">").Append(WebUtility.HtmlEncode(s.Keyword ?? string.Empty)).Append("</div>");
+                sb.Append("<div class=\"meta\">").Append(WebUtility.HtmlEncode(s.LogicalKind ?? string.Empty));
+                sb.Append(" · ").Append(WebUtility.HtmlEncode(s.SourceEvent ?? string.Empty)).Append("</div>");
+                sb.Append("<div class=\"meta\">").Append(WebUtility.HtmlEncode(s.Data ?? string.Empty)).Append("</div>");
+                sb.Append("<div class=\"loc\">").Append(WebUtility.HtmlEncode(locShort)).Append("</div>");
+                if (showPerformanceAnchors && s.PerformanceRequestRefs != null && s.PerformanceRequestRefs.Count > 0)
+                {
+                    var perfClass = "perfOther";
+                    if (string.Equals(s.SourceEvent, "fetch", StringComparison.OrdinalIgnoreCase))
+                        perfClass = "perfGet";
+                    else if (string.Equals(s.SourceEvent, "xhr", StringComparison.OrdinalIgnoreCase))
+                        perfClass = "perfPost";
+                    sb.Append("<div class=\"perf ").Append(perfClass).Append("\">");
+                    sb.Append(WebUtility.HtmlEncode("Requests: " + s.PerformanceRequestRefs.Count));
+                    sb.Append("</div>");
+                }
+                sb.Append("</div>");
+            }
+            return sb.ToString();
+        }
+
+        private static string BuildRecordReplayCanvasFallbackHtml(BindingList<SemanticStepRecord> steps, BindingList<PerformanceRequestRecord> perfRows, bool debugEnabled, bool showPerformanceAnchors, double canvasWrapWidth)
         {
             var sb = new StringBuilder(4096);
             sb.Append("<!DOCTYPE html><html><head><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"/>");
@@ -2236,7 +2897,8 @@ namespace MARS.WebAutomation.UI
             sb.Append("html,body{height:100%;margin:0;font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;overflow:auto;}");
             sb.Append("#viewport{position:relative;min-height:520px;padding:18px;transform-origin:0 0;}");
             sb.Append("#cv{position:relative;min-height:520px;}");
-            sb.Append(".card{position:absolute;min-width:188px;max-width:300px;border-radius:14px;padding:10px 12px 12px;");
+            sb.Append("#wf-steps{position:relative;min-height:200px;}");
+            sb.Append(".card{position:absolute;z-index:1;min-width:188px;max-width:300px;border-radius:14px;padding:10px 12px 12px;");
             sb.Append("box-shadow:0 6px 18px rgba(15,23,42,.12);border:1px solid rgba(15,23,42,.1);cursor:grab;}");
             sb.Append(".kw{font-weight:600;font-size:13px;color:#0f172a;}");
             sb.Append(".meta{font-size:11px;color:#475569;margin-top:6px;line-height:1.35;word-break:break-word;}");
@@ -2271,49 +2933,9 @@ namespace MARS.WebAutomation.UI
                 sb.Append(WebUtility.HtmlEncode(debug));
                 sb.Append("</div>");
             }
-            if (steps == null || steps.Count == 0)
-            {
-                sb.Append("<div class=\"empty\">No steps yet. Start recording to see a workflow map.</div>");
-            }
-            else
-            {
-                for (var i = 0; i < steps.Count; i++)
-                {
-                    var s = steps[i];
-                    var defaultLeft = 28d + (i % 3) * 292d;
-                    var defaultTop = 32d + (i / 3) * 168d;
-                    var left = s.CanvasX ?? defaultLeft;
-                    var top = s.CanvasY ?? defaultTop;
-                    if (double.IsNaN(left) || double.IsInfinity(left) || left < 0d || left > 5000d)
-                        left = defaultLeft;
-                    if (double.IsNaN(top) || double.IsInfinity(top) || top < 0d || top > 5000d)
-                        top = defaultTop;
-                    var kwClass = KeywordWorkflowCssClass(s.Keyword);
-                    var locShort = s.Locator ?? string.Empty;
-                    if (locShort.Length > 120)
-                        locShort = locShort.Substring(0, 117) + "...";
-                    sb.Append("<div class=\"card ").Append(kwClass).Append("\" data-idx=\"").Append(i)
-                        .Append("\" style=\"left:").Append(left.ToString("0", CultureInfo.InvariantCulture))
-                        .Append("px;top:").Append(top.ToString("0", CultureInfo.InvariantCulture)).Append("px;\">");
-                    sb.Append("<div class=\"kw\">").Append(WebUtility.HtmlEncode(s.Keyword ?? string.Empty)).Append("</div>");
-                    sb.Append("<div class=\"meta\">").Append(WebUtility.HtmlEncode(s.LogicalKind ?? string.Empty));
-                    sb.Append(" · ").Append(WebUtility.HtmlEncode(s.SourceEvent ?? string.Empty)).Append("</div>");
-                    sb.Append("<div class=\"meta\">").Append(WebUtility.HtmlEncode(s.Data ?? string.Empty)).Append("</div>");
-                    sb.Append("<div class=\"loc\">").Append(WebUtility.HtmlEncode(locShort)).Append("</div>");
-                    if (showPerformanceAnchors && s.PerformanceRequestRefs != null && s.PerformanceRequestRefs.Count > 0)
-                    {
-                        var perfClass = "perfOther";
-                        if (string.Equals(s.SourceEvent, "fetch", StringComparison.OrdinalIgnoreCase))
-                            perfClass = "perfGet";
-                        else if (string.Equals(s.SourceEvent, "xhr", StringComparison.OrdinalIgnoreCase))
-                            perfClass = "perfPost";
-                        sb.Append("<div class=\"perf ").Append(perfClass).Append("\">");
-                        sb.Append(WebUtility.HtmlEncode("Requests: " + s.PerformanceRequestRefs.Count));
-                        sb.Append("</div>");
-                    }
-                    sb.Append("</div>");
-                }
-            }
+            sb.Append("<div id=\"wf-steps\">");
+            sb.Append(BuildWorkflowStepsInnerHtml(steps, showPerformanceAnchors, canvasWrapWidth));
+            sb.Append("</div>");
 
             var groups = new List<IGrouping<string, PerformanceRequestRecord>>();
             if (showPerformanceAnchors)
@@ -2326,16 +2948,13 @@ namespace MARS.WebAutomation.UI
                     .ToList();
             }
             var maxStepBottom = 0d;
-            if (steps != null)
+            if (steps != null && steps.Count > 0)
             {
-                for (var i = 0; i < steps.Count; i++)
+                var wrap = Math.Max(420d, canvasWrapWidth);
+                var layoutForBottom = BuildResolvedRecordStepCanvasLayout(steps, wrap);
+                for (var i = 0; i < layoutForBottom.Count; i++)
                 {
-                    var s = steps[i];
-                    var defaultTop = 32d + (i / 3) * 168d;
-                    var top = s.CanvasY ?? defaultTop;
-                    if (double.IsNaN(top) || double.IsInfinity(top))
-                        top = defaultTop;
-                    var bottom = top + 130d;
+                    var bottom = layoutForBottom[i].T + layoutForBottom[i].H;
                     if (bottom > maxStepBottom)
                         maxStepBottom = bottom;
                 }
@@ -2374,8 +2993,20 @@ namespace MARS.WebAutomation.UI
             sb.Append("if(!c||c.id==='cv')return;d.t=c;d.ox=ev.clientX-c.offsetLeft;d.oy=ev.clientY-c.offsetTop;");
             sb.Append("document.onmousemove=mv;document.onmouseup=up;}");
             sb.Append("function mv(ev){if(!d.t)return;d.t.style.left=(ev.clientX-d.ox)+'px';d.t.style.top=(ev.clientY-d.oy)+'px';}");
+            sb.Append("function marsDrawEdges(){var svg=document.getElementById('wf-edges');if(!svg)return;");
+            sb.Append("var cards=[].slice.call(document.querySelectorAll('#wf-steps .card'));");
+            sb.Append("cards.sort(function(a,b){return(parseInt(a.getAttribute('data-idx'),10)||0)-(parseInt(b.getAttribute('data-idx'),10)||0);});");
+            sb.Append("var defs=svg.querySelector('defs');svg.innerHTML='';if(defs)svg.appendChild(defs);");
+            sb.Append("else{var d=document.createElementNS('http://www.w3.org/2000/svg','defs');d.innerHTML='<marker id=\"wf-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#64748b\"/></marker>';svg.appendChild(d);}");
+            sb.Append("for(var i=0;i<cards.length-1;i++){var a=cards[i],b=cards[i+1];var x1=a.offsetLeft+a.offsetWidth,y1=a.offsetTop+a.offsetHeight/2;");
+            sb.Append("var x2=b.offsetLeft,y2=b.offsetTop+b.offsetHeight/2,mx=(x1+x2)/2;");
+            sb.Append("var p=document.createElementNS('http://www.w3.org/2000/svg','path');");
+            sb.Append("p.setAttribute('d','M'+x1+','+y1+' C'+mx+','+y1+' '+mx+','+y2+' '+x2+','+y2);");
+            sb.Append("p.setAttribute('fill','none');p.setAttribute('stroke','#64748b');p.setAttribute('stroke-width','2');");
+            sb.Append("p.setAttribute('marker-end','url(#wf-arrow)');svg.appendChild(p);}}");
+            sb.Append("window.marsSetWorkflowSteps=function(html){var el=document.getElementById('wf-steps');if(!el)return;el.innerHTML=html;marsDrawEdges();};");
             sb.Append("function up(){if(d.t){try{var x=parseInt(d.t.style.left||'0',10)||0;var y=parseInt(d.t.style.top||'0',10)||0;");
-            sb.Append("chrome.webview.postMessage(JSON.stringify({type:'nodeMoved',index:parseInt(d.t.getAttribute('data-idx'),10),x:x,y:y}));}catch(e){}}d.t=null;document.onmousemove=null;document.onmouseup=null;}");
+            sb.Append("chrome.webview.postMessage(JSON.stringify({type:'nodeMoved',index:parseInt(d.t.getAttribute('data-idx'),10),x:x,y:y}));}catch(e){}marsDrawEdges();}d.t=null;document.onmousemove=null;document.onmouseup=null;}");
             sb.Append("function setCanvasZoom(p){var v=document.getElementById('viewport');if(!v)return;var z=(parseInt(p,10)||100)/100;v.style.transform='scale('+z+')';");
             sb.Append("v.style.width=(100/z)+'%';}");
             sb.Append("function centerCanvas(){var cards=document.getElementsByClassName('card');if(!cards||cards.length===0)return;");
@@ -2594,7 +3225,7 @@ namespace MARS.WebAutomation.UI
             if (gridSteps.Columns.Contains("colPerfRef"))
                 gridSteps.Columns["colPerfRef"].Visible = enabled;
             if (!enabled && gridPerfAnchorPreview != null)
-                gridPerfAnchorPreview.DataSource = new BindingList<PerformanceRequestRecord>();
+                SetPerfAnchorGridDataSource(new BindingList<PerformanceRequestRecord>());
             if (!enabled)
             {
                 _perfRuntimeRows.Clear();
@@ -3592,7 +4223,13 @@ namespace MARS.WebAutomation.UI
 
             StyleToolbarButton(tsbTarget, IconChar.Globe);
             StyleToolbarButton(tsbRecord, IconChar.CircleDot);
-            StyleToolbarButton(tsbReplay, IconChar.Play);
+            if (tsbReplay != null)
+            {
+                tsbReplay.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
+                tsbReplay.TextImageRelation = TextImageRelation.ImageBeforeText;
+                tsbReplay.Image = FormsIconHelper.ToBitmap(IconChar.Play, StepChromeRun, 20, 0d, FlipOrientation.Normal);
+                tsbReplay.ImageScaling = ToolStripItemImageScaling.None;
+            }
             StyleToolbarButton(tsbExport, IconChar.FileExport);
             StyleToolbarButton(tsbImport, IconChar.FileImport);
             StyleToolbarButton(tsbSave, IconChar.FloppyDisk);
@@ -3602,17 +4239,32 @@ namespace MARS.WebAutomation.UI
                 tsbStepInsert.Image = FormsIconHelper.ToBitmap(IconChar.Plus, ink, 16, 0d, FlipOrientation.Normal);
                 tsbStepInsert.ToolTipText = L("GridInsertRow");
             }
+            InvalidateGridActionIconsCache();
             if (tsbStepDelete != null)
             {
                 tsbStepDelete.DisplayStyle = ToolStripItemDisplayStyle.Image;
-                tsbStepDelete.Image = FormsIconHelper.ToBitmap(IconChar.Trash, Color.FromArgb(220, 38, 38), 16, 0d, FlipOrientation.Normal);
+                tsbStepDelete.Image = FormsIconHelper.ToBitmap(IconChar.Trash, StepChromeDelete, 16, 0d, FlipOrientation.Normal);
                 tsbStepDelete.ToolTipText = L("GridDelete");
             }
             if (tsbStepReplay != null)
             {
                 tsbStepReplay.DisplayStyle = ToolStripItemDisplayStyle.Image;
-                tsbStepReplay.Image = FormsIconHelper.ToBitmap(IconChar.Play, Color.FromArgb(5, 150, 105), 16, 0d, FlipOrientation.Normal);
+                tsbStepReplay.Image = FormsIconHelper.ToBitmap(IconChar.Play, StepChromeRun, 16, 0d, FlipOrientation.Normal);
                 tsbStepReplay.ToolTipText = L("GridRun");
+            }
+            if (tsbStepRunAll != null)
+            {
+                tsbStepRunAll.DisplayStyle = ToolStripItemDisplayStyle.Image;
+                tsbStepRunAll.Image = FormsIconHelper.ToBitmap(IconChar.ForwardFast, StepChromeRunAll, 16, 0d, FlipOrientation.Normal);
+                tsbStepRunAll.ImageScaling = ToolStripItemImageScaling.None;
+                tsbStepRunAll.ToolTipText = L("GridRunAll");
+            }
+            if (tsbStepClearAll != null)
+            {
+                tsbStepClearAll.DisplayStyle = ToolStripItemDisplayStyle.Image;
+                tsbStepClearAll.Image = FormsIconHelper.ToBitmap(IconChar.Broom, StepChromeClearAll, 16, 0d, FlipOrientation.Normal);
+                tsbStepClearAll.ImageScaling = ToolStripItemImageScaling.None;
+                tsbStepClearAll.ToolTipText = L("ToolbarClearAllSteps");
             }
 
             void StyleGrid(DataGridView g)
@@ -3905,6 +4557,7 @@ namespace MARS.WebAutomation.UI
             RefreshPerformanceFilterTokensFromSettings();
             UpdatePerformanceMenuState();
             ApplyPerformancePanelVisibility();
+            ApplyStepPropertyPanelFromSettings();
         }
 
         private void ReadSettingsFromUi()
@@ -4351,12 +5004,12 @@ namespace MARS.WebAutomation.UI
                 _steps.Add(e.Step);
                 if (IsLikelyUiActionStep(e.Step))
                     _lastRecordedUiStep = e.Step;
+                AssignFlowCanvasCoordsToStepIfUnset(_steps.Count - 1);
                 SetStatus("Recorded: " + e.Step.Keyword);
             }
 
             Add();
             RefreshRecordReplayCanvas();
-            PushStepToSidebar(e.Step);
             if (ShouldSyncFocusedElement())
                 SyncTreeSelectionFromPick(e.Step, highlightPage: false);
         }
@@ -4367,11 +5020,40 @@ namespace MARS.WebAutomation.UI
                 return;
             if (!IsPerformanceTestEnabled())
                 return;
-            if (InvokeRequired)
-            {
-                BeginInvoke(new Action<object, NetworkCaptureService.NetworkCaptureEntryEventArgs>(Network_EntryCompleted), sender, e);
+            if (IsDisposed)
                 return;
+
+            // Playwright may raise this from a transport thread where InvokeRequired is false even though
+            // this is not the UI thread — marshal all model + grid updates onto the WinForms message queue.
+            if (!IsHandleCreated)
+                return;
+
+            void ApplyOnUiThread()
+            {
+                try
+                {
+                    Network_EntryCompletedApply(e);
+                }
+                catch (Exception ex)
+                {
+                    FormLog.Warn(ex, "Network_EntryCompletedApply failed.");
+                }
             }
+
+            try
+            {
+                BeginInvoke((Action)ApplyOnUiThread);
+            }
+            catch (InvalidOperationException)
+            {
+                // Handle destroyed or disposed while queuing (shutdown race; ObjectDisposedException derives from this on .NET Framework).
+            }
+        }
+
+        private void Network_EntryCompletedApply(NetworkCaptureService.NetworkCaptureEntryEventArgs e)
+        {
+            if (e?.Entry == null || !IsPerformanceTestEnabled() || IsDisposed)
+                return;
 
             var id = e.Entry.Id ?? Guid.NewGuid().ToString("N");
             var perf = _performanceRequests.FirstOrDefault(x => string.Equals(x?.Id, id, StringComparison.Ordinal));
@@ -4417,7 +5099,15 @@ namespace MARS.WebAutomation.UI
                 linkStep.PerformanceRequestRefs.Add(perf.Id);
             }
 
-            gridSteps.Refresh();
+            try
+            {
+                gridSteps.Invalidate();
+            }
+            catch
+            {
+                // ignore paint invalidation failures
+            }
+
             BindPerformanceForSelectedStep();
             RefreshRecordReplayCanvas();
             SetStatus("Captured protocol: " + perf.Method + " " + perf.Url);
@@ -4988,6 +5678,223 @@ namespace MARS.WebAutomation.UI
             await ActivateObjectTreeNodeAsync(e.Node).ConfigureAwait(true);
         }
 
+        private async void treeObjects_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left || e.Node == null)
+                return;
+            await AppendTestStepFromObjectTreeNodeAsync(e.Node).ConfigureAwait(true);
+        }
+
+        private async void tsmObjectTreeAddStep_Click(object sender, EventArgs e) =>
+            await AppendTestStepFromObjectTreeNodeAsync(treeObjects.SelectedNode).ConfigureAwait(true);
+
+        private async Task AppendTestStepFromObjectTreeNodeAsync(TreeNode node)
+        {
+            if (!(node?.Tag is ObjectTreeNodeDto dto))
+                return;
+            if (!_host.IsRunning || _host.Page == null)
+            {
+                MessageBox.Show(this, L("ObjectTreeStartBrowser"), "Objects", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            if (string.Equals(dto.Tag, "BROWSER_PAGE", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(dto.Tag, "BROWSER_IFRAME", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show(this, L("ObjectTreeSkipSynthetic"), "Objects", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            var step = await BuildSemanticStepFromObjectTreeAsync(dto).ConfigureAwait(true);
+            if (step == null || string.IsNullOrWhiteSpace(SemanticStepLocatorUtil.EffectivePlaywrightSelector(step)))
+            {
+                MessageBox.Show(this, L("ObjectTreeCannotDeriveLocator"), "Objects", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            var insertAt = GetSelectedStepIndex();
+            insertAt = insertAt < 0 ? _steps.Count : insertAt + 1;
+            _steps.Insert(insertAt, step);
+            RenumberStepMetadata();
+            AssignFlowCanvasCoordsToStepIfUnset(insertAt);
+            RefreshRecordReplayCanvas();
+            SetStatus(string.Format(CultureInfo.InvariantCulture, L("ObjectTreeAddStepDone"), step.Keyword));
+        }
+
+        private static string EscapeCssAttrValue(string raw)
+        {
+            if (string.IsNullOrEmpty(raw))
+                return string.Empty;
+            return raw.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        }
+
+        /// <summary>Derives a <see cref="SemanticStepRecord.Locator"/> string compatible with <c>page.Locator(...)</c> from object-tree metadata.</summary>
+        private static string ExtractLocatorForTreeStep(ObjectTreeNodeDto dto)
+        {
+            if (dto == null)
+                return string.Empty;
+            var pw = (dto.PlaywrightLocator ?? string.Empty).Trim();
+            if (pw.Length > 0)
+            {
+                var m = Regex.Match(pw, @"Locator\(\s*'([^']*)'\s*\)", RegexOptions.IgnoreCase);
+                if (!m.Success)
+                    m = Regex.Match(pw, @"Locator\(\s*\""([^""]*)""\s*\)", RegexOptions.IgnoreCase);
+                if (m.Success)
+                    return UnescapeJsStringLiteral(m.Groups[1].Value);
+                m = Regex.Match(pw, @"GetByTestId\(\s*['""]([^'""]+)['""]\s*\)", RegexOptions.IgnoreCase);
+                if (m.Success)
+                    return "[data-testid=\"" + EscapeCssAttrValue(m.Groups[1].Value) + "\"]";
+                m = Regex.Match(pw, @"GetByLabel\(\s*['""]([^'""]+)['""]\s*\)", RegexOptions.IgnoreCase);
+                if (m.Success)
+                    return "[aria-label=\"" + EscapeCssAttrValue(m.Groups[1].Value) + "\"]";
+                m = Regex.Match(pw, @"GetByPlaceholder\(\s*['""]([^'""]+)['""]\s*\)", RegexOptions.IgnoreCase);
+                if (m.Success)
+                    return "[placeholder=\"" + EscapeCssAttrValue(m.Groups[1].Value) + "\"]";
+            }
+            var hint = (dto.LocatorHint ?? string.Empty).Trim();
+            var tagLower = (dto.Tag ?? string.Empty).Trim().ToLowerInvariant();
+            if (hint.Length > 0 && (hint.StartsWith("[", StringComparison.Ordinal) || hint.StartsWith("#", StringComparison.Ordinal) || hint.IndexOf('[') >= 0 || hint.IndexOf('#') >= 0))
+                return hint;
+            if (!string.IsNullOrWhiteSpace(dto.Xpath))
+                return "xpath=" + dto.Xpath.Trim();
+            if (hint.Length > 0 && !string.Equals(hint, tagLower, StringComparison.Ordinal))
+                return hint;
+            return string.Empty;
+        }
+
+        private static string UnescapeJsStringLiteral(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+                return string.Empty;
+            return s.Replace("\\\"", "\"").Replace("\\'", "'").Replace("\\\\", "\\");
+        }
+
+        private static bool TreeClassLooksLikeButton(string className)
+        {
+            if (string.IsNullOrWhiteSpace(className))
+                return false;
+            var c = className.ToLowerInvariant();
+            if (c.IndexOf("btn-", StringComparison.Ordinal) >= 0 || c.IndexOf(" btn", StringComparison.Ordinal) >= 0
+                || c.IndexOf("btn ", StringComparison.Ordinal) >= 0 || string.Equals(c, "btn", StringComparison.Ordinal))
+                return true;
+            if (c.IndexOf("btn", StringComparison.Ordinal) >= 0)
+                return true;
+            if (c.IndexOf("button", StringComparison.Ordinal) >= 0)
+                return true;
+            if (c.IndexOf("mat-button", StringComparison.Ordinal) >= 0 || c.IndexOf("mdc-button", StringComparison.Ordinal) >= 0)
+                return true;
+            if (c.IndexOf("ant-btn", StringComparison.Ordinal) >= 0 || c.IndexOf("el-button", StringComparison.Ordinal) >= 0)
+                return true;
+            return false;
+        }
+
+        private static string InferLogicalKindFromTree(ObjectTreeNodeDto dto, string keyword)
+        {
+            if (dto == null)
+                return string.Empty;
+            var tag = (dto.Tag ?? string.Empty).ToLowerInvariant();
+            var cls = dto.ClassName ?? string.Empty;
+            if (TreeClassLooksLikeButton(cls) && (tag == "a" || tag == "span" || tag == "div" || tag == "label" || tag == "li" || tag == "i"))
+                return "webButton";
+            if (string.Equals(keyword, "FillEdit", StringComparison.OrdinalIgnoreCase))
+                return "webEdit";
+            if (string.Equals(keyword, "SelectDropDown", StringComparison.OrdinalIgnoreCase))
+                return "webSelect";
+            if (string.Equals(keyword, "SetBox", StringComparison.OrdinalIgnoreCase))
+            {
+                var t = (dto.InputType ?? string.Empty).ToLowerInvariant();
+                return t == "radio" ? "webRadio" : "webCheckbox";
+            }
+            if (tag == "a" || tag == "button")
+                return "webButton";
+            return "webButton";
+        }
+
+        private static void InferKeywordAndPayloadFromTree(ObjectTreeNodeDto dto, out string keyword, out string data, out string parameter)
+        {
+            keyword = "ClickButton";
+            data = string.Empty;
+            parameter = string.Empty;
+            if (dto == null)
+                return;
+            if (!string.IsNullOrWhiteSpace(dto.FramePath))
+                parameter = "FramePath=" + dto.FramePath.Trim();
+            var tag = (dto.Tag ?? string.Empty).ToLowerInvariant();
+            var typ = (dto.InputType ?? string.Empty).ToLowerInvariant();
+            var clsTree = dto.ClassName ?? string.Empty;
+            if (TreeClassLooksLikeButton(clsTree) && (tag == "a" || tag == "span" || tag == "div" || tag == "label" || tag == "li" || tag == "i"))
+            {
+                keyword = "ClickButton";
+                data = FirstLine(dto.TextPreview ?? string.Empty);
+                return;
+            }
+            if (tag == "select")
+            {
+                keyword = "SelectDropDown";
+                data = FirstLine(dto.TextPreview);
+                if (string.IsNullOrWhiteSpace(data))
+                    data = dto.Value ?? string.Empty;
+                return;
+            }
+            if (tag == "textarea" || (tag == "input" && typ != "checkbox" && typ != "radio" && typ != "button" && typ != "submit" && typ != "reset" && typ != "file" && typ != "hidden" && typ != "image"))
+            {
+                keyword = "FillEdit";
+                data = dto.Value ?? string.Empty;
+                return;
+            }
+            if (tag == "input" && (typ == "checkbox" || typ == "radio"))
+            {
+                keyword = "SetBox";
+                var ac = (dto.AriaChecked ?? string.Empty).Trim();
+                data = string.Equals(ac, "true", StringComparison.OrdinalIgnoreCase) ? "true" : "false";
+                return;
+            }
+        }
+
+        private static string FirstLine(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return string.Empty;
+            var i = text.IndexOfAny(new[] { '\r', '\n' });
+            var line = i >= 0 ? text.Substring(0, i) : text;
+            return line.Trim();
+        }
+
+        private async Task<SemanticStepRecord> BuildSemanticStepFromObjectTreeAsync(ObjectTreeNodeDto dto)
+        {
+            var locator = ExtractLocatorForTreeStep(dto);
+            if (string.IsNullOrWhiteSpace(locator))
+                return null;
+            InferKeywordAndPayloadFromTree(dto, out var keyword, out var data, out var paramBase);
+            var logical = InferLogicalKindFromTree(dto, keyword);
+            var page = await ResolvePageForObjectTreeAsync(dto).ConfigureAwait(true);
+            string pageUrl = string.Empty;
+            string pageTitle = string.Empty;
+            try
+            {
+                if (page != null && !page.IsClosed)
+                {
+                    pageUrl = page.Url ?? string.Empty;
+                    pageTitle = await page.TitleAsync().ConfigureAwait(false) ?? string.Empty;
+                }
+            }
+            catch
+            {
+                /* ignore */
+            }
+            return new SemanticStepRecord
+            {
+                TimestampUtc = DateTime.UtcNow,
+                SourceEvent = "objectTree",
+                Keyword = keyword,
+                Locator = locator.Trim(),
+                ElementXpath = dto.Xpath ?? string.Empty,
+                Parameter = paramBase ?? string.Empty,
+                Data = data ?? string.Empty,
+                BoundingRect = dto.Bounds,
+                LogicalKind = logical,
+                RecordedPageUrl = pageUrl,
+                RecordedPageTitle = pageTitle
+            };
+        }
+
         /// <summary>Clears the object tree, property grid, and search matches. Optionally removes the in-page highlight overlay.</summary>
         private void ClearObjectInspectUi(bool removePageOverlay)
         {
@@ -5250,7 +6157,6 @@ namespace MARS.WebAutomation.UI
                 tsbTarget.Checked = false;
                 await EnsureRecordingInstalledAsync().ConfigureAwait(true);
                 await SetRecorderModeAsync("record").ConfigureAwait(true);
-                EnsureRecordReplaySidebar();
                 SetStatus("Recording…");
             }
             else
@@ -5360,7 +6266,6 @@ namespace MARS.WebAutomation.UI
             {
                 _recordReplaySidebar = new RecordReplaySidebarForm();
                 _recordReplaySidebar.Show(this);
-                _recordReplaySidebar.StartCapture();
             }
             else if (!_recordReplaySidebar.Visible)
             {
@@ -5371,36 +6276,6 @@ namespace MARS.WebAutomation.UI
             _recordReplaySidebar.Width = 300;
             _recordReplaySidebar.Height = Screen.PrimaryScreen.Bounds.Height;
             _recordReplaySidebar.BringToFront();
-        }
-
-        private void PushStepToSidebar(SemanticStepRecord step)
-        {
-            if (_recordReplaySidebar == null || _recordReplaySidebar.IsDisposed || step == null) return;
-            var latestReq = _network.Entries.LastOrDefault();
-            var reqHeaders = latestReq?.RequestHeaders == null
-                ? string.Empty
-                : string.Join("; ", latestReq.RequestHeaders.Select(kv => kv.Key + "=" + kv.Value));
-            var response = latestReq?.ResponseBody ?? latestReq?.Status?.ToString() ?? string.Empty;
-            var position = step.BoundingRect == null
-                ? string.Empty
-                : $"{step.BoundingRect.X:0.#},{step.BoundingRect.Y:0.#}";
-
-            _recordReplaySidebar.AddRecordCard(new RecordReplayEventCard
-            {
-                EventName = string.IsNullOrWhiteSpace(step.SourceEvent) ? step.Keyword : step.SourceEvent,
-                Position = position,
-                ObjectType = step.Keyword,
-                Tag = string.Empty,
-                DataAttributes = string.Empty,
-                Xpath = string.Empty,
-                Value = step.Data,
-                Id = string.Empty,
-                AriaAttributes = string.Empty,
-                Data = step.Data,
-                ListenedRequestUrl = latestReq?.Url,
-                ListenedRequestHeaders = reqHeaders + (string.IsNullOrWhiteSpace(latestReq?.RequestBody) ? string.Empty : " | payload=" + latestReq.RequestBody),
-                ExpectedResponse = response
-            });
         }
 
         private async void tsbReplay_Click(object sender, EventArgs e)
@@ -5419,7 +6294,23 @@ namespace MARS.WebAutomation.UI
             {
                 SetStatus("Replaying…");
                 _network.Attach(_host.Page, _settings.PersistSensitiveHeaders);
-                await _replay.ReplayAsync(_host.Page, _steps.ToList(), 200).ConfigureAwait(true);
+                EnsureRecordReplaySidebar();
+                var list = _steps.ToList();
+                _recordReplaySidebar.BeginReplayPlan(list);
+                await _replay
+                    .ReplayAsync(
+                        _host.Page,
+                        list,
+                        200,
+                        ctx => _recordReplaySidebar.SetReplayProgress(ctx.Index, "before"),
+                        (ctx, res) =>
+                        {
+                            if (res.Success)
+                                _recordReplaySidebar.SetReplayProgress(ctx.Index, "afterOk");
+                            else
+                                _recordReplaySidebar.SetReplayProgress(ctx.Index, "afterErr", res.ErrorMessage);
+                        })
+                    .ConfigureAwait(true);
                 SetStatus("Replay finished.");
             }
             catch (Exception ex)
@@ -5856,6 +6747,10 @@ namespace MARS.WebAutomation.UI
             _host.ActiveDocumentUrlChanged -= Host_ActiveDocumentUrlChanged;
             _network.Dispose();
             _steps.ListChanged -= Steps_ListChanged;
+            _stepPropertyScreenshotCts?.Cancel();
+            _stepPropertyScreenshotCts?.Dispose();
+            _stepPropertyScreenshotCts = null;
+            PersistStepPropertyPanelLayout();
             _recording.RecordedStep -= Recording_RecordedStep;
             _recording.Picked -= Recording_Picked;
             _network.EntryCompleted -= Network_EntryCompleted;

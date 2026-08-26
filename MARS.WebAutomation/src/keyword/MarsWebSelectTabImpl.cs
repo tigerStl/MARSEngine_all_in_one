@@ -13,7 +13,7 @@ namespace MARS.WebAutomation.Keyword
             {
                 var obj = await FindObjectAsync(page, step).ConfigureAwait(false);
                 if (obj == null)
-                    return new KeywordExecuteResult { Success = false, ErrorMessage = "Locator is empty." };
+                    return LocatorResolveFailed(step);
                 await obj.ClickAsync().ConfigureAwait(false);
                 return Ok(step?.Data ?? string.Empty);
             }

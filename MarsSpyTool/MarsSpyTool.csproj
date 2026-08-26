@@ -611,14 +611,9 @@
       <_PlaywrightDestPlaywright>$(_PlaywrightDestDir).playwright</_PlaywrightDestPlaywright>
     </PropertyGroup>
     <!-- Robocopy uses exit 0-7 for success; normalize so MSBuild does not treat 1 as failure. -->
-    <Exec Command="cmd /c robocopy &quot;$(_WebAutomationOutDir)\.playwright&quot; &quot;$(_PlaywrightDestPlaywright)&quot; /E /XO /NJH /NJS /NC /NS /NP /NFL /NDL &amp; if errorlevel 8 (exit /b 1) else (exit /b 0)"
-          Condition="Exists('$(_WebAutomationOutDir)\.playwright')" />
-    <Copy SourceFiles="$(_WebAutomationOutDir)\playwright.ps1"
-          DestinationFiles="$(_PlaywrightDestDir)playwright.ps1"
-          SkipUnchangedFiles="true"
-          Condition="Exists('$(_WebAutomationOutDir)\playwright.ps1')" />
-    <Warning Text="Playwright driver folder missing: $(_WebAutomationOutDir)\.playwright - build project MARS.WebAutomation with configuration $(Configuration) first, then from that folder run: pwsh -File playwright.ps1 install"
-             Condition="!Exists('$(_WebAutomationOutDir)\.playwright')" />
+    <Exec Command="cmd /c robocopy &quot;$(_WebAutomationOutDir)\.playwright&quot; &quot;$(_PlaywrightDestPlaywright)&quot; /E /XO /NJH /NJS /NC /NS /NP /NFL /NDL &amp; if errorlevel 8 (exit /b 1) else (exit /b 0)" Condition="Exists('$(_WebAutomationOutDir)\.playwright')" />
+    <Copy SourceFiles="$(_WebAutomationOutDir)\playwright.ps1" DestinationFiles="$(_PlaywrightDestDir)playwright.ps1" SkipUnchangedFiles="true" Condition="Exists('$(_WebAutomationOutDir)\playwright.ps1')" />
+    <Warning Text="Playwright driver folder missing: $(_WebAutomationOutDir)\.playwright - build project MARS.WebAutomation with configuration $(Configuration) first, then from that folder run: pwsh -File playwright.ps1 install" Condition="!Exists('$(_WebAutomationOutDir)\.playwright')" />
   </Target>
   <Target Name="CopyPlaywrightDriverFromWebAutomationPublish" AfterTargets="Publish">
     <PropertyGroup>
@@ -627,13 +622,8 @@
       <_PlaywrightDestDir Condition="'$(_PlaywrightDestDir)' == ''">$([MSBuild]::EnsureTrailingSlash('$(TargetDir)'))</_PlaywrightDestDir>
       <_PlaywrightDestPlaywright>$(_PlaywrightDestDir).playwright</_PlaywrightDestPlaywright>
     </PropertyGroup>
-    <Exec Command="cmd /c robocopy &quot;$(_WebAutomationOutDir)\.playwright&quot; &quot;$(_PlaywrightDestPlaywright)&quot; /E /XO /NJH /NJS /NC /NS /NP /NFL /NDL &amp; if errorlevel 8 (exit /b 1) else (exit /b 0)"
-          Condition="Exists('$(_WebAutomationOutDir)\.playwright')" />
-    <Copy SourceFiles="$(_WebAutomationOutDir)\playwright.ps1"
-          DestinationFiles="$(_PlaywrightDestDir)playwright.ps1"
-          SkipUnchangedFiles="true"
-          Condition="Exists('$(_WebAutomationOutDir)\playwright.ps1')" />
-    <Warning Text="Playwright driver folder missing: $(_WebAutomationOutDir)\.playwright - build project MARS.WebAutomation with configuration $(Configuration) first, then from that folder run: pwsh -File playwright.ps1 install"
-             Condition="!Exists('$(_WebAutomationOutDir)\.playwright')" />
+    <Exec Command="cmd /c robocopy &quot;$(_WebAutomationOutDir)\.playwright&quot; &quot;$(_PlaywrightDestPlaywright)&quot; /E /XO /NJH /NJS /NC /NS /NP /NFL /NDL &amp; if errorlevel 8 (exit /b 1) else (exit /b 0)" Condition="Exists('$(_WebAutomationOutDir)\.playwright')" />
+    <Copy SourceFiles="$(_WebAutomationOutDir)\playwright.ps1" DestinationFiles="$(_PlaywrightDestDir)playwright.ps1" SkipUnchangedFiles="true" Condition="Exists('$(_WebAutomationOutDir)\playwright.ps1')" />
+    <Warning Text="Playwright driver folder missing: $(_WebAutomationOutDir)\.playwright - build project MARS.WebAutomation with configuration $(Configuration) first, then from that folder run: pwsh -File playwright.ps1 install" Condition="!Exists('$(_WebAutomationOutDir)\.playwright')" />
   </Target>
 </Project>

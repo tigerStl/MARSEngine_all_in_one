@@ -54,6 +54,9 @@ namespace MARS.WebAutomation.Models
         /// <summary>When <see cref="Keyword"/> is SelectTab: XPath for the actual click target.</summary>
         public string TargetXpath { get; set; }
 
+        /// <summary>Optional Playwright-style line generated in plain capture mode (e.g. <c>await page.locator(...).click();</c>).</summary>
+        public string PlaywrightScript { get; set; }
+
         /// <summary>Linked protocol/performance request IDs captured after this UI step.</summary>
         public List<string> PerformanceRequestRefs { get; set; } = new List<string>();
 
@@ -64,13 +67,7 @@ namespace MARS.WebAutomation.Models
             {
                 if (BoundingRect == null)
                     return string.Empty;
-                return string.Format(
-                    System.Globalization.CultureInfo.InvariantCulture,
-                    "x={0:0.##}, y={1:0.##}, w={2:0.##}, h={3:0.##}",
-                    BoundingRect.X,
-                    BoundingRect.Y,
-                    BoundingRect.Width,
-                    BoundingRect.Height);
+                return BoundingRect.ToString();
             }
         }
     }

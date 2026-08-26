@@ -19,5 +19,20 @@ namespace MARS.WebAutomation.Models
         public string ListenedRequestUrl { get; set; }
         public string ListenedRequestHeaders { get; set; }
         public string ExpectedResponse { get; set; }
+
+        /// <summary>When true, this row is part of a replay plan (not global input-hook noise).</summary>
+        public bool IsReplayPlanRow { get; set; }
+
+        /// <summary>0-based index into the step list for replay highlighting.</summary>
+        public int ReplayStepIndex { get; set; } = -1;
+
+        /// <summary>Replay UI: pending | active | ok | error</summary>
+        public string ReplayPhase { get; set; }
+
+        /// <summary>When <see cref="ReplayPhase"/> is error, last failure message for this step (shown on the card).</summary>
+        public string ReplayErrorMessage { get; set; }
+
+        /// <summary>Skip JSONL logging for synthetic replay scaffold rows.</summary>
+        public bool SuppressFileLog { get; set; }
     }
 }

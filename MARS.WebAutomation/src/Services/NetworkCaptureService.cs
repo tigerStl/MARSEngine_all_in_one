@@ -21,6 +21,9 @@ namespace MARS.WebAutomation.Services
         private EventHandler<IRequest> _requestHandler;
         private EventHandler<IResponse> _responseHandler;
 
+        /// <summary>When set and returns false, request/response capture is skipped (no entries, no <see cref="EntryCompleted"/>).</summary>
+        public Func<bool> IsCaptureEnabled { get; set; }
+
         public IReadOnlyList<NetworkCaptureEntry> Entries
         {
             get
@@ -95,6 +98,8 @@ namespace MARS.WebAutomation.Services
             var tracked = IsTrackedRequest(request, out _);
             if (!tracked)
                 return;
+            if (IsCaptureEnabled != null && !IsCaptureEnabled())
+                return;
 
             var entry = new NetworkCaptureEntry
             {
@@ -120,6 +125,8 @@ namespace MARS.WebAutomation.Services
                 var req = response.Request;
                 var tracked = IsTrackedRequest(req, out _);
                 if (!tracked)
+                    return;
+                if (IsCaptureEnabled != null && !IsCaptureEnabled())
                     return;
 
                 NetworkCaptureEntry entry = null;

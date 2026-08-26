@@ -201,6 +201,12 @@ namespace MARS.WebAutomation.Services
   }
   function locatorHint(el) {
     if (!el || el.nodeType !== 1) return '';
+    var xpf = xpathFor(el);
+    if (xpf && xpf.length > 1) {
+      if (xpf.toLowerCase().indexOf('xpath=') === 0) return xpf;
+      if (xpf.indexOf('//') === 0 || xpf.indexOf('(/') === 0) return 'xpath=' + xpf;
+      return xpf;
+    }
     var idv = el.id;
     if (idv) {
       if (!looksDynamicId(idv) && idMatchCount(idv) === 1) return '[id=""' + esc(idv) + '""]';
@@ -222,6 +228,11 @@ namespace MARS.WebAutomation.Services
     try {
       var t = tag ? tag.toLowerCase() : '';
       if (el.id && !looksDynamicId(el.id) && idMatchCount(el.id) === 1) return ""page.Locator('#"" + esc(el.id) + ""')"";
+      var xp0 = xpathFor(el);
+      if (xp0 && xp0.length > 1) {
+        var xpSel = (xp0.toLowerCase().indexOf('xpath=') === 0) ? xp0 : ((xp0.indexOf('//') === 0 || xp0.indexOf('(/') === 0) ? ('xpath=' + xp0) : xp0);
+        return ""page.Locator('"" + esc(xpSel) + ""')"";
+      }
       if (el.id && idMatchCount(el.id) > 1) {
         var comp = tryCompoundUnique(el, '[id=""' + esc(el.id) + '""]');
         if (comp) return ""page.Locator('"" + esc(comp) + ""')"";
@@ -335,6 +346,17 @@ namespace MARS.WebAutomation.Services
     for (var i = 0; i < ch.length; i++) {
       var w = walk(ch[i], id, depth + 1, ox, oy, fp, currRolePathArr, currTagPathArr, currIdPathArr, currNamePathArr, currTextPathArr);
       if (w) node.Children.push(w);
+    }
+    if (tag === 'SLOT') {
+      try {
+        var assign = el.assignedElements && el.assignedElements({ flatten: true });
+        if (assign && assign.length) {
+          for (var ai = 0; ai < assign.length; ai++) {
+            var aw = walk(assign[ai], id, depth + 1, ox, oy, fp, currRolePathArr, currTagPathArr, currIdPathArr, currNamePathArr, currTextPathArr);
+            if (aw) node.Children.push(aw);
+          }
+        }
+      } catch (eSlot) {}
     }
     // Include open shadow-root elements so controls inside custom cells are visible.
     try {

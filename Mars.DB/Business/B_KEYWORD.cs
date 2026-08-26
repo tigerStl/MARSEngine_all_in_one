@@ -74,11 +74,13 @@ namespace Mars.message.Business
         }
 
         protected readonly static List<string> _keywordNotRequireObject = new List<string> {
+            "ActiveProcess",
             "AssertValue",
             "CheckError",
             "ClickAt",
             "ClickMenuIcon",
             "CopyExcelRangeToClipboard",
+            "CloseProcess",
             "DBCompare",
             "QueryDataFromDataSource",
             "Dismiss",
@@ -91,6 +93,7 @@ namespace Mars.message.Business
             "ELSE",
             "IFEND",
             "LOOP",
+            "OpenExternalFile",
             "PressKeys",
             "Sub_Loop", 
             "EndLoop",
@@ -102,6 +105,7 @@ namespace Mars.message.Business
             "SetDataFile",
             "SetDefaultDataFile",
             "ScrollWindow",
+            "SnapShot",
             "StartApplication",
             "WaitForSeconds",            
             "WaitUntil",

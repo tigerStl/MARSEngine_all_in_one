@@ -569,8 +569,10 @@ namespace com.Mars.Constants
         public const string CNST_AUTOCHECK_MESSAGE_ATTR_TYPE = "Type";
         #endregion //for auto check
 
+        public const string CNST_RESERVED_KEYWORD_ACTIVEPROCESS         = "ActiveProcess";
         public const string CNST_RESERVED_KEYWORD_ASSERTVALUE           = "ASSERTVALUE";
         public const string CNST_RESERVED_KEYWORD_CAPTUREANDCOMPAREBYKEY= "CaptureAndCompareByKey";
+        public const string CNST_RESERVED_KEYWORD_CLOSEPROCESS          = "CloseProcess";
         public const string CNST_RESERVED_KEYWORD_LOOP                  = "Loop";
         public const string CNST_RESERVED_KEYWORD_ENDLOOP               = "EndLoop";
         public const string CNST_RESERVED_KEYWORD_SUBLOOP               = "SUB_LOOP";
@@ -587,6 +589,7 @@ namespace com.Mars.Constants
         public const string CNST_RESERVED_VARIABLE_IFVAR                = "IF_VAR";
         public const string CNST_RESERVED_VARIABLE_ITERATION            = "ITERATION_VAR";
         public const string CNST_RESERVED_BYLOOPITERATION               = "BYLOOPITERATION";
+        public const string CNST_RESERVED_KEYWORD_OPENEXTERNALFILE      = "OpenExternalFile";
         public static string[] CNST_ARR_FEEDBACKFUNCTIONS = new string[] { CNST_RESERVED_KEYWORD_CAPTUREVALUE, CNST_RESERVED_KEYWORD_CAPTUREANDCOMPARE, CNST_RESERVED_KEYWORD_CAPTUREANDCOMPAREBYKEY };
 
         #endregion

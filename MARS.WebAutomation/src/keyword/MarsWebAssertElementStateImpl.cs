@@ -29,8 +29,9 @@ namespace MARS.WebAutomation.Keyword
 
         public override async Task<KeywordExecuteResult> KeywordExecute(IPage page, SemanticStepRecord step)
         {
-            if (page == null || step == null || string.IsNullOrWhiteSpace(step.Locator))
-                return new KeywordExecuteResult { Success = false, ErrorMessage = "Locator is empty." };
+            if (page == null || step == null || string.IsNullOrWhiteSpace(EffectivePlaywrightSelector(step)))
+                return LocatorResolveFailed(step);
+            var sel = EffectivePlaywrightSelector(step);
             try
             {
                 var p = ParseParam(step.Parameter);
@@ -46,7 +47,7 @@ namespace MARS.WebAutomation.Keyword
                 {
                     var frame = FramePathUtil.ResolveFrameByPath(page, fp);
                     var root = frame ?? page.MainFrame;
-                    loc = root.Locator(step.Locator).First;
+                    loc = root.Locator(sel).First;
                     if (await loc.CountAsync().ConfigureAwait(false) == 0)
                         return new KeywordExecuteResult { Success = false, ErrorMessage = "AssertElementState: locator matched no elements." };
                 }

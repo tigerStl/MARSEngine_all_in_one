@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using MARS.WebAutomation;
 using MARS.WebAutomation.Models;
@@ -40,6 +41,7 @@ namespace MARS.WebAutomation.Services
         private bool _bindingInstalled;
         private IBrowserContext _contextBound;
         private string _lastRecorderMode = "off";
+        private string _lastCaptureMode = "semantic";
         private IBrowserContext _pageEventSubscribedContext;
         private readonly HashSet<IPage> _pagesWithFrameNavListener = new HashSet<IPage>();
         private WorkbenchSettings _listenerSettings;
@@ -81,7 +83,16 @@ namespace MARS.WebAutomation.Services
             var tabDepth = settings?.RecorderTabContextAncestorDepth ?? 5;
             if (tabDepth < 1) tabDepth = 1;
             if (tabDepth > 12) tabDepth = 12;
-            var scriptWithDepth = "(function(){window.__marsRecoTabAncestorDepth=" + tabDepth + ";})();\n" + script;
+            var semanticCfgJson = ConfigurationManager.AppSettings["RecorderSemanticConfigJson"] ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(semanticCfgJson))
+                semanticCfgJson = "{}";
+            _lastCaptureMode = NormalizeRecorderCaptureMode(settings?.RecorderCaptureMode ?? _lastCaptureMode);
+            var capJson = JsonConvert.SerializeObject(_lastCaptureMode);
+            var scriptWithDepth =
+                "(function(){window.__marsRecoCaptureMode=" + capJson + ";})();\n" +
+                "(function(){window.__marsRecoTabAncestorDepth=" + tabDepth + ";})();\n" +
+                "(function(){window.__marsRecoSemanticConfig=" + semanticCfgJson + ";})();\n" +
+                script;
             try
             {
                 await ctx.AddInitScriptAsync(scriptWithDepth).ConfigureAwait(false);
@@ -128,7 +139,56 @@ namespace MARS.WebAutomation.Services
             _listenerSettings = settings;
             EnsureContextPageListener(page.Context, settings);
             foreach (var p in pages)
+            {
                 EnsureFrameNavigatedListener(p);
+                try
+                {
+                    await ApplyRecorderGlobalsToAllFramesAsync(p, _lastRecorderMode, _lastCaptureMode).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (IsTargetClosed(ex))
+                {
+                    Log.Info(ex, "Apply recorder globals skipped (closed page).");
+                }
+                catch (Exception ex)
+                {
+                    Log.Debug(ex, "Apply recorder globals after install (non-fatal).");
+                }
+            }
+        }
+
+        /// <summary>Normalizes UI / file values to <c>semantic</c> or <c>plain</c>.</summary>
+        public static string NormalizeRecorderCaptureMode(string value)
+        {
+            if (string.Equals(value, "plain", StringComparison.OrdinalIgnoreCase))
+                return "plain";
+            return "semantic";
+        }
+
+        /// <summary>Pushes capture mode into all frames (persists across SPA navigations with <see cref="OnPageFrameNavigatedApplyMode"/>).</summary>
+        public async Task SetCaptureModeAsync(IPage page, string captureMode)
+        {
+            if (page == null)
+                throw new ArgumentNullException(nameof(page));
+            _lastCaptureMode = NormalizeRecorderCaptureMode(captureMode);
+            var prefixes = ParseIgnoredPrefixes(_listenerSettings);
+            var pages = page.Context?.Pages?.ToList() ?? new List<IPage>();
+            foreach (var p in pages)
+            {
+                if (ShouldSkipPageByPrefix(p?.Url, prefixes))
+                    continue;
+                try
+                {
+                    await ApplyRecorderGlobalsToAllFramesAsync(p, _lastRecorderMode, _lastCaptureMode).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (IsTargetClosed(ex))
+                {
+                    Log.Info(ex, "SetCaptureModeAsync skipped for closed page.");
+                }
+                catch (Exception ex)
+                {
+                    Log.Warn(ex, "SetCaptureModeAsync failed for page {Url}", p?.Url);
+                }
+            }
         }
 
         public async Task ReloadEngineAsync(IPage page, WorkbenchSettings settings = null)
@@ -145,6 +205,7 @@ namespace MARS.WebAutomation.Services
             _bindingInstalled = false;
             _contextBound = null;
             _lastRecorderMode = "off";
+            _lastCaptureMode = "semantic";
         }
 
         public async Task SetModeAsync(IPage page, string mode, WorkbenchSettings settings = null)
@@ -163,7 +224,7 @@ namespace MARS.WebAutomation.Services
                     continue;
                 try
                 {
-                    await ApplyRecorderModeToAllFramesAsync(p, m).ConfigureAwait(false);
+                    await ApplyRecorderGlobalsToAllFramesAsync(p, m, _lastCaptureMode).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (IsTargetClosed(ex))
                 {
@@ -240,7 +301,7 @@ namespace MARS.WebAutomation.Services
                 if (ShouldSkipPageByPrefix(newPage.Url, prefixes))
                     return;
                 EnsureFrameNavigatedListener(newPage);
-                await ApplyRecorderModeToAllFramesAsync(newPage, _lastRecorderMode).ConfigureAwait(false);
+                await ApplyRecorderGlobalsToAllFramesAsync(newPage, _lastRecorderMode, _lastCaptureMode).ConfigureAwait(false);
             }
             catch (Exception ex) when (IsTargetClosed(ex))
             {
@@ -266,7 +327,11 @@ namespace MARS.WebAutomation.Services
                 return;
             try
             {
-                await frame.EvaluateAsync("m => { window.__marsRecoMode = m; }", _lastRecorderMode).ConfigureAwait(false);
+                await frame
+                    .EvaluateAsync(
+                        "(args) => { window.__marsRecoMode = args.mode; window.__marsRecoCaptureMode = args.capture; }",
+                        new { mode = _lastRecorderMode, capture = _lastCaptureMode })
+                    .ConfigureAwait(false);
             }
             catch (Exception ex) when (IsTargetClosed(ex))
             {
@@ -278,16 +343,21 @@ namespace MARS.WebAutomation.Services
             }
         }
 
-        private static async Task ApplyRecorderModeToAllFramesAsync(IPage p, string mode)
+        private static async Task ApplyRecorderGlobalsToAllFramesAsync(IPage p, string mode, string captureMode)
         {
             if (p == null)
                 return;
+            var cap = NormalizeRecorderCaptureMode(captureMode);
             var frames = p.Frames?.ToList() ?? new List<IFrame>();
             foreach (var f in frames)
             {
                 try
                 {
-                    await f.EvaluateAsync("m => { window.__marsRecoMode = m; }", mode).ConfigureAwait(false);
+                    await f
+                        .EvaluateAsync(
+                            "(args) => { window.__marsRecoMode = args.mode; window.__marsRecoCaptureMode = args.capture; }",
+                            new { mode = mode ?? "off", capture = cap })
+                        .ConfigureAwait(false);
                 }
                 catch (Exception ex) when (IsTargetClosed(ex))
                 {
@@ -347,6 +417,7 @@ namespace MARS.WebAutomation.Services
                 var source = (string)jo["SourceEvent"] ?? string.Empty;
                 // Focus on user element interactions.
                 if (!string.Equals(source, "click", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(source, "mousedown", StringComparison.OrdinalIgnoreCase)
                     && !string.Equals(source, "input", StringComparison.OrdinalIgnoreCase)
                     && !string.Equals(source, "change", StringComparison.OrdinalIgnoreCase)
                     && !string.Equals(source, "blur", StringComparison.OrdinalIgnoreCase))
@@ -414,14 +485,15 @@ namespace MARS.WebAutomation.Services
             var pageTitle = (string)jo["PageTitle"] ?? string.Empty;
             var tableCtx = (string)jo["TableContext"] ?? string.Empty;
             var chk = jo["Checked"] != null && jo["Checked"].Value<bool>();
+            var webClassHint = ((string)jo["WebClass"] ?? string.Empty).Trim();
 
             var recorderKeyword = ((string)jo["RecorderKeyword"] ?? string.Empty).Trim();
             var keyword = !string.IsNullOrEmpty(recorderKeyword)
                 ? recorderKeyword
-                : ResolveKeyword(tag, typeAttr, role, tableCtx, source);
+                : ResolveKeyword(tag, typeAttr, role, tableCtx, source, webClassHint);
             var logicalKind = (string)jo["LogicalKind"];
             if (string.IsNullOrWhiteSpace(logicalKind))
-                logicalKind = InferLogicalKindFallback(tag, typeAttr, role);
+                logicalKind = InferLogicalKindFallback(tag, typeAttr, role, webClassHint);
             // Keep keyword semantics consistent with logical tab classification.
             if (string.Equals(logicalKind, "webTab", StringComparison.OrdinalIgnoreCase)
                 && !string.Equals(keyword, "SelectTab", StringComparison.OrdinalIgnoreCase))
@@ -465,10 +537,17 @@ namespace MARS.WebAutomation.Services
                 logicalKind = "webFileBrowser";
 
             var data = BuildData(keyword, text, value, chk, pageTitle, jo);
+            var incomingData = (string)jo["Data"];
+            if (!string.IsNullOrEmpty(incomingData))
+                data = incomingData;
             var param = BuildParameter(keyword, tableCtx, tag, role);
             var incomingParam = ((string)jo["Parameter"] ?? string.Empty).Trim();
             if (!string.IsNullOrEmpty(incomingParam))
                 param = incomingParam;
+            if (string.Equals(keyword, "SelectMenuItem", StringComparison.OrdinalIgnoreCase))
+                param = AppendSelectMenuItemObjectProps(param, jo);
+            if (string.Equals(keyword, "SelectTab", StringComparison.OrdinalIgnoreCase))
+                param = AppendSelectTabObjectProps(param, jo);
 
             string targetTag = null;
             string targetRole = null;
@@ -490,6 +569,7 @@ namespace MARS.WebAutomation.Services
                 bounds = b.ToObject<BoundingRectDto>();
 
             var pageUrl = ((string)jo["PageUrl"] ?? string.Empty).Trim();
+            var pwScript = ((string)jo["PlaywrightScript"] ?? string.Empty).Trim();
             return new SemanticStepRecord
             {
                 TimestampUtc = DateTime.UtcNow,
@@ -507,7 +587,8 @@ namespace MARS.WebAutomation.Services
                 TargetLocator = targetLocator ?? string.Empty,
                 TargetXpath = targetXpath ?? string.Empty,
                 RecordedPageUrl = pageUrl,
-                RecordedPageTitle = pageTitle ?? string.Empty
+                RecordedPageTitle = pageTitle ?? string.Empty,
+                PlaywrightScript = pwScript
             };
         }
 
@@ -526,8 +607,89 @@ namespace MARS.WebAutomation.Services
             return true;
         }
 
-        private static string InferLogicalKindFallback(string tag, string typeAttr, string role)
+        private static bool LooksLikeKtMenuListItemClass(string classHint)
         {
+            if (string.IsNullOrWhiteSpace(classHint))
+                return false;
+            var c = classHint.ToLowerInvariant();
+            return c.IndexOf("kt-menu__item", StringComparison.Ordinal) >= 0
+                   || c.IndexOf("kt_menu", StringComparison.Ordinal) >= 0
+                   || (c.IndexOf("kt-menu", StringComparison.Ordinal) >= 0 && c.IndexOf("item", StringComparison.Ordinal) >= 0);
+        }
+
+        private static string AppendSelectMenuItemObjectProps(string existing, JObject jo)
+        {
+            if (jo == null)
+                return existing ?? string.Empty;
+            static string Enc(string x) => string.IsNullOrEmpty(x) ? string.Empty : Uri.EscapeDataString(x);
+            var parts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(existing))
+                parts.Add(existing.Trim());
+            void Add(string key, string tokenName)
+            {
+                var v = (string)jo[tokenName];
+                if (string.IsNullOrWhiteSpace(v))
+                    return;
+                parts.Add(key + "=" + Enc(v.Trim()));
+            }
+            Add("webClass", "WebClass");
+            Add("htmlTag", "HtmlTag");
+            Add("textPreview", "TextPreview");
+            Add("placeholder", "Placeholder");
+            Add("id", "DomId");
+            Add("treeNodeId", "TreeNodeId");
+            return string.Join(";", parts);
+        }
+
+        private static string AppendSelectTabObjectProps(string existing, JObject jo)
+        {
+            if (jo == null)
+                return existing ?? string.Empty;
+            static string Enc(string x) => string.IsNullOrEmpty(x) ? string.Empty : Uri.EscapeDataString(x);
+            var parts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(existing))
+                parts.Add(existing.Trim());
+            void Add(string key, string tokenName, bool allowEmpty = false)
+            {
+                var v = (string)jo[tokenName];
+                if (string.IsNullOrWhiteSpace(v))
+                {
+                    if (allowEmpty) parts.Add(key + "=");
+                    return;
+                }
+                parts.Add(key + "=" + Enc(v.Trim()));
+            }
+            Add("webClass", "WebClass");
+            Add("webIdPath", "WebIdPath");
+            Add("webId", "WebId");
+            Add("webXpath", "WebXpath");
+            Add("webChildrenTargetTag", "WebChildrenTargetTag", allowEmpty: true);
+            return string.Join(";", parts);
+        }
+
+        private static bool LooksLikeButtonClassHint(string classHint)
+        {
+            if (string.IsNullOrWhiteSpace(classHint))
+                return false;
+            var c = classHint.ToLowerInvariant();
+            if (c.IndexOf("btn-", StringComparison.Ordinal) >= 0 || c.IndexOf(" btn", StringComparison.Ordinal) >= 0
+                || c.IndexOf("btn ", StringComparison.Ordinal) >= 0 || string.Equals(c, "btn", StringComparison.Ordinal))
+                return true;
+            if (c.IndexOf("btn", StringComparison.Ordinal) >= 0)
+                return true;
+            if (c.IndexOf("button", StringComparison.Ordinal) >= 0)
+                return true;
+            if (c.IndexOf("mat-button", StringComparison.Ordinal) >= 0 || c.IndexOf("mdc-button", StringComparison.Ordinal) >= 0)
+                return true;
+            if (c.IndexOf("ant-btn", StringComparison.Ordinal) >= 0 || c.IndexOf("el-button", StringComparison.Ordinal) >= 0)
+                return true;
+            return false;
+        }
+
+        private static string InferLogicalKindFallback(string tag, string typeAttr, string role, string classHint = null)
+        {
+            if (string.Equals(tag, "li", StringComparison.OrdinalIgnoreCase) && LooksLikeKtMenuListItemClass(classHint))
+                return "webMenu";
             if (tag == "input" && typeAttr == "checkbox")
                 return "webCheckbox";
             if (tag == "input" && typeAttr == "radio")
@@ -552,7 +714,15 @@ namespace MARS.WebAutomation.Services
                 return "webTab";
             if (tag == "button" || typeAttr == "button" || typeAttr == "submit" || typeAttr == "reset" || role == "button")
                 return "webButton";
-            if (tag == "textarea" || tag == "input" || role == "textbox" || role == "searchbox")
+            if (LooksLikeButtonClassHint(classHint)
+                && (tag == "a" || tag == "span" || tag == "div" || tag == "label" || tag == "li" || tag == "i" || tag == "svg"))
+                return "webButton";
+            if (tag == "textarea" || tag == "input")
+                return "webEdit";
+            if ((role == "textbox" || role == "searchbox")
+                && tag != "a"
+                && tag != "li"
+                && !LooksLikeButtonClassHint(classHint))
                 return "webEdit";
             return "webUnknown";
         }
@@ -627,7 +797,7 @@ namespace MARS.WebAutomation.Services
             return string.Empty;
         }
 
-        private static string ResolveKeyword(string tag, string typeAttr, string role, string tableCtx, string source)
+        private static string ResolveKeyword(string tag, string typeAttr, string role, string tableCtx, string source, string classHint = null)
         {
             using (WebAutomationMethodTrace.Begin(Log, nameof(ResolveKeyword),
                 (nameof(tag), tag),
@@ -636,11 +806,11 @@ namespace MARS.WebAutomation.Services
                 (nameof(tableCtx), tableCtx),
                 (nameof(source), source)))
             {
-                return ResolveKeywordCore(tag, typeAttr, role, tableCtx, source);
+                return ResolveKeywordCore(tag, typeAttr, role, tableCtx, source, classHint);
             }
         }
 
-        private static string ResolveKeywordCore(string tag, string typeAttr, string role, string tableCtx, string source)
+        private static string ResolveKeywordCore(string tag, string typeAttr, string role, string tableCtx, string source, string classHint = null)
         {
             if (string.Equals(source, "blur", StringComparison.OrdinalIgnoreCase))
             {
@@ -649,11 +819,15 @@ namespace MARS.WebAutomation.Services
                 return "FillEdit";
             }
 
-            if (!string.IsNullOrEmpty(tableCtx) && (source == "click" || source == "change"))
+            if (!string.IsNullOrEmpty(tableCtx) && (source == "click" || source == "mousedown" || source == "change"))
             {
                 if (tag == "td" || tag == "th" || tableCtx.StartsWith("webtable:", StringComparison.OrdinalIgnoreCase))
                     return "FillTable";
             }
+
+            if (LooksLikeButtonClassHint(classHint)
+                && (tag == "a" || tag == "span" || tag == "div" || tag == "label" || tag == "li" || tag == "i" || tag == "svg"))
+                return "ClickButton";
 
             if (tag == "select" || role == "combobox" || role == "listbox")
                 return "SelectDropDown";
@@ -676,7 +850,7 @@ namespace MARS.WebAutomation.Services
             if (tag == "button" || role == "button" || tag == "a" || tag == "img" || tag == "i" || tag == "span")
                 return "ClickButton";
 
-            if (source == "click")
+            if (source == "click" || string.Equals(source, "mousedown", StringComparison.OrdinalIgnoreCase))
                 return "ClickButton";
 
             return "FillEdit";

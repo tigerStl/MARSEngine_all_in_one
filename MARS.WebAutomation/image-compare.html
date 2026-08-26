@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image Compare</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #22d3ee;
+      --border: #334155;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 20% -20%, #1e293b 0%, var(--bg) 55%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .toolbar {
+      background: color-mix(in srgb, var(--panel) 86%, black);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    input[type="file"],
+    input[type="range"],
+    button {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0b1220;
+      color: var(--text);
+      padding: 8px;
+    }
+
+    button {
+      cursor: pointer;
+      background: linear-gradient(180deg, #0f172a, #0b1220);
+      transition: transform .08s ease, border-color .12s ease;
+    }
+    button:hover { border-color: var(--accent); }
+    button:active { transform: translateY(1px); }
+
+    .compare-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 420px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #020617;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .layer {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .layer img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      pointer-events: none;
+      display: block;
+    }
+
+    .top-layer {
+      clip-path: inset(0 50% 0 0);
+    }
+
+    .divider {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      background: var(--accent);
+      box-shadow: 0 0 0 1px rgba(34, 211, 238, .2);
+      transform: translateX(-1px);
+      pointer-events: none;
+    }
+
+    .knob {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #0b1220;
+      border: 2px solid var(--accent);
+      transform: translate(-50%, -50%);
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .badge {
+      position: absolute;
+      top: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(2, 6, 23, .72);
+      font-size: 12px;
+      color: #d1d5db;
+      backdrop-filter: blur(3px);
+    }
+    .badge.left { left: 10px; }
+    .badge.right { right: 10px; }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: -2px;
+    }
+
+    .diff-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div>
+      <label for="imgAInput">Image A (left)</label>
+      <input id="imgAInput" type="file" accept="image/*" />
+    </div>
+    <div>
+      <label for="imgBInput">Image B (right)</label>
+      <input id="imgBInput" type="file" accept="image/*" />
+    </div>
+    <div>
+      <label for="position">Compare position</label>
+      <input id="position" type="range" min="0" max="100" value="50" />
+    </div>
+    <div>
+      <label>Actions</label>
+      <button id="swapBtn" type="button">Swap A/B</button>
+    </div>
+    <div>
+      <label>&nbsp;</label>
+      <button id="markDiffBtn" type="button">Mark Differences</button>
+    </div>
+  </div>
+
+  <div id="compareWrap" class="compare-wrap" aria-label="Image comparison area">
+    <div class="layer base-layer">
+      <img id="imgB" alt="Image B" />
+    </div>
+    <div id="topLayer" class="layer top-layer">
+      <img id="imgA" alt="Image A" />
+    </div>
+    <div id="divider" class="divider"></div>
+    <div id="knob" class="knob">↔</div>
+    <div class="badge left">A</div>
+    <div class="badge right">B</div>
+    <canvas id="diffCanvas" class="diff-canvas"></canvas>
+  </div>
+  <div id="resultHint" class="hint"></div>
+  <div class="hint">Tip: drag to compare, then click "Mark Differences" to draw circles on changed areas.</div>
+
+  <script>
+    (function () {
+      const imgAInput = document.getElementById("imgAInput");
+      const imgBInput = document.getElementById("imgBInput");
+      const imgA = document.getElementById("imgA");
+      const imgB = document.getElementById("imgB");
+      const wrap = document.getElementById("compareWrap");
+      const topLayer = document.getElementById("topLayer");
+      const divider = document.getElementById("divider");
+      const knob = document.getElementById("knob");
+      const position = document.getElementById("position");
+      const swapBtn = document.getElementById("swapBtn");
+      const markDiffBtn = document.getElementById("markDiffBtn");
+      const resultHint = document.getElementById("resultHint");
+      const diffCanvas = document.getElementById("diffCanvas");
+      const diffCtx = diffCanvas.getContext("2d");
+
+      let objectUrlA = "";
+      let objectUrlB = "";
+      let dragging = false;
+
+      function revokeSafe(url) {
+        if (url) URL.revokeObjectURL(url);
+      }
+
+      function loadImage(input, target, key) {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        if (key === "A") {
+          revokeSafe(objectUrlA);
+          objectUrlA = url;
+        } else {
+          revokeSafe(objectUrlB);
+          objectUrlB = url;
+        }
+        target.src = url;
+      }
+
+      function clearDiffOverlay() {
+        if (!diffCtx) return;
+        resizeDiffCanvasToWrap();
+        diffCtx.clearRect(0, 0, diffCanvas.width, diffCanvas.height);
+      }
+
+      function resizeDiffCanvasToWrap() {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = wrap.getBoundingClientRect();
+        const w = Math.max(1, Math.round(rect.width * dpr));
+        const h = Math.max(1, Math.round(rect.height * dpr));
+        if (diffCanvas.width !== w || diffCanvas.height !== h) {
+          diffCanvas.width = w;
+          diffCanvas.height = h;
+        }
+      }
+
+      function getDisplayedImageRect(imgEl) {
+        const wrapRect = wrap.getBoundingClientRect();
+        const naturalW = imgEl.naturalWidth || 0;
+        const naturalH = imgEl.naturalHeight || 0;
+        if (!naturalW || !naturalH || wrapRect.width <= 0 || wrapRect.height <= 0) {
+          return null;
+        }
+        const scale = Math.min(wrapRect.width / naturalW, wrapRect.height / naturalH);
+        const drawW = naturalW * scale;
+        const drawH = naturalH * scale;
+        const left = (wrapRect.width - drawW) / 2;
+        const top = (wrapRect.height - drawH) / 2;
+        return { left, top, width: drawW, height: drawH };
+      }
+
+      function detectDiffRegions() {
+        if (!imgA.complete || !imgB.complete || !imgA.naturalWidth || !imgB.naturalWidth) {
+          alert("Please load both images first.");
+          return [];
+        }
+
+        // Resolution-independent compare: normalize both images to a fixed text-first canvas.
+        // We compare edge/contrast patterns so typography changes are emphasized over plain color shifts.
+        const sampleW = 360;
+        const sampleH = 220;
+        const c1 = document.createElement("canvas");
+        const c2 = document.createElement("canvas");
+        c1.width = c2.width = sampleW;
+        c1.height = c2.height = sampleH;
+        const x1 = c1.getContext("2d", { willReadFrequently: true });
+        const x2 = c2.getContext("2d", { willReadFrequently: true });
+        x1.imageSmoothingEnabled = true;
+        x2.imageSmoothingEnabled = true;
+        x1.clearRect(0, 0, sampleW, sampleH);
+        x2.clearRect(0, 0, sampleW, sampleH);
+
+        function drawContain(ctx, img, boxW, boxH) {
+          const iw = img.naturalWidth || 1;
+          const ih = img.naturalHeight || 1;
+          const scale = Math.min(boxW / iw, boxH / ih);
+          const dw = iw * scale;
+          const dh = ih * scale;
+          const dx = (boxW - dw) / 2;
+          const dy = (boxH - dh) / 2;
+          ctx.drawImage(img, dx, dy, dw, dh);
+        }
+
+        // Match the same contain strategy as UI rendering, so diff points stay aligned.
+        drawContain(x1, imgA, sampleW, sampleH);
+        drawContain(x2, imgB, sampleW, sampleH);
+
+        const d1 = x1.getImageData(0, 0, sampleW, sampleH).data;
+        const d2 = x2.getImageData(0, 0, sampleW, sampleH).data;
+        const gray1 = new Float32Array(sampleW * sampleH);
+        const gray2 = new Float32Array(sampleW * sampleH);
+        const edge1 = new Float32Array(sampleW * sampleH);
+        const edge2 = new Float32Array(sampleW * sampleH);
+        const diffMask = new Uint8Array(sampleW * sampleH);
+
+        for (let i = 0, p = 0; i < d1.length; i += 4, p++) {
+          gray1[p] = d1[i] * 0.299 + d1[i + 1] * 0.587 + d1[i + 2] * 0.114;
+          gray2[p] = d2[i] * 0.299 + d2[i + 1] * 0.587 + d2[i + 2] * 0.114;
+        }
+
+        // Simple gradient magnitude, useful for text strokes and glyph edges.
+        for (let y = 1; y < sampleH - 1; y++) {
+          for (let x = 1; x < sampleW - 1; x++) {
+            const i = y * sampleW + x;
+            const gx1 = gray1[i + 1] - gray1[i - 1];
+            const gy1 = gray1[i + sampleW] - gray1[i - sampleW];
+            const gx2 = gray2[i + 1] - gray2[i - 1];
+            const gy2 = gray2[i + sampleW] - gray2[i - sampleW];
+            edge1[i] = Math.abs(gx1) + Math.abs(gy1);
+            edge2[i] = Math.abs(gx2) + Math.abs(gy2);
+          }
+        }
+
+        const textEdgeThreshold = 20;
+        const edgeDiffThreshold = 26;
+        const grayDiffThreshold = 22;
+        for (let i = 0; i < diffMask.length; i++) {
+          const e1 = edge1[i];
+          const e2 = edge2[i];
+          const g1 = gray1[i];
+          const g2 = gray2[i];
+          const edgeDiff = Math.abs(e1 - e2);
+          const grayDiff = Math.abs(g1 - g2);
+          const isTextLike = e1 > textEdgeThreshold || e2 > textEdgeThreshold;
+          diffMask[i] = (isTextLike && edgeDiff > edgeDiffThreshold) || (isTextLike && grayDiff > grayDiffThreshold) ? 1 : 0;
+        }
+
+        const visited = new Uint8Array(sampleW * sampleH);
+        const circles = [];
+        const minPixels = 18;
+        const queue = new Int32Array(sampleW * sampleH);
+
+        for (let y = 0; y < sampleH; y++) {
+          for (let x = 0; x < sampleW; x++) {
+            const idx = y * sampleW + x;
+            if (!diffMask[idx] || visited[idx]) continue;
+
+            let qh = 0;
+            let qt = 0;
+            queue[qt++] = idx;
+            visited[idx] = 1;
+            let count = 0;
+            let minX = x, minY = y, maxX = x, maxY = y;
+
+            while (qh < qt) {
+              const cur = queue[qh++];
+              const cy = (cur / sampleW) | 0;
+              const cx = cur - cy * sampleW;
+              count++;
+              if (cx < minX) minX = cx;
+              if (cy < minY) minY = cy;
+              if (cx > maxX) maxX = cx;
+              if (cy > maxY) maxY = cy;
+
+              const neighbors = [
+                cur - 1, cur + 1, cur - sampleW, cur + sampleW,
+                cur - sampleW - 1, cur - sampleW + 1, cur + sampleW - 1, cur + sampleW + 1
+              ];
+              for (let i = 0; i < 8; i++) {
+                const n = neighbors[i];
+                if (n < 0 || n >= diffMask.length || visited[n] || !diffMask[n]) continue;
+                visited[n] = 1;
+                queue[qt++] = n;
+              }
+            }
+
+            if (count < minPixels) continue;
+            const rw = Math.max(1, maxX - minX + 1);
+            const rh = Math.max(1, maxY - minY + 1);
+            // Keep text-like blocks (line-ish or compact glyph groups), drop very large layout/background shifts.
+            if (rw > sampleW * 0.72 || rh > sampleH * 0.55) continue;
+            const density = count / (rw * rh);
+            if (density < 0.1) continue;
+            const cx = (minX + maxX) / 2;
+            const cy = (minY + maxY) / 2;
+            circles.push({
+              x: cx / sampleW,
+              y: cy / sampleH,
+              r: Math.max(rw, rh) * 0.62 / sampleW
+            });
+          }
+        }
+
+        circles.sort((a, b) => b.r - a.r);
+        return circles.slice(0, 20);
+      }
+
+      function detectDiffRegionsFallback() {
+        const sampleW = 320;
+        const sampleH = 200;
+        const c1 = document.createElement("canvas");
+        const c2 = document.createElement("canvas");
+        c1.width = c2.width = sampleW;
+        c1.height = c2.height = sampleH;
+        const x1 = c1.getContext("2d", { willReadFrequently: true });
+        const x2 = c2.getContext("2d", { willReadFrequently: true });
+        x1.clearRect(0, 0, sampleW, sampleH);
+        x2.clearRect(0, 0, sampleW, sampleH);
+        x1.drawImage(imgA, 0, 0, sampleW, sampleH);
+        x2.drawImage(imgB, 0, 0, sampleW, sampleH);
+
+        const d1 = x1.getImageData(0, 0, sampleW, sampleH).data;
+        const d2 = x2.getImageData(0, 0, sampleW, sampleH).data;
+        const diffMask = new Uint8Array(sampleW * sampleH);
+        for (let i = 0, p = 0; i < d1.length; i += 4, p++) {
+          const dr = Math.abs(d1[i] - d2[i]);
+          const dg = Math.abs(d1[i + 1] - d2[i + 1]);
+          const db = Math.abs(d1[i + 2] - d2[i + 2]);
+          diffMask[p] = (dr + dg + db) > 70 ? 1 : 0;
+        }
+
+        const visited = new Uint8Array(sampleW * sampleH);
+        const circles = [];
+        const queue = new Int32Array(sampleW * sampleH);
+        for (let y = 0; y < sampleH; y++) {
+          for (let x = 0; x < sampleW; x++) {
+            const idx = y * sampleW + x;
+            if (!diffMask[idx] || visited[idx]) continue;
+            let qh = 0, qt = 0;
+            queue[qt++] = idx;
+            visited[idx] = 1;
+            let count = 0;
+            let minX = x, minY = y, maxX = x, maxY = y;
+            while (qh < qt) {
+              const cur = queue[qh++];
+              const cy = (cur / sampleW) | 0;
+              const cx = cur - cy * sampleW;
+              count++;
+              if (cx < minX) minX = cx;
+              if (cy < minY) minY = cy;
+              if (cx > maxX) maxX = cx;
+              if (cy > maxY) maxY = cy;
+              const neighbors = [cur - 1, cur + 1, cur - sampleW, cur + sampleW];
+              for (let i = 0; i < 4; i++) {
+                const n = neighbors[i];
+                if (n < 0 || n >= diffMask.length || visited[n] || !diffMask[n]) continue;
+                visited[n] = 1;
+                queue[qt++] = n;
+              }
+            }
+            if (count < 35) continue;
+            const rw = Math.max(1, maxX - minX + 1);
+            const rh = Math.max(1, maxY - minY + 1);
+            circles.push({
+              x: ((minX + maxX) / 2) / sampleW,
+              y: ((minY + maxY) / 2) / sampleH,
+              r: Math.max(rw, rh) * 0.6 / sampleW
+            });
+          }
+        }
+        circles.sort((a, b) => b.r - a.r);
+        return circles.slice(0, 20);
+      }
+
+      function drawDiffCircles(circles) {
+        clearDiffOverlay();
+        if (!circles.length || !diffCtx) return;
+        const wrapRect = wrap.getBoundingClientRect();
+        if (!wrapRect.width || !wrapRect.height) return;
+        const dpr = window.devicePixelRatio || 1;
+        diffCtx.save();
+        diffCtx.scale(dpr, dpr);
+        diffCtx.lineWidth = 2.5;
+        diffCtx.strokeStyle = "#ff3b30";
+        diffCtx.fillStyle = "rgba(255,59,48,0.13)";
+        for (const c of circles) {
+          const x = c.x * wrapRect.width;
+          const y = c.y * wrapRect.height;
+          const r = Math.max(10, c.r * wrapRect.width);
+          diffCtx.beginPath();
+          diffCtx.arc(x, y, r, 0, Math.PI * 2);
+          diffCtx.fill();
+          diffCtx.stroke();
+        }
+        diffCtx.restore();
+      }
+
+      function setPosition(pct) {
+        const v = Math.max(0, Math.min(100, pct));
+        position.value = String(v);
+        divider.style.left = v + "%";
+        knob.style.left = v + "%";
+        topLayer.style.clipPath = "inset(0 " + (100 - v) + "% 0 0)";
+      }
+
+      function setFromClientX(clientX) {
+        const rect = wrap.getBoundingClientRect();
+        if (rect.width <= 0) return;
+        const pct = ((clientX - rect.left) / rect.width) * 100;
+        setPosition(pct);
+      }
+
+      imgAInput.addEventListener("change", () => loadImage(imgAInput, imgA, "A"));
+      imgBInput.addEventListener("change", () => loadImage(imgBInput, imgB, "B"));
+      position.addEventListener("input", () => setPosition(Number(position.value)));
+      imgA.addEventListener("load", clearDiffOverlay);
+      imgB.addEventListener("load", clearDiffOverlay);
+
+      swapBtn.addEventListener("click", () => {
+        const srcA = imgA.src;
+        const srcB = imgB.src;
+        imgA.src = srcB;
+        imgB.src = srcA;
+        clearDiffOverlay();
+      });
+
+      markDiffBtn.addEventListener("click", () => {
+        try {
+          let circles = detectDiffRegions();
+          let mode = "text-focused";
+          if (!circles.length) {
+            circles = detectDiffRegionsFallback();
+            mode = "fallback";
+          }
+          drawDiffCircles(circles);
+          if (resultHint) {
+            resultHint.textContent = circles.length
+              ? `Detected ${circles.length} difference region(s) (${mode}).`
+              : "No obvious differences detected. Try images with clearer text changes.";
+          }
+        } catch (err) {
+          console.error(err);
+          if (resultHint)
+            resultHint.textContent = "Diff detection failed. Check browser console.";
+        }
+      });
+
+      wrap.addEventListener("pointerdown", (e) => {
+        dragging = true;
+        wrap.setPointerCapture(e.pointerId);
+        setFromClientX(e.clientX);
+      });
+      wrap.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        setFromClientX(e.clientX);
+      });
+      wrap.addEventListener("pointerup", () => {
+        dragging = false;
+      });
+      wrap.addEventListener("pointercancel", () => {
+        dragging = false;
+      });
+
+      window.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        const step = e.shiftKey ? 5 : 1;
+        const current = Number(position.value);
+        setPosition(current + (e.key === "ArrowRight" ? step : -step));
+      });
+
+      window.addEventListener("beforeunload", () => {
+        revokeSafe(objectUrlA);
+        revokeSafe(objectUrlB);
+      });
+      window.addEventListener("resize", clearDiffOverlay);
+
+      // default demo split
+      setPosition(50);
+      clearDiffOverlay();
+    })();
+  </script>
+</body>
+</html>

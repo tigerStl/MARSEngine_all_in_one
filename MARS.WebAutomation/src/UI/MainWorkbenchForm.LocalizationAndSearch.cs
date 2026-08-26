@@ -79,6 +79,16 @@ namespace MARS.WebAutomation.UI
             menuHelpLangEnglish.Text = L("English");
             menuHelpLangChinese.Text = L("Chinese");
             menuHelpAbout.Text = L("About");
+            if (menuRecord != null)
+                menuRecord.Text = L("MenuRecord");
+            if (menuRecordCaptureSemantic != null)
+                menuRecordCaptureSemantic.Text = L("MenuRecordCaptureSemantic");
+            if (menuRecordCapturePlain != null)
+                menuRecordCapturePlain.Text = L("MenuRecordCapturePlain");
+            if (menuRecordExportAllPlaywrightTs != null)
+                menuRecordExportAllPlaywrightTs.Text = L("MenuRecordExportAllPlaywrightTs");
+            if (menuRecordExportAllSeleniumTs != null)
+                menuRecordExportAllSeleniumTs.Text = L("MenuRecordExportAllSeleniumTs");
             tabTarget.Text = L("Target");
             tabObjects.Text = L("Objects");
             tabRecord.Text = L("RecordReplay");
@@ -90,6 +100,10 @@ namespace MARS.WebAutomation.UI
             btnNavigate.Text = L("Navigate");
             btnRefreshTree.Text = L("RefreshTree");
             lblRecordHint.Text = L("RecordHint");
+            if (lblStepVisualization != null)
+                lblStepVisualization.Text = L("StepsVisualization");
+            if (tsmObjectTreeAddStep != null)
+                tsmObjectTreeAddStep.Text = L("ObjectTreeAddStepMenu");
             lblDataRoot.Text = L("DataRoot");
             chkHeadless.Text = L("Headless");
             lblTimeout.Text = L("Timeout");
@@ -107,12 +121,24 @@ namespace MARS.WebAutomation.UI
             tsbReloadEngine.Text = L("ToolbarReloadEngine");
             if (chkSyncFocus != null)
                 chkSyncFocus.Text = L("ToolbarSync");
-            if (tsbSyncHost != null)
-                tsbSyncHost.Text = L("ToolbarSync");
+            if (tsbPerfExportPlaywrightTs != null)
+                tsbPerfExportPlaywrightTs.Text = L("ToolbarExportPlaywrightTs");
+            if (tsbPerfExportSeleniumTs != null)
+                tsbPerfExportSeleniumTs.Text = L("ToolbarExportSeleniumTs");
+            if (tsbStepExportAllPlaywrightTs != null)
+                tsbStepExportAllPlaywrightTs.Text = L("ToolbarStepsExportAllPlaywrightTs");
+            if (tsbStepExportAllSeleniumTs != null)
+                tsbStepExportAllSeleniumTs.Text = L("ToolbarStepsExportAllSeleniumTs");
+            if (tsmStepsExportPlaywrightTs != null)
+                tsmStepsExportPlaywrightTs.Text = L("StepsMenuExportPlaywrightTs");
+            if (tsmStepsExportSeleniumTs != null)
+                tsmStepsExportSeleniumTs.Text = L("StepsMenuExportSeleniumTs");
+            if (tsmStepsExportAllPlaywrightTs != null)
+                tsmStepsExportAllPlaywrightTs.Text = L("StepsMenuExportAllPlaywrightTs");
+            if (tsmStepsExportAllSeleniumTs != null)
+                tsmStepsExportAllSeleniumTs.Text = L("StepsMenuExportAllSeleniumTs");
             if (chkWithPerformanceTest != null)
                 chkWithPerformanceTest.Text = L("ToolbarWithPerformanceTest");
-            if (tsbPerfHost != null)
-                tsbPerfHost.Text = L("ToolbarWithPerformanceTest");
             tsbRunPerf.Text = L("ToolbarRunPerf");
             tsbStopPerf.Text = L("ToolbarStopPerf");
             tsbRunPerfSelected.Text = L("ToolbarRunSelectedAnchor");
@@ -146,9 +172,12 @@ namespace MARS.WebAutomation.UI
             chkTreeRegex.AccessibleDescription = L("RegexMode");
             if (_objectPreview != null)
                 _objectPreview.SetTitle(L("PreviewTitle"));
+            if (stepObjectPropertyPanel != null)
+                stepObjectPropertyPanel.SetUiLanguage(_settings?.UiLanguage ?? "en");
             ApplyRecordCanvasToolbarLocalization();
             UpdateUriLabels();
             ApplyWorkbenchChrome();
+            UpdateRecorderCaptureModeUi();
         }
 
         private void btnTreeSearchGo_Click(object sender, EventArgs e) => RunTreeSearch(resetIndex: true);

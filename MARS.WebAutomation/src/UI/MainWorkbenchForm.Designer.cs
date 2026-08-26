@@ -17,10 +17,19 @@ namespace MARS.WebAutomation.UI
         private System.Windows.Forms.ToolStripMenuItem menuHelpLangEnglish;
         private System.Windows.Forms.ToolStripMenuItem menuHelpLangChinese;
         private System.Windows.Forms.ToolStripMenuItem menuHelpAbout;
+        private System.Windows.Forms.ToolStripMenuItem menuRecord;
+        private System.Windows.Forms.ToolStripMenuItem menuRecordCaptureSemantic;
+        private System.Windows.Forms.ToolStripMenuItem menuRecordCapturePlain;
+        private System.Windows.Forms.ToolStripSeparator menuRecordSepExport;
+        private System.Windows.Forms.ToolStripMenuItem menuRecordExportAllPlaywrightTs;
+        private System.Windows.Forms.ToolStripMenuItem menuRecordExportAllSeleniumTs;
         private System.Windows.Forms.ToolStrip toolMain;
         private System.Windows.Forms.ToolStrip toolPerf;
         private System.Windows.Forms.ToolStripButton tsbTarget;
         private System.Windows.Forms.ToolStripButton tsbRecord;
+        private System.Windows.Forms.ToolStripDropDownButton tsddbRecordCapture;
+        private System.Windows.Forms.ToolStripMenuItem tsmiRecordCaptureSemantic;
+        private System.Windows.Forms.ToolStripMenuItem tsmiRecordCapturePlain;
         private System.Windows.Forms.ToolStripButton tsbReplay;
         private System.Windows.Forms.ToolStripSeparator tsbSep1;
         private System.Windows.Forms.ToolStripButton tsbExport;
@@ -36,6 +45,9 @@ namespace MARS.WebAutomation.UI
         private System.Windows.Forms.ToolStripButton tsbRunPerf;
         private System.Windows.Forms.ToolStripButton tsbStopPerf;
         private System.Windows.Forms.ToolStripButton tsbRunPerfSelected;
+        private System.Windows.Forms.ToolStripSeparator tsbSepPerfScripts;
+        private System.Windows.Forms.ToolStripButton tsbPerfExportPlaywrightTs;
+        private System.Windows.Forms.ToolStripButton tsbPerfExportSeleniumTs;
         private System.Windows.Forms.ToolStripLabel tslBrand;
         private System.Windows.Forms.ToolStripSeparator tsbSepBrand;
         private System.Windows.Forms.StatusStrip statusMain;
@@ -91,8 +103,50 @@ namespace MARS.WebAutomation.UI
         private System.Windows.Forms.TabPage tabSettings;
         private System.Windows.Forms.SplitContainer splitRecordMainPreview;
         private System.Windows.Forms.SplitContainer splitRecordWorkPreview;
+        private System.Windows.Forms.SplitContainer splitRecordCanvasProps;
+        private MARS.WebAutomation.UI.StepObjectPropertyPanel stepObjectPropertyPanel;
         private System.Windows.Forms.Panel panelRecordCanvasPreview;
-        private System.Windows.Forms.Label lblRecordCanvasPreview;
+        private Microsoft.Web.WebView2.WinForms.WebView2 recordWebView;
+        private System.Windows.Forms.ToolStrip toolStripRecordCanvas;
+        private System.Windows.Forms.ToolStripButton tsbRecordCanvasZoomOut;
+        private System.Windows.Forms.ToolStripButton tsbRecordCanvasZoomIn;
+        private System.Windows.Forms.ToolStripButton tsbRecordCanvasCenter;
+        private System.Windows.Forms.ToolStripSeparator tsbRecordCanvasSep1;
+        private System.Windows.Forms.ToolStripSeparator tsbRecordCanvasSep2;
+        private System.Windows.Forms.ToolStripLabel tslRecordCanvasZoom;
+        private System.Windows.Forms.ToolStrip toolStripStepCommands;
+        private System.Windows.Forms.ToolStripButton tsbStepInsert;
+        private System.Windows.Forms.ToolStripButton tsbStepDelete;
+        private System.Windows.Forms.ToolStripButton tsbStepReplay;
+        private System.Windows.Forms.ToolStripSeparator tsbStepSep2;
+        private System.Windows.Forms.ToolStripButton tsbStepRunAll;
+        private System.Windows.Forms.ToolStripButton tsbStepClearAll;
+        private System.Windows.Forms.ToolStripSeparator tsbStepSep3;
+        private System.Windows.Forms.ToolStripButton tsbStepExportAllPlaywrightTs;
+        private System.Windows.Forms.ToolStripButton tsbStepExportAllSeleniumTs;
+        private System.Windows.Forms.ToolStripSeparator tsbStepSep1;
+        private System.Windows.Forms.Label lblStepVisualization;
+        private System.Windows.Forms.ContextMenuStrip cmsPerfGrid;
+        private System.Windows.Forms.ToolStripMenuItem tsmPerfCtxIgnore;
+        private System.Windows.Forms.ToolStripSeparator tsmPerfCtxSep1;
+        private System.Windows.Forms.ToolStripMenuItem tsmPerfCtxExport;
+        private System.Windows.Forms.ToolStripMenuItem tsmPerfCtxImport;
+        private System.Windows.Forms.ContextMenuStrip cmsStepsGrid;
+        private System.Windows.Forms.ToolStripMenuItem tsmStepsRun;
+        private System.Windows.Forms.ToolStripMenuItem tsmStepsDelete;
+        private System.Windows.Forms.ToolStripMenuItem tsmStepsHighlight;
+        private System.Windows.Forms.ToolStripSeparator tsmStepsSep1;
+        private System.Windows.Forms.ToolStripMenuItem tsmStepsExport;
+        private System.Windows.Forms.ToolStripMenuItem tsmStepsInsert;
+        private System.Windows.Forms.ToolStripMenuItem tsmStepsPrettyPaint;
+        private System.Windows.Forms.ToolStripSeparator tsmStepsSep2;
+        private System.Windows.Forms.ToolStripMenuItem tsmStepsExportPlaywrightTs;
+        private System.Windows.Forms.ToolStripMenuItem tsmStepsExportSeleniumTs;
+        private System.Windows.Forms.ToolStripSeparator tsmStepsSep3;
+        private System.Windows.Forms.ToolStripMenuItem tsmStepsExportAllPlaywrightTs;
+        private System.Windows.Forms.ToolStripMenuItem tsmStepsExportAllSeleniumTs;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colObjPropName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colObjPropValue;
         private System.Windows.Forms.Panel panelRecordPerfPreview;
         private System.Windows.Forms.SplitContainer splitRecordPerfPreview;
         private System.Windows.Forms.DataGridView gridPerfRuntimePreview;
@@ -107,6 +161,8 @@ namespace MARS.WebAutomation.UI
         private System.Windows.Forms.CheckBox chkTreeRegex;
         private System.Windows.Forms.SplitContainer splitObjects;
         private System.Windows.Forms.TreeView treeObjects;
+        private System.Windows.Forms.ContextMenuStrip cmsObjectTree;
+        private System.Windows.Forms.ToolStripMenuItem tsmObjectTreeAddStep;
         private System.Windows.Forms.DataGridView gridObjectProps;
         private System.Windows.Forms.Button btnRefreshTree;
         private System.Windows.Forms.TableLayoutPanel layoutSettings;
@@ -125,6 +181,7 @@ namespace MARS.WebAutomation.UI
 
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.menuMain = new System.Windows.Forms.MenuStrip();
             this.menuFile = new System.Windows.Forms.ToolStripMenuItem();
             this.menuFileSave = new System.Windows.Forms.ToolStripMenuItem();
@@ -134,6 +191,12 @@ namespace MARS.WebAutomation.UI
             this.menuFileImport = new System.Windows.Forms.ToolStripMenuItem();
             this.menuFileSep = new System.Windows.Forms.ToolStripSeparator();
             this.menuFileExit = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuRecord = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuRecordCaptureSemantic = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuRecordCapturePlain = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuRecordSepExport = new System.Windows.Forms.ToolStripSeparator();
+            this.menuRecordExportAllPlaywrightTs = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuRecordExportAllSeleniumTs = new System.Windows.Forms.ToolStripMenuItem();
             this.menuHelp = new System.Windows.Forms.ToolStripMenuItem();
             this.menuHelpLanguage = new System.Windows.Forms.ToolStripMenuItem();
             this.menuHelpLangEnglish = new System.Windows.Forms.ToolStripMenuItem();
@@ -144,6 +207,9 @@ namespace MARS.WebAutomation.UI
             this.tsbSepBrand = new System.Windows.Forms.ToolStripSeparator();
             this.tsbTarget = new System.Windows.Forms.ToolStripButton();
             this.tsbRecord = new System.Windows.Forms.ToolStripButton();
+            this.tsddbRecordCapture = new System.Windows.Forms.ToolStripDropDownButton();
+            this.tsmiRecordCaptureSemantic = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiRecordCapturePlain = new System.Windows.Forms.ToolStripMenuItem();
             this.tsbReplay = new System.Windows.Forms.ToolStripButton();
             this.tsbSep1 = new System.Windows.Forms.ToolStripSeparator();
             this.tsbExport = new System.Windows.Forms.ToolStripButton();
@@ -153,13 +219,16 @@ namespace MARS.WebAutomation.UI
             this.tsbSepReload = new System.Windows.Forms.ToolStripSeparator();
             this.tsbReloadEngine = new System.Windows.Forms.ToolStripButton();
             this.tsbSepSync = new System.Windows.Forms.ToolStripSeparator();
-            this.tsbSyncHost = new System.Windows.Forms.ToolStripButton();
+            this.tshSyncFocusHost = new System.Windows.Forms.CheckBox();
             this.toolPerf = new System.Windows.Forms.ToolStrip();
             this.tsbSepPerf = new System.Windows.Forms.ToolStripSeparator();
-            this.tsbPerfHost = new System.Windows.Forms.ToolStripButton();
+            this.tshWithPerfTestHost = new System.Windows.Forms.CheckBox();
             this.tsbRunPerf = new System.Windows.Forms.ToolStripButton();
             this.tsbStopPerf = new System.Windows.Forms.ToolStripButton();
             this.tsbRunPerfSelected = new System.Windows.Forms.ToolStripButton();
+            this.tsbSepPerfScripts = new System.Windows.Forms.ToolStripSeparator();
+            this.tsbPerfExportPlaywrightTs = new System.Windows.Forms.ToolStripButton();
+            this.tsbPerfExportSeleniumTs = new System.Windows.Forms.ToolStripButton();
             this.statusMain = new System.Windows.Forms.StatusStrip();
             this.statusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.tabMain = new System.Windows.Forms.TabControl();
@@ -178,7 +247,11 @@ namespace MARS.WebAutomation.UI
             this.tabObjects = new System.Windows.Forms.TabPage();
             this.splitObjects = new System.Windows.Forms.SplitContainer();
             this.treeObjects = new System.Windows.Forms.TreeView();
+            this.cmsObjectTree = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.tsmObjectTreeAddStep = new System.Windows.Forms.ToolStripMenuItem();
             this.gridObjectProps = new System.Windows.Forms.DataGridView();
+            this.name = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.value = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panelObjectsToolbar = new System.Windows.Forms.Panel();
             this.flowObjectsToolbar = new System.Windows.Forms.FlowLayoutPanel();
             this.txtTreeSearch = new System.Windows.Forms.TextBox();
@@ -205,15 +278,55 @@ namespace MARS.WebAutomation.UI
             this.colLocAlt = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colParam = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colPerfRef = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.cmsStepsGrid = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.tsmStepsRun = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmStepsDelete = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmStepsHighlight = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmStepsSep1 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsmStepsExport = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmStepsInsert = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmStepsPrettyPaint = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmStepsSep2 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsmStepsExportPlaywrightTs = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmStepsExportSeleniumTs = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmStepsSep3 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsmStepsExportAllPlaywrightTs = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmStepsExportAllSeleniumTs = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripStepCommands = new System.Windows.Forms.ToolStrip();
+            this.tsbStepInsert = new System.Windows.Forms.ToolStripButton();
+            this.tsbStepDelete = new System.Windows.Forms.ToolStripButton();
+            this.tsbStepSep1 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsbStepReplay = new System.Windows.Forms.ToolStripButton();
+            this.tsbStepSep2 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsbStepRunAll = new System.Windows.Forms.ToolStripButton();
+            this.tsbStepClearAll = new System.Windows.Forms.ToolStripButton();
+            this.tsbStepSep3 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsbStepExportAllPlaywrightTs = new System.Windows.Forms.ToolStripButton();
+            this.tsbStepExportAllSeleniumTs = new System.Windows.Forms.ToolStripButton();
+            this.lblStepVisualization = new System.Windows.Forms.Label();
             this.panelRecordPerfPreview = new System.Windows.Forms.Panel();
             this.splitRecordPerfPreview = new System.Windows.Forms.SplitContainer();
             this.gridPerfAnchorPreview = new System.Windows.Forms.DataGridView();
+            this.cmsPerfGrid = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.tsmPerfCtxIgnore = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmPerfCtxSep1 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsmPerfCtxExport = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmPerfCtxImport = new System.Windows.Forms.ToolStripMenuItem();
             this.lblPerfDesignAnchorSummary = new System.Windows.Forms.Label();
             this.gridPerfRuntimePreview = new System.Windows.Forms.DataGridView();
             this.lblPerfDesignRuntime = new System.Windows.Forms.Label();
             this.lblPerfDesignTitle = new System.Windows.Forms.Label();
+            this.splitRecordCanvasProps = new System.Windows.Forms.SplitContainer();
             this.panelRecordCanvasPreview = new System.Windows.Forms.Panel();
-            this.lblRecordCanvasPreview = new System.Windows.Forms.Label();
+            this.recordWebView = new Microsoft.Web.WebView2.WinForms.WebView2();
+            this.toolStripRecordCanvas = new System.Windows.Forms.ToolStrip();
+            this.tsbRecordCanvasZoomOut = new System.Windows.Forms.ToolStripButton();
+            this.tsbRecordCanvasZoomIn = new System.Windows.Forms.ToolStripButton();
+            this.tsbRecordCanvasSep1 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsbRecordCanvasCenter = new System.Windows.Forms.ToolStripButton();
+            this.tsbRecordCanvasSep2 = new System.Windows.Forms.ToolStripSeparator();
+            this.tslRecordCanvasZoom = new System.Windows.Forms.ToolStripLabel();
+            this.stepObjectPropertyPanel = new MARS.WebAutomation.UI.StepObjectPropertyPanel();
             this.lblRecordHint = new System.Windows.Forms.Label();
             this.tabApiPerformance = new System.Windows.Forms.TabPage();
             this.layoutApiPerf = new System.Windows.Forms.TableLayoutPanel();
@@ -280,6 +393,7 @@ namespace MARS.WebAutomation.UI
             this.splitObjects.Panel1.SuspendLayout();
             this.splitObjects.Panel2.SuspendLayout();
             this.splitObjects.SuspendLayout();
+            this.cmsObjectTree.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gridObjectProps)).BeginInit();
             this.panelObjectsToolbar.SuspendLayout();
             this.flowObjectsToolbar.SuspendLayout();
@@ -294,14 +408,23 @@ namespace MARS.WebAutomation.UI
             this.splitRecordWorkPreview.SuspendLayout();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gridSteps)).BeginInit();
+            this.cmsStepsGrid.SuspendLayout();
+            this.toolStripStepCommands.SuspendLayout();
             this.panelRecordPerfPreview.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitRecordPerfPreview)).BeginInit();
             this.splitRecordPerfPreview.Panel1.SuspendLayout();
             this.splitRecordPerfPreview.Panel2.SuspendLayout();
             this.splitRecordPerfPreview.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gridPerfAnchorPreview)).BeginInit();
+            this.cmsPerfGrid.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gridPerfRuntimePreview)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitRecordCanvasProps)).BeginInit();
+            this.splitRecordCanvasProps.Panel1.SuspendLayout();
+            this.splitRecordCanvasProps.Panel2.SuspendLayout();
+            this.splitRecordCanvasProps.SuspendLayout();
             this.panelRecordCanvasPreview.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.recordWebView)).BeginInit();
+            this.toolStripRecordCanvas.SuspendLayout();
             this.tabApiPerformance.SuspendLayout();
             this.layoutApiPerf.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitApiPerf)).BeginInit();
@@ -326,6 +449,7 @@ namespace MARS.WebAutomation.UI
             this.menuMain.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.menuMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuFile,
+            this.menuRecord,
             this.menuHelp});
             this.menuMain.Location = new System.Drawing.Point(0, 0);
             this.menuMain.Name = "menuMain";
@@ -395,6 +519,51 @@ namespace MARS.WebAutomation.UI
             this.menuFileExit.Text = "Exit";
             this.menuFileExit.Click += new System.EventHandler(this.menuFileExit_Click);
             // 
+            // menuRecord
+            // 
+            this.menuRecord.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuRecordCaptureSemantic,
+            this.menuRecordCapturePlain,
+            this.menuRecordSepExport,
+            this.menuRecordExportAllPlaywrightTs,
+            this.menuRecordExportAllSeleniumTs});
+            this.menuRecord.Name = "menuRecord";
+            this.menuRecord.Size = new System.Drawing.Size(56, 20);
+            this.menuRecord.Text = "Record";
+            // 
+            // menuRecordCaptureSemantic
+            // 
+            this.menuRecordCaptureSemantic.Name = "menuRecordCaptureSemantic";
+            this.menuRecordCaptureSemantic.Size = new System.Drawing.Size(250, 22);
+            this.menuRecordCaptureSemantic.Text = "Capture: semantic";
+            this.menuRecordCaptureSemantic.Click += new System.EventHandler(this.menuRecordCaptureSemantic_Click);
+            // 
+            // menuRecordCapturePlain
+            // 
+            this.menuRecordCapturePlain.Name = "menuRecordCapturePlain";
+            this.menuRecordCapturePlain.Size = new System.Drawing.Size(250, 22);
+            this.menuRecordCapturePlain.Text = "Capture: plain (event target)";
+            this.menuRecordCapturePlain.Click += new System.EventHandler(this.menuRecordCapturePlain_Click);
+            // 
+            // menuRecordSepExport
+            // 
+            this.menuRecordSepExport.Name = "menuRecordSepExport";
+            this.menuRecordSepExport.Size = new System.Drawing.Size(247, 6);
+            // 
+            // menuRecordExportAllPlaywrightTs
+            // 
+            this.menuRecordExportAllPlaywrightTs.Name = "menuRecordExportAllPlaywrightTs";
+            this.menuRecordExportAllPlaywrightTs.Size = new System.Drawing.Size(250, 22);
+            this.menuRecordExportAllPlaywrightTs.Text = "Export all steps — Playwright (TS)";
+            this.menuRecordExportAllPlaywrightTs.Click += new System.EventHandler(this.menuRecordExportAllPlaywrightTs_Click);
+            // 
+            // menuRecordExportAllSeleniumTs
+            // 
+            this.menuRecordExportAllSeleniumTs.Name = "menuRecordExportAllSeleniumTs";
+            this.menuRecordExportAllSeleniumTs.Size = new System.Drawing.Size(250, 22);
+            this.menuRecordExportAllSeleniumTs.Text = "Export all steps — Selenium (TS)";
+            this.menuRecordExportAllSeleniumTs.Click += new System.EventHandler(this.menuRecordExportAllSeleniumTs_Click);
+            // 
             // menuHelp
             // 
             this.menuHelp.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -442,6 +611,7 @@ namespace MARS.WebAutomation.UI
             this.tsbSepBrand,
             this.tsbTarget,
             this.tsbRecord,
+            this.tsddbRecordCapture,
             this.tsbReplay,
             this.tsbSep1,
             this.tsbExport,
@@ -451,7 +621,7 @@ namespace MARS.WebAutomation.UI
             this.tsbSepReload,
             this.tsbReloadEngine,
             this.tsbSepSync,
-            this.tsbSyncHost});
+            this.tshSyncFocusHost});
             this.toolMain.Location = new System.Drawing.Point(0, 24);
             this.toolMain.Name = "toolMain";
             this.toolMain.Size = new System.Drawing.Size(898, 25);
@@ -486,6 +656,30 @@ namespace MARS.WebAutomation.UI
             this.tsbRecord.Size = new System.Drawing.Size(48, 22);
             this.tsbRecord.Text = "Record";
             this.tsbRecord.Click += new System.EventHandler(this.tsbRecord_Click);
+            // 
+            // tsddbRecordCapture
+            // 
+            this.tsddbRecordCapture.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsddbRecordCapture.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsmiRecordCaptureSemantic,
+            this.tsmiRecordCapturePlain});
+            this.tsddbRecordCapture.Name = "tsddbRecordCapture";
+            this.tsddbRecordCapture.Size = new System.Drawing.Size(116, 22);
+            this.tsddbRecordCapture.Text = "Capture: semantic";
+            // 
+            // tsmiRecordCaptureSemantic
+            // 
+            this.tsmiRecordCaptureSemantic.Name = "tsmiRecordCaptureSemantic";
+            this.tsmiRecordCaptureSemantic.Size = new System.Drawing.Size(217, 22);
+            this.tsmiRecordCaptureSemantic.Text = "Semantic (tab/menu/rules)";
+            this.tsmiRecordCaptureSemantic.Click += new System.EventHandler(this.tsmiRecordCaptureSemantic_Click);
+            // 
+            // tsmiRecordCapturePlain
+            // 
+            this.tsmiRecordCapturePlain.Name = "tsmiRecordCapturePlain";
+            this.tsmiRecordCapturePlain.Size = new System.Drawing.Size(217, 22);
+            this.tsmiRecordCapturePlain.Text = "Plain (event target + PW)";
+            this.tsmiRecordCapturePlain.Click += new System.EventHandler(this.tsmiRecordCapturePlain_Click);
             // 
             // tsbReplay
             // 
@@ -546,26 +740,36 @@ namespace MARS.WebAutomation.UI
             this.tsbSepSync.Name = "tsbSepSync";
             this.tsbSepSync.Size = new System.Drawing.Size(6, 25);
             // 
-            // tsbSyncHost
+            // tshSyncFocusHost
             // 
-            this.tsbSyncHost.AccessibleName = "tsbSyncHost";
-            this.tsbSyncHost.AutoSize = false;
-            this.tsbSyncHost.CheckOnClick = true;
-            this.tsbSyncHost.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsbSyncHost.Margin = new System.Windows.Forms.Padding(2, 0, 0, 0);
-            this.tsbSyncHost.Name = "tsbSyncHost";
-            this.tsbSyncHost.Size = new System.Drawing.Size(120, 22);
-            this.tsbSyncHost.Text = "Sync Host";
+            this.tshSyncFocusHost.AccessibleName = "tshSyncFocusHost";
+            this.tshSyncFocusHost.AutoSize = true;
+            this.tshSyncFocusHost.Location = new System.Drawing.Point(740, 0);
+            this.tshSyncFocusHost.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            this.tshSyncFocusHost.Name = "tshSyncFocusHost";
+            this.tshSyncFocusHost.Size = new System.Drawing.Size(130, 24);
+            this.tshSyncFocusHost.TabIndex = 0;
+            this.tshSyncFocusHost.UseVisualStyleBackColor = true;
+            // 
+            // tshSyncFocusHost
+            // 
+            this.tshSyncFocusHost.AutoSize = false;
+            this.tshSyncFocusHost.Margin = new System.Windows.Forms.Padding(2, 0, 0, 0);
+            this.tshSyncFocusHost.Name = "tshSyncFocusHost";
+            this.tshSyncFocusHost.Size = new System.Drawing.Size(130, 24);
             // 
             // toolPerf
             // 
             this.toolPerf.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.toolPerf.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tsbSepPerf,
-            this.tsbPerfHost,
+            this.tshWithPerfTestHost,
             this.tsbRunPerf,
             this.tsbStopPerf,
-            this.tsbRunPerfSelected});
+            this.tsbRunPerfSelected,
+            this.tsbSepPerfScripts,
+            this.tsbPerfExportPlaywrightTs,
+            this.tsbPerfExportSeleniumTs});
             this.toolPerf.Location = new System.Drawing.Point(0, 49);
             this.toolPerf.Name = "toolPerf";
             this.toolPerf.Size = new System.Drawing.Size(898, 25);
@@ -576,18 +780,25 @@ namespace MARS.WebAutomation.UI
             this.tsbSepPerf.Name = "tsbSepPerf";
             this.tsbSepPerf.Size = new System.Drawing.Size(6, 25);
             // 
-            // tsbPerfHost
+            // tshWithPerfTestHost
             // 
-            this.tsbPerfHost.AccessibleName = "tsbPerfHost";
-            this.tsbPerfHost.AutoSize = false;
-            this.tsbPerfHost.Checked = true;
-            this.tsbPerfHost.CheckOnClick = true;
-            this.tsbPerfHost.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.tsbPerfHost.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsbPerfHost.Margin = new System.Windows.Forms.Padding(2, 0, 0, 0);
-            this.tsbPerfHost.Name = "tsbPerfHost";
-            this.tsbPerfHost.Size = new System.Drawing.Size(190, 22);
-            this.tsbPerfHost.Text = "With Performance Test";
+            this.tshWithPerfTestHost.AccessibleName = "tshWithPerfTestHost";
+            this.tshWithPerfTestHost.AutoSize = true;
+            this.tshWithPerfTestHost.Checked = true;
+            this.tshWithPerfTestHost.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.tshWithPerfTestHost.Location = new System.Drawing.Point(17, 1);
+            this.tshWithPerfTestHost.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            this.tshWithPerfTestHost.Name = "tshWithPerfTestHost";
+            this.tshWithPerfTestHost.Size = new System.Drawing.Size(200, 22);
+            this.tshWithPerfTestHost.TabIndex = 0;
+            this.tshWithPerfTestHost.UseVisualStyleBackColor = true;
+            // 
+            // tshWithPerfTestHost
+            // 
+            this.tshWithPerfTestHost.AutoSize = false;
+            this.tshWithPerfTestHost.Margin = new System.Windows.Forms.Padding(2, 0, 0, 0);
+            this.tshWithPerfTestHost.Name = "tshWithPerfTestHost";
+            this.tshWithPerfTestHost.Size = new System.Drawing.Size(200, 22);
             // 
             // tsbRunPerf
             // 
@@ -611,6 +822,27 @@ namespace MARS.WebAutomation.UI
             this.tsbRunPerfSelected.Size = new System.Drawing.Size(121, 22);
             this.tsbRunPerfSelected.Text = "Run Selected Anchor";
             this.tsbRunPerfSelected.Click += new System.EventHandler(this.tsbRunPerfSelected_Click);
+            // 
+            // tsbSepPerfScripts
+            // 
+            this.tsbSepPerfScripts.Name = "tsbSepPerfScripts";
+            this.tsbSepPerfScripts.Size = new System.Drawing.Size(6, 25);
+            // 
+            // tsbPerfExportPlaywrightTs
+            // 
+            this.tsbPerfExportPlaywrightTs.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
+            this.tsbPerfExportPlaywrightTs.Name = "tsbPerfExportPlaywrightTs";
+            this.tsbPerfExportPlaywrightTs.Size = new System.Drawing.Size(45, 22);
+            this.tsbPerfExportPlaywrightTs.Text = "PW TS";
+            this.tsbPerfExportPlaywrightTs.Click += new System.EventHandler(this.tsbPerfExportPlaywrightTs_Click);
+            // 
+            // tsbPerfExportSeleniumTs
+            // 
+            this.tsbPerfExportSeleniumTs.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
+            this.tsbPerfExportSeleniumTs.Name = "tsbPerfExportSeleniumTs";
+            this.tsbPerfExportSeleniumTs.Size = new System.Drawing.Size(39, 22);
+            this.tsbPerfExportSeleniumTs.Text = "Se TS";
+            this.tsbPerfExportSeleniumTs.Click += new System.EventHandler(this.tsbPerfExportSeleniumTs_Click);
             // 
             // statusMain
             // 
@@ -641,6 +873,7 @@ namespace MARS.WebAutomation.UI
             this.tabMain.SelectedIndex = 0;
             this.tabMain.Size = new System.Drawing.Size(898, 480);
             this.tabMain.TabIndex = 3;
+            this.tabMain.SelectedIndexChanged += new System.EventHandler(this.tabMain_SelectedIndexChanged);
             // 
             // tabTarget
             // 
@@ -834,12 +1067,29 @@ namespace MARS.WebAutomation.UI
             // 
             // treeObjects
             // 
+            this.treeObjects.ContextMenuStrip = this.cmsObjectTree;
             this.treeObjects.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeObjects.Location = new System.Drawing.Point(0, 0);
             this.treeObjects.Name = "treeObjects";
             this.treeObjects.Size = new System.Drawing.Size(368, 414);
             this.treeObjects.TabIndex = 0;
             this.treeObjects.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeObjects_AfterSelect);
+            this.treeObjects.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.treeObjects_NodeMouseClick);
+            this.treeObjects.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.treeObjects_NodeMouseDoubleClick);
+            // 
+            // cmsObjectTree
+            // 
+            this.cmsObjectTree.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsmObjectTreeAddStep});
+            this.cmsObjectTree.Name = "cmsObjectTree";
+            this.cmsObjectTree.Size = new System.Drawing.Size(167, 26);
+            // 
+            // tsmObjectTreeAddStep
+            // 
+            this.tsmObjectTreeAddStep.Name = "tsmObjectTreeAddStep";
+            this.tsmObjectTreeAddStep.Size = new System.Drawing.Size(166, 22);
+            this.tsmObjectTreeAddStep.Text = "Add as test step…";
+            this.tsmObjectTreeAddStep.Click += new System.EventHandler(this.tsmObjectTreeAddStep_Click);
             // 
             // gridObjectProps
             // 
@@ -847,6 +1097,9 @@ namespace MARS.WebAutomation.UI
             this.gridObjectProps.AllowUserToDeleteRows = false;
             this.gridObjectProps.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.gridObjectProps.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.gridObjectProps.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.name,
+            this.value});
             this.gridObjectProps.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gridObjectProps.Location = new System.Drawing.Point(0, 0);
             this.gridObjectProps.Name = "gridObjectProps";
@@ -855,6 +1108,20 @@ namespace MARS.WebAutomation.UI
             this.gridObjectProps.RowHeadersWidth = 51;
             this.gridObjectProps.Size = new System.Drawing.Size(510, 414);
             this.gridObjectProps.TabIndex = 0;
+            // 
+            // name
+            // 
+            this.name.HeaderText = "Property";
+            this.name.MinimumWidth = 6;
+            this.name.Name = "name";
+            this.name.ReadOnly = true;
+            // 
+            // value
+            // 
+            this.value.HeaderText = "Value";
+            this.value.MinimumWidth = 6;
+            this.value.Name = "value";
+            this.value.ReadOnly = true;
             // 
             // panelObjectsToolbar
             // 
@@ -958,9 +1225,11 @@ namespace MARS.WebAutomation.UI
             this.tabRecord.TabIndex = 2;
             this.tabRecord.Text = "Record / Replay";
             this.tabRecord.UseVisualStyleBackColor = true;
+            this.tabRecord.SizeChanged += new System.EventHandler(this.TabRecord_SizeChanged);
             // 
             // splitRecordMainPreview
             // 
+            this.splitRecordMainPreview.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.splitRecordMainPreview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitRecordMainPreview.Location = new System.Drawing.Point(4, 37);
             this.splitRecordMainPreview.Name = "splitRecordMainPreview";
@@ -968,12 +1237,15 @@ namespace MARS.WebAutomation.UI
             // splitRecordMainPreview.Panel1
             // 
             this.splitRecordMainPreview.Panel1.Controls.Add(this.splitRecordWorkPreview);
+            this.splitRecordMainPreview.Panel1MinSize = 260;
             // 
             // splitRecordMainPreview.Panel2
             // 
-            this.splitRecordMainPreview.Panel2.Controls.Add(this.panelRecordCanvasPreview);
+            this.splitRecordMainPreview.Panel2.Controls.Add(this.splitRecordCanvasProps);
+            this.splitRecordMainPreview.Panel2MinSize = 160;
             this.splitRecordMainPreview.Size = new System.Drawing.Size(882, 413);
             this.splitRecordMainPreview.SplitterDistance = 554;
+            this.splitRecordMainPreview.SplitterWidth = 6;
             this.splitRecordMainPreview.TabIndex = 5;
             // 
             // splitRecordWorkPreview
@@ -986,22 +1258,27 @@ namespace MARS.WebAutomation.UI
             // splitRecordWorkPreview.Panel1
             // 
             this.splitRecordWorkPreview.Panel1.Controls.Add(this.panel1);
+            this.splitRecordWorkPreview.Panel1MinSize = 120;
             // 
             // splitRecordWorkPreview.Panel2
             // 
             this.splitRecordWorkPreview.Panel2.Controls.Add(this.panelRecordPerfPreview);
-            this.splitRecordWorkPreview.Size = new System.Drawing.Size(554, 413);
-            this.splitRecordWorkPreview.SplitterDistance = 209;
+            this.splitRecordWorkPreview.Panel2MinSize = 90;
+            this.splitRecordWorkPreview.Size = new System.Drawing.Size(552, 411);
+            this.splitRecordWorkPreview.SplitterDistance = 207;
+            this.splitRecordWorkPreview.SplitterWidth = 6;
             this.splitRecordWorkPreview.TabIndex = 0;
             // 
             // panel1
             // 
             this.panel1.Controls.Add(this.gridSteps);
+            this.panel1.Controls.Add(this.toolStripStepCommands);
+            this.panel1.Controls.Add(this.lblStepVisualization);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Margin = new System.Windows.Forms.Padding(2);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(554, 209);
+            this.panel1.Size = new System.Drawing.Size(552, 207);
             this.panel1.TabIndex = 3;
             // 
             // gridSteps
@@ -1023,14 +1300,24 @@ namespace MARS.WebAutomation.UI
             this.colLocAlt,
             this.colParam,
             this.colPerfRef});
+            this.gridSteps.ContextMenuStrip = this.cmsStepsGrid;
             this.gridSteps.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gridSteps.Location = new System.Drawing.Point(0, 0);
+            this.gridSteps.Location = new System.Drawing.Point(0, 47);
             this.gridSteps.Name = "gridSteps";
             this.gridSteps.ReadOnly = true;
             this.gridSteps.RowHeadersVisible = false;
             this.gridSteps.RowHeadersWidth = 51;
-            this.gridSteps.Size = new System.Drawing.Size(554, 209);
+            this.gridSteps.Size = new System.Drawing.Size(552, 160);
             this.gridSteps.TabIndex = 1;
+            this.gridSteps.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gridSteps_CellContentClick);
+            this.gridSteps.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gridSteps_CellDoubleClick);
+            this.gridSteps.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.gridSteps_CellEndEdit);
+            this.gridSteps.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.gridSteps_CellFormatting);
+            this.gridSteps.CellMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.gridSteps_CellMouseClick);
+            this.gridSteps.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.gridSteps_CellPainting);
+            this.gridSteps.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.Grid_DataError);
+            this.gridSteps.RowPrePaint += new System.Windows.Forms.DataGridViewRowPrePaintEventHandler(this.gridSteps_RowPrePaint);
+            this.gridSteps.SelectionChanged += new System.EventHandler(this.gridSteps_SelectionChanged);
             // 
             // colAct
             // 
@@ -1147,6 +1434,216 @@ namespace MARS.WebAutomation.UI
             this.colPerfRef.ReadOnly = true;
             this.colPerfRef.Width = 72;
             // 
+            // cmsStepsGrid
+            // 
+            this.cmsStepsGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsmStepsRun,
+            this.tsmStepsDelete,
+            this.tsmStepsHighlight,
+            this.tsmStepsSep1,
+            this.tsmStepsExport,
+            this.tsmStepsInsert,
+            this.tsmStepsPrettyPaint,
+            this.tsmStepsSep2,
+            this.tsmStepsExportPlaywrightTs,
+            this.tsmStepsExportSeleniumTs,
+            this.tsmStepsSep3,
+            this.tsmStepsExportAllPlaywrightTs,
+            this.tsmStepsExportAllSeleniumTs});
+            this.cmsStepsGrid.Name = "cmsStepsGrid";
+            this.cmsStepsGrid.Size = new System.Drawing.Size(221, 242);
+            // 
+            // tsmStepsRun
+            // 
+            this.tsmStepsRun.Name = "tsmStepsRun";
+            this.tsmStepsRun.Size = new System.Drawing.Size(220, 22);
+            this.tsmStepsRun.Text = "Run";
+            this.tsmStepsRun.Click += new System.EventHandler(this.tsmStepsRun_Click);
+            // 
+            // tsmStepsDelete
+            // 
+            this.tsmStepsDelete.Name = "tsmStepsDelete";
+            this.tsmStepsDelete.Size = new System.Drawing.Size(220, 22);
+            this.tsmStepsDelete.Text = "Delete";
+            this.tsmStepsDelete.Click += new System.EventHandler(this.tsmStepsDelete_Click);
+            // 
+            // tsmStepsHighlight
+            // 
+            this.tsmStepsHighlight.Name = "tsmStepsHighlight";
+            this.tsmStepsHighlight.Size = new System.Drawing.Size(220, 22);
+            this.tsmStepsHighlight.Text = "Highlight";
+            this.tsmStepsHighlight.Click += new System.EventHandler(this.tsmStepsHighlight_Click);
+            // 
+            // tsmStepsSep1
+            // 
+            this.tsmStepsSep1.Name = "tsmStepsSep1";
+            this.tsmStepsSep1.Size = new System.Drawing.Size(217, 6);
+            // 
+            // tsmStepsExport
+            // 
+            this.tsmStepsExport.Name = "tsmStepsExport";
+            this.tsmStepsExport.Size = new System.Drawing.Size(220, 22);
+            this.tsmStepsExport.Text = "Export";
+            this.tsmStepsExport.Click += new System.EventHandler(this.tsmStepsExport_Click);
+            // 
+            // tsmStepsInsert
+            // 
+            this.tsmStepsInsert.Name = "tsmStepsInsert";
+            this.tsmStepsInsert.Size = new System.Drawing.Size(220, 22);
+            this.tsmStepsInsert.Text = "Insert row";
+            this.tsmStepsInsert.Click += new System.EventHandler(this.tsmStepsInsert_Click);
+            // 
+            // tsmStepsPrettyPaint
+            // 
+            this.tsmStepsPrettyPaint.Name = "tsmStepsPrettyPaint";
+            this.tsmStepsPrettyPaint.Size = new System.Drawing.Size(220, 22);
+            this.tsmStepsPrettyPaint.Text = "Pretty Paint";
+            this.tsmStepsPrettyPaint.Click += new System.EventHandler(this.tsmStepsPrettyPaint_Click);
+            // 
+            // tsmStepsSep2
+            // 
+            this.tsmStepsSep2.Name = "tsmStepsSep2";
+            this.tsmStepsSep2.Size = new System.Drawing.Size(217, 6);
+            // 
+            // tsmStepsExportPlaywrightTs
+            // 
+            this.tsmStepsExportPlaywrightTs.Name = "tsmStepsExportPlaywrightTs";
+            this.tsmStepsExportPlaywrightTs.Size = new System.Drawing.Size(220, 22);
+            this.tsmStepsExportPlaywrightTs.Text = "Export Playwright (TS)";
+            this.tsmStepsExportPlaywrightTs.Click += new System.EventHandler(this.tsmStepsExportPlaywrightTs_Click);
+            // 
+            // tsmStepsExportSeleniumTs
+            // 
+            this.tsmStepsExportSeleniumTs.Name = "tsmStepsExportSeleniumTs";
+            this.tsmStepsExportSeleniumTs.Size = new System.Drawing.Size(220, 22);
+            this.tsmStepsExportSeleniumTs.Text = "Export Selenium (TS)";
+            this.tsmStepsExportSeleniumTs.Click += new System.EventHandler(this.tsmStepsExportSeleniumTs_Click);
+            // 
+            // tsmStepsSep3
+            // 
+            this.tsmStepsSep3.Name = "tsmStepsSep3";
+            this.tsmStepsSep3.Size = new System.Drawing.Size(217, 6);
+            // 
+            // tsmStepsExportAllPlaywrightTs
+            // 
+            this.tsmStepsExportAllPlaywrightTs.Name = "tsmStepsExportAllPlaywrightTs";
+            this.tsmStepsExportAllPlaywrightTs.Size = new System.Drawing.Size(220, 22);
+            this.tsmStepsExportAllPlaywrightTs.Text = "Export all — Playwright (TS)";
+            this.tsmStepsExportAllPlaywrightTs.Click += new System.EventHandler(this.tsmStepsExportAllPlaywrightTs_Click);
+            // 
+            // tsmStepsExportAllSeleniumTs
+            // 
+            this.tsmStepsExportAllSeleniumTs.Name = "tsmStepsExportAllSeleniumTs";
+            this.tsmStepsExportAllSeleniumTs.Size = new System.Drawing.Size(220, 22);
+            this.tsmStepsExportAllSeleniumTs.Text = "Export all — Selenium (TS)";
+            this.tsmStepsExportAllSeleniumTs.Click += new System.EventHandler(this.tsmStepsExportAllSeleniumTs_Click);
+            // 
+            // toolStripStepCommands
+            // 
+            this.toolStripStepCommands.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.toolStripStepCommands.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsbStepInsert,
+            this.tsbStepDelete,
+            this.tsbStepSep1,
+            this.tsbStepReplay,
+            this.tsbStepSep2,
+            this.tsbStepRunAll,
+            this.tsbStepClearAll,
+            this.tsbStepSep3,
+            this.tsbStepExportAllPlaywrightTs,
+            this.tsbStepExportAllSeleniumTs});
+            this.toolStripStepCommands.Location = new System.Drawing.Point(0, 22);
+            this.toolStripStepCommands.Name = "toolStripStepCommands";
+            this.toolStripStepCommands.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
+            this.toolStripStepCommands.Size = new System.Drawing.Size(552, 25);
+            this.toolStripStepCommands.TabIndex = 2;
+            this.toolStripStepCommands.Text = "toolStripStepCommands";
+            // 
+            // tsbStepInsert
+            // 
+            this.tsbStepInsert.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbStepInsert.Name = "tsbStepInsert";
+            this.tsbStepInsert.Size = new System.Drawing.Size(23, 22);
+            this.tsbStepInsert.Text = "+";
+            this.tsbStepInsert.Click += new System.EventHandler(this.tsbStepInsert_Click);
+            // 
+            // tsbStepDelete
+            // 
+            this.tsbStepDelete.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbStepDelete.Name = "tsbStepDelete";
+            this.tsbStepDelete.Size = new System.Drawing.Size(23, 22);
+            this.tsbStepDelete.Text = "−";
+            this.tsbStepDelete.Click += new System.EventHandler(this.tsbStepDelete_Click);
+            // 
+            // tsbStepSep1
+            // 
+            this.tsbStepSep1.Name = "tsbStepSep1";
+            this.tsbStepSep1.Size = new System.Drawing.Size(6, 25);
+            // 
+            // tsbStepReplay
+            // 
+            this.tsbStepReplay.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbStepReplay.Name = "tsbStepReplay";
+            this.tsbStepReplay.Size = new System.Drawing.Size(23, 22);
+            this.tsbStepReplay.Text = "▶";
+            this.tsbStepReplay.Click += new System.EventHandler(this.tsbStepReplay_Click);
+            // 
+            // tsbStepSep2
+            // 
+            this.tsbStepSep2.Name = "tsbStepSep2";
+            this.tsbStepSep2.Size = new System.Drawing.Size(6, 25);
+            // 
+            // tsbStepRunAll
+            // 
+            this.tsbStepRunAll.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbStepRunAll.Name = "tsbStepRunAll";
+            this.tsbStepRunAll.Size = new System.Drawing.Size(31, 22);
+            this.tsbStepRunAll.Text = "▶▶";
+            this.tsbStepRunAll.Click += new System.EventHandler(this.tsbStepRunAll_Click);
+            // 
+            // tsbStepClearAll
+            // 
+            this.tsbStepClearAll.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbStepClearAll.Name = "tsbStepClearAll";
+            this.tsbStepClearAll.Size = new System.Drawing.Size(23, 22);
+            this.tsbStepClearAll.Text = "Clear";
+            this.tsbStepClearAll.ToolTipText = "Clear all steps";
+            this.tsbStepClearAll.Click += new System.EventHandler(this.tsbStepClearAll_Click);
+            // 
+            // tsbStepSep3
+            // 
+            this.tsbStepSep3.Name = "tsbStepSep3";
+            this.tsbStepSep3.Size = new System.Drawing.Size(6, 25);
+            // 
+            // tsbStepExportAllPlaywrightTs
+            // 
+            this.tsbStepExportAllPlaywrightTs.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbStepExportAllPlaywrightTs.Name = "tsbStepExportAllPlaywrightTs";
+            this.tsbStepExportAllPlaywrightTs.Size = new System.Drawing.Size(53, 22);
+            this.tsbStepExportAllPlaywrightTs.Text = "All→PW";
+            this.tsbStepExportAllPlaywrightTs.Click += new System.EventHandler(this.tsbStepExportAllPlaywrightTs_Click);
+            // 
+            // tsbStepExportAllSeleniumTs
+            // 
+            this.tsbStepExportAllSeleniumTs.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbStepExportAllSeleniumTs.Name = "tsbStepExportAllSeleniumTs";
+            this.tsbStepExportAllSeleniumTs.Size = new System.Drawing.Size(47, 22);
+            this.tsbStepExportAllSeleniumTs.Text = "All→Se";
+            this.tsbStepExportAllSeleniumTs.Click += new System.EventHandler(this.tsbStepExportAllSeleniumTs_Click);
+            // 
+            // lblStepVisualization
+            // 
+            this.lblStepVisualization.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(245)))), ((int)(((byte)(249)))));
+            this.lblStepVisualization.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblStepVisualization.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
+            this.lblStepVisualization.Location = new System.Drawing.Point(0, 0);
+            this.lblStepVisualization.Name = "lblStepVisualization";
+            this.lblStepVisualization.Padding = new System.Windows.Forms.Padding(8, 0, 0, 0);
+            this.lblStepVisualization.Size = new System.Drawing.Size(552, 22);
+            this.lblStepVisualization.TabIndex = 3;
+            this.lblStepVisualization.Text = "Visualization";
+            this.lblStepVisualization.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // panelRecordPerfPreview
             // 
             this.panelRecordPerfPreview.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(250)))), ((int)(((byte)(252)))));
@@ -1156,7 +1653,7 @@ namespace MARS.WebAutomation.UI
             this.panelRecordPerfPreview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelRecordPerfPreview.Location = new System.Drawing.Point(0, 0);
             this.panelRecordPerfPreview.Name = "panelRecordPerfPreview";
-            this.panelRecordPerfPreview.Size = new System.Drawing.Size(554, 200);
+            this.panelRecordPerfPreview.Size = new System.Drawing.Size(552, 198);
             this.panelRecordPerfPreview.TabIndex = 4;
             // 
             // splitRecordPerfPreview
@@ -1170,40 +1667,84 @@ namespace MARS.WebAutomation.UI
             // 
             this.splitRecordPerfPreview.Panel1.Controls.Add(this.gridPerfAnchorPreview);
             this.splitRecordPerfPreview.Panel1.Controls.Add(this.lblPerfDesignAnchorSummary);
+            this.splitRecordPerfPreview.Panel1MinSize = 100;
             // 
             // splitRecordPerfPreview.Panel2
             // 
             this.splitRecordPerfPreview.Panel2.Controls.Add(this.gridPerfRuntimePreview);
             this.splitRecordPerfPreview.Panel2.Controls.Add(this.lblPerfDesignRuntime);
-            this.splitRecordPerfPreview.Size = new System.Drawing.Size(552, 170);
-            this.splitRecordPerfPreview.SplitterDistance = 104;
-            this.splitRecordPerfPreview.SplitterWidth = 5;
+            this.splitRecordPerfPreview.Panel2MinSize = 60;
+            this.splitRecordPerfPreview.Size = new System.Drawing.Size(550, 168);
+            this.splitRecordPerfPreview.SplitterDistance = 102;
+            this.splitRecordPerfPreview.SplitterWidth = 6;
             this.splitRecordPerfPreview.TabIndex = 2;
             // 
             // gridPerfAnchorPreview
             // 
             this.gridPerfAnchorPreview.AllowUserToAddRows = false;
             this.gridPerfAnchorPreview.AllowUserToDeleteRows = false;
-            this.gridPerfAnchorPreview.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.gridPerfAnchorPreview.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             this.gridPerfAnchorPreview.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.gridPerfAnchorPreview.ContextMenuStrip = this.cmsPerfGrid;
             this.gridPerfAnchorPreview.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gridPerfAnchorPreview.Location = new System.Drawing.Point(0, 23);
+            this.gridPerfAnchorPreview.Location = new System.Drawing.Point(0, 22);
             this.gridPerfAnchorPreview.Name = "gridPerfAnchorPreview";
-            this.gridPerfAnchorPreview.ReadOnly = true;
             this.gridPerfAnchorPreview.RowHeadersVisible = false;
             this.gridPerfAnchorPreview.RowHeadersWidth = 51;
-            this.gridPerfAnchorPreview.Size = new System.Drawing.Size(552, 81);
+            this.gridPerfAnchorPreview.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.gridPerfAnchorPreview.Size = new System.Drawing.Size(550, 80);
             this.gridPerfAnchorPreview.TabIndex = 10;
+            this.gridPerfAnchorPreview.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gridPerformance_CellContentClick);
+            this.gridPerfAnchorPreview.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gridPerformance_CellDoubleClick);
+            this.gridPerfAnchorPreview.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.Grid_DataError);
+            this.gridPerfAnchorPreview.RowPrePaint += new System.Windows.Forms.DataGridViewRowPrePaintEventHandler(this.gridPerformance_RowPrePaint);
+            this.gridPerfAnchorPreview.MouseDown += new System.Windows.Forms.MouseEventHandler(this.gridPerformance_MouseDown);
+            // 
+            // cmsPerfGrid
+            // 
+            this.cmsPerfGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsmPerfCtxIgnore,
+            this.tsmPerfCtxSep1,
+            this.tsmPerfCtxExport,
+            this.tsmPerfCtxImport});
+            this.cmsPerfGrid.Name = "cmsPerfGrid";
+            this.cmsPerfGrid.Size = new System.Drawing.Size(219, 76);
+            // 
+            // tsmPerfCtxIgnore
+            // 
+            this.tsmPerfCtxIgnore.Name = "tsmPerfCtxIgnore";
+            this.tsmPerfCtxIgnore.Size = new System.Drawing.Size(218, 22);
+            this.tsmPerfCtxIgnore.Text = "Ignore…";
+            this.tsmPerfCtxIgnore.Click += new System.EventHandler(this.tsmPerfCtxIgnore_Click);
+            // 
+            // tsmPerfCtxSep1
+            // 
+            this.tsmPerfCtxSep1.Name = "tsmPerfCtxSep1";
+            this.tsmPerfCtxSep1.Size = new System.Drawing.Size(215, 6);
+            // 
+            // tsmPerfCtxExport
+            // 
+            this.tsmPerfCtxExport.Name = "tsmPerfCtxExport";
+            this.tsmPerfCtxExport.Size = new System.Drawing.Size(218, 22);
+            this.tsmPerfCtxExport.Text = "Export Performance Pack…";
+            this.tsmPerfCtxExport.Click += new System.EventHandler(this.tsmPerfCtxExport_Click);
+            // 
+            // tsmPerfCtxImport
+            // 
+            this.tsmPerfCtxImport.Name = "tsmPerfCtxImport";
+            this.tsmPerfCtxImport.Size = new System.Drawing.Size(218, 22);
+            this.tsmPerfCtxImport.Text = "Import Performance Pack…";
+            this.tsmPerfCtxImport.Click += new System.EventHandler(this.tsmPerfCtxImport_Click);
             // 
             // lblPerfDesignAnchorSummary
             // 
+            this.lblPerfDesignAnchorSummary.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(245)))), ((int)(((byte)(249)))));
             this.lblPerfDesignAnchorSummary.Dock = System.Windows.Forms.DockStyle.Top;
             this.lblPerfDesignAnchorSummary.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
             this.lblPerfDesignAnchorSummary.Location = new System.Drawing.Point(0, 0);
             this.lblPerfDesignAnchorSummary.Name = "lblPerfDesignAnchorSummary";
             this.lblPerfDesignAnchorSummary.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            this.lblPerfDesignAnchorSummary.Size = new System.Drawing.Size(552, 23);
+            this.lblPerfDesignAnchorSummary.Size = new System.Drawing.Size(550, 22);
             this.lblPerfDesignAnchorSummary.TabIndex = 9;
             this.lblPerfDesignAnchorSummary.Text = "Anchor groups: (design preview)";
             this.lblPerfDesignAnchorSummary.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -1212,7 +1753,6 @@ namespace MARS.WebAutomation.UI
             // 
             this.gridPerfRuntimePreview.AllowUserToAddRows = false;
             this.gridPerfRuntimePreview.AllowUserToDeleteRows = false;
-            this.gridPerfRuntimePreview.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.gridPerfRuntimePreview.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.gridPerfRuntimePreview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gridPerfRuntimePreview.Location = new System.Drawing.Point(0, 20);
@@ -1220,8 +1760,11 @@ namespace MARS.WebAutomation.UI
             this.gridPerfRuntimePreview.ReadOnly = true;
             this.gridPerfRuntimePreview.RowHeadersVisible = false;
             this.gridPerfRuntimePreview.RowHeadersWidth = 51;
-            this.gridPerfRuntimePreview.Size = new System.Drawing.Size(552, 41);
+            this.gridPerfRuntimePreview.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.gridPerfRuntimePreview.Size = new System.Drawing.Size(550, 40);
             this.gridPerfRuntimePreview.TabIndex = 1;
+            this.gridPerfRuntimePreview.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gridPerfRuntime_CellDoubleClick);
+            this.gridPerfRuntimePreview.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.Grid_DataError);
             // 
             // lblPerfDesignRuntime
             // 
@@ -1230,7 +1773,7 @@ namespace MARS.WebAutomation.UI
             this.lblPerfDesignRuntime.Location = new System.Drawing.Point(0, 0);
             this.lblPerfDesignRuntime.Name = "lblPerfDesignRuntime";
             this.lblPerfDesignRuntime.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            this.lblPerfDesignRuntime.Size = new System.Drawing.Size(552, 20);
+            this.lblPerfDesignRuntime.Size = new System.Drawing.Size(550, 20);
             this.lblPerfDesignRuntime.TabIndex = 1;
             this.lblPerfDesignRuntime.Text = "Runtime progress (throughput/error rate)";
             this.lblPerfDesignRuntime.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -1243,33 +1786,124 @@ namespace MARS.WebAutomation.UI
             this.lblPerfDesignTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
             this.lblPerfDesignTitle.Location = new System.Drawing.Point(0, 0);
             this.lblPerfDesignTitle.Name = "lblPerfDesignTitle";
-            this.lblPerfDesignTitle.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            this.lblPerfDesignTitle.Size = new System.Drawing.Size(552, 28);
+            this.lblPerfDesignTitle.Padding = new System.Windows.Forms.Padding(6, 0, 0, 0);
+            this.lblPerfDesignTitle.Size = new System.Drawing.Size(550, 28);
             this.lblPerfDesignTitle.TabIndex = 0;
             this.lblPerfDesignTitle.Text = "Perform Test anchors / Runtime progress";
             this.lblPerfDesignTitle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // splitRecordCanvasProps
+            // 
+            this.splitRecordCanvasProps.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitRecordCanvasProps.Location = new System.Drawing.Point(0, 0);
+            this.splitRecordCanvasProps.Name = "splitRecordCanvasProps";
+            // 
+            // splitRecordCanvasProps.Panel1
+            // 
+            this.splitRecordCanvasProps.Panel1.Controls.Add(this.panelRecordCanvasPreview);
+            this.splitRecordCanvasProps.Panel1MinSize = 200;
+            // 
+            // splitRecordCanvasProps.Panel2
+            // 
+            this.splitRecordCanvasProps.Panel2.Controls.Add(this.stepObjectPropertyPanel);
+            this.splitRecordCanvasProps.Panel2MinSize = 28;
+            this.splitRecordCanvasProps.Size = new System.Drawing.Size(320, 411);
+            this.splitRecordCanvasProps.SplitterDistance = 220;
+            this.splitRecordCanvasProps.SplitterWidth = 6;
+            this.splitRecordCanvasProps.TabIndex = 0;
+            // 
             // panelRecordCanvasPreview
             // 
             this.panelRecordCanvasPreview.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelRecordCanvasPreview.Controls.Add(this.lblRecordCanvasPreview);
+            this.panelRecordCanvasPreview.Controls.Add(this.recordWebView);
+            this.panelRecordCanvasPreview.Controls.Add(this.toolStripRecordCanvas);
             this.panelRecordCanvasPreview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelRecordCanvasPreview.Location = new System.Drawing.Point(0, 0);
             this.panelRecordCanvasPreview.Name = "panelRecordCanvasPreview";
-            this.panelRecordCanvasPreview.Size = new System.Drawing.Size(324, 413);
+            this.panelRecordCanvasPreview.Size = new System.Drawing.Size(220, 411);
             this.panelRecordCanvasPreview.TabIndex = 0;
             // 
-            // lblRecordCanvasPreview
+            // recordWebView
             // 
-            this.lblRecordCanvasPreview.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblRecordCanvasPreview.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
-            this.lblRecordCanvasPreview.Location = new System.Drawing.Point(0, 0);
-            this.lblRecordCanvasPreview.Name = "lblRecordCanvasPreview";
-            this.lblRecordCanvasPreview.Padding = new System.Windows.Forms.Padding(12);
-            this.lblRecordCanvasPreview.Size = new System.Drawing.Size(322, 411);
-            this.lblRecordCanvasPreview.TabIndex = 0;
-            this.lblRecordCanvasPreview.Text = "Canvas/WebView preview area (design only)";
-            this.lblRecordCanvasPreview.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.recordWebView.AllowExternalDrop = true;
+            this.recordWebView.CreationProperties = null;
+            this.recordWebView.DefaultBackgroundColor = System.Drawing.Color.White;
+            this.recordWebView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.recordWebView.Location = new System.Drawing.Point(0, 0);
+            this.recordWebView.Name = "recordWebView";
+            this.recordWebView.Size = new System.Drawing.Size(218, 409);
+            this.recordWebView.TabIndex = 0;
+            this.recordWebView.ZoomFactor = 1D;
+            this.recordWebView.CoreWebView2InitializationCompleted += new System.EventHandler<Microsoft.Web.WebView2.Core.CoreWebView2InitializationCompletedEventArgs>(this.RecordWebView_CoreWebView2InitializationCompleted);
+            // 
+            // toolStripRecordCanvas
+            // 
+            this.toolStripRecordCanvas.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.toolStripRecordCanvas.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsbRecordCanvasZoomOut,
+            this.tsbRecordCanvasZoomIn,
+            this.tsbRecordCanvasSep1,
+            this.tsbRecordCanvasCenter,
+            this.tsbRecordCanvasSep2,
+            this.tslRecordCanvasZoom});
+            this.toolStripRecordCanvas.Location = new System.Drawing.Point(0, 0);
+            this.toolStripRecordCanvas.Name = "toolStripRecordCanvas";
+            this.toolStripRecordCanvas.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
+            this.toolStripRecordCanvas.Size = new System.Drawing.Size(322, 25);
+            this.toolStripRecordCanvas.TabIndex = 1;
+            this.toolStripRecordCanvas.Text = "toolStripRecordCanvas";
+            this.toolStripRecordCanvas.Visible = false;
+            // 
+            // tsbRecordCanvasZoomOut
+            // 
+            this.tsbRecordCanvasZoomOut.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbRecordCanvasZoomOut.Name = "tsbRecordCanvasZoomOut";
+            this.tsbRecordCanvasZoomOut.Size = new System.Drawing.Size(23, 22);
+            this.tsbRecordCanvasZoomOut.Text = "−";
+            this.tsbRecordCanvasZoomOut.Click += new System.EventHandler(this.tsbRecordCanvasZoomOut_Click);
+            // 
+            // tsbRecordCanvasZoomIn
+            // 
+            this.tsbRecordCanvasZoomIn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbRecordCanvasZoomIn.Name = "tsbRecordCanvasZoomIn";
+            this.tsbRecordCanvasZoomIn.Size = new System.Drawing.Size(23, 22);
+            this.tsbRecordCanvasZoomIn.Text = "+";
+            this.tsbRecordCanvasZoomIn.Click += new System.EventHandler(this.tsbRecordCanvasZoomIn_Click);
+            // 
+            // tsbRecordCanvasSep1
+            // 
+            this.tsbRecordCanvasSep1.Name = "tsbRecordCanvasSep1";
+            this.tsbRecordCanvasSep1.Size = new System.Drawing.Size(6, 25);
+            // 
+            // tsbRecordCanvasCenter
+            // 
+            this.tsbRecordCanvasCenter.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbRecordCanvasCenter.Name = "tsbRecordCanvasCenter";
+            this.tsbRecordCanvasCenter.Size = new System.Drawing.Size(46, 22);
+            this.tsbRecordCanvasCenter.Text = "Center";
+            this.tsbRecordCanvasCenter.Click += new System.EventHandler(this.tsbRecordCanvasCenter_Click);
+            // 
+            // tsbRecordCanvasSep2
+            // 
+            this.tsbRecordCanvasSep2.Name = "tsbRecordCanvasSep2";
+            this.tsbRecordCanvasSep2.Size = new System.Drawing.Size(6, 25);
+            // 
+            // tslRecordCanvasZoom
+            // 
+            this.tslRecordCanvasZoom.Name = "tslRecordCanvasZoom";
+            this.tslRecordCanvasZoom.Size = new System.Drawing.Size(35, 22);
+            this.tslRecordCanvasZoom.Text = "100%";
+            // 
+            // stepObjectPropertyPanel
+            // 
+            this.stepObjectPropertyPanel.BackColor = System.Drawing.Color.White;
+            this.stepObjectPropertyPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.stepObjectPropertyPanel.ExpandedWidth = 240;
+            this.stepObjectPropertyPanel.Location = new System.Drawing.Point(0, 0);
+            this.stepObjectPropertyPanel.MinimumSize = new System.Drawing.Size(28, 80);
+            this.stepObjectPropertyPanel.Name = "stepObjectPropertyPanel";
+            this.stepObjectPropertyPanel.Size = new System.Drawing.Size(94, 411);
+            this.stepObjectPropertyPanel.TabIndex = 0;
             // 
             // lblRecordHint
             // 
@@ -1351,6 +1985,7 @@ namespace MARS.WebAutomation.UI
             this._gridApiDefinitions.RowHeadersVisible = false;
             this._gridApiDefinitions.Size = new System.Drawing.Size(360, 327);
             this._gridApiDefinitions.TabIndex = 0;
+            this._gridApiDefinitions.SelectionChanged += new System.EventHandler(this._gridApiDefinitions_SelectionChanged);
             // 
             // layoutApiEditor
             // 
@@ -1426,6 +2061,12 @@ namespace MARS.WebAutomation.UI
             this._cmbApiMethod.Dock = System.Windows.Forms.DockStyle.Left;
             this._cmbApiMethod.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cmbApiMethod.FormattingEnabled = true;
+            this._cmbApiMethod.Items.AddRange(new object[] {
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"});
             this._cmbApiMethod.Location = new System.Drawing.Point(111, 29);
             this._cmbApiMethod.Name = "_cmbApiMethod";
             this._cmbApiMethod.Size = new System.Drawing.Size(140, 21);
@@ -1503,6 +2144,11 @@ namespace MARS.WebAutomation.UI
             this._cmbApiSecurity.Dock = System.Windows.Forms.DockStyle.Left;
             this._cmbApiSecurity.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cmbApiSecurity.FormattingEnabled = true;
+            this._cmbApiSecurity.Items.AddRange(new object[] {
+            "None",
+            "Bearer",
+            "Basic",
+            "ApiKeyHeader"});
             this._cmbApiSecurity.Location = new System.Drawing.Point(111, 177);
             this._cmbApiSecurity.Name = "_cmbApiSecurity";
             this._cmbApiSecurity.Size = new System.Drawing.Size(140, 21);
@@ -1617,6 +2263,7 @@ namespace MARS.WebAutomation.UI
             this._btnApiDefNew.TabIndex = 0;
             this._btnApiDefNew.Text = "New";
             this._btnApiDefNew.UseVisualStyleBackColor = true;
+            this._btnApiDefNew.Click += new System.EventHandler(this._btnApiDefNew_Click);
             // 
             // _btnApiDefSave
             // 
@@ -1626,6 +2273,7 @@ namespace MARS.WebAutomation.UI
             this._btnApiDefSave.TabIndex = 1;
             this._btnApiDefSave.Text = "Add / Update";
             this._btnApiDefSave.UseVisualStyleBackColor = true;
+            this._btnApiDefSave.Click += new System.EventHandler(this._btnApiDefSave_Click);
             // 
             // _btnApiDefDelete
             // 
@@ -1635,6 +2283,7 @@ namespace MARS.WebAutomation.UI
             this._btnApiDefDelete.TabIndex = 2;
             this._btnApiDefDelete.Text = "Delete";
             this._btnApiDefDelete.UseVisualStyleBackColor = true;
+            this._btnApiDefDelete.Click += new System.EventHandler(this._btnApiDefDelete_Click);
             // 
             // flowApiPerfActions
             // 
@@ -1660,6 +2309,7 @@ namespace MARS.WebAutomation.UI
             this._btnApiPerfRun.TabIndex = 0;
             this._btnApiPerfRun.Text = "Run NBomber";
             this._btnApiPerfRun.UseVisualStyleBackColor = true;
+            this._btnApiPerfRun.Click += new System.EventHandler(this._btnApiPerfRun_Click);
             // 
             // _btnApiPerfRunSelected
             // 
@@ -1669,6 +2319,7 @@ namespace MARS.WebAutomation.UI
             this._btnApiPerfRunSelected.TabIndex = 1;
             this._btnApiPerfRunSelected.Text = "Run Selected API";
             this._btnApiPerfRunSelected.UseVisualStyleBackColor = true;
+            this._btnApiPerfRunSelected.Click += new System.EventHandler(this._btnApiPerfRunSelected_Click);
             // 
             // _btnApiPerfRunAll
             // 
@@ -1678,6 +2329,7 @@ namespace MARS.WebAutomation.UI
             this._btnApiPerfRunAll.TabIndex = 2;
             this._btnApiPerfRunAll.Text = "Run All APIs";
             this._btnApiPerfRunAll.UseVisualStyleBackColor = true;
+            this._btnApiPerfRunAll.Click += new System.EventHandler(this._btnApiPerfRunAll_Click);
             // 
             // _btnApiPerfConfig
             // 
@@ -1687,6 +2339,7 @@ namespace MARS.WebAutomation.UI
             this._btnApiPerfConfig.TabIndex = 3;
             this._btnApiPerfConfig.Text = "Configure Transactions";
             this._btnApiPerfConfig.UseVisualStyleBackColor = true;
+            this._btnApiPerfConfig.Click += new System.EventHandler(this._btnApiPerfConfig_Click);
             // 
             // _btnApiPerfExport
             // 
@@ -1696,6 +2349,7 @@ namespace MARS.WebAutomation.UI
             this._btnApiPerfExport.TabIndex = 4;
             this._btnApiPerfExport.Text = "Export Performance Pack";
             this._btnApiPerfExport.UseVisualStyleBackColor = true;
+            this._btnApiPerfExport.Click += new System.EventHandler(this._btnApiPerfExport_Click);
             // 
             // _btnApiPerfImport
             // 
@@ -1705,6 +2359,7 @@ namespace MARS.WebAutomation.UI
             this._btnApiPerfImport.TabIndex = 5;
             this._btnApiPerfImport.Text = "Import Performance Pack";
             this._btnApiPerfImport.UseVisualStyleBackColor = true;
+            this._btnApiPerfImport.Click += new System.EventHandler(this._btnApiPerfImport_Click);
             // 
             // _btnApiPerfGoRecord
             // 
@@ -1714,6 +2369,7 @@ namespace MARS.WebAutomation.UI
             this._btnApiPerfGoRecord.TabIndex = 6;
             this._btnApiPerfGoRecord.Text = "Open Record/Replay Performance Grid";
             this._btnApiPerfGoRecord.UseVisualStyleBackColor = true;
+            this._btnApiPerfGoRecord.Click += new System.EventHandler(this._btnApiPerfGoRecord_Click);
             // 
             // tabSettings
             // 
@@ -1934,6 +2590,8 @@ namespace MARS.WebAutomation.UI
             this.Name = "MainWorkbenchForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "MARS Web Automation";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainWorkbenchForm_FormClosed);
+            this.Load += new System.EventHandler(this.MainWorkbenchForm_Load);
             this.menuMain.ResumeLayout(false);
             this.menuMain.PerformLayout();
             this.toolMain.ResumeLayout(false);
@@ -1952,6 +2610,7 @@ namespace MARS.WebAutomation.UI
             this.splitObjects.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitObjects)).EndInit();
             this.splitObjects.ResumeLayout(false);
+            this.cmsObjectTree.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.gridObjectProps)).EndInit();
             this.panelObjectsToolbar.ResumeLayout(false);
             this.panelObjectsToolbar.PerformLayout();
@@ -1967,15 +2626,28 @@ namespace MARS.WebAutomation.UI
             ((System.ComponentModel.ISupportInitialize)(this.splitRecordWorkPreview)).EndInit();
             this.splitRecordWorkPreview.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gridSteps)).EndInit();
+            this.cmsStepsGrid.ResumeLayout(false);
+            this.toolStripStepCommands.ResumeLayout(false);
+            this.toolStripStepCommands.PerformLayout();
             this.panelRecordPerfPreview.ResumeLayout(false);
             this.splitRecordPerfPreview.Panel1.ResumeLayout(false);
             this.splitRecordPerfPreview.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitRecordPerfPreview)).EndInit();
             this.splitRecordPerfPreview.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.gridPerfAnchorPreview)).EndInit();
+            this.cmsPerfGrid.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.gridPerfRuntimePreview)).EndInit();
+            this.splitRecordCanvasProps.Panel1.ResumeLayout(false);
+            this.splitRecordCanvasProps.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitRecordCanvasProps)).EndInit();
+            this.splitRecordCanvasProps.ResumeLayout(false);
             this.panelRecordCanvasPreview.ResumeLayout(false);
+            this.panelRecordCanvasPreview.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.recordWebView)).EndInit();
+            this.toolStripRecordCanvas.ResumeLayout(false);
+            this.toolStripRecordCanvas.PerformLayout();
             this.tabApiPerformance.ResumeLayout(false);
             this.layoutApiPerf.ResumeLayout(false);
             this.layoutApiPerf.PerformLayout();
@@ -2040,7 +2712,7 @@ namespace MARS.WebAutomation.UI
         private System.Windows.Forms.DataGridViewCheckBoxColumn colPerfAnchor;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPerfScore;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPerfGroup;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colPerfCorr;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn colPerfCorr;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPerfUrl;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPerfType;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPerfMethod;
@@ -2052,9 +2724,13 @@ namespace MARS.WebAutomation.UI
         private System.Windows.Forms.DataGridViewTextBoxColumn colPerfResponse;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPerfPolicy;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPerfValidation;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colPerfRecordId;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colPerfRecordTime;
         private System.Windows.Forms.Label lblPerfDesignAnchorSummary;
         private System.Windows.Forms.Label lblRecordHint;
-        private System.Windows.Forms.ToolStripButton tsbSyncHost;
-        private System.Windows.Forms.ToolStripButton tsbPerfHost;
+        private System.Windows.Forms.DataGridViewTextBoxColumn name;
+        private System.Windows.Forms.DataGridViewTextBoxColumn value;
+        private System.Windows.Forms.CheckBox tshSyncFocusHost;
+        private System.Windows.Forms.CheckBox tshWithPerfTestHost;
     }
 }

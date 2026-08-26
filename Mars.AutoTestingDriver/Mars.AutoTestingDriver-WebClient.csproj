@@ -17,7 +17,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
-    <PublishUrl>C:\tiger\automationTest\Automation Workbooks\publish\fhlb_MarsSummitTest1\</PublishUrl>
+    <PublishUrl>c:\tiger\automationTest\Automation Workbooks\publish\mars26demo8090\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Web</InstallFrom>
     <UpdateEnabled>true</UpdateEnabled>
@@ -27,14 +27,14 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>true</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <InstallUrl>http://MARSVERSION26:8190/MARSENGINE/</InstallUrl>
+    <InstallUrl>http://10.0.0.5:8090/MARSENGINE/</InstallUrl>
+    <UpdateUrl>http://10.0.0.5:8090/MARSENGINE/</UpdateUrl>
     <ProductName>MARS ENGINE</ProductName>
     <PublisherName>Marquis Business Tech Solution LLC</PublisherName>
     <MinimumRequiredVersion>1.0.0.43</MinimumRequiredVersion>
-    <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
     <TrustUrlParameters>true</TrustUrlParameters>
-    <ApplicationRevision>253</ApplicationRevision>
+    <ApplicationRevision>271</ApplicationRevision>
     <ApplicationVersion>3.0.2.%2a</ApplicationVersion>
     <UseApplicationTrust>true</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
@@ -281,6 +281,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Accessibility" />
+    <Reference Include="AngleSharp, Version=1.5.0.0, Culture=neutral, PublicKeyToken=e83494dcdc6d31ea, processorArchitecture=MSIL">
+      <HintPath>..\packages\AngleSharp.1.5.0\lib\net472\AngleSharp.dll</HintPath>
+    </Reference>
     <Reference Include="Axe.Windows.Actions, Version=2.4.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Axe.Windows.2.4.2\lib\netstandard20\Axe.Windows.Actions.dll</HintPath>
     </Reference>
@@ -502,6 +505,8 @@
       <Link>ErrorMessage\PictureBox.designer.cs</Link>
       <DependentUpon>PictureBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="AISupport\AgentSupport\AgentKeywordDelegate.cs" />
+    <Compile Include="AISupport\AgentSupport\AgentMethodDataStorage.cs" />
     <Compile Include="ApiIntegratedHelper\APIEngineHelper.cs" />
     <Compile Include="ApiIntegratedHelper\APIEngineInvokeImpl.cs" />
     <Compile Include="ApiIntegratedHelper\APIEngineVariableMgr.cs" />
@@ -578,6 +583,7 @@
     <Compile Include="SystemUtil\MarsDriverConst.cs" />
     <Compile Include="SystemUtil\MarsParametersOp.cs" />
     <Compile Include="SystemUtil\MarsWindowsAPIs.cs" />
+    <Compile Include="Utils\ExternalAgentManager.cs" />
     <Compile Include="wcfClient\WcfClientAgent.cs" />
     <Compile Include="WebHelpers\MARSKeywordWebHelpers.cs" />
     <Compile Include="webSocketService\MARSRESTFulClient.cs" />
@@ -631,21 +637,16 @@
       <Link>config\engineObjectsManager.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="Mars.AutoTestingDriver-WebClient_3_TemporaryKey.pfx" />
     <Content Include="MarsSpyTool.application" />
     <Content Include="MarsSpyTool.exe.manifest" />
     <Content Include="MarsSpyTool.exe.config" />
+    <None Include="config\MarsExternalAgents.json" />
     <None Include="MyCertificate.pfx" />
     <None Include="Resources\icons8-mars-badges-70.ico" />
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Mars.AutoTestingDriver-WebClient_1_TemporaryKey.pfx" />
-    <None Include="Mars.AutoTestingDriver-WebClient_2_TemporaryKey.pfx" />
-    <None Include="Mars.AutoTestingDriver-WebClient_TemporaryKey.pfx" />
     <Content Include="Mars.AutoTestingDriver32.exe.config" />
-    <None Include="Mars.AutoTestingDriver_TemporaryKey.pfx" />
-    <None Include="MarsClickOnce.pfx" />
     <None Include="MarsEngine.snk" />
     <None Include="NTRS3.pfx" />
     <None Include="packages.config" />
@@ -919,6 +920,21 @@
   <Target Name="ForceReplaceOutputConfigByEnvironment" AfterTargets="Build" Condition="Exists('$(SelectedAppConfig)')">
     <Message Text="Force replacing output config: $(SelectedAppConfig) -&gt; $(TargetDir)$(TargetFileName).config (Configuration=$(Configuration))" Importance="High" />
     <Copy SourceFiles="$(SelectedAppConfig)" DestinationFiles="$(TargetDir)$(TargetFileName).config" OverwriteReadOnlyFiles="true" />
+  </Target>
+  <Target Name="SelectEnvironmentAppConfig" BeforeTargets="FindAppConfigFile">
+    <PropertyGroup>
+      <AppConfig>$(SelectedAppConfig)</AppConfig>
+    </PropertyGroup>
+    <Message Text="SelectEnvironmentAppConfig: Configuration=$(Configuration), AppConfig=$(AppConfig)" Importance="High" />
+  </Target>
+  <Target Name="ForceReplacePublishConfigByEnvironment" BeforeTargets="GenerateApplicationManifest;_DeploymentGenerateApplicationManifest;Publish" Condition="Exists('$(SelectedAppConfig)')">
+    <Message Text="Force publish-stage config: $(SelectedAppConfig) -&gt; $(IntermediateOutputPath)$(TargetFileName).config" Importance="High" />
+    <Copy SourceFiles="$(SelectedAppConfig)" DestinationFiles="$(IntermediateOutputPath)$(TargetFileName).config" OverwriteReadOnlyFiles="true" />
+    <Copy SourceFiles="$(SelectedAppConfig)" DestinationFiles="$(TargetDir)$(TargetFileName).config" OverwriteReadOnlyFiles="true" Condition="'$(TargetDir)' != ''" />
+  </Target>
+  <Target Name="ForceReplacePublishedConfigByEnvironment" AfterTargets="Publish" Condition="Exists('$(SelectedAppConfig)') and '$(PublishDir)' != ''">
+    <Message Text="Force publish-output config: $(SelectedAppConfig) -&gt; $(PublishDir)$(TargetFileName).config" Importance="High" />
+    <Copy SourceFiles="$(SelectedAppConfig)" DestinationFiles="$(PublishDir)$(TargetFileName).config" OverwriteReadOnlyFiles="true" />
   </Target>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

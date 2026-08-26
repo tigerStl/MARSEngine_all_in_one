@@ -30,8 +30,9 @@ namespace MARS.WebAutomation.Keyword
 
         public override async Task<KeywordExecuteResult> KeywordExecute(IPage page, SemanticStepRecord step)
         {
-            if (page == null || step == null || string.IsNullOrWhiteSpace(step.Locator))
-                return new KeywordExecuteResult { Success = false, ErrorMessage = "Locator is empty." };
+            if (page == null || step == null || string.IsNullOrWhiteSpace(EffectivePlaywrightSelector(step)))
+                return LocatorResolveFailed(step);
+            var sel = EffectivePlaywrightSelector(step);
             try
             {
                 var p = ParseParam(step.Parameter);
@@ -46,7 +47,7 @@ namespace MARS.WebAutomation.Keyword
                             continue;
                         try
                         {
-                            count += await fr.Locator(step.Locator).CountAsync().ConfigureAwait(false);
+                            count += await fr.Locator(sel).CountAsync().ConfigureAwait(false);
                         }
                         catch
                         {
@@ -58,7 +59,7 @@ namespace MARS.WebAutomation.Keyword
                 {
                     var frame = FramePathUtil.ResolveFrameByPath(page, fp);
                     var root = frame ?? page.MainFrame;
-                    count = await root.Locator(step.Locator).CountAsync().ConfigureAwait(false);
+                    count = await root.Locator(sel).CountAsync().ConfigureAwait(false);
                 }
                 long exp = 1;
                 if (p.TryGetValue("Expected", out var ev) && long.TryParse(ev, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))

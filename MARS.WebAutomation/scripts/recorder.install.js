@@ -3,6 +3,7 @@
   window.__marsDomRecorder = true;
   if (window === window.top) {
     window.__marsRecoMode = window.__marsRecoMode || 'off';
+    window.__marsRecoCaptureMode = window.__marsRecoCaptureMode || 'semantic';
   }
 
   if (window === window.top && !window.__marsRecorderHeartbeat) {
@@ -20,6 +21,171 @@
       }
     } catch (_) {}
     return window.__marsRecoMode || 'off';
+  }
+
+  function currentCaptureMode() {
+    try {
+      if (window.top && window.top !== window) {
+        const m = window.top.__marsRecoCaptureMode;
+        if (typeof m === 'string' && m.length) return lower(m);
+      }
+    } catch (_) {}
+    const m = window.__marsRecoCaptureMode;
+    if (typeof m === 'string' && m.length) return lower(m);
+    return 'semantic';
+  }
+
+  function buildPlaywrightSnippetForPayload(payload, sourceEvent) {
+    const loc = str(payload.Locator || '').trim();
+    if (!loc) return '';
+    const pwSel = loc.indexOf('//') === 0 || loc.indexOf('(/') === 0 ? 'xpath=' + loc : loc;
+    const base = 'await page.locator(' + JSON.stringify(pwSel) + ')';
+    const se = lower(sourceEvent || '');
+    const tag = lower(payload.Tag || '');
+    const typ = lower(payload.TypeAttr || '');
+    if (se === 'click' || se === 'mousedown') return base + '.click();';
+    if (se === 'change') {
+      if (tag === 'select') {
+        const lab = str(payload.Value || payload.Text || '').trim();
+        return base + '.selectOption({ label: ' + JSON.stringify(lab) + ' });';
+      }
+      if (typ === 'checkbox' || typ === 'radio') return base + '.setChecked(' + (payload.Checked ? 'true' : 'false') + ');';
+      return base + '.fill(' + JSON.stringify(str(payload.Value ?? '')) + ');';
+    }
+    if (se === 'blur' || se === 'input') {
+      const v = str(payload.Value != null ? payload.Value : payload.Text || '');
+      return base + '.fill(' + JSON.stringify(v) + ');';
+    }
+    return base + '.click();';
+  }
+
+  // Semantic rules/config can be injected by host:
+  // window.__marsRecoSemanticConfig = {...}
+  function semanticCfg() {
+    try {
+      const c = window.__marsRecoSemanticConfig;
+      if (c && typeof c === 'object') return c;
+    } catch (_) {}
+    return {};
+  }
+
+  function asArray(v) {
+    return Array.isArray(v) ? v : [];
+  }
+
+  function str(v) {
+    return v == null ? '' : String(v);
+  }
+
+  function lower(v) {
+    return str(v).toLowerCase();
+  }
+
+  function getRulePriority(rule) {
+    const p = rule && typeof rule.priority === 'number' ? Math.floor(rule.priority) : 0;
+    return Number.isFinite(p) ? p : 0;
+  }
+
+  function matchesByMethod(actual, expected, method) {
+    const a = str(actual);
+    const e = str(expected);
+    const m = lower(method || 'equal');
+    if (m === 'equal') return lower(a) === lower(e);
+    if (m === 'include') return lower(a).indexOf(lower(e)) >= 0;
+    if (m === 'regex' || m === 'regular') {
+      try {
+        return new RegExp(e, 'i').test(a);
+      } catch (_) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  function getElementProperty(el, prop) {
+    if (!el || !prop) return '';
+    const p = lower(prop);
+    if (p === 'class') return str(el.className || '');
+    if (p === 'role') return str(el.getAttribute && el.getAttribute('role'));
+    if (p === 'id') return str(el.id || '');
+    if (p === 'text' || p === 'textpreview') return normalizeSpace(el.innerText || el.textContent || '');
+    return str(el.getAttribute && el.getAttribute(prop));
+  }
+
+  function matchesSemanticRule(el, rule) {
+    if (!el || !rule) return false;
+    const tagNeed = lower(rule.htmlTag || '*');
+    if (tagNeed !== '*' && lower(el.tagName) !== tagNeed) return false;
+    const classIncludes = asArray(rule.classIncludes || rule.classIndex);
+    for (let i = 0; i < classIncludes.length; i++) {
+      if (!hasClassToken(el, classIncludes[i])) return false;
+    }
+    const props = asArray(rule.properties);
+    for (let i = 0; i < props.length; i++) {
+      const pr = props[i] || {};
+      const actual = getElementProperty(el, pr.property);
+      if (!matchesByMethod(actual, pr.value, pr.method)) return false;
+    }
+    return true;
+  }
+
+  function keywordForObjectType(objectType) {
+    const cfg = semanticCfg();
+    const km = asArray(cfg.keywordMapping);
+    for (let i = 0; i < km.length; i++) {
+      const m = km[i] || {};
+      if (lower(m.objectType) === lower(objectType) && m.keyword) return String(m.keyword);
+    }
+    if (lower(objectType) === 'webtab') return 'SelectTab';
+    if (lower(objectType) === 'webmenu') return 'SelectMenuItem';
+    if (lower(objectType) === 'webbutton') return 'ClickButton';
+    return '';
+  }
+
+  function buildPropertySourceValue(name, source, semEl, clickedEl, childTargetEl) {
+    const s = lower(source);
+    if (!s) return '';
+    if (s === 'self.class') return str(semEl && semEl.className);
+    if (s === 'self.id') return str(semEl && semEl.id);
+    if (s === 'self.idpath') return buildWebIdPath(semEl);
+    if (s === 'self.xpath') return buildXPath(semEl);
+    if (s === 'const:a') return 'a';
+    if (s === 'selforchild.innertext') {
+      const t = normalizeSpace((clickedEl && (clickedEl.innerText || clickedEl.textContent)) || '');
+      return t;
+    }
+    if (s === 'children:a.innertext') {
+      const t = normalizeSpace((childTargetEl && (childTargetEl.innerText || childTargetEl.textContent)) || '');
+      return t;
+    }
+    if (s === 'self.innertext') return normalizeSpace((semEl && (semEl.innerText || semEl.textContent)) || '');
+    if (s.indexOf('self.attr:') === 0) {
+      const attr = source.substring('self.attr:'.length);
+      return str(semEl && semEl.getAttribute && semEl.getAttribute(attr));
+    }
+    return '';
+  }
+
+  function applyPropertyMappings(payload, rule, semEl, clickedEl, childTargetEl) {
+    const pms = asArray(rule && rule.propertyMappings);
+    for (let i = 0; i < pms.length; i++) {
+      const pm = pms[i] || {};
+      const name = str(pm.name);
+      if (!name) continue;
+      const v = buildPropertySourceValue(name, pm.source, semEl, clickedEl, childTargetEl);
+      if (!v && pm.optional) continue;
+      payload[name] = v;
+    }
+  }
+
+  function hasRequiredProperties(payload, rule) {
+    const req = asArray(rule && rule.requiredProperties);
+    for (let i = 0; i < req.length; i++) {
+      const key = str(req[i]);
+      if (!key) continue;
+      if (payload[key] == null || str(payload[key]).trim() === '') return false;
+    }
+    return true;
   }
 
   function esc(s) {
@@ -169,6 +335,111 @@
     return idx;
   }
 
+  function ktAttributeIndicatesMenu(el) {
+    if (!el || !el.attributes) return false;
+    for (let i = 0; i < el.attributes.length; i++) {
+      const name = String(el.attributes[i].name || '').toLowerCase();
+      const val = String(el.attributes[i].value || '').toLowerCase();
+      if (name === 'data-ktmenu' || name === 'data-kt-menu') return true;
+      if (/^data-kt[-_]*menu/.test(name)) return true;
+      if (name.indexOf('kt-') === 0 && name.indexOf('menu') >= 0) return true;
+      if (name.indexOf('kt') >= 0 && val.indexOf('nav') >= 0) return true;
+    }
+    return false;
+  }
+
+  function isKtLikeMenuItemLi(el) {
+    if (!el || el.nodeType !== 1) return false;
+    if (String(el.tagName || '').toLowerCase() !== 'li') return false;
+    let cls = '';
+    try {
+      cls = ((el.className && String(el.className)) || '').toLowerCase();
+    } catch (_) {
+      cls = '';
+    }
+    if (cls.indexOf('kt-menu__item') >= 0) return true;
+    if (cls.indexOf('kt_menu') >= 0) return true;
+    if (cls.indexOf('kt-menu') >= 0 && cls.indexOf('item') >= 0) return true;
+    if (ktAttributeIndicatesMenu(el)) return true;
+    return false;
+  }
+
+  function normalizeSpace(s) {
+    return String(s || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function pickStableClassToken(el) {
+    const raw = (el.className && String(el.className)) || '';
+    const parts = raw.split(/\s+/).filter(Boolean);
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      const pl = p.toLowerCase();
+      if (pl.length < 4) continue;
+      if (/^(ng-|js-|is-|css-|aria|v-|x-)/.test(pl)) continue;
+      if (/^(active|selected|hover|focus|disabled|show|open|collapsed)$/.test(pl)) continue;
+      if (pl.indexOf('kt-menu') >= 0 || pl.indexOf('menu') >= 0) return p;
+    }
+    for (let j = 0; j < parts.length; j++) {
+      const p2 = parts[j];
+      if (p2.length >= 6) return p2;
+    }
+    return '';
+  }
+
+  function tryXPathTagClassText(el) {
+    const tag = (el.tagName || 'div').toLowerCase();
+    const tok = pickStableClassToken(el);
+    const t = normalizeSpace(el.innerText || el.textContent || '');
+    if (!tok || t.length < 1) return '';
+    const sub = t.length > 40 ? t.substring(0, 40) : t;
+    const xp =
+      '//' + tag + '[contains(@class,' + xpathLiteral(tok) + ')][contains(normalize-space(.),' + xpathLiteral(sub) + ')]';
+    if (xpathCount(xp) === 1) return xp;
+    return '';
+  }
+
+  function tryXPathClassTagUnique(el) {
+    const tag = (el.tagName || 'div').toLowerCase();
+    const tok = pickStableClassToken(el);
+    if (!tok) return '';
+    const xp = '//' + tag + '[contains(@class,' + xpathLiteral(tok) + ')]';
+    if (xpathCount(xp) === 1) return xp;
+    return '';
+  }
+
+  function tryXPathTextUnique(el) {
+    const t = normalizeSpace(el.innerText || el.textContent || '');
+    if (t.length < 2) return '';
+    const sub = t.length > 48 ? t.substring(0, 48) : t;
+    const lit = xpathLiteral(sub);
+    const tag = (el.tagName || '*').toLowerCase();
+    const xp1 = '//' + tag + '[contains(normalize-space(.),' + lit + ')]';
+    if (xpathCount(xp1) === 1) return xp1;
+    const xp2 = '//*[contains(normalize-space(.),' + lit + ')]';
+    if (xpathCount(xp2) === 1) return xp2;
+    return '';
+  }
+
+  function buildFullAbsoluteXPath(el) {
+    if (!el || el.nodeType !== 1) return '';
+    const segs = [];
+    let c = el;
+    for (let d = 0; d < 28 && c && c.nodeType === 1; d++) {
+      const tag = (c.tagName || 'div').toLowerCase();
+      if (tag === 'html') {
+        segs.unshift('html');
+        break;
+      }
+      const idx = siblingSameTagIndex(c);
+      segs.unshift(tag + '[' + idx + ']');
+      c = c.parentElement;
+    }
+    if (!segs.length) return '';
+    return '/' + segs.join('/');
+  }
+
   function xpathSegmentFrom(el) {
     const tn = (el.tagName || 'div').toLowerCase();
     const nm = el.getAttribute('name');
@@ -211,6 +482,12 @@
         const xp = '//*[@data-testid=' + xpathLiteral(tid) + ']';
         if (xpathCount(xp) === 1) return xp;
       }
+      let hit = tryXPathTagClassText(el);
+      if (hit) return hit;
+      hit = tryXPathClassTagUnique(el);
+      if (hit) return hit;
+      hit = tryXPathTextUnique(el);
+      if (hit) return hit;
       const segs = [];
       let c = el;
       for (let d = 0; d < 6 && c && c.nodeType === 1; d++) {
@@ -219,8 +496,14 @@
         segs.unshift(xpathSegmentFrom(c));
         c = c.parentElement;
       }
-      if (!segs.length) return '';
-      return '//body/' + segs.join('/');
+      if (segs.length) {
+        const bodyPath = '//body/' + segs.join('/');
+        if (xpathCount(bodyPath) === 1) return bodyPath;
+      }
+      const abs = buildFullAbsoluteXPath(el);
+      if (abs && xpathCount(abs) === 1) return abs;
+      if (segs.length) return '//body/' + segs.join('/');
+      return abs || '';
     } catch (_) {
       return '';
     }
@@ -315,18 +598,62 @@
     return out;
   }
 
+  /** Playwright .NET expects the xpath engine prefix for XPath selector strings. */
+  function toPlaywrightXpathSelector(xp) {
+    const s = (xp || '').trim();
+    if (!s) return '';
+    const sl = s.toLowerCase();
+    if (sl.indexOf('xpath=') === 0) return s;
+    if (s.indexOf('//') === 0 || s.indexOf('(/') === 0) return 'xpath=' + s;
+    return s;
+  }
+
+  function isUsableXPathExpression(xp) {
+    const s = (xp || '').trim();
+    if (s.length < 3) return false;
+    const sl = s.toLowerCase();
+    if (sl.indexOf('xpath=') === 0) return sl.length > 6;
+    return s.indexOf('//') === 0 || s.indexOf('(/') === 0;
+  }
+
   function buildMultiLocator(el) {
     if (!el || el.nodeType !== 1) return { primary: '', alternates: [], shortXPath: '' };
     const strategies = collectUniqueCssStrategies(el);
-    const primary = strategies[0] || '';
-    const alternates = strategies.slice(1, 5);
-    const shortXPath = buildShortXPath(el);
+    const cssPrimary = strategies[0] || '';
+    const cssRest = strategies.slice(1, 5);
+    const shortXPathRaw = buildShortXPath(el);
+    const shortXPath = (shortXPathRaw || '').trim();
+
+    if (isUsableXPathExpression(shortXPathRaw)) {
+      const primary = toPlaywrightXpathSelector(shortXPathRaw);
+      const alternates = [];
+      if (cssPrimary) alternates.push(cssPrimary);
+      for (let i = 0; i < cssRest.length && alternates.length < 5; i++) {
+        if (cssRest[i]) alternates.push(cssRest[i]);
+      }
+      return { primary, alternates, shortXPath };
+    }
+
+    const primary = cssPrimary;
+    const alternates = cssRest;
     return { primary, alternates, shortXPath };
   }
 
-  /** Primary CSS locator for Playwright (multi-strategy + preview uniqueness). */
+  /** Primary locator for Playwright (XPath preferred when buildShortXPath yields a match). */
   function buildLocator(el) {
     return buildMultiLocator(el).primary;
+  }
+
+  /** Bootstrap / Ant / Element / MUI-style button skins on anchors and other non-button tags. */
+  function classLooksLikeButton(el) {
+    const cls = ((el && el.className && String(el.className)) || '').toLowerCase();
+    if (!cls) return false;
+    if (cls.indexOf('btn-') >= 0 || cls.indexOf(' btn') >= 0 || cls.indexOf('btn ') >= 0 || cls === 'btn') return true;
+    if (cls.indexOf('btn') >= 0) return true;
+    if (cls.indexOf('button') >= 0) return true;
+    if (cls.indexOf('mat-button') >= 0 || cls.indexOf('mdc-button') >= 0) return true;
+    if (cls.indexOf('ant-btn') >= 0 || cls.indexOf('el-button') >= 0) return true;
+    return false;
   }
 
   function inferLogicalKind(el) {
@@ -347,6 +674,7 @@
     if (role === 'menu' || role === 'menubar' || role === 'menuitem' || role === 'menuitemcheckbox' || role === 'menuitemradio')
       return 'webMenu';
     if (hasPopup === 'true' || hasPopup === 'menu' || hasPopup === 'listbox') return 'webMenu';
+    if (tag === 'li' && isKtLikeMenuItemLi(el)) return 'webMenu';
 
     if (role === 'tab' || (cls.toLowerCase().indexOf('tab') >= 0 && (role === 'tab' || el.getAttribute('data-tab'))))
       return 'webTab';
@@ -354,8 +682,12 @@
     if (tag === 'button' || type === 'button' || type === 'submit' || type === 'reset' || role === 'button')
       return 'webButton';
 
-    if (tag === 'textarea' || isTextLikeInput(el) || role === 'textbox' || role === 'searchbox' || isContentEditableSurface(el))
-      return 'webEdit';
+    // Link / chip styled as a button — must run before role=textbox heuristics (some themes mis-label anchors).
+    if (['a', 'span', 'div', 'label', 'li', 'i', 'svg'].indexOf(tag) >= 0 && classLooksLikeButton(el)) return 'webButton';
+
+    // Truly editable controls only (not plain anchors / list items with bogus ARIA).
+    if (tag === 'textarea' || (tag === 'input' && isTextLikeInput(el)) || isContentEditableSurface(el)) return 'webEdit';
+    if ((role === 'textbox' || role === 'searchbox') && tag !== 'a' && tag !== 'li') return 'webEdit';
 
     if (tag === 'a' && el.getAttribute('href')) return 'webButton';
     if (tag === 'label') return 'webButton';
@@ -379,7 +711,8 @@
       const tag = cur.tagName.toLowerCase();
       if (tag === 'table') return 'table';
       const cls = (cur.className && String(cur.className)) || '';
-      if (cls.indexOf('pq-grid') >= 0 || cls.indexOf('ag-root') >= 0 || cls.indexOf('MuiDataGrid') >= 0)
+      if (cls.indexOf('pq-grid') >= 0) return 'webtable:pq_grid';
+      if (cls.indexOf('ag-root') >= 0 || cls.indexOf('MuiDataGrid') >= 0)
         return 'webtable:' + cls.split(' ')[0];
     }
     return '';
@@ -480,12 +813,154 @@
     };
   }
 
+  function hasClassToken(el, token) {
+    if (!el || !token) return false;
+    try {
+      const cls = ((el.className && String(el.className)) || '').toLowerCase();
+      return cls.indexOf(String(token).toLowerCase()) >= 0;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function isStopParentNode(el, cfg) {
+    const stopTags = asArray(cfg.stopParentTags).map((x) => lower(x));
+    if (stopTags.indexOf(lower(el && el.tagName)) >= 0) return true;
+    const stopTypes = asArray(cfg.stopParentObjectTypes).map((x) => lower(x));
+    if (!stopTypes.length) return false;
+    const inferred = lower(inferLogicalKind(el));
+    return stopTypes.indexOf(inferred) >= 0;
+  }
+
+  function findBestRuleMatchOnElement(el, rules) {
+    let best = null;
+    for (let i = 0; i < rules.length; i++) {
+      const r = rules[i] || {};
+      if (!matchesSemanticRule(el, r)) continue;
+      if (!best || getRulePriority(r) > getRulePriority(best.rule)) best = { element: el, rule: r };
+    }
+    return best;
+  }
+
+  function closestAncestorMatchingTag(el, tagNeed, maxDepth) {
+    if (!el || !tagNeed || lower(tagNeed) === '*') return null;
+    const want = lower(tagNeed);
+    let cur = el;
+    for (let d = 0; d < maxDepth && cur && cur.nodeType === 1; d++, cur = cur.parentElement) {
+      if (!cur.tagName) continue;
+      if (lower(cur.tagName) === want) return cur;
+    }
+    return null;
+  }
+
+  /** When semantic config targets e.g. <a>, resolve that host from clicks on SPAN/I/etc. inside it. */
+  function resolveSemanticHostElement(clickedEl, cfg) {
+    if (!clickedEl || clickedEl.nodeType !== 1) return null;
+    const rawT = cfg && cfg.targetHtmlTag;
+    const targetTag = rawT == null || String(rawT).trim() === '' ? 'a' : lower(String(rawT));
+    if (targetTag === '*') return clickedEl;
+    if (lower(clickedEl.tagName) === targetTag) return clickedEl;
+    const maxUp =
+      typeof (cfg && cfg.semanticHostAncestorDepth) === 'number'
+        ? Math.max(1, Math.min(32, Math.floor(cfg.semanticHostAncestorDepth)))
+        : 16;
+    return closestAncestorMatchingTag(clickedEl.parentElement, targetTag, maxUp);
+  }
+
+  function findSemanticByRules(clickedEl) {
+    const cfg = semanticCfg();
+    const host = resolveSemanticHostElement(clickedEl, cfg);
+    if (!host) return null;
+
+    const selfRules = asArray(cfg.selfSemanticRules);
+    const parentRules = asArray(cfg.parentsSemanticRules);
+    const selfHit = findBestRuleMatchOnElement(host, selfRules);
+    if (selfHit) return { element: selfHit.element, rule: selfHit.rule, origin: 'self-rule' };
+
+    const maxDepth = typeof cfg.maxParentDepth === 'number' ? Math.max(1, Math.min(20, Math.floor(cfg.maxParentDepth))) : 5;
+    let cur = host.parentElement;
+    for (let d = 0; d < maxDepth && cur; d++, cur = cur.parentElement) {
+      if (isStopParentNode(cur, cfg)) break;
+      const hit = findBestRuleMatchOnElement(cur, parentRules);
+      if (hit) return { element: hit.element, rule: hit.rule, origin: 'parent-rule' };
+    }
+
+    // semi: when no parent (or self) semantic rule matched, use resolved host (e.g. <a>) as semantic object.
+    const tst = lower(cfg.targetSemanticType || '');
+    if (tst === 'semi') {
+      const ot = str(cfg.semiDefaultObjectType || inferLogicalKind(host));
+      return {
+        element: host,
+        rule: {
+          objectType: ot,
+          semanticType: 'semi',
+          propertyMappings: asArray(cfg.semiSelfPropertyMappings),
+          requiredProperties: asArray(cfg.semiSelfRequiredProperties)
+        },
+        origin: 'semi-self'
+      };
+    }
+    return null;
+  }
+
+  function findChildTargetByRules(semEl, clickedEl) {
+    const cfg = semanticCfg();
+    const rules = cfg.childrenTargetRules || {};
+    const tag = lower(rules.tag || 'a');
+    if (!semEl || !semEl.querySelectorAll) return { ok: false, error: 'semanticElementMissing' };
+    const all = semEl.querySelectorAll(tag);
+    if (!all || all.length === 0) return { ok: false, error: 'noChildTag', tag };
+
+    const textSource = lower(rules.textSource || 'selforchild.innertext');
+    const clickedText = normalizeSpace((clickedEl && (clickedEl.innerText || clickedEl.textContent)) || '');
+    const mode = lower(rules.textMatchMode || 'exact');
+    const allowRegex = !!rules.allowRegex;
+    const want = clickedText;
+    const hits = [];
+    let rx = null;
+    if (mode === 'regex' && allowRegex) {
+      try {
+        rx = new RegExp(want, 'i');
+      } catch (_) {
+        return { ok: false, error: 'invalidRegex', want };
+      }
+    }
+    for (let i = 0; i < all.length; i++) {
+      const c = all[i];
+      const tv = textSource === 'children:a.innertext'
+        ? normalizeSpace(c.innerText || c.textContent || '')
+        : normalizeSpace(c.innerText || c.textContent || '');
+      if (mode === 'regex' && rx) {
+        if (rx.test(tv)) hits.push(c);
+      } else if (tv === want) {
+        hits.push(c);
+      }
+    }
+    const mustUnique = rules.mustBeUnique !== false;
+    if (!mustUnique && hits.length > 0) return { ok: true, el: hits[0] };
+    if (hits.length === 1) return { ok: true, el: hits[0] };
+    if (hits.length === 0) return { ok: false, error: 'noChildMatch', want };
+    return { ok: false, error: 'ambiguousChildMatch', count: hits.length, want };
+  }
+
+  function buildWebIdPath(el) {
+    if (!el || el.nodeType !== 1) return '';
+    const parts = [];
+    let cur = el;
+    for (let d = 0; d < 8 && cur && cur.nodeType === 1; d++, cur = cur.parentElement) {
+      const idv = cur.id ? String(cur.id) : '';
+      if (idv && !looksDynamicId(idv)) parts.unshift(idv);
+    }
+    return parts.join('>');
+  }
+
   function roleLower(el) {
     return ((el && el.getAttribute && el.getAttribute('role')) || '').toLowerCase();
   }
 
   function isMenuItemElement(el) {
     if (!el || el.nodeType !== 1) return false;
+    if (isKtLikeMenuItemLi(el)) return true;
     const r = roleLower(el);
     if (r === 'menuitem' || r === 'menuitemcheckbox' || r === 'menuitemradio') return true;
     const cls = clsLower(el);
@@ -499,6 +974,66 @@
     if (menuItem.querySelector && menuItem.querySelector('[role="menu"]')) return true;
     const cls = clsLower(menuItem);
     return cls.indexOf('submenu') >= 0 || cls.indexOf('has-sub') >= 0;
+  }
+
+  /** True if this menu row includes a real navigation link (do not suppress click recording for submenu heuristics). */
+  function hasRealNavHrefInMenuItem(menuItem) {
+    if (!menuItem || menuItem.nodeType !== 1) return false;
+    try {
+      if (lower(menuItem.tagName) === 'a') {
+        const h0 = (menuItem.getAttribute('href') || '').trim();
+        if (h0 && h0 !== '#' && lower(h0).indexOf('javascript:') !== 0) return true;
+      }
+      const links = menuItem.querySelectorAll ? menuItem.querySelectorAll('a[href]') : [];
+      for (let i = 0; i < links.length; i++) {
+        const h = (links[i].getAttribute('href') || '').trim();
+        if (h && h !== '#' && lower(h).indexOf('javascript:') !== 0) return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  function isActionableMenuControl(el) {
+    if (!el || el.nodeType !== 1) return false;
+    const tag = lower(el.tagName);
+    if (tag !== 'a' && tag !== 'button') return false;
+    const oc = (el.getAttribute && el.getAttribute('onclick')) || '';
+    if (oc && String(oc).trim()) return true;
+    const dpj = el.getAttribute && el.getAttribute('data-ts-pj-id');
+    if (dpj && String(dpj).trim()) return true;
+    const href = (el.getAttribute('href') || '').trim();
+    if (href && href !== '#' && lower(href).indexOf('javascript:') === 0 && href.length > 12) return true;
+    if (el.classList && el.classList.contains('kt-menu__link')) return true;
+    return false;
+  }
+
+  function findActionableMenuAnchor(menuItem) {
+    if (!menuItem || menuItem.nodeType !== 1) return null;
+    try {
+      if (isActionableMenuControl(menuItem)) return menuItem;
+      const links = menuItem.querySelectorAll
+        ? menuItem.querySelectorAll('a.kt-menu__link, a[data-ts-pj-id], a[onclick], button[onclick]')
+        : [];
+      for (let i = 0; i < links.length; i++) {
+        if (isActionableMenuControl(links[i])) return links[i];
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  function findActionableMenuClickTarget(clickEl, menuItem) {
+    if (!clickEl || !menuItem || !menuItem.contains) return null;
+    let cur = clickEl;
+    for (let d = 0; d < 10 && cur && cur.nodeType === 1; d++, cur = cur.parentElement) {
+      if (!menuItem.contains(cur)) break;
+      if (isActionableMenuControl(cur)) return cur;
+    }
+    return findActionableMenuAnchor(menuItem);
+  }
+
+  /** onclick-driven menu entries (e.g. KT GetTestSuite) — record as click, not skip. */
+  function menuItemHasActionableOnClick(menuItem) {
+    return !!findActionableMenuAnchor(menuItem);
   }
 
   function menuLabel(el) {
@@ -568,12 +1103,179 @@
     return rowIdx + 1;
   }
 
+  function isPqGridElement(el) {
+    return !!(el && hasClassToken(el, 'pq-grid'));
+  }
+
+  function findPqGridAncestor(el) {
+    if (!el || !el.closest) return null;
+    const direct = el.closest('.pq-grid');
+    if (direct) return direct;
+    let cur = el;
+    for (let i = 0; i < 28 && cur; i++, cur = cur.parentElement) {
+      if (isPqGridElement(cur)) return cur;
+    }
+    return null;
+  }
+
+  function firstAttr(el, names) {
+    if (!el || !el.getAttribute) return '';
+    for (let i = 0; i < names.length; i++) {
+      const v = el.getAttribute(names[i]);
+      if (v != null && String(v).trim() !== '') return String(v).trim();
+    }
+    return '';
+  }
+
+  function parseIntAttr(el, names, oneBased) {
+    const raw = firstAttr(el, names);
+    if (!/^-?\d+$/.test(raw)) return -1;
+    const n = parseInt(raw, 10);
+    return oneBased ? n - 1 : n;
+  }
+
+  function formatGridToken(v) {
+    return normalizeSpace(v || '').replace(/[;\[\]]+/g, ' ').trim();
+  }
+
+  function cellDisplayText(cell) {
+    if (!cell) return '';
+    try {
+      const ctl = cell.querySelector && cell.querySelector('input,textarea,select,[contenteditable="true"]');
+      if (ctl) {
+        const tag = lower(ctl.tagName);
+        const typ = lower(ctl.getAttribute && ctl.getAttribute('type'));
+        if (tag === 'select' && ctl.options) {
+          const idx = typeof ctl.selectedIndex === 'number' ? ctl.selectedIndex : -1;
+          if (idx >= 0 && ctl.options[idx]) return normalizeSpace(ctl.options[idx].text || ctl.value || '');
+        }
+        if (typ === 'checkbox' || typ === 'radio') return ctl.checked ? 'true' : 'false';
+        if (ctl.value != null) return normalizeSpace(ctl.value);
+      }
+    } catch (_) {}
+    return normalizeSpace(cell.innerText || cell.textContent || '');
+  }
+
+  function flattenPqColModel(cols, out) {
+    if (!Array.isArray(cols)) return out;
+    for (let i = 0; i < cols.length; i++) {
+      const c = cols[i] || {};
+      if (Array.isArray(c.colModel) && c.colModel.length) flattenPqColModel(c.colModel, out);
+      else out.push(c);
+    }
+    return out;
+  }
+
+  function readPqColModel(grid) {
+    try {
+      const jq = window.jQuery || window.$;
+      if (!jq || !jq.fn || !jq.fn.pqGrid) return [];
+      const cm = jq(grid).pqGrid('option', 'colModel');
+      return flattenPqColModel(cm, []);
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function pqColumnIndex(cell) {
+    let idx = parseIntAttr(cell, ['pq-col-indx', 'data-col-indx', 'data-col-index', 'data-column-index'], false);
+    if (idx >= 0) return idx;
+    idx = parseIntAttr(cell, ['aria-colindex'], true);
+    if (idx >= 0) return idx;
+    if (typeof cell.cellIndex === 'number' && cell.cellIndex >= 0) return cell.cellIndex;
+    return -1;
+  }
+
+  function pqColumnName(grid, cell, colIdx) {
+    const direct = firstAttr(cell, ['data-field', 'data-col', 'col-id', 'data-col-id', 'data-key']);
+    if (direct && !/^-?\d+$/.test(direct)) return direct;
+    const cm = readPqColModel(grid);
+    if (colIdx >= 0 && colIdx < cm.length) {
+      const c = cm[colIdx] || {};
+      const n = c.dataIndx || c.title || c.name || c.label;
+      if (n != null && String(n).trim()) return String(n).trim();
+    }
+    try {
+      const hdr = grid.querySelector(
+        '.pq-grid-col[pq-col-indx="' +
+          colIdx +
+          '"],.pq-grid-title-row [pq-col-indx="' +
+          colIdx +
+          '"],[role="columnheader"][aria-colindex="' +
+          (colIdx + 1) +
+          '"]'
+      );
+      const ht = hdr ? normalizeSpace(hdr.innerText || hdr.textContent || '') : '';
+      if (ht) return ht;
+    } catch (_) {}
+    return colIdx >= 0 ? 'c' + (colIdx + 1) : 'Auto';
+  }
+
+  function pqRowCells(grid, cell) {
+    const row = cell.closest ? cell.closest('.pq-grid-row,[role="row"],[pq-row-indx],[data-row-index]') : null;
+    if (row) {
+      const cells = row.querySelectorAll('.pq-grid-cell,[role="gridcell"],[role="cell"],[pq-col-indx]');
+      if (cells && cells.length) return [].slice.call(cells);
+    }
+    const rowIdx = firstAttr(cell, ['pq-row-indx', 'data-row-indx', 'data-row-index', 'aria-rowindex']);
+    if (rowIdx && grid && grid.querySelectorAll) {
+      try {
+        const cells = grid.querySelectorAll(
+          '.pq-grid-cell[pq-row-indx="' +
+            rowIdx +
+            '"],[role="gridcell"][aria-rowindex="' +
+            rowIdx +
+            '"],[role="cell"][aria-rowindex="' +
+            rowIdx +
+            '"]'
+        );
+        if (cells && cells.length) return [].slice.call(cells);
+      } catch (_) {}
+    }
+    return [cell];
+  }
+
+  function buildPqGridCellContext(grid, cell) {
+    if (!grid || !cell) return null;
+    const tblPack = buildMultiLocator(grid);
+    if (!tblPack.primary) return null;
+    const clickedColIdx = pqColumnIndex(cell);
+    const clickedColName = formatGridToken(pqColumnName(grid, cell, clickedColIdx));
+    const clickedValue = formatGridToken(cellDisplayText(cell));
+    const cols = [];
+    const data = [];
+    const cells = pqRowCells(grid, cell);
+    for (let i = 0; i < cells.length; i++) {
+      const c = cells[i];
+      if (!c || c === cell) continue;
+      const ci = pqColumnIndex(c);
+      if (ci === clickedColIdx) continue;
+      const cv = formatGridToken(cellDisplayText(c));
+      if (!cv) continue;
+      const cn = formatGridToken(pqColumnName(grid, c, ci));
+      if (!cn) continue;
+      cols.push(cn);
+      data.push(cv);
+    }
+    return {
+      tableLocator: tblPack.primary,
+      logicalKind: 'webTable',
+      tableContext: 'webtable:pq_grid',
+      parameter: '[ConditionCols:' + cols.join(';') + '];columnName:' + clickedColName,
+      data: '[' + data.join(';') + ']:' + clickedValue
+    };
+  }
+
   function tryResolveTableCellContext(el, tag, type, role) {
-    if (!el || !isTableSemanticControl(tag, type, role)) return null;
+    const cellSelector = 'td,th,[role="gridcell"],[role="cell"],.pq-grid-cell,.ag-cell,.MuiDataGrid-cell,[data-col]';
+    const hasCell = !!(el && el.closest && el.closest(cellSelector));
+    if (!el || (!isTableSemanticControl(tag, type, role) && !hasCell)) return null;
     const cell = el.closest
-      ? el.closest('td,th,[role="gridcell"],[role="cell"],.pq-grid-cell,.ag-cell,.MuiDataGrid-cell,[data-col]')
+      ? el.closest(cellSelector)
       : null;
     if (!cell) return null;
+    const pqGrid = findPqGridAncestor(cell) || findPqGridAncestor(el);
+    if (pqGrid) return buildPqGridCellContext(pqGrid, cell);
     const tbl = findSemanticTableAncestor(cell) || findSemanticTableAncestor(el);
     if (!tbl) return null;
     const tblPack = buildMultiLocator(tbl);
@@ -643,9 +1345,25 @@
 
   function trySelectMenuContext(clickEl) {
     if (!clickEl || !clickEl.closest) return null;
-    const menuItem = clickEl.closest('[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],.menu-item,.menuitem,.el-menu-item');
+    let menuItem = clickEl.closest(
+      '[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],.menu-item,.menuitem,.el-menu-item,li.kt-menu__item,li[class*="kt-menu__item"],li[data-ktmenu],li[data-kt-menu]'
+    );
+    if (!menuItem) {
+      let cur = clickEl;
+      for (let d = 0; d < 14 && cur && cur.nodeType === 1; d++, cur = cur.parentElement) {
+        if (isKtLikeMenuItemLi(cur)) {
+          menuItem = cur;
+          break;
+        }
+      }
+    }
     if (!menuItem || !isMenuItemElement(menuItem)) return null;
-    if (menuItemHasSubmenu(menuItem)) return { skipRecord: true };
+    if (menuItemHasSubmenu(menuItem)) {
+      if (findActionableMenuClickTarget(clickEl, menuItem)) return null;
+      if (!hasRealNavHrefInMenuItem(menuItem) && !menuItemHasActionableOnClick(menuItem))
+        return { skipRecord: true, menuElement: menuItem };
+      return null;
+    }
 
     const chain = [];
     let cur = menuItem;
@@ -662,6 +1380,7 @@
     return {
       menuPath: path || menuLabel(menuItem),
       menuLocator: menuPack.primary,
+      menuElement: menuItem,
       actualTag: (clickEl.tagName || '').toLowerCase(),
       actualRole: roleLower(clickEl),
       targetCssLocator: clickPack.primary,
@@ -743,6 +1462,71 @@
     t.__marsRecoLastTabSig = key;
     t.__marsRecoLastTabTs = now;
     return false;
+  }
+
+  /** Many custom dropdowns open on mousedown and suppress click; recorder used to drop those entirely. */
+  function likelyInsideRecordedMenuSurface(el) {
+    if (!el || !el.closest) return false;
+    if (
+      el.closest(
+        '[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],.menu-item,.menuitem,.el-menu-item,li.kt-menu__item,li[class*="kt-menu__item"],li[data-ktmenu],li[data-kt-menu]'
+      )
+    )
+      return true;
+    let cur = el;
+    for (let d = 0; d < 14 && cur && cur.nodeType === 1; d++, cur = cur.parentElement) {
+      if (isKtLikeMenuItemLi(cur)) return true;
+    }
+    return false;
+  }
+
+  function shouldRecordMouseDownWhenClickMayBeLost(tag, role, el) {
+    const t = lower(tag);
+    const r = lower(role || '');
+    if (
+      t === 'div' ||
+      t === 'span' ||
+      t === 'p' ||
+      t === 'label' ||
+      t === 'li' ||
+      t === 'img' ||
+      t === 'i' ||
+      t === 'svg' ||
+      t === 'button'
+    )
+      return true;
+    if (r === 'button' || r === 'combobox' || r === 'listbox') return true;
+    if (el && el.getAttribute) {
+      const hp = lower(el.getAttribute('aria-haspopup') || '');
+      if (hp && hp !== 'false') return true;
+    }
+    return false;
+  }
+
+  function dedupeMouseRecordSig(p) {
+    return String((p && p.Locator) || '') + '|' + String((p && p.PageUrl) || '') + '|' + String((p && p.RecorderKeyword) || '');
+  }
+
+  function shouldSkipDuplicateClickAfterMouseDown(payload) {
+    if (currentRecoMode() !== 'record' || !payload || lower(payload.Kind) !== 'record') return false;
+    if (lower(payload.SourceEvent) !== 'click') return false;
+    const tw = topWin();
+    const last = tw.__marsRecoMdEmit;
+    if (!last || typeof last.ts !== 'number') return false;
+    if (Date.now() - last.ts > 480) return false;
+    return last.sig === dedupeMouseRecordSig(payload);
+  }
+
+  function noteMouseDownRecordEmit(payload) {
+    const tw = topWin();
+    tw.__marsRecoMdEmit = { ts: Date.now(), sig: dedupeMouseRecordSig(payload) };
+  }
+
+  function clearMouseDownRecordEmit() {
+    try {
+      const tw = topWin();
+      tw.__marsRecoMdEmit = null;
+    } catch (_) {}
   }
 
   function normalizeEventTarget(t) {
@@ -858,6 +1642,7 @@
     const semanticEl = sourceEvent === 'blur' ? resolveTextSemanticElement(rawEl) || rawEl : rawEl;
     const el = semanticEl;
     const mode = currentRecoMode();
+    const recoPlain = mode === 'record' && currentCaptureMode() === 'plain';
     if (mode === 'off') return;
 
     if (mode === 'pick') {
@@ -874,7 +1659,9 @@
       if (sourceEvent === 'change') {
         const tag = (el.tagName || '').toLowerCase();
         const type = (el.getAttribute('type') || '').toLowerCase();
-        const inTableCtx = !!tryResolveTableCellContext(rawEl, tag, type, (el.getAttribute('role') || '').toLowerCase());
+        const inTableCtx = recoPlain
+          ? false
+          : !!tryResolveTableCellContext(rawEl, tag, type, (el.getAttribute('role') || '').toLowerCase());
         if (tag === 'input' && type === 'file') {
           // Keep change for file picker input.
         } else if (tag === 'input' && isTextLikeInput(el) && !inTableCtx) return;
@@ -900,6 +1687,14 @@
           role === 'searchbox' ||
           isContentEditableSurface(el);
         if (!ok) return;
+      }
+      if (sourceEvent === 'keyup') {
+        const key = ev && ev.key ? String(ev.key) : '';
+        const tag = (el.tagName || '').toLowerCase();
+        const type = (el.getAttribute('type') || '').toLowerCase();
+        const role = (el.getAttribute('role') || '').toLowerCase();
+        if (key !== 'Enter' && key !== 'Tab') return;
+        if (recoPlain || !tryResolveTableCellContext(rawEl, tag, type, role)) return;
       }
     }
 
@@ -947,61 +1742,158 @@
     let targetXpath = null;
     let mctx = null;
     let parameterOverride = null;
+    let dataOverride = null;
 
     if (mode === 'record' && (sourceEvent === 'click' || sourceEvent === 'mousedown')) {
       if (tag === 'input' && (type === 'checkbox' || type === 'radio')) {
         sourceEvent = 'change';
       }
-      const tctx = trySelectTabContext(rawEl, tag, role);
-      if (tctx) {
-        recorderKeyword = 'SelectTab';
-        tabLabel = tctx.tabLabel;
-        locatorOverride = tctx.tabLocator;
-        logicalKindOverride = 'webTab';
-        targetTag = tctx.actualTag;
-        targetRole = tctx.actualRole;
-        targetLocator = tctx.targetCssLocator;
-        targetXpath = tctx.targetXpath;
-      }
-      if (sourceEvent === 'mousedown' && !tctx) return;
-      if (sourceEvent !== 'mousedown') {
-        mctx = trySelectMenuContext(rawEl);
-        if (mctx && mctx.skipRecord) return;
-        if (mctx && mctx.menuPath) {
-          recorderKeyword = 'SelectMenuItem';
-          locatorOverride = mctx.menuLocator;
-          logicalKindOverride = 'webMenu';
-          targetTag = mctx.actualTag;
-          targetRole = mctx.actualRole;
-          targetLocator = mctx.targetCssLocator;
-          targetXpath = mctx.targetXpath;
-        }
-      }
+      let tctx = null;
+      let configuredSemanticMatched = false;
+      if (!recoPlain) {
+        tctx = trySelectTabContext(rawEl, tag, role);
+        if (!tctx && sourceEvent !== 'mousedown') {
+          const semHit = findSemanticByRules(rawEl);
+          if (semHit && semHit.element && semHit.rule) {
+            configuredSemanticMatched = true;
+            const semEl = semHit.element;
+            const semRule = semHit.rule;
+            const objType = str(semRule.objectType || 'webUnknown');
+            const kw = keywordForObjectType(objType);
+            if (kw) recorderKeyword = kw;
+            logicalKindOverride = objType;
+            const semPack = buildMultiLocator(semEl);
+            locatorOverride = semPack.primary;
+            boundsEl = semEl;
+            tag = lower(semEl.tagName);
+            role = roleLower(semEl);
 
-      if (!recorderKeyword) {
-        const stx = tryButtonSelectTableSemantics(rawEl, tag, type, role);
-        if (stx && stx.kind === 'webTable') {
-          logicalKindOverride = 'webTable';
-          const ta = findSemanticTableAncestor(rawEl);
-          if (ta) tbl = tableHint(ta);
+            const skipChildren = semHit.origin === 'semi-self';
+            if (skipChildren) {
+              const selfPack = buildMultiLocator(rawEl);
+              targetTag = lower(rawEl.tagName);
+              targetRole = roleLower(rawEl);
+              targetLocator = selfPack.primary;
+              targetXpath = selfPack.shortXPath;
+              tabLabel = normalizeSpace(rawEl.innerText || rawEl.textContent || '');
+              text = tabLabel || text;
+              value = tabLabel || value;
+            } else {
+              const childRes = findChildTargetByRules(semEl, rawEl);
+              if (!childRes.ok) {
+                const onNo = lower((semanticCfg().childrenTargetRules || {}).onNoMatch || 'error');
+                const onAmb = lower((semanticCfg().childrenTargetRules || {}).onAmbiguousMatch || 'error');
+                const isAmb = childRes.error === 'ambiguousChildMatch';
+                const shouldError = (isAmb && onAmb === 'error') || (!isAmb && onNo === 'error');
+                if (shouldError) {
+                  pushPayload({
+                    Kind: 'record',
+                    SourceEvent: 'error',
+                    Tag: tag,
+                    TypeAttr: type,
+                    Role: role,
+                    Text: normalizeSpace(rawEl.innerText || rawEl.textContent || ''),
+                    Value: '',
+                    Checked: false,
+                    Locator: '',
+                    LocatorAlternates: '',
+                    ElementXpath: '',
+                    LogicalKind: objType,
+                    Bounds: rectOf(rawEl),
+                    PageTitle: title,
+                    PageUrl: pageUrl,
+                    TableContext: tbl,
+                    RecorderKeyword: recorderKeyword || kw || '',
+                    Error: 'semantic children target failed: ' + JSON.stringify(childRes)
+                  });
+                }
+                return;
+              }
+              targetTag = lower(childRes.el.tagName || 'a');
+              targetRole = roleLower(childRes.el);
+              const childPack = buildMultiLocator(childRes.el);
+              targetLocator = childPack.primary;
+              targetXpath = childPack.shortXPath;
+              tabLabel = normalizeSpace(childRes.el.innerText || childRes.el.textContent || '');
+              text = tabLabel || text;
+              value = tabLabel || value;
+            }
+          }
         }
-        if (stx && stx.kind === 'webSelect' && stx.selectEl) {
-          recorderKeyword = 'SelectDropDown';
-          logicalKindOverride = 'webSelect';
-          const sel = stx.selectEl;
-          const sp = buildMultiLocator(sel);
-          locatorOverride = sp.primary;
-          targetTag = (sel.tagName || '').toLowerCase();
-          targetRole = (sel.getAttribute('role') || '').toLowerCase();
-          targetLocator = sp.primary;
-          targetXpath = sp.shortXPath;
-          tag = targetTag;
-          type = (sel.getAttribute('type') || '').toLowerCase();
-          role = targetRole;
-          text = (sel.innerText || sel.textContent || '').trim().substring(0, 500);
-          value = sel.value != null ? String(sel.value) : '';
-          boundsEl = sel;
+        if (!configuredSemanticMatched && tctx) {
+          recorderKeyword = 'SelectTab';
+          tabLabel = tctx.tabLabel;
+          locatorOverride = tctx.tabLocator;
+          logicalKindOverride = 'webTab';
+          targetTag = tctx.actualTag;
+          targetRole = tctx.actualRole;
+          targetLocator = tctx.targetCssLocator;
+          targetXpath = tctx.targetXpath;
         }
+        if (sourceEvent !== 'mousedown') {
+          mctx = trySelectMenuContext(rawEl);
+          if (mctx && mctx.skipRecord) return;
+          if (mctx && mctx.menuPath) {
+            recorderKeyword = 'SelectMenuItem';
+            locatorOverride = mctx.menuLocator;
+            logicalKindOverride = 'webMenu';
+            targetTag = mctx.actualTag;
+            targetRole = mctx.actualRole;
+            targetLocator = mctx.targetCssLocator;
+            targetXpath = mctx.targetXpath;
+          }
+        }
+
+        if (!recorderKeyword) {
+          const stx = tryButtonSelectTableSemantics(rawEl, tag, type, role);
+          if (stx && stx.kind === 'webTable') {
+            logicalKindOverride = 'webTable';
+            const ta = findSemanticTableAncestor(rawEl);
+            if (ta) tbl = tableHint(ta);
+          }
+          if (stx && stx.kind === 'webSelect' && stx.selectEl) {
+            recorderKeyword = 'SelectDropDown';
+            logicalKindOverride = 'webSelect';
+            const sel = stx.selectEl;
+            const sp = buildMultiLocator(sel);
+            locatorOverride = sp.primary;
+            targetTag = (sel.tagName || '').toLowerCase();
+            targetRole = (sel.getAttribute('role') || '').toLowerCase();
+            targetLocator = sp.primary;
+            targetXpath = sp.shortXPath;
+            tag = targetTag;
+            type = (sel.getAttribute('type') || '').toLowerCase();
+            role = targetRole;
+            text = (sel.innerText || sel.textContent || '').trim().substring(0, 500);
+            value = sel.value != null ? String(sel.value) : '';
+            boundsEl = sel;
+          }
+        }
+      }
+      if (sourceEvent === 'mousedown' && !tctx && !configuredSemanticMatched) {
+        if (likelyInsideRecordedMenuSurface(rawEl)) {
+          let menuItem = null;
+          try {
+            menuItem = rawEl.closest
+              ? rawEl.closest(
+                  'li.kt-menu__item,li[class*="kt-menu__item"],[role="menuitem"],.el-menu-item,.menu-item'
+                )
+              : null;
+          } catch (_) {}
+          if (!menuItem) {
+            let cur = rawEl;
+            for (let d = 0; d < 14 && cur && cur.nodeType === 1; d++, cur = cur.parentElement) {
+              if (isKtLikeMenuItemLi(cur)) {
+                menuItem = cur;
+                break;
+              }
+            }
+          }
+          if (!findActionableMenuClickTarget(rawEl, menuItem)) return;
+        }
+        const rt = lower(rawEl.tagName);
+        const rr = roleLower(rawEl);
+        if (!shouldRecordMouseDownWhenClickMayBeLost(rt, rr, rawEl)) return;
       }
     }
 
@@ -1010,13 +1902,24 @@
       logicalKindOverride = 'webFileBrowser';
     }
 
-    if (!recorderKeyword && mode === 'record' && (sourceEvent === 'click' || sourceEvent === 'change' || sourceEvent === 'blur')) {
+    if (
+      !recorderKeyword &&
+      mode === 'record' &&
+      !recoPlain &&
+      (sourceEvent === 'click' ||
+        sourceEvent === 'mousedown' ||
+        sourceEvent === 'change' ||
+        sourceEvent === 'blur' ||
+        sourceEvent === 'keyup')
+    ) {
       const tcx = tryResolveTableCellContext(rawEl, tag, type, role);
       if (tcx) {
         recorderKeyword = 'FillTable';
         logicalKindOverride = tcx.logicalKind;
         locatorOverride = tcx.tableLocator;
         parameterOverride = tcx.parameter;
+        if (tcx.tableContext) tbl = tcx.tableContext;
+        if (tcx.data != null) dataOverride = tcx.data;
       }
     }
 
@@ -1027,6 +1930,10 @@
       const sigLoc = (locatorOverride || locPack.primary || '');
       if (shouldSkipToggleDuplicate(sigLoc, !!(boundsEl && boundsEl.checked))) return;
     }
+    let webClassOut = '';
+    try {
+      webClassOut = boundsEl && boundsEl.className != null ? String(boundsEl.className) : '';
+    } catch (_) {}
     const payload = {
       Kind: mode === 'pick' ? 'pick' : mode === 'sync' ? 'sync' : 'record',
       SourceEvent: sourceEvent,
@@ -1043,7 +1950,8 @@
       Bounds: rectOf(boundsEl),
       PageTitle: title,
       PageUrl: pageUrl,
-      TableContext: tbl
+      TableContext: tbl,
+      WebClass: webClassOut
     };
     if (window !== window.top) {
       try {
@@ -1059,6 +1967,7 @@
       }
       payload.RecorderKeyword = recorderKeyword;
       if (parameterOverride) payload.Parameter = parameterOverride;
+      if (dataOverride != null) payload.Data = dataOverride;
       payload.TabLabel = tabLabel;
       if (recorderKeyword === 'SelectMenuItem' && mctx && mctx.menuPath)
         payload.MenuPath = mctx.menuPath;
@@ -1067,7 +1976,89 @@
       payload.TargetLocator = targetLocator;
       payload.TargetXpath = targetXpath;
     }
+    if (recorderKeyword === 'SelectMenuItem' && mctx && mctx.menuElement) {
+      const me = mctx.menuElement;
+      let wc = '';
+      try {
+        wc = (me.className && String(me.className)) || '';
+      } catch (_) {
+        wc = '';
+      }
+      payload.WebClass = wc;
+      payload.HtmlTag = (me.tagName || '').toLowerCase();
+      let preview = normalizeSpace(me.innerText || me.textContent || '');
+      if (preview.length > 500) preview = preview.substring(0, 500);
+      payload.TextPreview = preview;
+      payload.Placeholder =
+        me.getAttribute && me.getAttribute('placeholder') ? String(me.getAttribute('placeholder')) : '';
+      payload.DomId = me.id ? String(me.id) : '';
+      payload.TreeNodeId = '';
+    }
+    if (recorderKeyword === 'SelectTab') {
+      const semEl = boundsEl;
+      const semHit = findSemanticByRules(rawEl);
+      if (semHit && semHit.rule) {
+        let childEl = null;
+        if (semHit.origin === 'semi-self') {
+          childEl = rawEl;
+        } else {
+          const childRes = findChildTargetByRules(semEl, rawEl);
+          childEl = childRes.ok ? childRes.el : null;
+        }
+        applyPropertyMappings(payload, semHit.rule, semEl, rawEl, childEl);
+        if (!hasRequiredProperties(payload, semHit.rule)) {
+          pushPayload({
+            Kind: 'record',
+            SourceEvent: 'error',
+            Tag: tag,
+            TypeAttr: type,
+            Role: role,
+            Text: normalizeSpace(rawEl.innerText || rawEl.textContent || ''),
+            Value: '',
+            Checked: false,
+            Locator: '',
+            LocatorAlternates: '',
+            ElementXpath: '',
+            LogicalKind: payload.LogicalKind || 'webTab',
+            Bounds: rectOf(rawEl),
+            PageTitle: title,
+            PageUrl: pageUrl,
+            TableContext: tbl,
+            RecorderKeyword: recorderKeyword,
+            Error: 'requiredProperties missing for SelectTab'
+          });
+          return;
+        }
+      } else {
+        let wc = '';
+        try {
+          wc = (semEl.className && String(semEl.className)) || '';
+        } catch (_) {
+          wc = '';
+        }
+        payload.WebClass = wc;
+        payload.WebId = semEl && semEl.id ? String(semEl.id) : '';
+        payload.WebIdPath = buildWebIdPath(semEl);
+        payload.WebXpath = buildXPath(semEl);
+        payload.WebChildrenTargetTag = 'a';
+      }
+    }
+    if (recoPlain && mode === 'record' && payload.Kind === 'record' && !payload.Error) {
+      payload.PlaywrightScript = buildPlaywrightSnippetForPayload(payload, sourceEvent);
+    }
+    if (mode === 'record' && payload.Kind === 'record' && !payload.Error) {
+      payload.SourceEvent = sourceEvent;
+      if (shouldSkipDuplicateClickAfterMouseDown(payload)) {
+        clearMouseDownRecordEmit();
+        return;
+      }
+    }
     pushPayload(payload);
+    if (mode === 'record' && payload.Kind === 'record' && !payload.Error) {
+      const se = lower(payload.SourceEvent);
+      if (se === 'mousedown') noteMouseDownRecordEmit(payload);
+      else if (se === 'click') clearMouseDownRecordEmit();
+    }
   }
 
   document.addEventListener('click', (e) => describe(e, 'click'), true);
@@ -1083,6 +2074,7 @@
   );
   document.addEventListener('change', (e) => describe(e, 'change'), true);
   document.addEventListener('blur', (e) => describe(e, 'blur'), true);
+  document.addEventListener('keyup', (e) => describe(e, 'keyup'), true);
 
   if (window === window.top) {
     let __marsLastGeom = '';

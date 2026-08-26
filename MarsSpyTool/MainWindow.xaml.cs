@@ -675,7 +675,7 @@ namespace MarsSpyTool
                 }
             }catch(Exception e)
             {
-                logger.Error(e,$"mouseLeftButtonUpImp\t{ e.Message}");
+                logger.Error(e,$"mouseLeftButtonUpImp\t{ e.Message}|{e.StackTrace}");
             }
             finally
             {

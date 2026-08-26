@@ -3,17 +3,17 @@
     public sealed class ServicebasicInformation
     {
         #region member
-        private string mstrHost;
-        private string mstrProtocol;
-        private string mstrPort;
-        private string mstrServiceName;
+        private string mstrHost = string.Empty;
+        private string mstrProtocol = string.Empty;
+        private string mstrPort = string.Empty;
+        private string mstrServiceName = string.Empty;
         #endregion
 
         #region properties
         public string Host { get { return this.mstrHost; } }
         public string Potocol { get { return this.mstrProtocol; } }
-        public string Port { get { return this.Port; } }
-        public string ServiceName { get { return this.ServiceName; } }
+        public string Port { get { return this.mstrPort; } }
+        public string ServiceName { get { return this.mstrServiceName; } }
         #endregion
 
         public string GetURL()

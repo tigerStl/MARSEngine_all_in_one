@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
@@ -15,6 +17,8 @@ namespace MARS.WebAutomation.UI
         private readonly object _sync = new object();
         private WebBrowser _web;
         private int _seq;
+        private bool _replayPlanMode;
+        private string _bottomMessage = string.Empty;
         private static readonly string LogDir = @"c:\temp\Mars.automationweb.log";
         private static readonly string LogFile = Path.Combine(LogDir, "record-replay-events.jsonl");
 
@@ -48,6 +52,7 @@ namespace MARS.WebAutomation.UI
             RenderCards();
         }
 
+        /// <summary>Optional global input tracing (not used during normal record/replay monitor).</summary>
         public void StartCapture()
         {
             _mouseProc = MouseHookCallback;
@@ -55,12 +60,13 @@ namespace MARS.WebAutomation.UI
             var hMod = GetModuleHandle(null);
             _mouseHook = SetWindowsHookEx(WH_MOUSE_LL, _mouseProc, hMod, 0);
             _keyHook = SetWindowsHookEx(WH_KEYBOARD_LL, _keyProc, hMod, 0);
-            AddRecordCard(new RecordReplayEventCard
-            {
-                EventName = "RecordReplayStart",
-                ObjectType = "System",
-                Data = $"MouseHook={_mouseHook != IntPtr.Zero}; KeyHook={_keyHook != IntPtr.Zero}"
-            });
+            AddRecordCard(
+                new RecordReplayEventCard
+                {
+                    EventName = "RecordReplayStart",
+                    ObjectType = "System",
+                    Data = $"MouseHook={_mouseHook != IntPtr.Zero}; KeyHook={_keyHook != IntPtr.Zero}"
+                });
         }
 
         public void StopCapture()
@@ -77,16 +83,125 @@ namespace MARS.WebAutomation.UI
             }
         }
 
+        /// <summary>Prepares the sidebar for replay: clears hook noise rows, loads one card per test step.</summary>
+        public void BeginReplayPlan(IReadOnlyList<SemanticStepRecord> steps)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke((Action)(() => BeginReplayPlan(steps)));
+                return;
+            }
+
+            StopCapture();
+            _replayPlanMode = true;
+            _bottomMessage = string.Empty;
+            lock (_sync)
+            {
+                _cards.Clear();
+                _seq = 0;
+                if (steps == null)
+                {
+                    RenderCards();
+                    return;
+                }
+                for (var i = 0; i < steps.Count; i++)
+                {
+                    var s = steps[i];
+                    var loc = SemanticStepLocatorUtil.EffectivePlaywrightSelector(s) ?? string.Empty;
+                    if (loc.Length > 140)
+                        loc = loc.Substring(0, 137) + "…";
+                    var data = s?.Data ?? string.Empty;
+                    if (data.Length > 200)
+                        data = data.Substring(0, 197) + "…";
+                    _cards.Add(
+                        new RecordReplayEventCard
+                        {
+                            Sequence = i + 1,
+                            TimestampUtc = DateTime.UtcNow,
+                            EventName = s?.Keyword ?? string.Empty,
+                            ObjectType = s?.LogicalKind ?? string.Empty,
+                            Tag = string.Empty,
+                            DataAttributes = string.Empty,
+                            Xpath = s?.ElementXpath ?? string.Empty,
+                            Value = loc,
+                            Data = data,
+                            IsReplayPlanRow = true,
+                            ReplayStepIndex = i,
+                            ReplayPhase = "pending",
+                            ReplayErrorMessage = string.Empty,
+                            SuppressFileLog = true
+                        });
+                }
+            }
+
+            RenderCards();
+        }
+
+        /// <summary>Updates replay row highlight and optional bottom error strip.</summary>
+        /// <param name="phase">before | afterOk | afterErr</param>
+        public void SetReplayProgress(int stepIndex, string phase, string errorMessage = null)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke((Action)(() => SetReplayProgress(stepIndex, phase, errorMessage)));
+                return;
+            }
+
+            if (!_replayPlanMode)
+                return;
+
+            lock (_sync)
+            {
+                if (string.Equals(phase, "before", StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (var c in _cards.Where(x => x.IsReplayPlanRow && string.Equals(x.ReplayPhase, "active", StringComparison.OrdinalIgnoreCase)))
+                        c.ReplayPhase = "ok";
+                    var cur = _cards.FirstOrDefault(x => x.IsReplayPlanRow && x.ReplayStepIndex == stepIndex);
+                    if (cur != null)
+                    {
+                        cur.ReplayPhase = "active";
+                        cur.ReplayErrorMessage = string.Empty;
+                    }
+                    _bottomMessage = string.Empty;
+                }
+                else if (string.Equals(phase, "afterOk", StringComparison.OrdinalIgnoreCase))
+                {
+                    var cur = _cards.FirstOrDefault(x => x.IsReplayPlanRow && x.ReplayStepIndex == stepIndex);
+                    if (cur != null)
+                    {
+                        cur.ReplayPhase = "ok";
+                        cur.ReplayErrorMessage = string.Empty;
+                    }
+                    _bottomMessage = string.Empty;
+                }
+                else if (string.Equals(phase, "afterErr", StringComparison.OrdinalIgnoreCase))
+                {
+                    var cur = _cards.FirstOrDefault(x => x.IsReplayPlanRow && x.ReplayStepIndex == stepIndex);
+                    if (cur != null)
+                    {
+                        cur.ReplayPhase = "error";
+                        cur.ReplayErrorMessage = string.IsNullOrWhiteSpace(errorMessage) ? "Step failed." : errorMessage.Trim();
+                    }
+                    _bottomMessage = string.IsNullOrWhiteSpace(errorMessage) ? "Step failed." : errorMessage.Trim();
+                }
+            }
+
+            RenderCards();
+        }
+
         public void AddRecordCard(RecordReplayEventCard card)
         {
-            if (card == null) return;
+            if (card == null)
+                return;
             lock (_sync)
             {
                 card.Sequence = ++_seq;
                 card.TimestampUtc = card.TimestampUtc == default(DateTime) ? DateTime.UtcNow : card.TimestampUtc;
                 _cards.Add(card);
             }
-            AppendCardLog(card);
+
+            if (!card.SuppressFileLog)
+                AppendCardLog(card);
             RenderCards();
         }
 
@@ -98,26 +213,29 @@ namespace MARS.WebAutomation.UI
                 if (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN)
                 {
                     var hs = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
-                    AddRecordCard(new RecordReplayEventCard
-                    {
-                        EventName = msg == WM_LBUTTONDOWN ? "MouseLeftDown" : "MouseRightDown",
-                        Position = $"{hs.pt.X},{hs.pt.Y}",
-                        ObjectType = "SystemInput",
-                        Data = "Global mouse hook"
-                    });
+                    AddRecordCard(
+                        new RecordReplayEventCard
+                        {
+                            EventName = msg == WM_LBUTTONDOWN ? "MouseLeftDown" : "MouseRightDown",
+                            Position = $"{hs.pt.X},{hs.pt.Y}",
+                            ObjectType = "SystemInput",
+                            Data = "Global mouse hook"
+                        });
                 }
                 else if (msg == WM_MOUSEMOVE && (_seq % 20 == 0))
                 {
                     var hs = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
-                    AddRecordCard(new RecordReplayEventCard
-                    {
-                        EventName = "MouseMove",
-                        Position = $"{hs.pt.X},{hs.pt.Y}",
-                        ObjectType = "SystemInput",
-                        Data = "Global mouse move"
-                    });
+                    AddRecordCard(
+                        new RecordReplayEventCard
+                        {
+                            EventName = "MouseMove",
+                            Position = $"{hs.pt.X},{hs.pt.Y}",
+                            ObjectType = "SystemInput",
+                            Data = "Global mouse move"
+                        });
                 }
             }
+
             return CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
         }
 
@@ -130,14 +248,16 @@ namespace MARS.WebAutomation.UI
                 {
                     var hs = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
                     var vkCode = (int)hs.vkCode;
-                    AddRecordCard(new RecordReplayEventCard
-                    {
-                        EventName = "KeyDown",
-                        ObjectType = "SystemInput",
-                        Data = ((Keys)vkCode).ToString()
-                    });
+                    AddRecordCard(
+                        new RecordReplayEventCard
+                        {
+                            EventName = "KeyDown",
+                            ObjectType = "SystemInput",
+                            Data = ((Keys)vkCode).ToString()
+                        });
                 }
             }
+
             return CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
         }
 
@@ -150,27 +270,71 @@ namespace MARS.WebAutomation.UI
             }
 
             List<RecordReplayEventCard> snap;
-            lock (_sync) snap = new List<RecordReplayEventCard>(_cards);
-            var json = JsonConvert.SerializeObject(snap);
-            var html = @"<!doctype html><html><head><meta charset='utf-8' />
-<style>body{font-family:Segoe UI,Arial;margin:0;background:#f8fafc}.wrap{padding:8px}
-.card{background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:8px;margin-bottom:8px;font-size:12px}
-.t{font-weight:700;color:#0f172a}.k{color:#334155;font-weight:600} .v{color:#0f172a;word-break:break-all}
-</style></head><body><div class='wrap' id='root'></div>
-<script>
-const data=" + json + @";
-const root=document.getElementById('root');
-root.innerHTML = data.map(c => `
-<div class='card'>
-  <div class='t'>序号: ${c.Sequence || ''} | 事件: ${c.EventName || ''}</div>
-  <div><span class='k'>Position:</span> <span class='v'>${c.Position || ''}</span></div>
-  <div><span class='k'>Object:</span> <span class='v'>type=${c.ObjectType||''}; tag=${c.Tag||''}; data-*=${c.DataAttributes||''}; xpath=${c.Xpath||''}; value=${c.Value||''}; id=${c.Id||''}; aria-*=${c.AriaAttributes||''}</span></div>
-  <div><span class='k'>Data:</span> <span class='v'>${c.Data || ''}</span></div>
-  <div><span class='k'>ListenedRequest:</span> <span class='v'>Url=${c.ListenedRequestUrl || ''}; header=${c.ListenedRequestHeaders || ''}</span></div>
-  <div><span class='k'>ExpectedResponse:</span> <span class='v'>${c.ExpectedResponse || ''}</span></div>
-</div>`).join('');
-</script></body></html>";
-            _web.DocumentText = html;
+            lock (_sync)
+                snap = new List<RecordReplayEventCard>(_cards);
+
+            var foot = WebUtility.HtmlEncode(_bottomMessage ?? string.Empty);
+            var footClass = string.IsNullOrWhiteSpace(_bottomMessage) ? "" : " err";
+
+            var sb = new StringBuilder(4096 + snap.Count * 400);
+            sb.AppendLine("<!doctype html><html><head><meta charset=\"utf-8\" />");
+            sb.AppendLine("<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />");
+            sb.AppendLine("<style>");
+            sb.AppendLine("html,body{height:100%;margin:0}");
+            sb.AppendLine(".app{display:flex;flex-direction:column;height:100%;font-family:Segoe UI,Arial;background:#f8fafc}");
+            sb.AppendLine("#cards{flex:1;overflow:auto;padding:8px}");
+            sb.AppendLine("#foot{min-height:56px;max-height:120px;overflow:auto;border-top:1px solid #e2e8f0;padding:8px 10px;font-size:11px;color:#475569;background:#f1f5f9;white-space:pre-wrap;word-break:break-word}");
+            sb.AppendLine("#foot.err{background:#fee2e2;color:#991b1b;border-top-color:#fecaca}");
+            sb.AppendLine(".card{background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:8px;margin-bottom:8px;font-size:12px}");
+            sb.AppendLine(".card.active{outline:2px solid #2563eb;background:#eff6ff;border-color:#93c5fd}");
+            sb.AppendLine(".card.ok{border-color:#86efac;background:#f0fdf4}");
+            sb.AppendLine(".card.error{background:#fee2e2;border-color:#f87171}");
+            sb.AppendLine(".t{font-weight:700;color:#0f172a}");
+            sb.AppendLine(".k{color:#334155;font-weight:600}");
+            sb.AppendLine(".v{color:#0f172a;word-break:break-all}");
+            sb.AppendLine(".ph{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em}");
+            sb.AppendLine(".errline{margin-top:6px;font-size:11px;color:#991b1b;white-space:pre-wrap;word-break:break-word}");
+            sb.AppendLine("</style></head><body><div class=\"app\"><div id=\"cards\">");
+
+            foreach (var c in snap)
+            {
+                var isReplay = c.IsReplayPlanRow;
+                var phase = isReplay ? (c.ReplayPhase ?? "pending") : string.Empty;
+                var cls = isReplay ? ("card " + phase) : "card";
+                sb.Append("<div class=\"").Append(WebUtility.HtmlEncode(cls)).Append("\">");
+
+                sb.Append("<div class=\"ph\">");
+                if (isReplay)
+                {
+                    sb.Append("Step ").Append(c.ReplayStepIndex + 1).Append(" · ").Append(WebUtility.HtmlEncode(phase));
+                }
+                else
+                {
+                    sb.Append("#").Append(c.Sequence).Append(" · ").Append(WebUtility.HtmlEncode(c.EventName ?? string.Empty));
+                }
+                sb.Append("</div>");
+
+                var title = (c.EventName ?? string.Empty) + (string.IsNullOrEmpty(c.ObjectType) ? string.Empty : (" · " + c.ObjectType));
+                sb.Append("<div class=\"t\">").Append(WebUtility.HtmlEncode(title)).Append("</div>");
+
+                sb.Append("<div><span class=\"k\">Locator:</span> <span class=\"v\">").Append(WebUtility.HtmlEncode(c.Value ?? string.Empty)).Append("</span></div>");
+                sb.Append("<div><span class=\"k\">Data:</span> <span class=\"v\">").Append(WebUtility.HtmlEncode(c.Data ?? string.Empty)).Append("</span></div>");
+                sb.Append("<div><span class=\"k\">XPath:</span> <span class=\"v\">").Append(WebUtility.HtmlEncode(c.Xpath ?? string.Empty)).Append("</span></div>");
+                sb.Append("<div><span class=\"k\">Position:</span> <span class=\"v\">").Append(WebUtility.HtmlEncode(c.Position ?? string.Empty)).Append("</span></div>");
+                sb.Append("<div><span class=\"k\">Request:</span> <span class=\"v\">").Append(WebUtility.HtmlEncode(c.ListenedRequestUrl ?? string.Empty)).Append("</span></div>");
+
+                if (isReplay && !string.IsNullOrWhiteSpace(c.ReplayErrorMessage))
+                {
+                    sb.Append("<div class=\"errline\"><span class=\"k\">Error:</span> <span class=\"v\">")
+                        .Append(WebUtility.HtmlEncode(c.ReplayErrorMessage))
+                        .Append("</span></div>");
+                }
+
+                sb.Append("</div>");
+            }
+
+            sb.Append("</div><div id=\"foot\" class=\"").Append(footClass.Trim()).Append("\">").Append(foot).Append("</div></div></body></html>");
+            _web.DocumentText = sb.ToString();
         }
 
         protected override void OnShown(EventArgs e)
@@ -240,13 +404,19 @@ root.innerHTML = data.map(c => `
             {
                 // ignore appbar release failures
             }
+
             base.OnFormClosed(e);
         }
 
         private delegate IntPtr HookProc(int nCode, IntPtr wParam, IntPtr lParam);
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct POINT { public int X; public int Y; }
+        private struct POINT
+        {
+            public int X;
+            public int Y;
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         private struct MSLLHOOKSTRUCT
         {
@@ -256,6 +426,7 @@ root.innerHTML = data.map(c => `
             public uint time;
             public IntPtr dwExtraInfo;
         }
+
         [StructLayout(LayoutKind.Sequential)]
         private struct KBDLLHOOKSTRUCT
         {
@@ -265,6 +436,7 @@ root.innerHTML = data.map(c => `
             public uint time;
             public IntPtr dwExtraInfo;
         }
+
         [StructLayout(LayoutKind.Sequential)]
         private struct RECT
         {
@@ -273,6 +445,7 @@ root.innerHTML = data.map(c => `
             public int right;
             public int bottom;
         }
+
         [StructLayout(LayoutKind.Sequential)]
         private struct APPBARDATA
         {
@@ -283,16 +456,21 @@ root.innerHTML = data.map(c => `
             public RECT rc;
             public int lParam;
         }
+
         private const uint ABE_LEFT = 0;
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SetWindowsHookEx(int idHook, HookProc lpfn, IntPtr hMod, uint dwThreadId);
+
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
         [DllImport("user32.dll")]
         private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr GetModuleHandle(string lpModuleName);
+
         [DllImport("shell32.dll", SetLastError = true)]
         private static extern uint SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
     }

@@ -257,27 +257,16 @@ namespace MARS.WebAutomation.UI
 
             try
             {
-                var bytes = await page.ScreenshotAsync(new PageScreenshotOptions
+                var shown = await ElementScreenshotCapture.TryCaptureAsync(page, dto.Bounds).ConfigureAwait(true);
+                if (shown == null)
                 {
-                    Type = ScreenshotType.Png,
-                    Clip = new Clip
-                    {
-                        X = (float)dto.Bounds.X,
-                        Y = (float)dto.Bounds.Y,
-                        Width = (float)w,
-                        Height = (float)h
-                    }
-                }).ConfigureAwait(true);
-
-                using (var ms = new MemoryStream(bytes))
-                using (var bmp = new Bitmap(ms))
-                {
-                    var shown = new Bitmap(bmp);
-                    var old = _picture.Image;
-                    _picture.Image = shown;
-                    old?.Dispose();
+                    ClearImage();
+                    return;
                 }
 
+                var old = _picture.Image;
+                _picture.Image = shown;
+                old?.Dispose();
                 _zoom = 1.0;
                 ApplyZoomLayout();
                 _lblStatus.Text = $"Object: {Math.Round(w)}x{Math.Round(h)}";

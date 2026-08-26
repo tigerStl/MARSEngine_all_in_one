@@ -72,6 +72,12 @@ namespace MARS.WebAutomation.Services
 
         public string LastPerformanceRunBodyMustContain { get; set; }
 
+        /// <summary>Width (px) of the step object property panel when expanded (Record / Replay canvas split).</summary>
+        public int StepPropertyPanelExpandedWidthPx { get; set; } = 240;
+
+        /// <summary>When true, the step object property panel is collapsed to a narrow strip.</summary>
+        public bool StepPropertyPanelCollapsed { get; set; }
+
         public static WorkbenchSettings CreateDefault()
         {
             return new WorkbenchSettings
