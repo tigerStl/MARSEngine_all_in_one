@@ -765,10 +765,12 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
 
         private static bool CheckKeywordTypeGUIKeyword(long lKeywordId, string strDBIdx,ref string strKeyword, ref bool isOk, ref string strError)
         {
-            strKeyword = B_KEYWORD.GetKeywordName(lKeywordId, ref isOk, ref strError, strDBIdx) ?? "";
+            string tmpKeyword = strKeyword = B_KEYWORD.GetKeywordName(lKeywordId, ref isOk, ref strError, strDBIdx) ?? "";
             KeyWordsOPForNonGUI.currentDBIdx = strDBIdx;
             if (!isOk) return false;
-            return !KeyWordsOPForNonGUI.Non_GUIKeyword.ContainsKey(strKeyword.Trim().ToUpper());
+
+            return !KeyWordsOPForNonGUI.Non_GUIKeyword.Keys.Any(k => (k != null) && (string.Compare(k, tmpKeyword,true) ==0));
+            //KeyWordsOPForNonGUI.Non_GUIKeyword.ContainsKey(strKeyword.Trim().ToUpper());
         }
 
     }

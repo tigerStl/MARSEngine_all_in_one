@@ -1,15 +1,28 @@
 extern alias clientWCF;
 using clientWCF::Route2NSEx.src.Marquis.systemUtil;
 using com.Mars.Constants;
+using Mars.AutoTestingDriver.AISupport.AgentSupport;
+using Mars.AutoTestingDriver.ApiIntegratedHelper;
 using Mars.AutoTestingDriver.DataTolerance;
 using Mars.AutoTestingDriver.ErrorMessage;
 using Mars.AutoTestingDriver.ExecuteTestcase.keywordOp.baseInterfaceAndClass;
 using Mars.AutoTestingDriver.injector;
-using Mars.message.AutoTestingDriver.interProcess;
+using Mars.AutoTestingDriver.MarsImage;
+//using MarsEnginer.windowsWrapper.SystemUtil;
+using Mars.AutoTestingDriver.MarsUISupport;
+using Mars.AutoTestingDriver.OcrHelper;
 using Mars.AutoTestingDriver.Properties;
+using Mars.AutoTestingDriver.WebHelpers;
 using Mars.AutoTestingDriver.webSupport;
+using Mars.Inter.MQCenter.MarsUtility;
+using Mars.Inter.MQCenter.MSAASupport;
+using Mars.message.AutoTestingDriver.interProcess;
 using Mars.message.Business;
+using Mars.message.DataLayer;
 using Mars.message.Inter.MQCenter.keywordOperation;
+using Mars.message.Utility;
+using Mars.message.windowsWrapper.SystemUtil;
+using Newtonsoft.Json.Linq;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -18,22 +31,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Runtime.Versioning;
+using System.ServiceModel.Configuration;
 using System.Text.RegularExpressions;
 using System.Windows.Automation;
-using Mars.AutoTestingDriver.WebHelpers;
-using System.ServiceModel.Configuration;
 using System.Windows.Forms;
-using Mars.AutoTestingDriver.OcrHelper;
-using Mars.AutoTestingDriver.MarsImage;
-using Mars.message.DataLayer;
-using Mars.Inter.MQCenter.MSAASupport;
-//using MarsEnginer.windowsWrapper.SystemUtil;
-using Mars.AutoTestingDriver.MarsUISupport;
-using Mars.message.Utility;
-using Mars.Inter.MQCenter.MarsUtility;
-using Mars.message.windowsWrapper.SystemUtil;
-using Mars.AutoTestingDriver.ApiIntegratedHelper;
-using Newtonsoft.Json.Linq;
 
 namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
 {
@@ -1432,7 +1433,34 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
             Logger.logBegin("MARSKEYWORD_SnapShot", string.Format("Parameter:[{0}] Data:[{1}]", strParaMeter, strData));
             Dictionary<string, string> dictPegProperties = new Dictionary<string, string>();
             Dictionary<string, string> dictObjProperties = new Dictionary<string, string>();
-            bool isOk = ObjectInfoAnlyst.AlystObjectQuickAccessToPegAndObj(stepObject.PEG_QUICK_ACCESS, stepObject.QUICK_ACCESS, ref dictPegProperties, ref dictObjProperties, ref strError);
+            bool isOk = true;
+            /// if the paramter indicates that system should use agent,then no object checking is required
+            /// 
+            if (AgentHelper.IsAgentParameterIndicatesAgentMode(strParaMeter))
+            {
+                Logger.Info("MARSKEYWORD_SnapShot", $"Snapshot using agent mode|{strParaMeter}|{strData}");
+                try
+                {                
+                    return isOk = Mars.AutoTestingDriver.AISupport.AgentSupport.AgentKeywordDelegate.Snapshot(
+                        runOrdId,
+                        dictPegProperties,
+                        dictObjProperties,
+                        strParaMeter,
+                        strData,
+                        stepObject.TYPE_NAME,
+                        strAttachInfo,
+                        stepObject.PEG_NAME ?? "",
+                        stepObject.OBJECT_HAPPY_NAME ?? "",
+                        ref strError,
+                        ref dealResult);
+                }
+                finally
+                {
+                    Logger.logEnd("MARSKEYWORD_SnapShot", $"isOk|{isOk}|strError|{strError}");
+                }
+            }
+
+            isOk = ObjectInfoAnlyst.AlystObjectQuickAccessToPegAndObj(stepObject.PEG_QUICK_ACCESS, stepObject.QUICK_ACCESS, ref dictPegProperties, ref dictObjProperties, ref strError);
             if (!isOk) return false;
             var isForWEB = IsObjectForWebApplication(dictPegProperties, dictObjProperties);
             if ((appTyp == Mars_applicationTyp.MARS_APPTYPE.WEB_IE) || (isForWEB))
@@ -1459,26 +1487,6 @@ namespace Mars.AutoTestingDriver.ExecuteTestcase.keywordOp
                     strAttachInfo, stepObject.PEG_NAME ?? "", stepObject.OBJECT_HAPPY_NAME ?? "", ref strError, ref dealResult);
             }
 
-            if (!string.IsNullOrEmpty(strParaMeter))
-            {
-                if (strParaMeter.Equals("DefaultAgent", StringComparison.OrdinalIgnoreCase))
-                {
-                    // call default agent's snapshot implementation
-                    var ok = Mars.AutoTestingDriver.AISupport.AgentSupport.AgentKeywordDelegate.Snapshot(
-                        runOrdId,
-                        dictPegProperties,
-                        dictObjProperties,
-                        strParaMeter,
-                        strData,
-                        stepObject.TYPE_NAME,
-                        strAttachInfo,
-                        stepObject.PEG_NAME ?? "",
-                        stepObject.OBJECT_HAPPY_NAME ?? "",
-                        ref strError,
-                        ref dealResult);
-                    return ok;
-                }
-            }
 
             isOk = InjectorMessageAgent.DealWithKeyword_GUIOp("SNAPSHOT", runOrdId, dictPegProperties, dictObjProperties, strParaMeter, strData,
                 stepObject.TYPE_NAME,

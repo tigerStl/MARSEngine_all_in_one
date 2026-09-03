@@ -474,6 +474,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="marlogcommon.snk" />
+    <None Include="Mars.LogCommon_conflict.csproj" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

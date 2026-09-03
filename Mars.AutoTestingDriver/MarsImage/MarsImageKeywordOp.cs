@@ -1,4 +1,4 @@
-using log4net.Repository.Hierarchy;
+
 using Mars.message.AutoTestingDriver.interProcess;
 using MarsEnginer.windowsWrapper.SystemUtil;
 

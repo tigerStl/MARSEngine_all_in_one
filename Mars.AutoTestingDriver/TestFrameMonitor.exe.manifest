@@ -42,18 +42,7 @@
       <assemblyIdentity name="Microsoft.Windows.CommonLanguageRuntime" version="4.0.30319.0" />
     </dependentAssembly>
   </dependency>
-  <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="log4net.dll" size="270336">
-      <assemblyIdentity name="log4net" version="2.0.17.0" publicKeyToken="669E0DDF0BB1AA2A" language="neutral" processorArchitecture="msil" />
-      <hash>
-        <dsig:Transforms>
-          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
-        </dsig:Transforms>
-        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>T/7s+hVkvNYyiRx+DzdmaSJ+0Xfk80vY+yX0kxYtjDo=</dsig:DigestValue>
-      </hash>
-    </dependentAssembly>
-  </dependency>
+  
   <dependency>
     <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Mars.LogCommon.dll" size="9216">
       <assemblyIdentity name="Mars.LogCommon" version="1.0.0.1" publicKeyToken="22F14F856BFFFEC2" language="neutral" processorArchitecture="msil" />

@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"path": "../../../../MARSWeb/MARSWeb/MARS_WebCore/MarsDefaultAgent"
+		},
+		{
+			"path": "../../../../MARSWeb/MARSWeb/MARS_WebCore/Mars.ExternalAppAgent"
+		}
+	],
+	"settings": {}
+}

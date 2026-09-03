@@ -1,5 +1,4 @@
 
-using log4net.Repository.Hierarchy;
 using Mars.AutoTestingDriver.webSupport;
 //using OpenQA.Selenium.Chrome;
 using System;

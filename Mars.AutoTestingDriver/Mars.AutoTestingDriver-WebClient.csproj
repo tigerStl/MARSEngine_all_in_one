@@ -17,7 +17,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
-    <PublishUrl>c:\tiger\automationTest\Automation Workbooks\publish\mars26demo8090\</PublishUrl>
+    <PublishUrl>C:\tiger\automationTest\Automation Workbooks\publish\fhlb_MarsSummitTest1\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Web</InstallFrom>
     <UpdateEnabled>true</UpdateEnabled>
@@ -27,14 +27,14 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>true</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <InstallUrl>http://10.0.0.5:8090/MARSENGINE/</InstallUrl>
-    <UpdateUrl>http://10.0.0.5:8090/MARSENGINE/</UpdateUrl>
+    <InstallUrl>http://MARSSUMMITTEST1:8090/MARSENGINE/</InstallUrl>
+    <UpdateUrl>http://MARSSUMMITTEST1:8090/MARSENGINE/</UpdateUrl>
     <ProductName>MARS ENGINE</ProductName>
     <PublisherName>Marquis Business Tech Solution LLC</PublisherName>
     <MinimumRequiredVersion>1.0.0.43</MinimumRequiredVersion>
     <WebPage>publish.htm</WebPage>
     <TrustUrlParameters>true</TrustUrlParameters>
-    <ApplicationRevision>271</ApplicationRevision>
+    <ApplicationRevision>286</ApplicationRevision>
     <ApplicationVersion>3.0.2.%2a</ApplicationVersion>
     <UseApplicationTrust>true</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
@@ -311,9 +311,6 @@
     <Reference Include="Axe.Windows.Win32, Version=2.4.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Axe.Windows.2.4.2\lib\netstandard20\Axe.Windows.Win32.dll</HintPath>
     </Reference>
-    <Reference Include="log4net, Version=2.0.17.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.17\lib\net45\log4net.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
@@ -505,6 +502,7 @@
       <Link>ErrorMessage\PictureBox.designer.cs</Link>
       <DependentUpon>PictureBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="AISupport\AgentSupport\AgentHelper.cs" />
     <Compile Include="AISupport\AgentSupport\AgentKeywordDelegate.cs" />
     <Compile Include="AISupport\AgentSupport\AgentMethodDataStorage.cs" />
     <Compile Include="ApiIntegratedHelper\APIEngineHelper.cs" />
@@ -640,7 +638,9 @@
     <Content Include="MarsSpyTool.application" />
     <Content Include="MarsSpyTool.exe.manifest" />
     <Content Include="MarsSpyTool.exe.config" />
-    <None Include="config\MarsExternalAgents.json" />
+    <Content Include="config\MarsExternalAgents.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="MyCertificate.pfx" />
     <None Include="Resources\icons8-mars-badges-70.ico" />
     <None Include="App.config">
@@ -720,7 +720,15 @@
   <PropertyGroup>
     <BaseOutputPath>C:\automationTest\Automation Workbooks\bin\</BaseOutputPath>
     <OutputPath>C:\automationTest\Automation Workbooks\bin\</OutputPath>
+    <MARSAgentOutputDir>$(OutputPath)MARSAgent\</MARSAgentOutputDir>
   </PropertyGroup>
+  <!-- Sidecar agent files for ClickOnce. Do not use Content: those DLLs become CandidateAssemblyFiles and
+       the net6 Newtonsoft.Json from MARSAgent conflicts with this net48 project's System.Runtime.
+       TargetPath must be set via Update (not on Include): %(Filename)/%(Extension) are empty during Include
+       batching and previously produced illegal duplicate &lt;file name="MARSAgent\"/&gt; entries (HRESULT 0x80070C89). -->
+  <ItemGroup>
+    <MARSAgentClickOnceFile Include="$(MARSAgentOutputDir)**\*.*" Exclude="$(MARSAgentOutputDir)log\**\*.*;$(MARSAgentOutputDir)**\*.pdb;$(MARSAgentOutputDir)**\*.staticwebassets.*" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\MarsErrorMessageBox\MarsErrorMessageBox.resx">
       <Link>ErrorMessage\MarsErrorMessageBox.resx</Link>
@@ -917,6 +925,34 @@
     <SelectedAppConfig Condition="'$(EnvConfig)' != ''">$(MSBuildProjectDirectory)\$(EnvConfig)</SelectedAppConfig>
     <SelectedAppConfig Condition="'$(SelectedAppConfig)' == ''">$(MSBuildProjectDirectory)\App.config</SelectedAppConfig>
   </PropertyGroup>
+  <Target Name="ExcludeMARSAgentFromAssemblyResolution" BeforeTargets="ResolveAssemblyReferences;DesignTimeResolveAssemblyReferences">
+    <ItemGroup>
+      <CandidateAssemblyFiles Remove="$(MARSAgentOutputDir)**\*.*" />
+      <Content Remove="$(MARSAgentOutputDir)**\*.*" />
+    </ItemGroup>
+  </Target>
+  <Target Name="RefreshMARSAgentClickOnceFiles" BeforeTargets="_DeploymentComputeClickOnceManifestInfo;GenerateApplicationManifest;_DeploymentGenerateApplicationManifest">
+    <ItemGroup>
+      <MARSAgentClickOnceFile Remove="@(MARSAgentClickOnceFile)" />
+      <MARSAgentClickOnceFile Include="$(MARSAgentOutputDir)**\*.*" Exclude="$(MARSAgentOutputDir)log\**\*.*;$(MARSAgentOutputDir)**\*.pdb;$(MARSAgentOutputDir)**\*.staticwebassets.*" />
+      <!-- Assign TargetPath after Include so Filename/Extension/RecursiveDir are populated. -->
+      <MARSAgentClickOnceFile Update="@(MARSAgentClickOnceFile)">
+        <TargetPath>MARSAgent\$([System.String]::Copy('%(RecursiveDir)%(Filename)%(Extension)').Replace('/', '\'))</TargetPath>
+      </MARSAgentClickOnceFile>
+      <!-- Drop directories / broken items that would become name="MARSAgent\". -->
+      <MARSAgentClickOnceFile Remove="@(MARSAgentClickOnceFile)" Condition="'%(Filename)' == ''" />
+    </ItemGroup>
+    <Message Text="Including @(MARSAgentClickOnceFile-&gt;Count()) MARSAgent files in ClickOnce: @(MARSAgentClickOnceFile-&gt;Metadata('TargetPath'), ', ')" Importance="High" />
+  </Target>
+  <Target Name="AddMARSAgentToClickOnceManifest" AfterTargets="_DeploymentComputeClickOnceManifestInfo">
+    <ItemGroup>
+      <_DeploymentManifestFiles Include="@(MARSAgentClickOnceFile)" Condition="'%(MARSAgentClickOnceFile.Filename)' != '' and '%(MARSAgentClickOnceFile.TargetPath)' != ''">
+        <TargetPath>%(MARSAgentClickOnceFile.TargetPath)</TargetPath>
+        <IncludeHash>true</IncludeHash>
+        <FileType>File</FileType>
+      </_DeploymentManifestFiles>
+    </ItemGroup>
+  </Target>
   <Target Name="ForceReplaceOutputConfigByEnvironment" AfterTargets="Build" Condition="Exists('$(SelectedAppConfig)')">
     <Message Text="Force replacing output config: $(SelectedAppConfig) -&gt; $(TargetDir)$(TargetFileName).config (Configuration=$(Configuration))" Importance="High" />
     <Copy SourceFiles="$(SelectedAppConfig)" DestinationFiles="$(TargetDir)$(TargetFileName).config" OverwriteReadOnlyFiles="true" />
