@@ -10,17 +10,17 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 public class HttpCommandServer {
     private final HttpServer server;
     private final Logger logger;
 
-    public HttpCommandServer(int port, Logger logger, Consumer<String> commandHandler) throws IOException {
+    public HttpCommandServer(int port, Logger logger, Function<String, String> commandHandler) throws IOException {
         this.logger = logger;
         this.server = HttpServer.create(new InetSocketAddress(port), 0);
-        this.server.createContext("/command", new CommandHandler(commandHandler));
+        this.server.createContext("/command", new CommandHandler(commandHandler, logger));
     }
 
     public void start() {
@@ -37,10 +37,12 @@ public class HttpCommandServer {
     }
 
     private static final class CommandHandler implements HttpHandler {
-        private final Consumer<String> commandHandler;
+        private final Function<String, String> commandHandler;
+        private final Logger logger;
 
-        private CommandHandler(Consumer<String> commandHandler) {
+        private CommandHandler(Function<String, String> commandHandler, Logger logger) {
             this.commandHandler = commandHandler;
+            this.logger = logger;
         }
 
         @Override
@@ -51,10 +53,11 @@ public class HttpCommandServer {
             }
 
             String body = readBody(exchange.getRequestBody());
+            String result = "{\"success\":true}";
             if (commandHandler != null) {
-                commandHandler.accept(body);
+                result = commandHandler.apply(body);
             }
-            respond(exchange, 200, JsonUtil.toJson(Map.of("status", "ok")));
+            respond(exchange, 200, result == null ? "{\"success\":true}" : result);
         }
 
         private static String readBody(InputStream input) throws IOException {

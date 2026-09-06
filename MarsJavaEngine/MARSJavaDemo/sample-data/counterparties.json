@@ -1,0 +1,12 @@
+[
+  {"code": "FHLB", "name": "Federal Home Loan Bank", "country": "USA", "type": "Bank", "rating": "AA+", "status": "Active"},
+  {"code": "JPM", "name": "JPM Demo Bank", "country": "USA", "type": "Bank", "rating": "AA", "status": "Active"},
+  {"code": "CITI", "name": "Citi Demo Bank", "country": "USA", "type": "Bank", "rating": "A+", "status": "Active"},
+  {"code": "GS", "name": "GS Demo Markets", "country": "USA", "type": "Broker", "rating": "A+", "status": "Active"},
+  {"code": "BAC", "name": "BAC Demo Bank", "country": "USA", "type": "Bank", "rating": "A", "status": "Active"},
+  {"code": "MS", "name": "MS Demo Securities", "country": "USA", "type": "Broker", "rating": "A", "status": "Active"},
+  {"code": "BARC", "name": "Barc Demo Bank", "country": "GBR", "type": "Bank", "rating": "A", "status": "Active"},
+  {"code": "DB", "name": "DB Demo Bank", "country": "DEU", "type": "Bank", "rating": "A-", "status": "Active"},
+  {"code": "UBS", "name": "UBS Demo AG", "country": "CHE", "type": "Bank", "rating": "AA-", "status": "Active"},
+  {"code": "WFC", "name": "WFC Demo Bank", "country": "USA", "type": "Bank", "rating": "A+", "status": "Active"}
+]

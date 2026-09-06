@@ -1,7 +1,7 @@
 package com.mars.javaengine.net;
 
 import java.net.InetSocketAddress;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -9,9 +9,9 @@ import org.java_websocket.server.WebSocketServer;
 
 public class MarsWebSocketServer extends WebSocketServer {
     private final Logger logger;
-    private final Consumer<String> messageHandler;
+    private final Function<String, String> messageHandler;
 
-    public MarsWebSocketServer(int port, Logger logger, Consumer<String> messageHandler) {
+    public MarsWebSocketServer(int port, Logger logger, Function<String, String> messageHandler) {
         super(new InetSocketAddress(port));
         this.logger = logger;
         this.messageHandler = messageHandler;
@@ -30,8 +30,12 @@ public class MarsWebSocketServer extends WebSocketServer {
     @Override
     public void onMessage(WebSocket conn, String message) {
         logger.info("WebSocket message: " + message);
-        if (messageHandler != null) {
-            messageHandler.accept(message);
+        if (messageHandler == null) {
+            return;
+        }
+        String response = messageHandler.apply(message);
+        if (response != null && conn != null && conn.isOpen()) {
+            conn.send(response);
         }
     }
 

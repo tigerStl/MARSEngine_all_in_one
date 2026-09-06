@@ -1,20 +1,18 @@
 package com.mars.javaengine;
 
+import com.mars.javaengine.automation.CommandDispatcher;
+import com.mars.javaengine.automation.UiAutomationService;
 import com.mars.javaengine.config.EngineConfig;
 import com.mars.javaengine.net.HttpCommandServer;
 import com.mars.javaengine.net.MarsWebSocketServer;
 import com.mars.javaengine.net.TcpJsonClient;
-import com.mars.javaengine.ui.UiObjectInfo;
-import com.mars.javaengine.ui.UiObjectScanner;
 import com.mars.javaengine.util.JsonUtil;
 import com.mars.javaengine.util.LogUtil;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Logger;
@@ -26,6 +24,7 @@ public class EngineService {
     private volatile HttpCommandServer httpCommandServer;
     private volatile CountDownLatch keepAliveLatch;
     private volatile boolean stopped;
+    private volatile CommandDispatcher dispatcher;
 
     public EngineService(EngineConfig config) {
         this.config = config;
@@ -37,6 +36,8 @@ public class EngineService {
         try {
             Path swapDir = Path.of(config.getSwapDirectory());
             Files.createDirectories(swapDir);
+            UiAutomationService automation = new UiAutomationService(swapDir);
+            this.dispatcher = new CommandDispatcher(automation, swapDir, logger, config.getHighlightLimit());
 
             int websocketPort = findFreePort();
             String svcIp = resolveLocalIp();
@@ -45,14 +46,9 @@ public class EngineService {
             server.start();
             this.webSocketServer = server;
 
-            Integer httpPort = null;
-            if (config.isDebugSingle()) {
-                httpPort = startHttpServer();
-            }
-
+            Integer httpPort = startHttpServer();
             writeSwapFile(swapDir, svcIp, websocketPort, httpPort);
             sendHandshake(svcIp, websocketPort);
-
             keepAlive();
         } catch (Exception ex) {
             logger.warning("Engine start failed: " + ex.getMessage());
@@ -123,38 +119,24 @@ public class EngineService {
         return httpServer.getPort();
     }
 
-    private void handleCommand(String json) {
+    private String handleCommand(String json) {
         try {
+            @SuppressWarnings("unchecked")
             Map<String, Object> payload = JsonUtil.fromJson(json, Map.class);
             Object messageType = payload.get("MessageType");
-            if ("GET_UIOBJECTS_ALL".equalsIgnoreCase(String.valueOf(messageType))) {
-                scanAndHighlightUiObjects();
-            } else if ("UNLOAD_ENGINE".equalsIgnoreCase(String.valueOf(messageType))) {
+            if ("UNLOAD_ENGINE".equalsIgnoreCase(String.valueOf(messageType))) {
+                String result = dispatcher == null ? "{\"success\":true}" : dispatcher.handleRaw(json);
                 stopEngine();
+                return result;
             }
+            if (dispatcher != null) {
+                return dispatcher.handleRaw(json);
+            }
+            return "{\"success\":false,\"error\":{\"code\":\"INTERNAL_ERROR\",\"message\":\"Dispatcher not ready\"}}";
         } catch (Exception ex) {
             logger.warning("Failed to handle command: " + ex.getMessage());
-        }
-    }
-
-    private void scanAndHighlightUiObjects() {
-        Instant startTime = Instant.now();
-        UiObjectScanner scanner = new UiObjectScanner(logger);
-        List<UiObjectInfo> infos = scanner.scanAndHighlight(config.getHighlightLimit());
-        Instant endTime = Instant.now();
-        try {
-            Path swapDir = Path.of(config.getSwapDirectory());
-            Files.createDirectories(swapDir);
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("StartTime", startTime.toString());
-            payload.put("EndTime", endTime.toString());
-            payload.put("TotalCount", infos.size());
-            payload.put("Items", infos);
-            String json = JsonUtil.toJson(payload);
-            Files.writeString(swapDir.resolve("MarsJavaEngineUiObjects.json"), json);
-            logger.info("UI objects saved: " + infos.size());
-        } catch (Exception ex) {
-            logger.warning("Failed to save UI objects: " + ex.getMessage());
+            return "{\"success\":false,\"error\":{\"code\":\"INTERNAL_ERROR\",\"message\":\""
+                    + String.valueOf(ex.getMessage()).replace("\"", "'") + "\"}}";
         }
     }
 

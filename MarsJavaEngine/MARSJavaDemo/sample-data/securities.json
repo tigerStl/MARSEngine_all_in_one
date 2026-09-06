@@ -1,0 +1,5 @@
+[
+  {"securityId": "US91282ABC12", "issuer": "United States Treasury", "description": "US Treasury 5.00 2035", "coupon": 5.00, "maturity": "2035-11-15", "currency": "USD", "type": "Treasury"},
+  {"securityId": "US91282CDE34", "issuer": "United States Treasury", "description": "US Treasury 4.25 2032", "coupon": 4.25, "maturity": "2032-05-15", "currency": "USD", "type": "Treasury"},
+  {"securityId": "US3133EMAB01", "issuer": "FHLB Demo Issuer", "description": "FHLB 4.50 2029", "coupon": 4.50, "maturity": "2029-06-12", "currency": "USD", "type": "Agency"}
+]
