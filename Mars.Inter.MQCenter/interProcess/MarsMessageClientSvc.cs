@@ -6491,6 +6491,110 @@ namespace Mars.message.Inter.MQCenter.interProcess
             }
         }
 
+        /// <summary>
+        /// Ensures a window UI thread can process messages (SendMessageTimeout WM_NULL).
+        /// When failIfNotReady is true, timeout/invalid hwnd returns false for the caller to abort.
+        /// When false, timeout is logged and still returns true (post-click settle wait).
+        /// </summary>
+        private static bool EnsureWindowUiThreadReady(
+            IntPtr hwnd,
+            string strPegName,
+            string strObjName,
+            ref string strError,
+            ref string strAdv,
+            ref string strStack,
+            uint timeoutMs = 10000,
+            string callerTag = "EnsureWindowUiThreadReady",
+            bool failIfNotReady = true)
+        {
+            if (hwnd == IntPtr.Zero)
+            {
+                strError = $"Window handle for [{strPegName}].[{strObjName}] is invalid";
+                strStack = MarsErrorStacks.StackTraceDump();
+                strAdv = $"Make sure [{strObjName}] exists and is visible on the screen";
+                simpleLog.MarsLoggerSimple.Error(callerTag, strError);
+                return !failIfNotReady;
+            }
+
+            IntPtr msgResult;
+            IntPtr ok = MarsWindowsAPIs.SendMessageTimeout(
+                hwnd,
+                0, // WM_NULL
+                IntPtr.Zero,
+                IntPtr.Zero,
+                MarsWindowsAPIs.SMTO_BLOCK,
+                timeoutMs,
+                out msgResult);
+
+            if (ok == IntPtr.Zero)
+            {
+                string msg = $"Window for [{strPegName}].[{strObjName}] UI thread not responding within {timeoutMs} ms";
+                if (failIfNotReady)
+                {
+                    strError = msg;
+                    strStack = MarsErrorStacks.StackTraceDump();
+                    strAdv = "Application may be busy or hung; retry after UI settles";
+                    simpleLog.MarsLoggerSimple.Error(callerTag, strError);
+                    return false;
+                }
+
+                simpleLog.MarsLoggerSimple.Info(callerTag, msg + " (ignored after interaction)");
+                return true;
+            }
+
+            simpleLog.MarsLoggerSimple.Info(callerTag, "SendMessageTimeout OK, UI thread is responsive");
+            return true;
+        }
+
+        /// <summary>
+        /// Ensures the control UI thread can process messages before click/launch.
+        /// Returns false if not ready — caller must not interact.
+        /// </summary>
+        private static bool EnsureControlReadyForClick(
+            Control control,
+            string strPegName,
+            string strObjName,
+            ref string strError,
+            ref string strAdv,
+            ref string strStack,
+            uint timeoutMs = 10000,
+            string callerTag = "EnsureControlReadyForClick")
+        {
+            if (control == null)
+            {
+                strError = $"Control [{strPegName}].[{strObjName}] is null";
+                strStack = MarsErrorStacks.StackTraceDump();
+                strAdv = "Contact Marquis";
+                simpleLog.MarsLoggerSimple.Error(callerTag, strError);
+                return false;
+            }
+
+            if (control.IsDisposed || !control.IsHandleCreated)
+            {
+                strError = $"Control [{strPegName}].[{strObjName}] handle is not ready";
+                strStack = MarsErrorStacks.StackTraceDump();
+                strAdv = $"Make sure [{strObjName}] exists and is visible on the screen";
+                simpleLog.MarsLoggerSimple.Error(callerTag, strError);
+                return false;
+            }
+
+            if (!EnsureWindowUiThreadReady(
+                    control.Handle, strPegName, strObjName,
+                    ref strError, ref strAdv, ref strStack,
+                    timeoutMs, callerTag, failIfNotReady: true))
+                return false;
+
+            try
+            {
+                control.Update();
+            }
+            catch (Exception ex)
+            {
+                simpleLog.MarsLoggerSimple.Info(callerTag, $"control.Update skipped: {ex.Message}");
+            }
+            return true;
+        }
+
         private static bool AppsideKeywordDeal_LaunchApplication(string strParaMeter, string strData, string strobjType,
             string strAttachInfo, string strPegName,
             string strObjName,
@@ -6668,14 +6772,16 @@ namespace Mars.message.Inter.MQCenter.interProcess
                 }
 
 
-                IntPtr lpRslt;
-                MarsWindowsAPIs.SendMessageTimeout(objCurP.MainWindowHandle,
-                    0,
-                    IntPtr.Zero,
-                    IntPtr.Zero,
-                    MarsWindowsAPIs.SMTO_BLOCK,
+                EnsureWindowUiThreadReady(
+                    objCurP.MainWindowHandle,
+                    strPegName,
+                    strObjName,
+                    ref strError,
+                    ref strAdv,
+                    ref strStack,
                     5000,
-                    out lpRslt);
+                    "LaunchApplication",
+                    failIfNotReady: false);
                 IntPtr pNewHandle = IntPtr.Zero;
 
                 #region 等待新窗口出现 作废
@@ -6726,7 +6832,7 @@ namespace Mars.message.Inter.MQCenter.interProcess
                 t.Join();
                 */
                 #endregion //等待新窗口出现
-
+                IntPtr lpRslt = IntPtr.Zero;
                 if (pNewHandle != IntPtr.Zero)
                 {
                     //将窗口放到最前

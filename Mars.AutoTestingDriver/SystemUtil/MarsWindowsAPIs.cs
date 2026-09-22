@@ -2214,6 +2214,13 @@ namespace Mars.windowsWrapper.SystemUtil
             out ushort nativeMachine
         );
 
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool QueryFullProcessImageName(
+            IntPtr hProcess,
+            uint dwFlags,
+            StringBuilder lpExeName,
+            ref uint lpdwSize);
+
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern ushort GlobalAddAtom(string lpString);
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
@@ -2231,6 +2238,9 @@ namespace Mars.windowsWrapper.SystemUtil
         [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool IsWow64Process([In] IntPtr process, [Out] out bool wow64Process);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern uint GetProcessId(IntPtr process);
 #if gdienable
         [DllImport("gdi32.dll", EntryPoint = "SetROP2", CallingConvention = CallingConvention.StdCall)]
         internal extern static int SetROP2(IntPtr hdc, int fnDrawMode);
@@ -2572,86 +2582,313 @@ namespace Mars.windowsWrapper.SystemUtil
         {
             ushort ProcessMachine;
             ushort NativeMachine;
-            //try
-            //{
-            //if(!MarsS)
-                if (!MarsWindowsAPIs.IsWow64Process2(procHdl, out ProcessMachine, out NativeMachine))
-                {
-                    Console.WriteLine("Error with getlasterror code:" + MarsWindowsAPIs.GetLastError());
-                    return false;
-                }
-            //}catch(Exception e)
-            //{
-            //    Console.WriteLine($"\t{e.Message}\r\n{e.StackTrace}");
-            //    return false;
-            //}
+
+            if (!MarsWindowsAPIs.IsWow64Process2(procHdl, out ProcessMachine, out NativeMachine))
+            {
+                return false;
+            }
+
+            // Not running under WOW: process architecture == native OS architecture.
             if (ProcessMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_UNKNOWN)
             {
                 isWOW64 = false;
                 if ((NativeMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_IA64)
                     || (NativeMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_AMD64)
-                    || (NativeMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_ARM64)
-                    )
+                    || (NativeMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_ARM64))
                 {
                     windowsIs32Bit = false;
                     processIs32Bit = false;
-
                     return true;
                 }
 
                 if ((NativeMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_I386)
-                    || (NativeMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_ARM))
+                    || (NativeMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_ARM)
+                    || (NativeMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_ARMNT)
+                    || (NativeMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_THUMB))
                 {
                     windowsIs32Bit = true;
                     processIs32Bit = true;
-
                     return true;
                 }
+
+                return false;
             }
+
+            // WOW guest process — ProcessMachine is the emulated architecture.
             windowsIs32Bit = false;
             isWOW64 = true;
-            processIs32Bit = true;
-
+            processIs32Bit =
+                ProcessMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_I386
+                || ProcessMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_ARM
+                || ProcessMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_ARMNT
+                || ProcessMachine == (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_THUMB;
             return true;
         }
 
 
+        /// <summary>
+        /// Returns true if the target process is running as 32-bit (including WOW64 on 64-bit OS).
+        /// Prefers IsWow64Process2, then classic IsWow64Process, then self-process fallback.
+        /// </summary>
         public static bool IsProcess32(IntPtr procHdl)
         {
-            //bool windowsIs32Bit = false;
-            //bool isWOW64 = false;
-            bool processIs32Bit = false;
+            if (!Environment.Is64BitOperatingSystem)
+                return true;
 
-            ///for ifc, the windows 2016 doesn't now the iswow64process
-            /// 
-            //bool isOk = getBits(procHdl, ref windowsIs32Bit, ref isWOW64, ref processIs32Bit);
-            //return isOk ? processIs32Bit: false ;
-            //processIs32Bit = IsWin64Emulator(procHdl);
-            return !Environment.Is64BitOperatingSystem || IsWow64Process(procHdl);
+            if (procHdl == IntPtr.Zero)
+                return false;
 
-            //return processIs32Bit;
+            bool processIs32Bit;
+            if (TryGetProcessIs32Bit(procHdl, out processIs32Bit))
+                return processIs32Bit;
+
+            // Last resort for the current process only.
+            try
+            {
+                uint pid = MarsWindowsAPIs.GetProcessId(procHdl);
+                if (pid != 0 && pid == (uint)Process.GetCurrentProcess().Id)
+                    return !Environment.Is64BitProcess;
+            }
+            catch
+            {
+            }
+
+            // Remote process and APIs unavailable (often access denied): treat as 64-bit native.
+            return false;
         }
 
+        /// <summary>
+        /// Tries to resolve process bitness. Returns false when the OS APIs cannot answer.
+        /// </summary>
+        private static bool TryGetProcessIs32Bit(IntPtr procHdl, out bool processIs32Bit)
+        {
+            processIs32Bit = false;
+
+            // 1) IsWow64Process2 (Win10 1709+): distinguishes native 32/64 and WOW guests accurately.
+            try
+            {
+                bool windowsIs32Bit = false;
+                bool isWow64 = false;
+                if (getBits(procHdl, ref windowsIs32Bit, ref isWow64, ref processIs32Bit))
+                    return true;
+            }
+            catch (EntryPointNotFoundException)
+            {
+            }
+            catch (DllNotFoundException)
+            {
+            }
+            catch
+            {
+            }
+
+            // 2) Classic IsWow64Process (XP SP2+): on 64-bit OS, WOW64 == 32-bit process.
+            bool isWow64Process;
+            if (TryIsWow64Process(procHdl, out isWow64Process))
+            {
+                processIs32Bit = isWow64Process;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// True if the process is running under WOW64 (32-bit process on 64-bit Windows).
+        /// On a 32-bit OS there is no WOW64 — always false.
+        /// </summary>
         private static bool IsWow64Process(IntPtr phandle)
         {
-            bool isWow64 = false;
-            if (MarsWindowsAPIs.IsWow64Process(phandle, out isWow64))
+            if (!Environment.Is64BitOperatingSystem || phandle == IntPtr.Zero)
+                return false;
+
+            bool isWow64;
+            if (TryIsWow64Process(phandle, out isWow64))
+                return isWow64;
+
+            // Prefer IsWow64Process2 guest detection when classic API fails.
+            try
             {
-                if (isWow64)
-                {
-                    return true;
-                }
-                else
-                {
-                    Console.WriteLine("The process is not running in WOW64 mode.");
-                    return false;
-                }
+                bool windowsIs32Bit = false;
+                bool isWow64Flag = false;
+                bool processIs32Bit = false;
+                if (getBits(phandle, ref windowsIs32Bit, ref isWow64Flag, ref processIs32Bit))
+                    return isWow64Flag;
             }
-            else
+            catch
             {
-                Console.WriteLine("Failed to determine the process's WOW64 status.");
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Calls kernel32!IsWow64Process. Returns false if the API call itself failed.
+        /// </summary>
+        private static bool TryIsWow64Process(IntPtr phandle, out bool isWow64)
+        {
+            isWow64 = false;
+            try
+            {
+                return MarsWindowsAPIs.IsWow64Process(phandle, out isWow64);
+            }
+            catch (EntryPointNotFoundException)
+            {
                 return false;
             }
+            catch (DllNotFoundException)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Detects whether the process main module is a .NET AnyCPU (or Prefer32Bit) assembly.
+        /// Runtime Wow64 alone cannot distinguish AnyCPU from x64, so this inspects the PE CLR header.
+        /// </summary>
+        public static bool IsProcessAnyCpu(IntPtr procHdl)
+        {
+            if (procHdl == IntPtr.Zero)
+                return false;
+
+            string exePath = GetProcessImagePath(procHdl);
+            if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
+                return false;
+
+            return IsAnyCpuAssembly(exePath);
+        }
+
+        private static string GetProcessImagePath(IntPtr procHdl)
+        {
+            try
+            {
+                uint size = 1024;
+                var sb = new StringBuilder((int)size);
+                if (MarsWindowsAPIs.QueryFullProcessImageName(procHdl, 0, sb, ref size) && size > 0)
+                    return sb.ToString();
+            }
+            catch
+            {
+            }
+            return null;
+        }
+
+        private const uint COMIMAGE_FLAGS_ILONLY = 0x00000001;
+        private const uint COMIMAGE_FLAGS_32BITREQUIRED = 0x00000002;
+        private const uint COMIMAGE_FLAGS_32BITPREFERRED = 0x00020000;
+
+        /// <summary>
+        /// AnyCPU: ILONLY and not forced x86.
+        /// Prefer32Bit: ILONLY with both 32BITREQUIRED and 32BITPREFERRED.
+        /// Pure x86: ILONLY with 32BITREQUIRED only (not Prefer32Bit).
+        /// </summary>
+        private static bool IsAnyCpuAssembly(string filePath)
+        {
+            try
+            {
+                using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+                using (var br = new BinaryReader(fs))
+                {
+                    if (fs.Length < 64)
+                        return false;
+
+                    if (br.ReadUInt16() != 0x5A4D) // MZ
+                        return false;
+
+                    fs.Position = 0x3C;
+                    int peOffset = br.ReadInt32();
+                    if (peOffset <= 0 || peOffset + 24 >= fs.Length)
+                        return false;
+
+                    fs.Position = peOffset;
+                    if (br.ReadUInt32() != 0x00004550) // PE\0\0
+                        return false;
+
+                    ushort machine = br.ReadUInt16();
+                    // Classic AnyCPU PE is still I386; platform x64 is AMD64 and not AnyCPU.
+                    if (machine != (ushort)IMAGE_FILE_HEADER.IMAGE_FILE_MACHINE_I386)
+                        return false;
+
+                    // COFF: Machine(2) already read; skip NumberOfSections(2)+TimeDateStamp(4)+PointerToSymbolTable(4)+NumberOfSymbols(4)
+                    br.ReadUInt16();
+                    br.ReadUInt32();
+                    br.ReadUInt32();
+                    br.ReadUInt32();
+                    ushort sizeOfOptionalHeader = br.ReadUInt16();
+                    br.ReadUInt16(); // Characteristics
+                    if (sizeOfOptionalHeader < 96)
+                        return false;
+
+                    long optionalHeaderStart = br.BaseStream.Position;
+                    ushort magic = br.ReadUInt16();
+                    int clrDirOffsetInOptional;
+                    if (magic == 0x10B) // PE32
+                        clrDirOffsetInOptional = 208; // 96 + 14*8
+                    else if (magic == 0x20B) // PE32+
+                        clrDirOffsetInOptional = 224; // 112 + 14*8
+                    else
+                        return false;
+
+                    fs.Position = optionalHeaderStart + clrDirOffsetInOptional;
+                    uint clrRva = br.ReadUInt32();
+                    uint clrSize = br.ReadUInt32();
+                    if (clrRva == 0 || clrSize == 0)
+                        return false; // not a managed assembly
+
+                    uint clrFileOffset = RvaToFileOffset(br, peOffset, clrRva);
+                    if (clrFileOffset == 0 || clrFileOffset + 16 > fs.Length)
+                        return false;
+
+                    // IMAGE_COR20_HEADER.Flags is at offset 16
+                    fs.Position = clrFileOffset + 16;
+                    uint corFlags = br.ReadUInt32();
+
+                    bool ilOnly = (corFlags & COMIMAGE_FLAGS_ILONLY) != 0;
+                    bool bit32Required = (corFlags & COMIMAGE_FLAGS_32BITREQUIRED) != 0;
+                    bool bit32Preferred = (corFlags & COMIMAGE_FLAGS_32BITPREFERRED) != 0;
+
+                    if (!ilOnly)
+                        return false;
+
+                    // AnyCPU (no Prefer32Bit), or AnyCPU Prefer32Bit
+                    return !bit32Required || bit32Preferred;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static uint RvaToFileOffset(BinaryReader br, int peOffset, uint rva)
+        {
+            long savePos = br.BaseStream.Position;
+            try
+            {
+                br.BaseStream.Position = peOffset + 6; // NumberOfSections
+                ushort numberOfSections = br.ReadUInt16();
+                br.BaseStream.Position = peOffset + 20;
+                ushort sizeOfOptionalHeader = br.ReadUInt16();
+                long sectionTable = peOffset + 24 + sizeOfOptionalHeader;
+
+                for (int i = 0; i < numberOfSections; i++)
+                {
+                    br.BaseStream.Position = sectionTable + (i * 40) + 8;
+                    uint virtualSize = br.ReadUInt32();
+                    uint virtualAddress = br.ReadUInt32();
+                    uint sizeOfRawData = br.ReadUInt32();
+                    uint pointerToRawData = br.ReadUInt32();
+
+                    uint sectionEnd = virtualAddress + Math.Max(virtualSize, sizeOfRawData);
+                    if (rva >= virtualAddress && rva < sectionEnd)
+                        return pointerToRawData + (rva - virtualAddress);
+                }
+            }
+            finally
+            {
+                br.BaseStream.Position = savePos;
+            }
+            return 0;
         }
 
         public static bool IsWin64Emulator(IntPtr pHandle)
