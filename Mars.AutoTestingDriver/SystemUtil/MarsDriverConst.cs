@@ -22,6 +22,12 @@ namespace Mars.AutoTestingDriver.SystemUtil
                          exit_code_ExeTestFromCI_Failed        = -0x21,
                          exit_code_ExeTestFromJsonClipbord_Ok  = 0x22,
                          exit_code_ExeTestFromJsonClipbord_Failed = -0x22;
+        /// <summary>BatchFold（批量折叠执行）成功 / 失败退出码</summary>
+        public const int exit_code_ExeBatchFold_Ok             = 0x23,
+                         exit_code_ExeBatchFold_Failed         = -0x23;
+        /// <summary>Fold（单 Storyboard 折叠）成功 / 失败退出码</summary>
+        public const int exit_code_ExeFold_Ok                  = 0x24,
+                         exit_code_ExeFold_Failed              = -0x24;
 
         public const int exit_code_ExecuteTestCase_Ok          = 1;
         public const int exit_code_Spy_ok                      = 0x11;

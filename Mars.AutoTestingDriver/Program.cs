@@ -44,6 +44,7 @@ using System.IO.Compression;
 using MARSCoreMessageCenter.basicData;
 using MarsEnginer.windowsWrapper.SystemUtil;
 using Mars.message.Inter.MQCenter.simpleLog;
+using MarsEngineSvc.basicReturnDataStructure;
 #if _forWebClient
 //using System.Deployment.Application;
 #endif
@@ -75,6 +76,191 @@ namespace Mars.AutoTestingDriver
         private static bool isVerifyValueSkipper = false;
 
         public const string cnst_uri_command_clipboard = "-FromClipboard";
+
+        /// <summary>
+        /// BatchFold（批量折叠）命令字。
+        /// 与 ClickOnce / HTTP 启动 URL 中的 query 参数 command=-BatchFold 对应。
+        /// </summary>
+        public const string cnst_uri_command_batchfold = "-BatchFold";
+
+        /// <summary>
+        /// Fold（单 Storyboard 折叠）命令字。
+        /// 与 ClickOnce / HTTP 启动 URL 中的 query 参数 command=-Fold 对应。
+        /// </summary>
+        public const string cnst_uri_command_fold = "-Fold";
+
+        /// <summary>
+        /// 当前进程由 BatchFold URL 启动时解析得到的参数（仅 BatchFold 模式有值）。
+        /// </summary>
+        public static MarsBatchFoldURLPara CurrentBatchFoldInfo { get; private set; }
+
+        /// <summary>
+        /// 当前进程由 Fold URL 启动时解析得到的参数（仅 Fold 模式有值）。
+        /// </summary>
+        public static MarsFoldURLPara CurrentFoldInfo { get; private set; }
+
+        /// <summary>
+        /// 统一记录 ClickOnce / Main 分流分支日志，便于对照当前进入了哪条处理路径。
+        /// 仅写日志，不改变任何业务逻辑。
+        /// </summary>
+        private static void LogDispatchBranch(string branchName, string detail = null)
+        {
+            string msg = string.IsNullOrEmpty(detail)
+                ? $"[Branch:{branchName}] entered"
+                : $"[Branch:{branchName}] {detail}";
+            Console.WriteLine(msg);
+            try
+            {
+                Logger.Info("Main.Dispatch", msg);
+            }
+            catch
+            {
+                // 日志失败不影响主流程
+            }
+        }
+
+        /// <summary>
+        /// 判断激活 URL 是否为 BatchFold 模式，并解析参数。
+        /// <para>
+        /// 样例：
+        /// <c>http://host/MARSENGINE/Mars.AutoTestingDriver.application?userName=Regr1&amp;uuid=7aae010e-a6f3-45e2-baec-664ecae8a5a2&amp;command=-BatchFold&amp;FoldList=(1,323,432,5)&amp;Continue=True&amp;currentDB=MARS2&amp;callBackServer=localhost%3A5000</c>
+        /// </para>
+        /// <para>
+        /// 模板：
+        /// <c>?userName=[UserName]&amp;uuid=[Uuid]&amp;command=-BatchFold&amp;FoldList=(1,323,432,5)&amp;Continue=[True|False]&amp;currentDB=[Db]&amp;callBackServer=[Host]</c>
+        /// </para>
+        /// </summary>
+        /// <param name="strURI">ClickOnce ActivationData[0] 完整 URL</param>
+        /// <param name="batchFoldInfo">解析成功时输出参数对象</param>
+        /// <param name="strError">失败错误信息</param>
+        /// <param name="strAdv">失败建议</param>
+        /// <param name="strStack">失败堆栈</param>
+        /// <returns>
+        /// true：确认为 BatchFold 且参数合法；
+        /// false：不是 BatchFold（交其它模式），或是 BatchFold 但参数非法（此时 strError 有值）。
+        /// </returns>
+        private static bool TryParseBatchFoldFromURI(string strURI, out MarsBatchFoldURLPara batchFoldInfo,
+            ref string strError, ref string strAdv, ref string strStack)
+        {
+            batchFoldInfo = null;
+            try
+            {
+                // 先只看 command，避免把非 BatchFold URL 误判成参数错误
+                Uri uriFromClick = new Uri(strURI);
+                var query = System.Web.HttpUtility.ParseQueryString(uriFromClick.Query);
+                string strCmd = query.Get(MarsBatchFoldURLPara.QUERY_COMMAND);
+                if (string.IsNullOrEmpty(strCmd)
+                    || !string.Equals(strCmd, cnst_uri_command_batchfold, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+
+                var info = new MarsBatchFoldURLPara();
+                if (!info.ParseURL(strURI) || !info.isOk)
+                {
+                    strError = info.parseError ?? "Failed to parse BatchFold URL";
+                    strAdv = info.parseAdvice ?? "Please start BatchFold from MARS GUI";
+                    strStack = info.parseStack ?? Environment.StackTrace;
+                    // 已确认是 BatchFold 命令但参数非法：用特殊标记让调用方区分「不是该模式」与「该模式参数错误」
+                    batchFoldInfo = info;
+                    return false;
+                }
+
+                batchFoldInfo = info;
+                return true;
+            }
+            catch (Exception e)
+            {
+                strError = $"Error while detecting BatchFold URL: {e.Message}";
+                strAdv = "Unidentified error. If this continues, contact Marquis";
+                strStack = $"{e.Message}\r\n{e.StackTrace}";
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 仅探测 URL 的 command 是否为 -BatchFold（不做完整校验）。
+        /// 用于在 CombinParaFromURI（Storyboard 参数组合）之前分流，避免 FoldList 等字段被当成 Storyboard 参数解析失败。
+        /// </summary>
+        private static bool IsBatchFoldCommand(string strURI)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(strURI)) return false;
+                Uri uriFromClick = new Uri(strURI);
+                var query = System.Web.HttpUtility.ParseQueryString(uriFromClick.Query);
+                string strCmd = query.Get(MarsBatchFoldURLPara.QUERY_COMMAND);
+                return !string.IsNullOrEmpty(strCmd)
+                    && string.Equals(strCmd, cnst_uri_command_batchfold, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 仅探测 URL 的 command 是否为 -Fold（不做完整校验）。
+        /// 必须在 CombinParaFromURI 之前分流：-Fold 与 -S 字段相似，但走独立 Fold 分支，不改动原有 Storyboard 逻辑。
+        /// </summary>
+        private static bool IsFoldCommand(string strURI)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(strURI)) return false;
+                Uri uriFromClick = new Uri(strURI);
+                var query = System.Web.HttpUtility.ParseQueryString(uriFromClick.Query);
+                string strCmd = query.Get(MarsFoldURLPara.QUERY_COMMAND);
+                return !string.IsNullOrEmpty(strCmd)
+                    && string.Equals(strCmd, cnst_uri_command_fold, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 解析 Fold ClickOnce URL。
+        /// 模板：
+        /// <c>?userName=[UserName]&amp;uuid=[Uuid]&amp;command=-Fold&amp;storyBoadName=[SB_Name]&amp;storyBoardId=[Id]&amp;app=[AppId]&amp;Mode=Base&amp;Continue=False&amp;IgnoreError=False&amp;currentDB=[Db]&amp;callBackServer=[Host]</c>
+        /// </summary>
+        private static bool TryParseFoldFromURI(string strURI, out MarsFoldURLPara foldInfo,
+            ref string strError, ref string strAdv, ref string strStack)
+        {
+            foldInfo = null;
+            try
+            {
+                Uri uriFromClick = new Uri(strURI);
+                var query = System.Web.HttpUtility.ParseQueryString(uriFromClick.Query);
+                string strCmd = query.Get(MarsFoldURLPara.QUERY_COMMAND);
+                if (string.IsNullOrEmpty(strCmd)
+                    || !string.Equals(strCmd, cnst_uri_command_fold, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+
+                var info = new MarsFoldURLPara();
+                if (!info.ParseURL(strURI) || !info.isOk)
+                {
+                    strError = info.parseError ?? "Failed to parse Fold URL";
+                    strAdv = info.parseAdvice ?? "Please start Fold from MARS GUI";
+                    strStack = info.parseStack ?? Environment.StackTrace;
+                    foldInfo = info;
+                    return false;
+                }
+
+                foldInfo = info;
+                return true;
+            }
+            catch (Exception e)
+            {
+                strError = $"Error while detecting Fold URL: {e.Message}";
+                strAdv = "Unidentified error. If this continues, contact Marquis";
+                strStack = $"{e.Message}\r\n{e.StackTrace}";
+                return false;
+            }
+        }
 
         private static string[] CombinParaFromURI(string strURI, ref bool isOk, ref string strError, ref string strAdv, ref string strStack)
         {
@@ -412,7 +598,7 @@ namespace Mars.AutoTestingDriver
 
         public const string cnst_para_source_jenkins = "FromJenKins";
 
-        private static void KillSameProcesss()
+        private static void KillEngineProcesss()
         {
             Console.WriteLine("begin to kill Mars.AutoTestingDriver.exe");
             var p = Process.GetCurrentProcess();
@@ -432,6 +618,30 @@ namespace Mars.AutoTestingDriver
                 {
 
                 }
+            }
+            // Also kill any running MarsDefaultAgent processes started in the same session
+            try
+            {
+                Console.WriteLine("begin to kill MarsDefaultAgent processes");
+                var agentProcs = Process.GetProcessesByName("MarsDefaultAgent");
+                foreach (var ap in agentProcs)
+                {
+                    if (ap == null) continue;
+                    if (ap.SessionId != p.SessionId) continue;
+                    try
+                    {
+                        ap.Kill();
+                        Console.WriteLine($"\tkill MarsDefaultAgent:[id-{ap.Id}]");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"\tfailed to kill MarsDefaultAgent id:{ap.Id}, {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception while killing MarsDefaultAgent: {ex.Message}");
             }
         }
 
@@ -458,6 +668,16 @@ namespace Mars.AutoTestingDriver
         ///     -SMT DEFAULT_SUMMIT_SMT_LOGIN -AppName SMT -currentDB GEN_MARS_5
         /// 3, 启动Xpath spy
         /// -WEBSPY admin -S TEST_WPF_CORE 1121256 -App 1000018 -Mode Base -Continue False -IgnoreError False -CurrentDB GEN_MARS_5
+        /// 4，BatchFold（批量折叠）——由 MARS Web / ClickOnce HTTP URL 传入：
+        ///    /MARSENGINE/Mars.AutoTestingDriver.application?userName=Regr1&amp;uuid=7aae010e-a6f3-45e2-baec-664ecae8a5a2
+        ///        &amp;command=-BatchFold&amp;FoldList=(1,323,432,5)&amp;Continue=True&amp;currentDB=MARS2&amp;callBackServer=localhost%3A5000
+        ///    模板：
+        ///    ?userName=[UserName]&amp;uuid=[Uuid]&amp;command=-BatchFold&amp;FoldList=(1,323,432,5)
+        ///        &amp;Continue=[True|False]&amp;currentDB=[Db]&amp;callBackServer=[Host]
+        /// 5，Fold（单 Storyboard 折叠）——独立分支，不改动 -S / CombinParaFromURI：
+        ///    /MARSENGINE/Mars.AutoTestingDriver.application?userName=[UserName]&amp;uuid=[Uuid]&amp;command=-Fold
+        ///        &amp;storyBoadName=[SB_Name]&amp;storyBoardId=[Id]&amp;app=[AppId]&amp;Mode=Base
+        ///        &amp;Continue=False&amp;IgnoreError=False&amp;currentDB=[Db]&amp;callBackServer=[Host]
         /// 
         /// ------------------------------------------------------------------------------------------------------------------------
         /// 2025-10-2 增加使用UIA技术和IAccessible技术。因此，不需要将进程注入到目标进程中
@@ -499,7 +719,7 @@ namespace Mars.AutoTestingDriver
 
                 /// kill other applications 
                 /// 
-                KillSameProcesss();
+                KillEngineProcesss();
 
                 CommdLineOptions options = new CommdLineOptions();               
                 if ((args.Length > 0) && (args[0].StartsWith("-")))
@@ -645,6 +865,11 @@ namespace Mars.AutoTestingDriver
                     // 2025 added sample
                     // 用于启动record and replay，即spy模式
                     // http://localhost:8190/MARSENGINE/Mars.AutoTestingDriver.application?uuid=66998987-553b-46af-9540-9144ad14a7ed&type=RecordReplay&db=GEN_MARS_5
+                    // BatchFold（批量折叠）样例 / 模板：
+                    // http://host/MARSENGINE/Mars.AutoTestingDriver.application?userName=Regr1&uuid=7aae010e-a6f3-45e2-baec-664ecae8a5a2&command=-BatchFold&FoldList=(1,323,432,5)&Continue=True&currentDB=MARS2&callBackServer=localhost%3A5000
+                    // ?userName=[UserName]&uuid=[Uuid]&command=-BatchFold&FoldList=(1,323,432,5)&Continue=[True|False]&currentDB=[Db]&callBackServer=[Host]
+                    // Fold（单 Storyboard 折叠）样例 / 模板：
+                    // /MARSENGINE/Mars.AutoTestingDriver.application?userName=[UserName]&uuid=[Uuid]&command=-Fold&storyBoadName=[SB_Name]&storyBoardId=[Id]&app=[AppId]&Mode=Base&Continue=False&IgnoreError=False&currentDB=[Db]&callBackServer=[Host]
 #if _remoteDebug
                     Console.ReadLine();
 #endif                    //url:http://mars05.eastus.cloudapp.azure.com/Download/Mars.AutoTestingDriver.application?userName=admin%25commmd=-S&storbyBoadName=TPG_COMPLETE_DEMO&&storyBoardId=383507&app=14&Mode=Base&Continue=False&IgnoreError=False&CurrentDB=MarsEntities
@@ -653,9 +878,11 @@ namespace Mars.AutoTestingDriver
                     string[] arrParas = AppDomain.CurrentDomain.SetupInformation.ActivationArguments.ActivationData;
                     Console.WriteLine("URL [{0}]-[{1}]\r\n\t[{2}]", AppDomain.CurrentDomain.SetupInformation.ActivationArguments.ActivationData, AppDomain.CurrentDomain.SetupInformation.ActivationArguments.ActivationData.GetType(),
                         string.Join(",", arrParas));
+                    LogDispatchBranch("ClickOnce.Activation", $"rawUrlCount={(arrParas == null ? -1 : arrParas.Length)}");
 
                     if ((arrParas == null) || (arrParas.Length <= 0))
                     {
+                        LogDispatchBranch("ClickOnce.NoParameters", "activation data empty -> exit paraFormat");
                         Console.WriteLine("Total Command Count:[{0}] paras:[{1}]", arrParas == null ? -1 : arrParas.Length, arrParas == null ? "N/A" : String.Join(";", arrParas));
                         MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError("No Parameters to start MARS engine", "N/A", "N/A", "N/A", "please start Engine from MARS GUI", "N/A", "N/A",
                             false);
@@ -664,17 +891,20 @@ namespace Mars.AutoTestingDriver
 
                     if (isToStartMarsSpy(arrParas[0], ref strAddressAndPort, ref query))
                     {
+                        LogDispatchBranch("ClickOnce.Spy", $"addressAndPort={strAddressAndPort}");
                         Console.WriteLine("Spy mode.......");
                         Logger.Info("is SpyMode");
                         return StartSpyMode(strAddressAndPort, query);
                     }
                     if (isToStartMessageAgent(arrParas[0], ref query))
                     {
+                        LogDispatchBranch("ClickOnce.MessageAgent", "cmd=startMessageAgent");
                         Console.WriteLine("start Message Agent mode.......");
                         return StartMessageAgentMode(query);
                     }
                     if (isToStartMarsSVC(arrParas[0], ref strAddressAndPort, ref query))
                     {
+                        LogDispatchBranch("ClickOnce.EngineSvc", "command=startEngineSvc");
                         Console.WriteLine("start Web socket mode.......");
                         Application.Run();
                         return 1;
@@ -693,6 +923,7 @@ namespace Mars.AutoTestingDriver
 
                     if (isToStartMarsRecordAndReplay(arrParas[0], ref strAddressAndPort, ref query))
                     {
+                        LogDispatchBranch("ClickOnce.RecordReplay", $"addressAndPort={strAddressAndPort}");
                         Console.WriteLine("Spy mode.......");
                         return StartSpyRecordAndReplayMode(strAddressAndPort, query);
                     }
@@ -700,12 +931,14 @@ namespace Mars.AutoTestingDriver
                     string strRecordRplayMode = "";
                     if (isToStartObjRecorgMode(arrParas[0], ref strAddressAndPort, ref strRecordRplayMode, ref query))
                     {
+                        LogDispatchBranch("ClickOnce.ObjRecord", $"mode={strRecordRplayMode}, addressAndPort={strAddressAndPort}");
                         return StartObjectRecordMode(strAddressAndPort, strRecordRplayMode, query);
                     }
 
                     bool isTmpStoryboardAndTestStepsMode = IsTmpStoryboardAndTestStepsMode(arrParas[0]);
                     if (isTmpStoryboardAndTestStepsMode)
                     {
+                        LogDispatchBranch("ClickOnce.FromClipboard", "command=-FromClipboard");
                         MLogger.LOGGER_NAME = "AutoDriver";
                         Logger = MLogger.GetLogger(typeof(AutoTestingDriverEntry));
                         clientWCF::MarsTestFrame.SourceCode.xmlConfig.WCFXmlCfgMgr.CurrentLoginUser = StoryboardExecute.TestStepsFromJsonInfo.userName;
@@ -747,17 +980,128 @@ namespace Mars.AutoTestingDriver
                         }
                     }
 
-                    args = CombinParaFromURI(arrParas[0], ref isOk, ref strError, ref strAdv, ref strStack);
-                    if (!isOk)
+                    // ------------------------------------------------------------------------------------------------
+                    // BatchFold 模式分流（必须在 CombinParaFromURI 之前）：
+                    // Storyboard 的 CombinParaFromURI 依赖 storyBoardId/app/Mode 等字段；
+                    // BatchFold URL 使用 FoldList / callBackServer，若落入 CombinParaFromURI 会误报参数错误。
+                    //
+                    // URL 结构：
+                    //   /MARSENGINE/Mars.AutoTestingDriver.application
+                    //     ?userName=[UserName]
+                    //     &uuid=[Uuid]
+                    //     &command=-BatchFold
+                    //     &FoldList=(1,323,432,5)
+                    //     &Continue=[True|False]
+                    //     &currentDB=[Db]
+                    //     &callBackServer=[Host]          // 例：localhost%3A5000 -> localhost:5000
+                    // ------------------------------------------------------------------------------------------------
+                    if (IsBatchFoldCommand(arrParas[0]))
                     {
+                        LogDispatchBranch("ClickOnce.BatchFold", "command=-BatchFold");
+                        Console.WriteLine("BatchFold mode detected from activation URL.......");
+                        MarsBatchFoldURLPara batchFoldInfo;
+                        if (!TryParseBatchFoldFromURI(arrParas[0], out batchFoldInfo, ref strError, ref strAdv, ref strStack)
+                            || batchFoldInfo == null || !batchFoldInfo.isOk)
+                        {
+                            MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(
+                                string.IsNullOrEmpty(strError) ? "Invalid BatchFold URL parameters" : strError,
+                                "N/A", "N/A", "N/A",
+                                string.IsNullOrEmpty(strAdv) ? "Please start BatchFold from MARS GUI" : strAdv,
+                                "N/A",
+                                string.IsNullOrEmpty(strStack) ? "N/A" : strStack,
+                                true);
+                            return MarsDriverConst.exit_code_error_paraFormat;
+                        }
 
-                        MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, "N/A", "N/A", "N/A",
-                            "please start Engine from MARS GUI, \r\nif error continues, please contact Marquis", "N/A", "N/A",
-                            true);
-                        return MarsDriverConst.exit_code_error_paraFormat;
+                        CurrentBatchFoldInfo = batchFoldInfo;
+                        Console.WriteLine($"BatchFold parsed: {batchFoldInfo}");
+
+                        // 写入全局会话 / DB / 回调相关信息（与 Storyboard URL 启动路径保持一致）
+                        MarsGlobarVar.UUID_FROM_WEB = batchFoldInfo.uuid;
+                        MarsGlobarVar.MARS_CURRENT_DB = batchFoldInfo.currentDB;
+
+                        MLogger.LOGGER_NAME = "AutoDriver";
+                        Logger = MLogger.GetLogger(typeof(AutoTestingDriverEntry));
+                        clientWCF::MarsTestFrame.SourceCode.xmlConfig.WCFXmlCfgMgr.CurrentLoginUser = batchFoldInfo.userName;
+                        Console.WriteLine($"get current Login User {batchFoldInfo.userName}");
+
+                        if (!WriteCurrentMarsAccountFile(batchFoldInfo.userName, ref strError))
+                        {
+                            Console.WriteLine(strError);
+                            MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, null, null, null, "Contact Marquis",
+                                null, Environment.StackTrace, true);
+                            return MarsDriverConst.exit_code_error_cantCreateMarsAccountFile;
+                        }
+
+                        // 启动 Monitor（与其它执行模式一致，后续业务实现可依赖 Monitor 端口）
+                        if (!startTestMonitorSvc(batchFoldInfo.userName, ref iMonitorPort, ref strError, ref strAdv, ref strStack))
+                        {
+                            MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, "N/A", "N/A", "N/A", strAdv, "N/A", strStack, true);
+                            return MarsDriverConst.exit_code_error_cantStartMonitor;
+                        }
+                        TestFlowClientMainEntry.currentMarsUserAccount = batchFoldInfo.userName;
+                        TestFlowClientMainEntry.currentMarsMonitorPort = iMonitorPort;
+                        MARSMessageSvc.currentUserName = batchFoldInfo.userName;
+
+                        return RunBatchFold(batchFoldInfo, ref strError, ref strAdv, ref strStack);
                     }
-                    Console.WriteLine($"combined:{string.Join(" ", args)}");
-                    StoryboardExecute.currentParameters = args;
+
+                    // ------------------------------------------------------------------------------------------------
+                    // Fold 模式分流（独立于 CombinParaFromURI / -S；不改动其实现）：
+                    //   解析 URL 后组装与 -S 同形的 args，再 fall-through 到 Main 后续公共初始化
+                    //   （WriteAccount / Monitor / ChangeConfigFile / ExtractWPFCore 等），
+                    //   最终由 switch -FOLD -> RunFold -> StoryboardExecute.ExecuteTest。
+                    // ------------------------------------------------------------------------------------------------
+                    if (IsFoldCommand(arrParas[0]))
+                    {
+                        LogDispatchBranch("ClickOnce.Fold", "command=-Fold");
+                        Console.WriteLine("Fold mode detected from activation URL.......");
+                        MarsFoldURLPara foldInfo;
+                        if (!TryParseFoldFromURI(arrParas[0], out foldInfo, ref strError, ref strAdv, ref strStack)
+                            || foldInfo == null || !foldInfo.isOk)
+                        {
+                            LogDispatchBranch("ClickOnce.Fold.ParseFailed", strError);
+                            MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(
+                                string.IsNullOrEmpty(strError) ? "Invalid Fold URL parameters" : strError,
+                                "N/A", "N/A", "N/A",
+                                string.IsNullOrEmpty(strAdv) ? "Please start Fold from MARS GUI" : strAdv,
+                                "N/A",
+                                string.IsNullOrEmpty(strStack) ? "N/A" : strStack,
+                                true);
+                            return MarsDriverConst.exit_code_error_paraFormat;
+                        }
+
+                        CurrentFoldInfo = foldInfo;
+                        LogDispatchBranch("ClickOnce.Fold.Parsed", foldInfo.ToString());
+                        Console.WriteLine($"Fold parsed: {foldInfo}");
+
+                        MarsGlobarVar.UUID_FROM_WEB = foldInfo.uuid;
+                        MarsGlobarVar.MARS_CURRENT_DB = foldInfo.currentDB;
+                        MarsGlobarVar.MARS_current_StoryboardId = foldInfo.storyBoardId;
+
+                        // 组装 args 后落入与 -S 相同的 Main 后续路径（勿在此直接 RunFold，否则会跳过配置/Monitor 等前置）
+                        args = BuildCommandArgsFromFoldInfo(foldInfo);
+                        StoryboardExecute.currentParameters = args;
+                        LogDispatchBranch("ClickOnce.Fold.FallThrough",
+                            $"fall-through Main common init; args=[{string.Join(" ", args)}]");
+                        Console.WriteLine($"Fold combined args:{string.Join(" ", args)}");
+                    }
+                    else
+                    {
+                        // 默认：Storyboard(-S) 等原有 CombinParaFromURI 路径（逻辑保持不变）
+                        LogDispatchBranch("ClickOnce.CombinParaFromURI", "fallback to legacy Storyboard/-S parameter combine");
+                        args = CombinParaFromURI(arrParas[0], ref isOk, ref strError, ref strAdv, ref strStack);
+                        if (!isOk)
+                        {
+
+                            MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, "N/A", "N/A", "N/A",
+                                "please start Engine from MARS GUI, \r\nif error continues, please contact Marquis", "N/A", "N/A",
+                                true);
+                            return MarsDriverConst.exit_code_error_paraFormat;
+                        }
+                        Console.WriteLine($"combined:{string.Join(" ", args)}");
+                        StoryboardExecute.currentParameters = args;
+                    }
 
                 }
 #endif
@@ -978,8 +1322,49 @@ namespace Mars.AutoTestingDriver
                     {
                         case "-S":
                         case "-STORYBOARD":
+                            LogDispatchBranch("CmdSwitch.Storyboard", $"cmd={strCmd}");
                             return RunTestCaseOrTestStoryBoard(strCurMarsAccount, arrParaWithoutApp, ref isExitItself);
+                        // 命令行形式入口（与 ClickOnce URL 分流互补）：
+                        //   [userName] -BatchFold -FoldList "(1,323,432,5)" -Continue True -CurrentDB MARS2 -CallBackServer localhost:5000 -Uuid xxxx
+                        case "-BATCHFOLD":
+                            {
+                                LogDispatchBranch("CmdSwitch.BatchFold", "cmd=-BATCHFOLD");
+                                MarsBatchFoldURLPara fromArgs = BuildBatchFoldInfoFromArgs(strCurMarsAccount, arrParaWithoutApp,
+                                    ref isOk, ref strError, ref strAdv, ref strStack);
+                                if (!isOk || fromArgs == null)
+                                {
+                                    MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, "N/A", "N/A", "N/A", strAdv, "N/A", strStack, true);
+                                    return MarsDriverConst.exit_code_error_paraFormat;
+                                }
+                                CurrentBatchFoldInfo = fromArgs;
+                                MarsGlobarVar.UUID_FROM_WEB = fromArgs.uuid;
+                                MarsGlobarVar.MARS_CURRENT_DB = fromArgs.currentDB;
+                                return RunBatchFold(fromArgs, ref strError, ref strAdv, ref strStack);
+                            }
+                        // 命令行 / ClickOnce fall-through：
+                        //   [userName] -Fold [SB_Name] [Id] -App [AppId] -Mode Base -Continue False -IgnoreError False -CurrentDB [Db] -CallBackServer [Host] -Uuid [Uuid]
+                        case "-FOLD":
+                            {
+                                LogDispatchBranch("CmdSwitch.Fold", "cmd=-FOLD");
+                                MarsFoldURLPara foldInfo = CurrentFoldInfo;
+                                if (foldInfo == null || !foldInfo.isOk)
+                                {
+                                    foldInfo = BuildFoldInfoFromArgs(strCurMarsAccount, arrParaWithoutApp,
+                                        ref isOk, ref strError, ref strAdv, ref strStack);
+                                    if (!isOk || foldInfo == null)
+                                    {
+                                        MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, "N/A", "N/A", "N/A", strAdv, "N/A", strStack, true);
+                                        return MarsDriverConst.exit_code_error_paraFormat;
+                                    }
+                                    CurrentFoldInfo = foldInfo;
+                                }
+                                MarsGlobarVar.UUID_FROM_WEB = foldInfo.uuid;
+                                MarsGlobarVar.MARS_CURRENT_DB = foldInfo.currentDB;
+                                MarsGlobarVar.MARS_current_StoryboardId = foldInfo.storyBoardId;
+                                return RunFold(foldInfo, ref isExitItself);
+                            }
                         default:
+                            LogDispatchBranch("CmdSwitch.Unknown", $"unsupported cmd={strCmd}");
                             return MarsDriverConst.exit_code_error_paraFormat;
                     }
                 }
@@ -1482,6 +1867,897 @@ namespace Mars.AutoTestingDriver
                 return false;
             }
 
+        }
+
+        /// <summary>
+        /// 从命令行参数数组构建 <see cref="MarsFoldURLPara"/>。
+        /// 期望形式（去掉 userName 与 -Fold 之后）：
+        /// <code>
+        /// [SB_Name] [Id] -App [AppId] -Mode Base -Continue False -IgnoreError False -CurrentDB [Db] -CallBackServer [Host] -Uuid [Uuid]
+        /// </code>
+        /// 位置参数对齐 CombinParaFromURI 产出的 Storyboard 参数顺序，便于对照；本方法独立实现，不调用 CombinParaFromURI。
+        /// </summary>
+        private static MarsFoldURLPara BuildFoldInfoFromArgs(string userName, string[] arrParameters,
+            ref bool isOk, ref string strError, ref string strAdv, ref string strStack)
+        {
+            isOk = false;
+            strAdv = "Please start Fold from MARS GUI or pass valid -Fold parameters";
+            strStack = Environment.StackTrace;
+            try
+            {
+                if (arrParameters == null || arrParameters.Length < 2)
+                {
+                    strError = "Fold args require at least storyBoardName and storyBoardId";
+                    return null;
+                }
+
+                var info = new MarsFoldURLPara
+                {
+                    userName = userName,
+                    command = cnst_uri_command_fold,
+                    storyBoardName = arrParameters[0],
+                    storyBoardId = arrParameters[1],
+                    appId = GetParaValueByIdx(arrParameters, "-App", null),
+                    mode = GetParaValueByIdx(arrParameters, "-Mode", null),
+                    currentDB = GetParaValueByIdx(arrParameters, "-CurrentDB", null)
+                        ?? GetParaValueByIdx(arrParameters, "-currentDB", null),
+                    callBackServer = GetParaValueByIdx(arrParameters, "-CallBackServer", null)
+                        ?? GetParaValueByIdx(arrParameters, "-callBackServer", null),
+                    uuid = GetParaValueByIdx(arrParameters, "-Uuid", null)
+                        ?? GetParaValueByIdx(arrParameters, "-uuid", null)
+                        ?? MarsGlobarVar.UUID_FROM_WEB
+                };
+
+                // 去掉 CombinParaFromURI 可能加上的引号包裹
+                if (!string.IsNullOrEmpty(info.storyBoardName)
+                    && info.storyBoardName.Length >= 2
+                    && info.storyBoardName.StartsWith("\"")
+                    && info.storyBoardName.EndsWith("\""))
+                {
+                    info.storyBoardName = info.storyBoardName.Substring(1, info.storyBoardName.Length - 2);
+                }
+
+                string strContinue = GetParaValueByIdx(arrParameters, "-Continue", null);
+                if (string.IsNullOrWhiteSpace(strContinue) || !bool.TryParse(strContinue.Trim(), out bool cont))
+                {
+                    strError = $"Parameter [-Continue] missing or invalid:[{strContinue}]";
+                    return null;
+                }
+                info.isContinue = cont;
+
+                string strIgnore = GetParaValueByIdx(arrParameters, "-IgnoreError", "False");
+                if (string.IsNullOrWhiteSpace(strIgnore))
+                    info.ignoreError = false;
+                else if (!bool.TryParse(strIgnore.Trim(), out bool ign))
+                {
+                    strError = $"Parameter [-IgnoreError] is not a boolean:[{strIgnore}]";
+                    return null;
+                }
+                else
+                    info.ignoreError = ign;
+
+                if (!info.Validate(ref strError, ref strAdv, ref strStack))
+                    return null;
+
+                info.isOk = true;
+                isOk = true;
+                return info;
+            }
+            catch (Exception e)
+            {
+                strError = $"Error building Fold parameters from args: {e.Message}";
+                strStack = $"{e.Message}\r\n{e.StackTrace}";
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 将 <see cref="MarsFoldURLPara"/> 组装为与 CombinParaFromURI / -S 同形的命令行 args，
+        /// 以便 fall-through Main 公共初始化后由 switch -FOLD 进入 <see cref="RunFold"/>。
+        /// 格式：
+        /// <c>[userName] -Fold [SB_Name] [Id] -App [AppId] -Mode [Mode] -Continue [T|F] -IgnoreError [T|F] -CurrentDB [Db] -CallBackServer [Host] -Uuid [Uuid]</c>
+        /// </summary>
+        private static string[] BuildCommandArgsFromFoldInfo(MarsFoldURLPara foldInfo)
+        {
+            string sbName = foldInfo.storyBoardName ?? "";
+            if ((!string.IsNullOrEmpty(sbName)) && sbName.Contains(" "))
+            {
+                sbName = sbName.Replace("\"", "'");
+                sbName = $"\"{sbName}\"";
+            }
+
+            var lst = new List<string>
+            {
+                foldInfo.userName,
+                cnst_uri_command_fold,
+                sbName,
+                foldInfo.storyBoardId,
+                "-App",
+                foldInfo.appId,
+                "-Mode",
+                foldInfo.mode,
+                "-Continue",
+                foldInfo.isContinue ? "True" : "False",
+                "-IgnoreError",
+                foldInfo.ignoreError ? "True" : "False",
+                "-CurrentDB",
+                foldInfo.currentDB,
+                "-CallBackServer",
+                foldInfo.callBackServer,
+                "-Uuid",
+                foldInfo.uuid
+            };
+            return lst.ToArray();
+        }
+
+        /// <summary>
+        /// Fold-Storyboard 执行入口：按 <see cref="StoryboardExecute.ExecuteTest"/> 的既有调用约定执行，
+        /// <b>不修改</b> ExecuteTest 实现。
+        /// <para>
+        /// ExecuteTest 调用规则（对齐 <see cref="RunTestCaseOrTestStoryBoard"/> / CI）：
+        /// <list type="number">
+        /// <item>Main 公共前置已完成：账号文件、Monitor、ChangeConfigFile、ExtractWPFCore、InitDBInfo 等</item>
+        /// <item>调用前启动 MessageCenter（允许失败仅记日志）</item>
+        /// <item>设置 MarsGlobarVar（UUID / CURRENT_DB / 回调 URL）；Fold 优先用 callBackServer 作为 API base</item>
+        /// <item>可选拉取 keyword mapping 并落盘</item>
+        /// <item>调用
+        /// <c>ExecuteTest(userName, storyBoardId, storyBoardName, appId, mode, isContinue, isIgnore, specialRequire, currentDB, ref error/adv/stack, ref isExitItself, isVerifyValueSkipper)</c>
+        /// </item>
+        /// <item>storyBoardId / appId 必须为数字字符串；mode 大小写不敏感（Base=基线）</item>
+        /// </list>
+        /// </para>
+        /// </summary>
+        /// <param name="fromBatch">
+        /// true：由 BatchFold 循环调用。日志标明来自 batch；
+        /// 强制 Continue=False / IgnoreError=False，任一 test step 失败即中断该 Fold storyboard，返回后由 BatchFold 跳到下一项。
+        /// </param>
+        private static int RunFold(MarsFoldURLPara foldInfo, ref bool isExitItself, bool fromBatch = false)
+        {
+            int iMark = new Random().Next();
+            string strError = "", strAdv = "", strStack = "";
+            string originTag = fromBatch ? "fromBatch" : "directFold";
+            LogDispatchBranch("RunFold", $"mark={iMark}|begin|origin={originTag}|{foldInfo}");
+            Logger.logBegin($"{iMark}|RunFold|origin={originTag}");
+            Console.WriteLine($"RunFold begin.... origin={originTag} {foldInfo}");
+            if (fromBatch)
+            {
+                Logger.Info("RunFold", "origin=BatchFold|this Fold storyboard execution is invoked from BatchFold mode");
+                Console.WriteLine("[RunFold] Invoked from BatchFold mode (batch loop).");
+            }
+            try
+            {
+                if (foldInfo == null || !foldInfo.isOk)
+                {
+                    LogDispatchBranch("RunFold.InvalidPara", "foldInfo null or not ok");
+                    strError = "Fold info is null or invalid";
+                    strAdv = "Please start Fold from MARS GUI";
+                    strStack = Environment.StackTrace;
+                    if (!fromBatch)
+                        MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, "N/A", "N/A", "N/A", strAdv, "N/A", strStack, true);
+                    return MarsDriverConst.exit_code_error_paraFormat;
+                }
+
+                // Batch 调用：强制中断策略——任一 test step 失败即停止本 Fold storyboard
+                bool runContinue = fromBatch ? false : foldInfo.isContinue;
+                bool runIgnoreError = fromBatch ? false : foldInfo.ignoreError;
+                if (fromBatch)
+                {
+                    Logger.Info("RunFold",
+                        $"origin=BatchFold|force Continue=False IgnoreError=False (URL Continue was {foldInfo.isContinue}, IgnoreError was {foldInfo.ignoreError})");
+                }
+
+                // ---- 前置 1：MessageCenter（与 RunTestCaseOrTestStoryBoard 一致）----
+                LogDispatchBranch("RunFold.StartMessageCenter", $"origin={originTag}");
+                bool mcOk = StartMessageCenter(ref strError);
+                if (!mcOk)
+                {
+                    Logger.Error("RunFold", $"Can't start Message center, SOME FEATURES CAN'T WORK CORRECTLY. Error is{strError}");
+                }
+
+                // ---- 前置 2：API base / 回调（Fold URL 的 callBackServer 优先）----
+                MarsRESTfulApiClient restClient = new MarsRESTfulApiClient(foldInfo.currentDB);
+                string apiBaseUrl = null;
+                string fromCallBack = foldInfo.callBackServer?.Trim();
+                if (!string.IsNullOrWhiteSpace(fromCallBack))
+                {
+                    if (!fromCallBack.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                        && !fromCallBack.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                        fromCallBack = "http://" + fromCallBack;
+                    if (!fromCallBack.EndsWith("/"))
+                        fromCallBack += "/";
+                    apiBaseUrl = fromCallBack;
+                    restClient.webURLPreFix = apiBaseUrl;
+                    MarsRESTfulApiClient.setWebURLPrefix(apiBaseUrl);
+                    LogDispatchBranch("RunFold.ApiBase", $"origin={originTag}, source=callBackServer, apiBase=[{apiBaseUrl}]");
+                }
+                else
+                {
+                    apiBaseUrl = restClient.webURLPreFix;
+                    LogDispatchBranch("RunFold.ApiBase", $"origin={originTag}, source=config, apiBase=[{apiBaseUrl}]");
+                }
+
+                MarsGlobarVar.UUID_FROM_WEB = foldInfo.uuid;
+                MarsGlobarVar.MARS_CURRENT_DB = foldInfo.currentDB;
+                MarsGlobarVar.MARS_current_StoryboardId = foldInfo.storyBoardId;
+                MarsGlobarVar.MARS_WEB_HOST = $"{apiBaseUrl}Storyboard/UpdateStoryboardStatus?sessionId={foldInfo.uuid}";
+                MarsGlobarVar.MARS_WEB_STORYSTATUS_CALLBACK = $"{apiBaseUrl}StoryBoard/UpdateStoryboardExecuteStatus?";
+                Console.WriteLine($"Fold Links|{MarsGlobarVar.MARS_WEB_HOST}|\r\n{MarsGlobarVar.MARS_WEB_STORYSTATUS_CALLBACK}");
+                Logger.Info("RunFold",
+                    $"origin={originTag}|apiBase|{apiBaseUrl}|uuid|{foldInfo.uuid}|sb|{foldInfo.storyBoardName}|id|{foldInfo.storyBoardId}|app|{foldInfo.appId}|mode|{foldInfo.mode}|Continue|{runContinue}|IgnoreError|{runIgnoreError}");
+
+                // ---- 前置 3：keyword mapping（与 RunTestCaseOrTestStoryBoard 一致，失败不阻断）----
+                LogDispatchBranch("RunFold.KeywordMapping", $"origin={originTag}|getKeywordMappingInfo from server");
+                bool mapOk = false;
+                string mapErr = "";
+                string strDataKeywordMapping = restClient.getKeywordMappingInfo(ref mapErr, ref mapOk);
+                if (mapOk)
+                {
+                    KeywordControlTypeMappingMgmt.saveApiDataToFile(strDataKeywordMapping, ref mapErr, ref mapOk);
+                    if (mapOk)
+                        Logger.Info("RunFold", "keyword mapping saved to api data file");
+                    else
+                        Logger.Error("RunFold", $"keyword mapping not saved|{mapErr}");
+                }
+                else
+                {
+                    Logger.Error("RunFold", $"getKeywordMappingInfo failed|{mapErr}");
+                }
+
+                // ---- 前置 4：Fold storyboard 首条必须是 Login（不进入 ExecuteTest）----
+                // 判定与 MARSWeb SqlStoryBoardRepository.IsLoginTestCaseName 一致：名称含 login / logon（忽略大小写）
+                LogDispatchBranch("RunFold.ValidateFirstLogin",
+                    $"origin={originTag}|sbId={foldInfo.storyBoardId}, mode={foldInfo.mode}, db={foldInfo.currentDB}");
+                if (!ValidateFoldStoryboardFirstStepIsLogin(foldInfo, ref strError, ref strAdv, ref strStack))
+                {
+                    LogDispatchBranch("RunFold.ValidateFirstLogin.Failed", $"origin={originTag}|{strError}");
+                    Logger.Error("RunFold", $"origin={originTag}|{strError}");
+                    Console.WriteLine(strError);
+                    if (!fromBatch)
+                    {
+                        MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, "N/A", "N/A", "N/A",
+                            string.IsNullOrEmpty(strAdv) ? "Ensure the first test case of the Fold storyboard is Login" : strAdv,
+                            "N/A", strStack ?? Environment.StackTrace, true);
+                    }
+                    return MarsDriverConst.exit_code_ExeFold_Failed;
+                }
+                LogDispatchBranch("RunFold.ValidateFirstLogin.OK", $"origin={originTag}|first test case is Login");
+
+                // ---- 调用 ExecuteTest（签名/语义严格对齐 RunTestCaseOrTestStoryBoard，不改 ExecuteTest）----
+                // ExecuteTest(account, storyboardId, storyboardName, appId, mode,
+                //             isContinue, isIgnore, specialRequire, currentDB,
+                //             ref error, ref adv, ref stack, ref isQuitSelf, isVerifyValueSkipper)
+                string strSpecialRequire = null; // Fold URL 无 -ExtRequire；与 CI 路径传 null 一致
+                strError = "";
+                LogDispatchBranch("RunFold.ExecuteTest",
+                    $"origin={originTag}|BEFORE ExecuteTest user={foldInfo.userName}, sbId={foldInfo.storyBoardId}, sbName={foldInfo.storyBoardName}, " +
+                    $"app={foldInfo.appId}, mode={foldInfo.mode}, Continue={runContinue}, IgnoreError={runIgnoreError}, db={foldInfo.currentDB}");
+                Logger.Info("RunFold",
+                    $"origin={originTag}|BEFORE ExecuteTest|{foldInfo.userName}|{foldInfo.storyBoardId}|{foldInfo.storyBoardName}|{foldInfo.appId}|{foldInfo.mode}|Continue={runContinue}|Ignore={runIgnoreError}|db={foldInfo.currentDB}");
+
+                bool isOk = StoryboardExecute.ExecuteTest(
+                    foldInfo.userName,
+                    foldInfo.storyBoardId,
+                    foldInfo.storyBoardName,
+                    foldInfo.appId,
+                    foldInfo.mode,
+                    runContinue,
+                    runIgnoreError,
+                    strSpecialRequire,
+                    foldInfo.currentDB,
+                    ref strError,
+                    ref strAdv,
+                    ref strStack,
+                    ref isExitItself,
+                    isVerifyValueSkipper);
+
+                if (!isOk)
+                {
+                    LogDispatchBranch("RunFold.ExecuteTest.Failed", $"origin={originTag}|{strError}");
+                    Logger.Error("RunFold", $"origin={originTag}|[{strError}] adv:{strAdv} stack:{strStack}");
+                    Console.WriteLine("Error when Execute Fold storyboard:[{0}], \r\n\t{1}", foldInfo.storyBoardName, strError);
+                    if (fromBatch)
+                    {
+                        Logger.Info("RunFold",
+                            $"origin=BatchFold|abort this Fold storyboard on test-step error; BatchFold will continue with next item. sbId={foldInfo.storyBoardId}");
+                    }
+                    else
+                    {
+                        MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, "N/A", "N/A", "N/A", strAdv, "N/A", strStack,
+                            StoryboardExecute.TestStoryInfoFromCICmd == null ? false : StoryboardExecute.TestStoryInfoFromCICmd.isOk);
+                    }
+                    return MarsDriverConst.exit_code_ExeFold_Failed;
+                }
+
+                LogDispatchBranch("RunFold.ExecuteTest.Success", $"origin={originTag}|sbId={foldInfo.storyBoardId}");
+                Console.WriteLine(string.IsNullOrEmpty(strError) ? "" : strError);
+                Console.WriteLine("Fold Storyboard [{0}] Executed successfully. origin={1}", foldInfo.storyBoardName, originTag);
+                return MarsDriverConst.exit_code_ExeFold_Ok;
+            }
+            catch (Exception e)
+            {
+                LogDispatchBranch("RunFold.Exception", $"origin={originTag}|{e.Message}");
+                strError = $"Exception in RunFold: {e.Message}";
+                strAdv = "Contact Marquis";
+                strStack = $"{e.Message}\r\n{e.StackTrace}";
+                Logger.Error("RunFold", $"origin={originTag}|{e.Message}", e);
+                if (!fromBatch)
+                    MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, "N/A", "N/A", "N/A", strAdv, "N/A", strStack, true);
+                return MarsDriverConst.exit_code_ExeFold_Failed;
+            }
+            finally
+            {
+                Logger.logEnd($"{iMark}|RunFold|origin={originTag}");
+            }
+        }
+
+        /// <summary>
+        /// Fold 模式：校验 storyboard 按 RUN_ORDER 的第一条 test case 必须是 Login。
+        /// Login 判定与 Web 端一致：TEST_CASE_NAME 包含 "login" 或 "logon"（忽略大小写）。
+        /// </summary>
+        private static bool ValidateFoldStoryboardFirstStepIsLogin(MarsFoldURLPara foldInfo,
+            ref string strError, ref string strAdv, ref string strStack)
+        {
+            strStack = Environment.StackTrace;
+            strAdv = "Ensure the first test case of the Fold storyboard is a Login test case, then retry.";
+            try
+            {
+                if (!long.TryParse(foldInfo.storyBoardId, out long lStoryboardId))
+                {
+                    strError = "StoryboardId from Fold URL is not a number";
+                    return false;
+                }
+
+                bool isBase = string.Compare(foldInfo.mode, "base", StringComparison.OrdinalIgnoreCase) == 0;
+                string loadErr = null;
+                List<ExecutableTestStoryBoard> lst =
+                    ExecutableTestStoryBoard.GetStoryboarddetailListByStoryboardId(
+                        lStoryboardId, isBase, ref loadErr, foldInfo.currentDB);
+
+                if (lst == null || lst.Count == 0)
+                {
+                    strError = string.IsNullOrEmpty(loadErr)
+                        ? $"Fold storyboard [{foldInfo.storyBoardName}] (id={foldInfo.storyBoardId}) has no test cases."
+                        : loadErr;
+                    return false;
+                }
+
+                var firstDetail = lst[0];
+                var firstObj = firstDetail == null ? null : firstDetail.AssignedTestObjectFromDB;
+                string firstName = firstObj == null ? null : firstObj.TEST_CASE_NAME;
+                long firstRunOrder = firstObj == null ? -1 : firstObj.RUN_ORDER;
+                Logger.Info("ValidateFoldStoryboardFirstStepIsLogin",
+                    $"sbId={foldInfo.storyBoardId}|firstTestCase=[{firstName}]|runOrder={firstRunOrder}");
+
+                if (!IsFoldLoginTestCaseName(firstName))
+                {
+                    // Required English message: first test step of every Fold storyboard must be Login
+                    strError =
+                        "The first test step of every Fold storyboard must be Login. " +
+                        $"Current first test case is [{(string.IsNullOrEmpty(firstName) ? "N/A" : firstName)}] " +
+                        $"on storyboard [{foldInfo.storyBoardName}] (id={foldInfo.storyBoardId}).";
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                strError = $"Failed to validate Fold storyboard first Login step: {e.Message}";
+                strStack = $"{e.Message}\r\n{e.StackTrace}";
+                Logger.Error("ValidateFoldStoryboardFirstStepIsLogin", strError, e);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 与 MARSWeb <c>SqlStoryBoardRepository.IsLoginTestCaseName</c> 保持一致。
+        /// </summary>
+        private static bool IsFoldLoginTestCaseName(string testCaseName)
+        {
+            if (string.IsNullOrEmpty(testCaseName))
+                return false;
+            return testCaseName.IndexOf("login", StringComparison.OrdinalIgnoreCase) >= 0
+                || testCaseName.IndexOf("logon", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        /// <summary>
+        /// 从命令行参数数组构建 <see cref="MarsBatchFoldURLPara"/>。
+        /// 期望形式（args[0] 已是 userName，arrParameters 为去掉 userName 与 -BatchFold 之后的剩余参数）：
+        /// <code>
+        /// -FoldList "(1,323,432,5)" -Continue True -CurrentDB MARS2 -CallBackServer localhost:5000 -Uuid 7aae010e-a6f3-45e2-baec-664ecae8a5a2
+        /// </code>
+        /// </summary>
+        private static MarsBatchFoldURLPara BuildBatchFoldInfoFromArgs(string userName, string[] arrParameters,
+            ref bool isOk, ref string strError, ref string strAdv, ref string strStack)
+        {
+            isOk = false;
+            strAdv = "Please start BatchFold from MARS GUI or pass valid -BatchFold parameters";
+            strStack = Environment.StackTrace;
+            try
+            {
+                var info = new MarsBatchFoldURLPara
+                {
+                    userName = userName,
+                    command = cnst_uri_command_batchfold,
+                    foldListRaw = GetParaValueByIdx(arrParameters, "-FoldList", null),
+                    uuid = GetParaValueByIdx(arrParameters, "-Uuid", null)
+                        ?? GetParaValueByIdx(arrParameters, "-uuid", null),
+                    currentDB = GetParaValueByIdx(arrParameters, "-CurrentDB", null)
+                        ?? GetParaValueByIdx(arrParameters, "-currentDB", null),
+                    callBackServer = GetParaValueByIdx(arrParameters, "-CallBackServer", null)
+                        ?? GetParaValueByIdx(arrParameters, "-callBackServer", null)
+                };
+
+                string strContinue = GetParaValueByIdx(arrParameters, "-Continue", null);
+                if (string.IsNullOrWhiteSpace(strContinue) || !bool.TryParse(strContinue.Trim(), out bool cont))
+                {
+                    strError = $"Parameter [-Continue] missing or invalid:[{strContinue}]";
+                    return null;
+                }
+                info.isContinue = cont;
+
+                if (!MarsBatchFoldURLPara.TryParseFoldList(info.foldListRaw, out List<long> ids, out string foldErr))
+                {
+                    strError = foldErr;
+                    strAdv = "FoldList format should be like (1,323,432,5)";
+                    return null;
+                }
+                info.foldListIds = ids;
+
+                if (!info.Validate(ref strError, ref strAdv, ref strStack))
+                    return null;
+
+                info.isOk = true;
+                isOk = true;
+                return info;
+            }
+            catch (Exception e)
+            {
+                strError = $"Error building BatchFold parameters from args: {e.Message}";
+                strStack = $"{e.Message}\r\n{e.StackTrace}";
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 解析 BatchFold / EngineSvc 的 API base URL。
+        /// 优先使用 ClickOnce URL 中的 callBackServer；否则回退到配置项 MarsEngineSvc_url（restClient.webURLPreFix）。
+        /// 返回值保证以 http(s):// 开头并以 / 结尾（若可解析）。
+        /// </summary>
+        private static string ResolveBatchFoldApiBaseUrl(MarsBatchFoldURLPara batchFoldInfo, MarsRESTfulApiClient restClient,
+            out string resolveSource)
+        {
+            resolveSource = null;
+            string fromCallBack = batchFoldInfo?.callBackServer?.Trim();
+            if (!string.IsNullOrWhiteSpace(fromCallBack))
+            {
+                if (!fromCallBack.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                    && !fromCallBack.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                {
+                    fromCallBack = "http://" + fromCallBack;
+                }
+                if (!fromCallBack.EndsWith("/"))
+                    fromCallBack += "/";
+                resolveSource = "callBackServer";
+                return fromCallBack;
+            }
+
+            string fromConfig = restClient?.webURLPreFix?.Trim();
+            if (!string.IsNullOrWhiteSpace(fromConfig))
+            {
+                if (!fromConfig.EndsWith("/"))
+                    fromConfig += "/";
+                resolveSource = "MarsEngineSvc_url/config";
+                return fromConfig;
+            }
+
+            resolveSource = "none";
+            return null;
+        }
+
+        /// <summary>
+        /// BatchFold（批量折叠）执行框架入口。
+        /// <para>
+        /// 由 Main 在解析到下列 URL 后调用：
+        /// <c>/MARSENGINE/Mars.AutoTestingDriver.application?userName=[UserName]&amp;uuid=[Uuid]&amp;command=-BatchFold&amp;FoldList=(1,323,432,5)&amp;Continue=[True|False]&amp;currentDB=[Db]&amp;callBackServer=[Host]</c>
+        /// </para>
+        /// <para>
+        /// 流程：
+        /// 1. 获得 EngineSvc API base URL（callBackServer 优先）
+        /// 2. 调用 <c>GET /MarsEngine/StoryboardListByFoldList?foldList=...&amp;currentDBIdx=...</c>（调用前必须写 log）
+        /// 3. 按返回的 storyboardList（保持 FoldList 顺序）循环调用 <see cref="RunFold"/>(fromBatch=true)
+        /// 4. 任一 Fold storyboard 的 test step 失败：中断该 Fold SB，直接跳到下一项（不中止整个 batch）
+        /// </para>
+        /// </summary>
+        /// <param name="batchFoldInfo">已校验的 BatchFold 参数</param>
+        /// <param name="strError">失败错误</param>
+        /// <param name="strAdv">失败建议</param>
+        /// <param name="strStack">失败堆栈</param>
+        /// <returns>进程退出码</returns>
+        private static int RunBatchFold(MarsBatchFoldURLPara batchFoldInfo,
+            ref string strError, ref string strAdv, ref string strStack)
+        {
+            int iMark = new Random().Next();
+            LogDispatchBranch("RunBatchFold", $"mark={iMark}|begin|{batchFoldInfo}");
+            Logger.logBegin($"{iMark}|RunBatchFold");
+            Console.WriteLine($"RunBatchFold begin.... {batchFoldInfo}");
+            try
+            {
+                if (batchFoldInfo == null || !batchFoldInfo.isOk)
+                {
+                    strError = "BatchFold info is null or invalid";
+                    strAdv = "Please start BatchFold from MARS GUI";
+                    strStack = Environment.StackTrace;
+                    MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, "N/A", "N/A", "N/A", strAdv, "N/A", strStack, true);
+                    return MarsDriverConst.exit_code_error_paraFormat;
+                }
+
+                // --------------------------------------------------------------------------------
+                // 步骤 1：获得 API base URL（优先 callBackServer）
+                //   callBackServer 样例：localhost:5000（URL 中可能是 localhost%3A5000）
+                //   EngineSvc base path 约定：{base}/MarsEngine/...
+                // --------------------------------------------------------------------------------
+                MarsRESTfulApiClient restClient = new MarsRESTfulApiClient(batchFoldInfo.currentDB);
+                string apiBaseUrl = ResolveBatchFoldApiBaseUrl(batchFoldInfo, restClient, out string resolveSource);
+                LogDispatchBranch("RunBatchFold.ResolveApiBaseUrl",
+                    $"source={resolveSource}, apiBaseUrl=[{apiBaseUrl}], configPrefix=[{restClient.webURLPreFix}]");
+                Logger.Info("RunBatchFold",
+                    $"ResolveApiBaseUrl|source={resolveSource}|apiBaseUrl=[{apiBaseUrl}]|config=[{restClient.webURLPreFix}]");
+
+                if (string.IsNullOrWhiteSpace(apiBaseUrl))
+                {
+                    strError = "Cannot resolve EngineSvc API base url (callBackServer and MarsEngineSvc_url are empty)";
+                    strAdv = "Pass callBackServer in ClickOnce URL or configure MarsEngineSvc_url";
+                    strStack = Environment.StackTrace;
+                    MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, "N/A", "N/A", "N/A", strAdv, "N/A", strStack, true);
+                    return MarsDriverConst.exit_code_error_paraFormat;
+                }
+
+                // 将本会话 API 基址写回 REST 客户端，后续 BuildURL 使用该 host
+                restClient.webURLPreFix = apiBaseUrl;
+                MarsRESTfulApiClient.setWebURLPrefix(apiBaseUrl);
+
+                MarsGlobarVar.MARS_WEB_HOST = $"{apiBaseUrl}Storyboard/UpdateStoryboardStatus?sessionId={batchFoldInfo.uuid}";
+                MarsGlobarVar.MARS_WEB_STORYSTATUS_CALLBACK = $"{apiBaseUrl}StoryBoard/UpdateStoryboardExecuteStatus?";
+                Console.WriteLine($"BatchFold apiBase=[{apiBaseUrl}] uuid=[{batchFoldInfo.uuid}] db=[{batchFoldInfo.currentDB}]");
+                Console.WriteLine($"BatchFold Links|{MarsGlobarVar.MARS_WEB_HOST}|\r\n{MarsGlobarVar.MARS_WEB_STORYSTATUS_CALLBACK}");
+
+                // --------------------------------------------------------------------------------
+                // 步骤 2：用 currentDB + FoldList 调用 StoryboardListByFoldList，获得待处理 storyboard id
+                //   GET /MarsEngine/StoryboardListByFoldList?foldList=(...)&currentDBIdx=[Db]
+                //   文档：enginesvc-api.md § StoryboardListByFoldList
+                //   要求：调用前必须写 log（此处 + ApiClient 内 BEFORE_HTTP_GET）
+                // --------------------------------------------------------------------------------
+                string foldListForApi = string.IsNullOrWhiteSpace(batchFoldInfo.foldListRaw)
+                    ? $"({string.Join(",", batchFoldInfo.foldListIds)})"
+                    : batchFoldInfo.foldListRaw;
+
+                LogDispatchBranch("RunBatchFold.StoryboardListByFoldList",
+                    $"BEFORE_CALL foldList=[{foldListForApi}] currentDBIdx=[{batchFoldInfo.currentDB}] apiBase=[{apiBaseUrl}]");
+                Logger.Info("RunBatchFold",
+                    $"BEFORE_CALL StoryboardListByFoldList|foldList=[{foldListForApi}]|currentDBIdx=[{batchFoldInfo.currentDB}]|apiBase=[{apiBaseUrl}]");
+                Console.WriteLine(
+                    $"[RunBatchFold] BEFORE_CALL StoryboardListByFoldList foldList=[{foldListForApi}] currentDBIdx=[{batchFoldInfo.currentDB}] apiBase=[{apiBaseUrl}]");
+
+                bool apiOk = false;
+                RESTfulFoldStoryboardList foldSbResult = restClient.GetStoryboardListByFoldList(
+                    foldListForApi, batchFoldInfo.currentDB, ref apiOk, ref strError);
+
+                if (!apiOk || foldSbResult == null || foldSbResult.storyboardList == null)
+                {
+                    LogDispatchBranch("RunBatchFold.StoryboardListByFoldList.Failed", strError);
+                    strAdv = "Check EngineSvc is running and callBackServer / currentDB / FoldList are correct";
+                    strStack = Environment.StackTrace;
+                    MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(
+                        string.IsNullOrEmpty(strError) ? "StoryboardListByFoldList failed" : strError,
+                        "N/A", "N/A", "N/A", strAdv, "N/A", strStack, true);
+                    return MarsDriverConst.exit_code_ExeBatchFold_Failed;
+                }
+
+                LogDispatchBranch("RunBatchFold.StoryboardListByFoldList.OK",
+                    $"count={foldSbResult.storyboardList.Count}, objectType={foldSbResult.objectType}");
+                Logger.Info("RunBatchFold",
+                    $"AFTER_CALL StoryboardListByFoldList OK|count={foldSbResult.storyboardList.Count}|msg=[{foldSbResult.ReturnedMessage}]");
+                foreach (var itm in foldSbResult.storyboardList)
+                {
+                    if (itm == null) continue;
+                    Logger.Info("RunBatchFold",
+                        $"foldMap|order={itm.order}|foldId={itm.foldId}|FoldStoryboardId={itm.FoldStoryboardId}");
+                    Console.WriteLine($"\tfold order={itm.order} foldId={itm.foldId} -> storyboardId={itm.FoldStoryboardId}");
+                }
+
+                // --------------------------------------------------------------------------------
+                // 步骤 3：按 API 返回顺序循环调用 Fold-storyboard（RunFold fromBatch=true）
+                //   - 任一 test step 失败：RunFold 中断该 Fold SB，本循环跳到下一项
+                //   - 日志标明 origin=BatchFold / fromBatch
+                // --------------------------------------------------------------------------------
+                string defaultAppId;
+                string defaultMode;
+                if (!TryResolveBatchFoldDefaultAppAndMode(restClient, batchFoldInfo.currentDB,
+                        out defaultAppId, out defaultMode, ref strError, ref strAdv, ref strStack))
+                {
+                    LogDispatchBranch("RunBatchFold.ResolveDefaultApp.Failed", strError);
+                    MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(
+                        string.IsNullOrEmpty(strError) ? "Cannot resolve application for BatchFold" : strError,
+                        "N/A", "N/A", "N/A",
+                        string.IsNullOrEmpty(strAdv) ? "Register at least one application in MARS" : strAdv,
+                        "N/A", strStack ?? Environment.StackTrace, true);
+                    return MarsDriverConst.exit_code_ExeBatchFold_Failed;
+                }
+                Logger.Info("RunBatchFold",
+                    $"defaultAppId|{defaultAppId}|defaultMode|{defaultMode}|will loop RunFold(fromBatch=true)");
+
+                int successCount = 0;
+                int failCount = 0;
+                List<long> failedFoldIds = new List<long>();
+
+                for (int i = 0; i < foldSbResult.storyboardList.Count; i++)
+                {
+                    FoldStoryboardListItem mapItem = foldSbResult.storyboardList[i];
+                    if (mapItem == null)
+                    {
+                        LogDispatchBranch("RunBatchFold.Item.Null", $"index={i}");
+                        continue;
+                    }
+
+                    long foldId = mapItem.foldId;
+                    long storyboardId = mapItem.FoldStoryboardId;
+                    Console.WriteLine(
+                        $"BatchFold [{i + 1}/{foldSbResult.storyboardList.Count}] foldId={foldId} storyboardId={storyboardId} -> RunFold(fromBatch) ...");
+                    Logger.Info("RunBatchFold",
+                        $"begin item fromBatch| {i + 1}/{foldSbResult.storyboardList.Count}|foldId|{foldId}|storyboardId|{storyboardId}");
+
+                    bool itemOk = false;
+                    string itemError = null;
+                    try
+                    {
+                        if (storyboardId <= 0)
+                        {
+                            itemOk = false;
+                            itemError = $"No storyboard linked to foldId={foldId} (FoldStoryboardId=0)";
+                            LogDispatchBranch("RunBatchFold.Item.NoStoryboard", itemError);
+                        }
+                        else
+                        {
+                            itemOk = ExecuteBatchFoldItemViaRunFold(
+                                batchFoldInfo, foldId, storyboardId, defaultAppId, defaultMode,
+                                ref itemError, ref strAdv, ref strStack);
+                        }
+                    }
+                    catch (Exception itemEx)
+                    {
+                        itemOk = false;
+                        itemError = itemEx.Message;
+                        strStack = $"{itemEx.Message}\r\n{itemEx.StackTrace}";
+                        Logger.Error("RunBatchFold", $"item exception|foldId|{foldId}|sb|{storyboardId}|{itemEx.Message}", itemEx);
+                    }
+
+                    if (itemOk)
+                    {
+                        successCount++;
+                        Console.WriteLine($"BatchFold foldId={foldId} storyboardId={storyboardId} SUCCEEDED.");
+                        Logger.Info("RunBatchFold",
+                            $"item SUCCEEDED fromBatch|foldId|{foldId}|storyboardId|{storyboardId}");
+                    }
+                    else
+                    {
+                        failCount++;
+                        failedFoldIds.Add(foldId);
+                        Console.WriteLine($"BatchFold foldId={foldId} storyboardId={storyboardId} FAILED (abort this Fold SB, continue next): {itemError}");
+                        Logger.Error("RunBatchFold",
+                            $"item FAILED fromBatch|abort this Fold storyboard|continue next|foldId|{foldId}|sb|{storyboardId}|{itemError}");
+                        // 按需求：任一 Fold SB 失败后不中断 batch，直接跳到下一个 Fold storyboard
+                    }
+                }
+
+                // --------------------------------------------------------------------------------
+                // 步骤 4：汇总结果
+                // --------------------------------------------------------------------------------
+                Console.WriteLine($"BatchFold finished. success={successCount}, failed={failCount}, failedFoldIds=[{string.Join(",", failedFoldIds)}]");
+                Logger.Info("RunBatchFold", $"finished|success|{successCount}|failed|{failCount}|failedFoldIds|{string.Join(",", failedFoldIds)}");
+                LogDispatchBranch("RunBatchFold.Finished", $"success={successCount}, failed={failCount}");
+
+                if (failCount > 0)
+                {
+                    strError = $"BatchFold completed with failures. success={successCount}, failed={failCount}, foldIds=[{string.Join(",", failedFoldIds)}]";
+                    strAdv = "Check failed fold items in MARS GUI";
+                    strStack = Environment.StackTrace;
+                    return MarsDriverConst.exit_code_ExeBatchFold_Failed;
+                }
+
+                return MarsDriverConst.exit_code_ExeBatchFold_Ok;
+            }
+            catch (Exception e)
+            {
+                strError = $"Exception in RunBatchFold: {e.Message}";
+                strAdv = "Contact Marquis";
+                strStack = $"{e.Message}\r\n{e.StackTrace}";
+                Logger.Error("RunBatchFold", e.Message, e);
+                MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, "N/A", "N/A", "N/A", strAdv, "N/A", strStack, true);
+                return MarsDriverConst.exit_code_ExeBatchFold_Failed;
+            }
+            finally
+            {
+                Logger.logEnd($"{iMark}|RunBatchFold");
+            }
+        }
+
+        /// <summary>
+        /// BatchFold 默认应用 / Mode：Batch URL 不含 app/Mode，取引擎已注册应用列表首项；Mode 固定 Base（与 Fold UI 默认一致）。
+        /// </summary>
+        private static bool TryResolveBatchFoldDefaultAppAndMode(
+            MarsRESTfulApiClient restClient, string currentDB,
+            out string appId, out string mode,
+            ref string strError, ref string strAdv, ref string strStack)
+        {
+            appId = null;
+            mode = "Base";
+            strAdv = "Register at least one application in MARS, then retry BatchFold";
+            strStack = Environment.StackTrace;
+            try
+            {
+                string navErr = null, navStack = null;
+                bool navOk = false;
+                RESTfullReturnApplicationObjects apps = restClient.navigateApplications(currentDB, ref navOk, ref navErr, ref navStack);
+                if (!navOk || apps == null || apps.AssignedObjects == null)
+                {
+                    strError = string.IsNullOrEmpty(navErr)
+                        ? "navigateApplications returned no application list for BatchFold"
+                        : navErr;
+                    strStack = string.IsNullOrEmpty(navStack) ? Environment.StackTrace : navStack;
+                    return false;
+                }
+
+                B_REGISTERED_APPS firstApp = apps.AssignedObjects.FirstOrDefault(a => a != null && a.APPLICATION_ID > 0);
+                if (firstApp == null)
+                {
+                    strError = "No valid APPLICATION_ID in navigateApplications result for BatchFold";
+                    return false;
+                }
+
+                appId = firstApp.APPLICATION_ID.ToString();
+                mode = "Base";
+                Logger.Info("TryResolveBatchFoldDefaultAppAndMode",
+                    $"appId|{appId}|appShort|{firstApp.APP_SHORT_NAME}|mode|{mode}");
+                return true;
+            }
+            catch (Exception e)
+            {
+                strError = $"Failed to resolve default application for BatchFold: {e.Message}";
+                strStack = $"{e.Message}\r\n{e.StackTrace}";
+                Logger.Error("TryResolveBatchFoldDefaultAppAndMode", strError, e);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 解析单个 Fold storyboard 的名称，组装 <see cref="MarsFoldURLPara"/>，并循环调用 <see cref="RunFold"/>（fromBatch=true）。
+        /// </summary>
+        private static bool ExecuteBatchFoldItemViaRunFold(
+            MarsBatchFoldURLPara batchFoldInfo, long foldId, long storyboardId,
+            string defaultAppId, string defaultMode,
+            ref string strError, ref string strAdv, ref string strStack)
+        {
+            Logger.logBegin("ExecuteBatchFoldItemViaRunFold",
+                $"fromBatch|foldId|{foldId}|storyboardId|{storyboardId}|app|{defaultAppId}|mode|{defaultMode}");
+            try
+            {
+                if (batchFoldInfo == null || !batchFoldInfo.isOk)
+                {
+                    strError = "BatchFold info is null or invalid";
+                    return false;
+                }
+                if (string.IsNullOrWhiteSpace(defaultAppId))
+                {
+                    strError = "BatchFold default application id is empty";
+                    return false;
+                }
+
+                string sbName;
+                if (!TryResolveFoldStoryboardName(storyboardId, defaultMode, batchFoldInfo.currentDB,
+                        out sbName, ref strError, ref strAdv, ref strStack))
+                {
+                    Logger.Error("ExecuteBatchFoldItemViaRunFold",
+                        $"fromBatch|resolve name failed|foldId|{foldId}|sb|{storyboardId}|{strError}");
+                    return false;
+                }
+
+                // 组装与单条 Fold 同形的参数；Continue/IgnoreError 在 RunFold(fromBatch) 内强制为 False
+                var foldInfo = new MarsFoldURLPara
+                {
+                    userName = batchFoldInfo.userName,
+                    uuid = batchFoldInfo.uuid,
+                    command = cnst_uri_command_fold,
+                    storyBoardName = sbName,
+                    storyBoardId = storyboardId.ToString(),
+                    appId = defaultAppId,
+                    mode = string.IsNullOrWhiteSpace(defaultMode) ? "Base" : defaultMode,
+                    isContinue = false,
+                    ignoreError = false,
+                    currentDB = batchFoldInfo.currentDB,
+                    callBackServer = batchFoldInfo.callBackServer,
+                    isOk = true
+                };
+
+                Logger.Info("ExecuteBatchFoldItemViaRunFold",
+                    $"fromBatch|calling RunFold|foldId|{foldId}|{foldInfo}");
+                Console.WriteLine(
+                    $"\t[BatchFold->RunFold] foldId={foldId} sbId={storyboardId} sbName=[{sbName}] app={defaultAppId} mode={foldInfo.mode}");
+
+                bool isExitItself = false;
+                int exitCode = RunFold(foldInfo, ref isExitItself, fromBatch: true);
+                if (exitCode == MarsDriverConst.exit_code_ExeFold_Ok)
+                {
+                    strError = null;
+                    return true;
+                }
+
+                strError = string.IsNullOrEmpty(strError)
+                    ? $"RunFold(fromBatch) failed for foldId={foldId}, storyboardId={storyboardId}, sbName=[{sbName}], exitCode={exitCode}"
+                    : strError;
+                Logger.Error("ExecuteBatchFoldItemViaRunFold",
+                    $"fromBatch|RunFold failed|foldId|{foldId}|sb|{storyboardId}|exit|{exitCode}|{strError}");
+                return false;
+            }
+            catch (Exception e)
+            {
+                strError = $"Exception executing BatchFold item via RunFold: {e.Message}";
+                strStack = $"{e.Message}\r\n{e.StackTrace}";
+                Logger.Error("ExecuteBatchFoldItemViaRunFold", strError, e);
+                return false;
+            }
+            finally
+            {
+                Logger.logEnd("ExecuteBatchFoldItemViaRunFold");
+            }
+        }
+
+        /// <summary>
+        /// 通过 storyboard detail 列表解析 STORYBOARD_NAME（BatchFold API 只返回 id）。
+        /// </summary>
+        private static bool TryResolveFoldStoryboardName(
+            long storyboardId, string mode, string currentDB,
+            out string storyboardName,
+            ref string strError, ref string strAdv, ref string strStack)
+        {
+            storyboardName = null;
+            strAdv = "Ensure the Fold storyboard exists and has test cases";
+            strStack = Environment.StackTrace;
+            try
+            {
+                bool isBase = string.Compare(mode, "base", StringComparison.OrdinalIgnoreCase) == 0;
+                string loadErr = null;
+                List<ExecutableTestStoryBoard> lst =
+                    ExecutableTestStoryBoard.GetStoryboarddetailListByStoryboardId(
+                        storyboardId, isBase, ref loadErr, currentDB);
+
+                if (lst == null || lst.Count == 0)
+                {
+                    strError = string.IsNullOrEmpty(loadErr)
+                        ? $"Fold storyboard id={storyboardId} has no test cases / cannot resolve name"
+                        : loadErr;
+                    return false;
+                }
+
+                var first = lst[0]?.AssignedTestObjectFromDB;
+                storyboardName = first?.STORYBOARD_NAME;
+                if (string.IsNullOrWhiteSpace(storyboardName))
+                {
+                    strError = $"Fold storyboard id={storyboardId} returned empty STORYBOARD_NAME";
+                    return false;
+                }
+
+                Logger.Info("TryResolveFoldStoryboardName",
+                    $"fromBatch|sbId|{storyboardId}|sbName|{storyboardName}");
+                return true;
+            }
+            catch (Exception e)
+            {
+                strError = $"Failed to resolve Fold storyboard name for id={storyboardId}: {e.Message}";
+                strStack = $"{e.Message}\r\n{e.StackTrace}";
+                Logger.Error("TryResolveFoldStoryboardName", strError, e);
+                return false;
+            }
         }
 
         public static void RunTempTestSteps(string currentLoginUser, MarsClipboardURLPara testStepsFromJsonInfo, ref bool isOk, ref string strError, ref string strStack, ref string strAdv)

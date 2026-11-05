@@ -82,6 +82,9 @@ namespace MarsEngineSvc.basicReturnDataStructure
         _getImageObject_request,
         _getImageObject_response_ok,
         _getImageObject_response_error,
+
+        /// <summary>GET /MarsEngine/StoryboardListByFoldList 成功响应</summary>
+        storyboard_list_by_foldlist,
     }
 
     [Serializable]

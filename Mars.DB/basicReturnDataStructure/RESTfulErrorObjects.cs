@@ -312,6 +312,35 @@ namespace MarsEngineSvc.basicReturnDataStructure
     #endregion
 
 
+    /// <summary>
+    /// StoryboardListByFoldList 单行结果：foldId / FoldStoryboardId / order。
+    /// 见 enginesvc-api.md § StoryboardListByFoldList。
+    /// </summary>
+    [Serializable, DataContract]
+    public class FoldStoryboardListItem
+    {
+        [DataMember(Name = "foldId")]
+        public long foldId { get; set; }
+
+        [DataMember(Name = "FoldStoryboardId")]
+        public long FoldStoryboardId { get; set; }
+
+        /// <summary>1-based 顺序，与请求 FoldList 一致</summary>
+        [DataMember(Name = "order")]
+        public int order { get; set; }
+    }
+
+    /// <summary>
+    /// GET /MarsEngine/StoryboardListByFoldList 响应信封。
+    /// objectType = storyboard_list_by_foldlist 时 storyboardList 有效。
+    /// </summary>
+    [Serializable, DataContract]
+    public class RESTfulFoldStoryboardList : RESTfulReturnObjects
+    {
+        [DataMember]
+        public List<FoldStoryboardListItem> storyboardList { get; set; }
+    }
+
     #region image objects
     public class GetObjectImagePathRequest
     {

@@ -1005,6 +1005,110 @@ namespace Mars.message.DataLayer
             return webApiReturnedLastId.LastMarkId;
         }
 
+        /// <summary>
+        /// 按 FoldList + currentDBIdx 解析各 folder 关联的 storyboard id。
+        /// <para>
+        /// Endpoint（enginesvc-api.md）：
+        /// <c>GET /MarsEngine/StoryboardListByFoldList?foldList=(1,323,432,5)&amp;currentDBIdx=MARS2</c>
+        /// </para>
+        /// 调用 HTTP 之前必须写日志（本方法内强制记录 BEFORE_HTTP_GET）。
+        /// </summary>
+        /// <param name="foldList">如 "(1,323,432,5)" 或 "1,323,432,5"</param>
+        /// <param name="strDBIdx">目标库短名；空则用构造时的 currentDBIdx</param>
+        public RESTfulFoldStoryboardList GetStoryboardListByFoldList(string foldList, string strDBIdx,
+            ref bool isOk, ref string strError)
+        {
+            string dbIdx = string.IsNullOrWhiteSpace(strDBIdx) ? currentDBIdx : strDBIdx;
+            Logger.logBegin(nameof(GetStoryboardListByFoldList),
+                $"foldList:[{foldList}] currentDBIdx:[{dbIdx}] apiBase:[{WebURLPrefix}]");
+            try
+            {
+                if (string.IsNullOrWhiteSpace(WebURLPrefix))
+                {
+                    isOk = false;
+                    strError = "API base url is empty. Provide callBackServer or configure MarsEngineSvc_url.";
+                    Logger.Error(nameof(GetStoryboardListByFoldList), strError);
+                    return null;
+                }
+                if (string.IsNullOrWhiteSpace(foldList))
+                {
+                    isOk = false;
+                    strError = "foldList is empty or null";
+                    Logger.Error(nameof(GetStoryboardListByFoldList), strError);
+                    return null;
+                }
+                if (string.IsNullOrWhiteSpace(dbIdx))
+                {
+                    isOk = false;
+                    strError = "currentDBIdx is empty or null";
+                    Logger.Error(nameof(GetStoryboardListByFoldList), strError);
+                    return null;
+                }
+
+                string apiPath =
+                    $"MarsEngine/StoryboardListByFoldList?foldList={Uri.EscapeDataString(foldList.Trim())}" +
+                    $"&currentDBIdx={Uri.EscapeDataString(dbIdx.Trim())}";
+                string strURL = BuildURL(apiPath, ref isOk, ref strError);
+                if (!isOk)
+                {
+                    Logger.Error(nameof(GetStoryboardListByFoldList), $"BuildURL failed|{strError}");
+                    return null;
+                }
+
+                // 强制：HTTP 调用前写 log
+                string beforeMsg = $"BEFORE_HTTP_GET method=GET url=[{strURL}] foldList=[{foldList}] currentDBIdx=[{dbIdx}] apiBase=[{WebURLPrefix}]";
+                Logger.Info(nameof(GetStoryboardListByFoldList), beforeMsg);
+                Console.WriteLine($"[{nameof(GetStoryboardListByFoldList)}] {beforeMsg}");
+
+                RESTfulFoldStoryboardList rslt = GetDataFromURL<RESTfulFoldStoryboardList>(strURL, ref isOk, ref strError);
+                if (!isOk || rslt == null)
+                {
+                    if (string.IsNullOrEmpty(strError))
+                        strError = $"Failed to call StoryboardListByFoldList: {strURL}";
+                    Logger.Error(nameof(GetStoryboardListByFoldList), $"AFTER_HTTP_GET failed|{strError}");
+                    return rslt;
+                }
+
+                if (rslt.objectType == (int)RESTfulObjectType.error_obj)
+                {
+                    isOk = false;
+                    strError = string.IsNullOrEmpty(rslt.ReturnedMessage)
+                        ? "StoryboardListByFoldList returned error_obj"
+                        : rslt.ReturnedMessage;
+                    Logger.Error(nameof(GetStoryboardListByFoldList), $"AFTER_HTTP_GET error_obj|{strError}");
+                    return rslt;
+                }
+
+                if (rslt.objectType != (int)RESTfulObjectType.storyboard_list_by_foldlist)
+                {
+                    isOk = false;
+                    strError = $"Unexpected objectType [{rslt.objectType}], expect storyboard_list_by_foldlist";
+                    Logger.Error(nameof(GetStoryboardListByFoldList), $"AFTER_HTTP_GET|{strError}");
+                    return rslt;
+                }
+
+                int cnt = rslt.storyboardList == null ? 0 : rslt.storyboardList.Count;
+                int matched = rslt.storyboardList == null
+                    ? 0
+                    : rslt.storyboardList.Count(x => x != null && x.FoldStoryboardId > 0);
+                Logger.Info(nameof(GetStoryboardListByFoldList),
+                    $"AFTER_HTTP_GET OK count={cnt} matchedStoryboards={matched} msg=[{rslt.ReturnedMessage}]");
+                isOk = true;
+                return rslt;
+            }
+            catch (Exception e)
+            {
+                isOk = false;
+                strError = $"Exception in GetStoryboardListByFoldList: {e.Message}";
+                Logger.Error(nameof(GetStoryboardListByFoldList), strError, e);
+                return null;
+            }
+            finally
+            {
+                Logger.logEnd(nameof(GetStoryboardListByFoldList), $"isOk={isOk}");
+            }
+        }
+
         public B_QUERY GetQueryByQueryName(string queryName, ref bool isOk, ref string strError, 
             ref string strStack, ref string strAdv, 
             string strDBIdx = null)
