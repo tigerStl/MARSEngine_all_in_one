@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Mars.VirtualDesktop</AssemblyName>
+    <RootNamespace>Mars.VirtualDesktop</RootNamespace>
+    <ApplicationIcon />
+    <StartupObject>Mars.VirtualDesktop.Program</StartupObject>
+    <Description>Mars subsystem for Win32 virtual desktop create / launch / mirror / input injection</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>
