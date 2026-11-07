@@ -308,6 +308,10 @@ namespace Mars.AutoTestingDriver.SystemUtil
         public const string QUERY_COMMAND = "command";
         /// <summary>URL 查询参数名：待折叠项 ID 列表，格式如 (1,323,432,5)</summary>
         public const string QUERY_FOLD_LIST = "FoldList";
+        /// <summary>URL 查询参数名：应用程序 ID，对应 app</summary>
+        public const string QUERY_APP = "app";
+        /// <summary>URL 查询参数名：执行模式，对应 Mode（Base / Compare）</summary>
+        public const string QUERY_MODE = "Mode";
         /// <summary>URL 查询参数名：失败是否继续</summary>
         public const string QUERY_CONTINUE = "Continue";
         /// <summary>URL 查询参数名：当前数据库短名</summary>
@@ -325,6 +329,10 @@ namespace Mars.AutoTestingDriver.SystemUtil
         public string foldListRaw { get; set; }
         /// <summary>从 FoldList 解析出的 ID 列表</summary>
         public List<long> foldListIds { get; set; }
+        /// <summary>应用程序 ID，对应 app；BatchFold 必需</summary>
+        public string appId { get; set; }
+        /// <summary>执行模式，对应 Mode；缺省 Base</summary>
+        public string mode { get; set; }
         /// <summary>失败是否继续执行后续项，对应 Continue=True|False</summary>
         public bool isContinue { get; set; }
         /// <summary>当前数据库短名，对应 currentDB</summary>
@@ -347,7 +355,7 @@ namespace Mars.AutoTestingDriver.SystemUtil
         public override string ToString()
         {
             string ids = foldListIds == null ? "" : string.Join(",", foldListIds);
-            return $"{{userName={userName}, uuid={uuid}, command={command}, FoldList=({ids}), Continue={isContinue}, currentDB={currentDB}, callBackServer={callBackServer}}}";
+            return $"{{userName={userName}, uuid={uuid}, command={command}, FoldList=({ids}), app={appId}, Mode={mode}, Continue={isContinue}, currentDB={currentDB}, callBackServer={callBackServer}}}";
         }
 
         /// <summary>
@@ -426,6 +434,19 @@ namespace Mars.AutoTestingDriver.SystemUtil
                 strError = "Parameter [FoldList] is empty or invalid";
                 return false;
             }
+            if (string.IsNullOrWhiteSpace(appId))
+            {
+                strError = "Parameter [app] (application id) from URL is empty or null";
+                return false;
+            }
+            if (!long.TryParse(appId.Trim(), out long parsedAppId) || parsedAppId <= 0)
+            {
+                strError = $"Parameter [app] is not a valid application id:[{appId}]";
+                return false;
+            }
+            appId = parsedAppId.ToString();
+            if (string.IsNullOrWhiteSpace(mode))
+                mode = "Base";
             if (string.IsNullOrWhiteSpace(currentDB))
             {
                 strError = "Parameter [currentDB] from URL is empty or null";
@@ -473,6 +494,8 @@ namespace Mars.AutoTestingDriver.SystemUtil
                 userName = query.Get(QUERY_USER_NAME);
                 uuid = query.Get(QUERY_UUID) ?? query.Get(Mars.message.Utility.MarsConstants.CNST_QUERY_URL_UUID_PARA_NAME);
                 foldListRaw = query.Get(QUERY_FOLD_LIST);
+                appId = query.Get(QUERY_APP);
+                mode = query.Get(QUERY_MODE);
                 currentDB = query.Get(QUERY_CURRENT_DB);
                 // HttpUtility.ParseQueryString 会自动 URL-decode，localhost%3A5000 -> localhost:5000
                 callBackServer = query.Get(QUERY_CALLBACK_SERVER);

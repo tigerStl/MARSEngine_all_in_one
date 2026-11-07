@@ -2264,7 +2264,7 @@ namespace Mars.AutoTestingDriver
         /// 从命令行参数数组构建 <see cref="MarsBatchFoldURLPara"/>。
         /// 期望形式（args[0] 已是 userName，arrParameters 为去掉 userName 与 -BatchFold 之后的剩余参数）：
         /// <code>
-        /// -FoldList "(1,323,432,5)" -Continue True -CurrentDB MARS2 -CallBackServer localhost:5000 -Uuid 7aae010e-a6f3-45e2-baec-664ecae8a5a2
+        /// -FoldList "(1,323,432,5)" -App 1000074 -Mode Compare -Continue True -CurrentDB MARS2 -CallBackServer localhost:5000 -Uuid 7aae010e-a6f3-45e2-baec-664ecae8a5a2
         /// </code>
         /// </summary>
         private static MarsBatchFoldURLPara BuildBatchFoldInfoFromArgs(string userName, string[] arrParameters,
@@ -2280,6 +2280,10 @@ namespace Mars.AutoTestingDriver
                     userName = userName,
                     command = cnst_uri_command_batchfold,
                     foldListRaw = GetParaValueByIdx(arrParameters, "-FoldList", null),
+                    appId = GetParaValueByIdx(arrParameters, "-App", null)
+                        ?? GetParaValueByIdx(arrParameters, "-app", null),
+                    mode = GetParaValueByIdx(arrParameters, "-Mode", null)
+                        ?? GetParaValueByIdx(arrParameters, "-mode", null),
                     uuid = GetParaValueByIdx(arrParameters, "-Uuid", null)
                         ?? GetParaValueByIdx(arrParameters, "-uuid", null),
                     currentDB = GetParaValueByIdx(arrParameters, "-CurrentDB", null)
@@ -2471,21 +2475,19 @@ namespace Mars.AutoTestingDriver
                 //   - 任一 test step 失败：RunFold 中断该 Fold SB，本循环跳到下一项
                 //   - 日志标明 origin=BatchFold / fromBatch
                 // --------------------------------------------------------------------------------
-                string defaultAppId;
-                string defaultMode;
-                if (!TryResolveBatchFoldDefaultAppAndMode(restClient, batchFoldInfo.currentDB,
-                        out defaultAppId, out defaultMode, ref strError, ref strAdv, ref strStack))
+                string defaultAppId = batchFoldInfo.appId;
+                string defaultMode = string.IsNullOrWhiteSpace(batchFoldInfo.mode) ? "Base" : batchFoldInfo.mode;
+                if (string.IsNullOrWhiteSpace(defaultAppId))
                 {
+                    strError = "Parameter [app] (application id) is required for BatchFold";
+                    strAdv = "Pass app= in the ClickOnce URL or -App in start arguments";
+                    strStack = Environment.StackTrace;
                     LogDispatchBranch("RunBatchFold.ResolveDefaultApp.Failed", strError);
-                    MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(
-                        string.IsNullOrEmpty(strError) ? "Cannot resolve application for BatchFold" : strError,
-                        "N/A", "N/A", "N/A",
-                        string.IsNullOrEmpty(strAdv) ? "Register at least one application in MARS" : strAdv,
-                        "N/A", strStack ?? Environment.StackTrace, true);
+                    MarsErrorMessageBox.MarsErrorMessageBox.ShowMarsError(strError, "N/A", "N/A", "N/A", strAdv, "N/A", strStack, true);
                     return MarsDriverConst.exit_code_ExeBatchFold_Failed;
                 }
                 Logger.Info("RunBatchFold",
-                    $"defaultAppId|{defaultAppId}|defaultMode|{defaultMode}|will loop RunFold(fromBatch=true)");
+                    $"appId|{defaultAppId}|mode|{defaultMode}|source=urlOrArgs|will loop RunFold(fromBatch=true)");
 
                 int successCount = 0;
                 int failCount = 0;
